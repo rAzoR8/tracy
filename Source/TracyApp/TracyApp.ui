@@ -1,8 +1,8 @@
 <UI version="4.0" >
- <class>TracyClass</class>
- <widget class="QMainWindow" name="TracyClass" >
+ <class>TracyAppClass</class>
+ <widget class="QMainWindow" name="TracyAppClass" >
   <property name="objectName" >
-   <string notr="true">TracyClass</string>
+   <string notr="true">TracyAppClass</string>
   </property>
   <property name="geometry" >
    <rect>
@@ -13,7 +13,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Tracy</string>
+   <string>TracyApp</string>
   </property>
   <widget class="QMenuBar" name="menuBar" />
   <widget class="QToolBar" name="mainToolBar" />
@@ -23,7 +23,7 @@
  <layoutDefault spacing="6" margin="11" />
  <pixmapfunction></pixmapfunction>
  <resources>
-   <include location="Tracy.qrc"/>
+   <include location="TracyApp.qrc"/>
  </resources>
  <connections/>
 </UI>

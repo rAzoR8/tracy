@@ -1,10 +1,10 @@
-#include "Tracy.h"
+#include "TracyApp.h"
 #include <QtWidgets/QApplication>
 
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	Tracy w;
+	TracyApp w;
 	w.show();
 	return a.exec();
 }

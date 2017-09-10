@@ -3,3 +3,5 @@ Source/Tracy/GeneratedFiles/
 Source/Tracy/x64/
 Source/x64/
 *.user
+Source/TracyApp/GeneratedFiles/
+Source/TracyApp/x64/

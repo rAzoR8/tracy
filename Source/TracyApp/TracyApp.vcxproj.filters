@@ -28,38 +28,44 @@
       <Extensions>moc;h;cpp</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="Display">
+      <UniqueIdentifier>{4205237b-f428-429c-8b94-21ca5e8be754}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tracy.cpp">
+    <ClCompile Include="TracyApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_Tracy.cpp">
+    <ClCompile Include="GeneratedFiles\Debug\moc_TracyApp.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_Tracy.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_TracyApp.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\qrc_Tracy.cpp">
+    <ClCompile Include="GeneratedFiles\qrc_TracyApp.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="Tracy.h">
+    <CustomBuild Include="TracyApp.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="Tracy.ui">
+    <CustomBuild Include="TracyApp.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="Tracy.qrc">
+    <CustomBuild Include="TracyApp.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GeneratedFiles\ui_Tracy.h">
+    <ClInclude Include="GeneratedFiles\ui_TracyApp.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanInitializer.h">
+      <Filter>Display</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
