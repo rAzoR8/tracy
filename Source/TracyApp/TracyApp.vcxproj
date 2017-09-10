@@ -84,6 +84,8 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TracyApp.cpp" />
+    <ClCompile Include="VulkanDevice.cpp" />
+    <ClCompile Include="VulkanInitializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="TracyApp.h">
@@ -111,6 +113,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_TracyApp.h" />
+    <ClInclude Include="VulkanAPI.h" />
+    <ClInclude Include="VulkanDevice.h" />
     <ClInclude Include="VulkanInitializer.h" />
   </ItemGroup>
   <ItemGroup>

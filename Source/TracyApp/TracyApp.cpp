@@ -5,4 +5,6 @@ TracyApp::TracyApp(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
+
+	Tracy::VulkanInitializer::Instance();
 }

@@ -2,56 +2,32 @@
 #define VULKANINITIALIZER_H
 
 #include "Singleton.h"
-
-#define VK_USE_PLATFORM_WIN32_KHR
-#include <vulkan\vulkan.hpp>
+#include "VulkanDevice.h"
 #include <vector>
 
 namespace Tracy
 {
-	class VulkanInitializer //: public hlx::Singleton<VulkanInitializer>
+	class VulkanInitializer : public hlx::Singleton<VulkanInitializer>
 	{
 	public:
 		VulkanInitializer();
 		~VulkanInitializer();
 
+		VulkanDevice& GetDevice(const uint32_t _uIndex = 0u);
+		const VulkanDevice& GetDevice(const uint32_t _uIndex = 0u) const;
+
 	private:
 		vk::Instance m_Instance = nullptr;
+		std::vector<VulkanDevice> m_Devices;
 	};
 
-	VulkanInitializer::VulkanInitializer()
+	inline VulkanDevice & VulkanInitializer::GetDevice(const uint32_t _uIndex)
 	{
-		vk::ApplicationInfo AppInfo{};
-		AppInfo.apiVersion = VK_API_VERSION_1_0;
-		AppInfo.applicationVersion = 0u;
-		AppInfo.engineVersion = 666u;
-		AppInfo.pEngineName = "Tracy";
-		AppInfo.pApplicationName = "TracyApp";
-
-		vk::InstanceCreateInfo CreateInfo{};
-		CreateInfo.pApplicationInfo = &AppInfo;
-
-		std::vector<const char*> Extensions = { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME };
-
-#ifdef _DEBUG
-		Extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-		const char* pDebugLayer = "VK_LAYER_LUNARG_standard_validation";
-		CreateInfo.ppEnabledLayerNames = &pDebugLayer;
-		CreateInfo.enabledLayerCount = 1u;
-#endif // DEBUG
-
-		CreateInfo.ppEnabledExtensionNames = Extensions.data();
-		CreateInfo.enabledExtensionCount = static_cast<uint32_t>(Extensions.size());
-
-		m_Instance = vk::createInstance(CreateInfo);
+		return m_Devices[_uIndex];
 	}
-
-	VulkanInitializer::~VulkanInitializer()
+	inline const VulkanDevice & VulkanInitializer::GetDevice(const uint32_t _uIndex) const
 	{
-		if (m_Instance)
-		{
-			m_Instance.destroy();
-		}
+		return m_Devices[_uIndex];
 	}
 }; // Tracy
 

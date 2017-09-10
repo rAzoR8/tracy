@@ -48,6 +48,12 @@
     <ClCompile Include="GeneratedFiles\qrc_TracyApp.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="VulkanDevice.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanInitializer.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="TracyApp.h">
@@ -65,6 +71,12 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanInitializer.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanAPI.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanDevice.h">
       <Filter>Display</Filter>
     </ClInclude>
   </ItemGroup>
