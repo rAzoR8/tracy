@@ -1,1 +1,5 @@
 Source/.vs/
+Source/Tracy/GeneratedFiles/
+Source/Tracy/x64/
+Source/x64/
+*.user
