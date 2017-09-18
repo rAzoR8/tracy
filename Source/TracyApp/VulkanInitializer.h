@@ -21,11 +21,12 @@ namespace Tracy
 		std::vector<VulkanDevice> m_Devices;
 	};
 
-	inline VulkanDevice & VulkanInitializer::GetDevice(const uint32_t _uIndex)
+	inline VulkanDevice& VulkanInitializer::GetDevice(const uint32_t _uIndex)
 	{
 		return m_Devices[_uIndex];
 	}
-	inline const VulkanDevice & VulkanInitializer::GetDevice(const uint32_t _uIndex) const
+
+	inline const VulkanDevice& VulkanInitializer::GetDevice(const uint32_t _uIndex) const
 	{
 		return m_Devices[_uIndex];
 	}

@@ -18,11 +18,14 @@ namespace Tracy
 		const uint64_t GetTotalMemory() const;
 
 	private:
+		void Create();
+
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
 		vk::PhysicalDeviceProperties m_Properties;
 		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		uint64_t m_uTotalMemory;
+
 	};
 
 	inline const vk::PhysicalDeviceProperties & Tracy::VulkanDevice::GetProperties() const
