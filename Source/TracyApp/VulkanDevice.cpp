@@ -3,8 +3,6 @@
 #include "VulkanInitializer.h"
 #include "Logger.h"
 
-#include <unordered_map>
-
 Tracy::VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 	m_PhysicalDevice(_PhysDevice),
 	m_Device(nullptr),
@@ -27,7 +25,6 @@ Tracy::VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 	Create();
 	HASSERTD(m_Device != vk::Device(), "Failed to create logical device.");
 
-	// TODO : Fetch Device Queues
 }
 
 Tracy::VulkanDevice::~VulkanDevice()
@@ -57,7 +54,7 @@ void Tracy::VulkanDevice::Create()
 	//
 
 	// Sparse binding is still not really supported
-	std::vector<vk::QueueFlags> queueFlags =
+	std::vector<vk::QueueFlagBits> queueFlags =
 	{
 		vk::QueueFlagBits::eGraphics,
 		vk::QueueFlagBits::eCompute,
@@ -78,6 +75,8 @@ void Tracy::VulkanDevice::Create()
 	// Collect information about families and how many queues we need from the family
 	// first -> family idx | second -> queue count
 	std::unordered_map<uint32_t, uint32_t> QueueFamilyInfo;
+	// Store the offset of each found queue in the family to which it belongs
+	std::vector<QueueOffset> QueueOffset;
 	
 	// We would like to find a queue for each kind of gpu task
 	for (auto& flag : queueFlags)
@@ -120,7 +119,8 @@ void Tracy::VulkanDevice::Create()
 			bNewFamily = false;
 		}
 
-		QueueFamilyInfo[uQueueFamily]++;
+		// Store the offset of the new found queue into its family
+		QueueOffset.emplace_back(uQueueFamily, std::min(QueueFamilyInfo[uQueueFamily]++, queueProps[uQueueFamily].queueCount - 1u));
 	}
 		
 	// Create the info structures to create the device using the collected info
@@ -156,6 +156,20 @@ void Tracy::VulkanDevice::Create()
 
 		// Allocate the Logical Device
 		m_Device = m_PhysicalDevice.createDevice(CreateInfo);
+	}
+	//--------------------------------------------------------------------------------
+
+	// Fetch a pointer to the actual queue for submit
+	{
+		// For each queue type we want, fetch a pointer to the device queue
+		for (size_t uQueueIndex = 0, uEnd = queueFlags.size(); uQueueIndex < uEnd; ++uQueueIndex)
+		{
+			// Create an item in the queue map, used for later to ease submit
+			auto queuePair = m_Queues.emplace(queueFlags[uQueueIndex], vk::Queue());
+			
+			// Assign the queue
+			queuePair.first->second = m_Device.getQueue(QueueOffset[uQueueIndex].uFamilyIndex, QueueOffset[uQueueIndex].uOffset);
+		}
 	}
 	//--------------------------------------------------------------------------------
 }
