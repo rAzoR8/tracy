@@ -1,5 +1,6 @@
 #include "TracyApp.h"
 #include "VulkanInitializer.h"
+#include "SPIRVTypeResolver.h"
 #include "SPIRVType.h"
 
 TracyApp::TracyApp(QWidget *parent)
@@ -10,7 +11,15 @@ TracyApp::TracyApp(QWidget *parent)
 	using namespace Tracy;
 	VulkanInitializer::Instance();
 
-	SPIRVType type = SPIRVType(spv::OpTypeArray, 5u).Append(spv::OpTypeVector).Append({ spv::OpTypeFloat, 32u });
+	//SPIRVType a = SPIRVType(spv::OpTypeArray, 5u).Append({ spv::OpTypeFloat, 32u });
 	auto mat = SPIRVType::Mat<float,4,3>();
-	type.Append(spv::OpTypeVector);
+
+	uint32_t uStartId = 0u;
+	SPIRVTypeResolver Types(uStartId);
+
+	uint32_t matid = Types.Resolve(mat);
+	//uint32_t arrayid = Types.Resolve(a);
+
+	SPIRVType s = SPIRVType::Struct().Member(SPIRVType::Float()).Member(SPIRVType::Int()).Member(mat);
+	uint32_t sid = Types.Resolve(s);
 }

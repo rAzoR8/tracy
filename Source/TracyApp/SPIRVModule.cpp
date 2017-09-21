@@ -77,12 +77,7 @@ void SPIRVModule::Put(const SPIRVInstruction& _Instr)
 {
 	Put(_Instr.GetOpCode());
 
-	const uint32_t& uId(_Instr.GetId());
 	const uint32_t& uResultId(_Instr.GetResultId());
-
-	if (uId != SPIRVInstruction::kInvalidId)
-		Put(uId);
-
 	if (uResultId != SPIRVInstruction::kInvalidId)
 		Put(uResultId);
 

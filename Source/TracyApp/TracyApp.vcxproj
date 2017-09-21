@@ -86,6 +86,7 @@
     <ClCompile Include="SPIRVInstruction.cpp" />
     <ClCompile Include="SPIRVModule.cpp" />
     <ClCompile Include="SPIRVType.cpp" />
+    <ClCompile Include="SPIRVTypeResolver.cpp" />
     <ClCompile Include="TracyApp.cpp" />
     <ClCompile Include="VulkanDevice.cpp" />
     <ClCompile Include="VulkanInitializer.cpp" />
@@ -119,6 +120,7 @@
     <ClInclude Include="SPIRVInstruction.h" />
     <ClInclude Include="SPIRVModule.h" />
     <ClInclude Include="SPIRVType.h" />
+    <ClInclude Include="SPIRVTypeResolver.h" />
     <ClInclude Include="VulkanAPI.h" />
     <ClInclude Include="VulkanDevice.h" />
     <ClInclude Include="VulkanInitializer.h" />

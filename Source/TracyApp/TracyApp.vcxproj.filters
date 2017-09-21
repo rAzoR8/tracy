@@ -66,6 +66,9 @@
     <ClCompile Include="SPIRVType.cpp">
       <Filter>Display\SPIRV</Filter>
     </ClCompile>
+    <ClCompile Include="SPIRVTypeResolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="TracyApp.h">
@@ -98,6 +101,9 @@
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
     <ClInclude Include="SPIRVType.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVTypeResolver.h">
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
   </ItemGroup>

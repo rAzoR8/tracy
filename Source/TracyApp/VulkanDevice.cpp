@@ -31,7 +31,10 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 
 VulkanDevice::~VulkanDevice()
 {
-	m_Device.destroy();
+	if (m_Device != vk::Device())
+	{
+		m_Device.destroy();
+	}
 }
 
 //---------------------------------------------------------------------------------------------------

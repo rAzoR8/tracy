@@ -24,22 +24,23 @@ namespace Tracy
 	class SPIRVInstruction
 	{
 	public:
-		SPIRVInstruction();
+		static constexpr uint32_t kInvalidId = 0xffffffff;
+
+		SPIRVInstruction(
+			const spv::Op _kOp = spv::OpNop,
+			const uint32_t _uResultId = kInvalidId,
+			const std::vector<uint32_t>& _Operands = {});
 		~SPIRVInstruction();
 
 		uint32_t GetOpCode() const;
-		const uint32_t& GetId() const;
 		const uint32_t& GetResultId() const;
 		const std::vector<uint32_t>& GetOperands() const;
-
-		static constexpr uint32_t kInvalidId = 0xffffffff;
 
 	private:
 		spv::Op m_kOperation;
 
 		// The Result <id> of an OpTypeXXX instruction becomes a type<id> for future use where type <id>s
 		// are needed(therefore, OpTypeXXX instructions do not have a type<id>, like most other instructions do).
-		uint32_t m_uId = kInvalidId;
 		uint32_t m_uResultId = kInvalidId;
 		std::vector<uint32_t> m_Operands;
 
@@ -51,7 +52,6 @@ namespace Tracy
 		// Operands x u32 (WordCount-(1-3)) (optional)
 	};
 
-	inline const uint32_t& SPIRVInstruction::GetId() const{return m_uId;}
 	inline const uint32_t& SPIRVInstruction::GetResultId() const { return m_uResultId; }
 	inline const std::vector<uint32_t>& SPIRVInstruction::GetOperands() const{return m_Operands;}
 }; // Tracy
