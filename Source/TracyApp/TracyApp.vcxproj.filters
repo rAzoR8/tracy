@@ -64,7 +64,7 @@
       <Filter>Display\SPIRV</Filter>
     </ClCompile>
     <ClCompile Include="SPIRVType.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Display\SPIRV</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

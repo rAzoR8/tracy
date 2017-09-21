@@ -1,8 +1,19 @@
 #include "SPIRVInstruction.h"
 
+using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
-uint32_t Tracy::SPIRVInstruction::GetOpCode() const
+SPIRVInstruction::SPIRVInstruction()
+{
+}
+//---------------------------------------------------------------------------------------------------
+
+SPIRVInstruction::~SPIRVInstruction()
+{
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVInstruction::GetOpCode() const
 {
 	uint16_t uWordCount = (uint16_t)m_Operands.size();
 	if (m_uId != kInvalidId)

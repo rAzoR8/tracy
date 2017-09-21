@@ -3,7 +3,9 @@
 #include "VulkanInitializer.h"
 #include "Logger.h"
 
-Tracy::VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
+using namespace Tracy;
+
+VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 	m_PhysicalDevice(_PhysDevice),
 	m_Device(nullptr),
 	m_Properties(_PhysDevice.getProperties()),
@@ -25,26 +27,16 @@ Tracy::VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 	Create();
 	HASSERTD(m_Device != vk::Device(), "Failed to create logical device.");
 }
+//---------------------------------------------------------------------------------------------------
 
-Tracy::VulkanDevice::~VulkanDevice()
+VulkanDevice::~VulkanDevice()
 {
 	m_Device.destroy();
 }
 
-bool Tracy::operator<(const VulkanDevice& lDev, const VulkanDevice& rDev)
-{
-	if (lDev.GetProperties().deviceType == rDev.GetProperties().deviceType)
-	{
-		return lDev.GetTotalMemory() < rDev.GetTotalMemory();
-	}
-	else
-	{
-		return std::abs((int)vk::PhysicalDeviceType::eDiscreteGpu - (int)lDev.GetProperties().deviceType) <
-			std::abs((int)vk::PhysicalDeviceType::eDiscreteGpu - (int)rDev.GetProperties().deviceType);
-	}
-}
+//---------------------------------------------------------------------------------------------------
 
-void Tracy::VulkanDevice::Create()
+void VulkanDevice::Create()
 {
 	std::vector<vk::DeviceQueueCreateInfo> QueueCreateInfo;
 	
@@ -137,11 +129,6 @@ void Tracy::VulkanDevice::Create()
 		// Extension to output on a window handle
 		std::vector<const char*> EnabledExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-#if _DEBUG
-		// Generate debug info for all gpu features
-		std::vector<const char*> EnabledLayers = { "VK_LAYER_LUNARG_standard_validation" };
-#endif
-
 		vk::DeviceCreateInfo CreateInfo{};
 		// Queues
 		CreateInfo.queueCreateInfoCount = static_cast<uint32_t>(QueueCreateInfo.size());
@@ -149,6 +136,15 @@ void Tracy::VulkanDevice::Create()
 		// Extensions
 		CreateInfo.enabledExtensionCount = static_cast<uint32_t>(EnabledExtensions.size());
 		CreateInfo.ppEnabledExtensionNames = EnabledExtensions.data();
+
+		std::vector<const char*> EnabledLayers;
+
+
+#if _DEBUG
+		// Generate debug info for all gpu features
+		EnabledLayers.push_back("VK_LAYER_LUNARG_standard_validation");
+#endif
+
 		// Layers
 		CreateInfo.enabledLayerCount = static_cast<uint32_t>(EnabledLayers.size());
 		CreateInfo.ppEnabledLayerNames = EnabledLayers.data();
@@ -170,5 +166,5 @@ void Tracy::VulkanDevice::Create()
 			queuePair.first->second = m_Device.getQueue(QueueOffset[uQueueIndex].uFamilyIndex, QueueOffset[uQueueIndex].uOffset);
 		}
 	}
-	//--------------------------------------------------------------------------------
 }
+//---------------------------------------------------------------------------------------------------

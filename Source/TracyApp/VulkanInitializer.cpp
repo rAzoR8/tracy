@@ -1,6 +1,9 @@
 #include "VulkanInitializer.h"
 
-Tracy::VulkanInitializer::VulkanInitializer()
+using namespace Tracy;
+//---------------------------------------------------------------------------------------------------
+
+VulkanInitializer::VulkanInitializer()
 {
 	vk::ApplicationInfo AppInfo{};
 	AppInfo.apiVersion = VK_API_VERSION_1_0;
@@ -30,7 +33,7 @@ Tracy::VulkanInitializer::VulkanInitializer()
 	{
 		// enumerate devices
 
-		for (auto& Device : m_Instance.enumeratePhysicalDevices())
+		for (const auto& Device : m_Instance.enumeratePhysicalDevices())
 		{
 			m_Devices.emplace_back(Device);
 		}
@@ -38,11 +41,13 @@ Tracy::VulkanInitializer::VulkanInitializer()
 		std::sort(m_Devices.begin(), m_Devices.end());
 	}
 }
+//---------------------------------------------------------------------------------------------------
 
-Tracy::VulkanInitializer::~VulkanInitializer()
+VulkanInitializer::~VulkanInitializer()
 {
 	if (m_Instance)
 	{
 		m_Instance.destroy();
 	}
 }
+//---------------------------------------------------------------------------------------------------

@@ -2,7 +2,6 @@
 #define VULKANDEVICE_H
 
 #include "VulkanAPI.h"
-
 #include <unordered_map>
 
 namespace Tracy
@@ -40,6 +39,7 @@ namespace Tracy
 		uint64_t m_uTotalMemory;
 		std::unordered_map<vk::QueueFlagBits, vk::Queue> m_Queues;
 	};
+	//---------------------------------------------------------------------------------------------------
 
 	inline const vk::PhysicalDeviceProperties& Tracy::VulkanDevice::GetProperties() const
 	{
@@ -56,7 +56,18 @@ namespace Tracy
 		return m_uTotalMemory;
 	}
 
-	bool operator<(const VulkanDevice& lDev, const VulkanDevice& rDev);
+	inline bool operator<(const VulkanDevice& lDev, const VulkanDevice& rDev)
+	{
+		if (lDev.GetProperties().deviceType == rDev.GetProperties().deviceType)
+		{
+			return lDev.GetTotalMemory() < rDev.GetTotalMemory();
+		}
+		else
+		{
+			return std::abs((int)vk::PhysicalDeviceType::eDiscreteGpu - (int)lDev.GetProperties().deviceType) <
+				std::abs((int)vk::PhysicalDeviceType::eDiscreteGpu - (int)rDev.GetProperties().deviceType);
+		}
+	}
 } // Tracy
 
 #endif // !VULKANDEVICE_H

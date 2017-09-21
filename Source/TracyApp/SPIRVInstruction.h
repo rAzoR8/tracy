@@ -24,8 +24,8 @@ namespace Tracy
 	class SPIRVInstruction
 	{
 	public:
-		SPIRVInstruction() {};
-		~SPIRVInstruction() {};
+		SPIRVInstruction();
+		~SPIRVInstruction();
 
 		uint32_t GetOpCode() const;
 		const uint32_t& GetId() const;
@@ -36,6 +36,9 @@ namespace Tracy
 
 	private:
 		spv::Op m_kOperation;
+
+		// The Result <id> of an OpTypeXXX instruction becomes a type<id> for future use where type <id>s
+		// are needed(therefore, OpTypeXXX instructions do not have a type<id>, like most other instructions do).
 		uint32_t m_uId = kInvalidId;
 		uint32_t m_uResultId = kInvalidId;
 		std::vector<uint32_t> m_Operands;
