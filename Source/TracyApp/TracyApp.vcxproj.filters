@@ -31,6 +31,9 @@
     <Filter Include="Display">
       <UniqueIdentifier>{4205237b-f428-429c-8b94-21ca5e8be754}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Display\SPIRV">
+      <UniqueIdentifier>{eb5241c0-030a-4794-860c-cf20e6b558af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -53,6 +56,15 @@
     </ClCompile>
     <ClCompile Include="VulkanInitializer.cpp">
       <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="SPIRVModule.cpp">
+      <Filter>Display\SPIRV</Filter>
+    </ClCompile>
+    <ClCompile Include="SPIRVInstruction.cpp">
+      <Filter>Display\SPIRV</Filter>
+    </ClCompile>
+    <ClCompile Include="SPIRVType.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +90,15 @@
     </ClInclude>
     <ClInclude Include="VulkanDevice.h">
       <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVModule.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVInstruction.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVType.h">
+      <Filter>Display\SPIRV</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

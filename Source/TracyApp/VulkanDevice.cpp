@@ -11,7 +11,7 @@ Tracy::VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 	m_uTotalMemory(0u)
 {
 	// Get total device memory
-	for (auto& heap : m_MemoryProperties.memoryHeaps)
+	for (const vk::MemoryHeap& heap : m_MemoryProperties.memoryHeaps)
 	{
 		if (heap.flags == vk::MemoryHeapFlagBits::eDeviceLocal)
 		{
@@ -24,7 +24,6 @@ Tracy::VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 	// Create Logical Device
 	Create();
 	HASSERTD(m_Device != vk::Device(), "Failed to create logical device.");
-
 }
 
 Tracy::VulkanDevice::~VulkanDevice()
