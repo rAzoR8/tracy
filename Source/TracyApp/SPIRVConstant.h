@@ -2,9 +2,10 @@
 #define TRACY_SPIRVCONSTANT_H
 
 #include "SPIRVType.h"
+#include "FunctionalUtils.h"
 
 namespace Tracy
-{
+{	
 	class SPIRVConstant
 	{
 	public:
@@ -12,35 +13,40 @@ namespace Tracy
 		~SPIRVConstant();
 
 		// composite & scalar constructor
-		template <class T>
-		SPIRVConstant(const std::initializer_list<T>& _Constants);
+		template <class T, class... Ts>
+		SPIRVConstant(T&& first, Ts&&... _args);
+
+	private:
+		template <class T, class... Ts>
+		void Consume(T&& _Constant, Ts&&... _args);
 
 	private:
 		spv::Op m_kConstantType = spv::OpNop;
 		SPIRVType m_CompositeType;
 		std::vector<uint32_t> m_Constants; // binary data
-	};
+	};	
 
-	template<class T>
-	inline SPIRVConstant::SPIRVConstant(const std::initializer_list<T>& _Constants)
+	template<class T, class ...Ts>
+	inline SPIRVConstant::SPIRVConstant(T&& first, Ts&& ..._args)
 	{
-		if (_Constants.size() == 1u)
+		static_assert(hlx::is_same_type<T, Ts...>(), "Composite types mismatch!");
+		constexpr size_t uSize = sizeof ...(_args) + 1u;
+		if constexpr (1u == uSize)
 		{
 			m_kConstantType = spv::OpConstant;
 			m_CompositeType = SPIRVType::Primitive<T>();
 		}
-		else if  (_Constants.size() > 1u && _Constants.size() < 5u)
+		else if constexpr(uSize < 5u) // 2-4
 		{
 			m_kConstantType = spv::OpConstantComposite;
-			//m_CompositeType = SPIRVType(spv::OpTypeVector, _Constants.size()).Append(SPIRVType::Primitive<T>());
-			m_CompositeType = SPIRVType::Vec<T>(static_cast<uint32_t>(_Constants.size()));
+			m_CompositeType = SPIRVType::Vec<T>(static_cast<uint32_t>(uSize));
 		}
 		else // matrix
 		{
 			uint32_t uRow = 0;
 			uint32_t uCol = 0;
 
-			switch (_Constants.size())
+			switch (uSize)
 			{
 			case 4u:
 				uRow = uCol = 2;
@@ -59,20 +65,23 @@ namespace Tracy
 			}
 
 			m_kConstantType = spv::OpConstantComposite;
-			m_CompositeType = SPIRVType::Mat<T>(uRow, uCol);			
+			m_CompositeType = SPIRVType::Mat<T>(uRow, uCol);
 		}
 
+		Consume(std::forward<T>(first), std::forward<Ts>(_args)...);
+	}
+
+	template<class T, class ...Ts>
+	inline void SPIRVConstant::Consume(T&& _Constant, Ts&& ..._args)
+	{
 		// compute number of uint32_t chunks needed to represent the constants
-		size_t uCount = _Constants.size() * (std::max<size_t>(sizeof(T) / sizeof(uint32_t), 1ull));
-		m_Constants.resize(uCount);
+		size_t uCount = std::max<size_t>(sizeof(T) / sizeof(uint32_t), 1ull);
+		std::vector<uint32_t> ConstData(uCount, 0u);
+		std::memcpy(ConstData.data(), &_Constant, sizeof(T));
+		m_Constants.insert(m_Constants.end(), ConstData.begin(), ConstData.end());
 
-		uint8_t* pData = reinterpret_cast<uint8_t*>(m_Constants.data());
-
-		for (const T& spvconst : _Constants)
-		{
-			std::memcpy(pData, &spvconst, sizeof(T));
-			pData += sizeof(T);
-		}
+		if constexpr(sizeof...(_args) > 0u)
+			Consume(std::forward<Ts>(_args)...);
 	}
 }; // Tracy
 
