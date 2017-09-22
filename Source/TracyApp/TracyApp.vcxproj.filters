@@ -67,7 +67,10 @@
       <Filter>Display\SPIRV</Filter>
     </ClCompile>
     <ClCompile Include="SPIRVTypeResolver.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Display\SPIRV</Filter>
+    </ClCompile>
+    <ClCompile Include="SPIRVConstant.cpp">
+      <Filter>Display\SPIRV</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +107,9 @@
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
     <ClInclude Include="SPIRVTypeResolver.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVConstant.h">
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
   </ItemGroup>

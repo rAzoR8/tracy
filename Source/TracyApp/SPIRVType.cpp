@@ -9,21 +9,21 @@ using namespace Tracy;
 SPIRVType::SPIRVType(const spv::Op _kOp, uint32_t _uDimension, const bool _bSign) :
 	m_kBaseType(_kOp), m_uDimension(_uDimension), m_bSign(_bSign)
 {
-	HASSERT(_kOp > spv::OpTypeVoid && _kOp <= spv::OpTypeForwardPointer, "Invalid Type");
+	HASSERT(_kOp >= spv::OpTypeVoid && _kOp <= spv::OpTypeForwardPointer, "Invalid Type");
 }
 //---------------------------------------------------------------------------------------------------
 
 SPIRVType::SPIRVType(const spv::Op _kOp, const SPIRVType& _SubType, const uint32_t _uDimension, const bool _bSign) :
 	m_kBaseType(_kOp), m_uDimension(_uDimension), m_bSign(_bSign), m_SubTypes({_SubType})
 {
-	HASSERT(_kOp > spv::OpTypeVoid && _kOp <= spv::OpTypeForwardPointer, "Invalid Type");
+	HASSERT(_kOp >= spv::OpTypeVoid && _kOp <= spv::OpTypeForwardPointer, "Invalid Type");
 }
 //---------------------------------------------------------------------------------------------------
 
 SPIRVType::SPIRVType(const spv::Op _kOp, const std::vector<SPIRVType>& _SubTypes, const uint32_t _uDimension, const bool _bSign) :
 	m_kBaseType(_kOp), m_uDimension(_uDimension), m_bSign(_bSign), m_SubTypes(_SubTypes)
 {
-	HASSERT(_kOp > spv::OpTypeVoid && _kOp <= spv::OpTypeForwardPointer, "Invalid Type");
+	HASSERT(_kOp >= spv::OpTypeVoid && _kOp <= spv::OpTypeForwardPointer, "Invalid Type");
 }
 //---------------------------------------------------------------------------------------------------
 

@@ -2,6 +2,7 @@
 #include "VulkanInitializer.h"
 #include "SPIRVTypeResolver.h"
 #include "SPIRVType.h"
+#include "SPIRVConstant.h"
 
 TracyApp::TracyApp(QWidget *parent)
 	: QMainWindow(parent)
@@ -22,4 +23,6 @@ TracyApp::TracyApp(QWidget *parent)
 
 	SPIRVType s = SPIRVType::Struct().Member(SPIRVType::Float()).Member(SPIRVType::Int()).Member(mat);
 	uint32_t sid = Types.Resolve(s);
+
+	SPIRVConstant c({ 1.f, 1.f , 2.f});
 }

@@ -35,7 +35,7 @@ namespace Tracy
 	class SPIRVType
 	{
 	public:
-		SPIRVType(const spv::Op _kOp, const uint32_t _uDimension = 0u, const bool _bSign = true);
+		SPIRVType(const spv::Op _kOp = spv::OpTypeVoid, const uint32_t _uDimension = 0u, const bool _bSign = true);
 		SPIRVType(const spv::Op _kOp, const SPIRVType& _SubType, const uint32_t _uDimension = 0u, const bool _bSign = true);
 		SPIRVType(const spv::Op _kOp, const std::vector<SPIRVType>& _SubTypes, const uint32_t _uDimension = 0u, const bool _bSign = true);
 
@@ -57,12 +57,21 @@ namespace Tracy
 		static SPIRVType UShort() { return SPIRVType(spv::OpTypeInt, 16u, false); }
 		static SPIRVType Float() { return SPIRVType(spv::OpTypeFloat, 32u, true); }
 		static SPIRVType Struct(const std::vector<SPIRVType>& _MemberTypes = {}) { return SPIRVType(spv::OpTypeStruct, _MemberTypes); }
+		
+		template <class T>
+		static SPIRVType Primitive() { return SPIRVType(optype<T>::type, optype<T>::bits, optype<T>::sign); }
 
 		template <class T, uint32_t Dim = 4>
 		static SPIRVType Vec()
 		{
 			static_assert(Dim > 1 && Dim < 5, "Invalid dimension [2,4]");
-			return SPIRVType(spv::OpTypeVector, SPIRVType(optype<T>::type, optype<T>::bits, optype<T>::sign), Dim);
+			return SPIRVType(spv::OpTypeVector, Primitive<T>(), Dim);
+		}
+
+		template <class T>
+		static SPIRVType Vec(const uint32_t Dim)
+		{
+			return SPIRVType(spv::OpTypeVector, Primitive<T>(), Dim);
 		}
 
 		template <class T, uint32_t row = 4, uint32_t col = 4>
@@ -70,6 +79,12 @@ namespace Tracy
 		{
 			static_assert(col > 1 && col < 5, "Invalid dimension [2,4]");
 			return SPIRVType(spv::OpTypeMatrix, Vec<T, row>(), col);
+		}
+
+		template <class T>
+		static SPIRVType Mat(const uint32_t row, const uint32_t col)
+		{
+			return SPIRVType(spv::OpTypeMatrix, Vec<T>(row), col);
 		}
 
 	private:
