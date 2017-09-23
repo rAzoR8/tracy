@@ -16,6 +16,12 @@ namespace Tracy
 		template <class T, class... Ts>
 		SPIRVConstant(T&& first, Ts&&... _args);
 
+		size_t GetHash() const;
+
+		const spv::Op& GetType() const;
+		const SPIRVType& GetCompositeType() const;
+		const std::vector<uint32_t>& GetLiterals() const;
+
 	private:
 		template <class T, class... Ts>
 		void Consume(T&& _Constant, Ts&&... _args);
@@ -24,8 +30,21 @@ namespace Tracy
 		spv::Op m_kConstantType = spv::OpNop;
 		SPIRVType m_CompositeType;
 		std::vector<uint32_t> m_Constants; // binary data
-	};	
+	};
 
+	inline const spv::Op& Tracy::SPIRVConstant::GetType() const
+	{
+		return m_kConstantType;
+	}
+	inline const SPIRVType& SPIRVConstant::GetCompositeType() const
+	{
+		return m_CompositeType;
+	}
+	inline const std::vector<uint32_t>& SPIRVConstant::GetLiterals() const
+	{
+		return m_Constants;
+	}
+	//---------------------------------------------------------------------------------------------------
 	template<class T, class ...Ts>
 	inline SPIRVConstant::SPIRVConstant(T&& first, Ts&& ..._args)
 	{
@@ -70,6 +89,7 @@ namespace Tracy
 
 		Consume(std::forward<T>(first), std::forward<Ts>(_args)...);
 	}
+	//---------------------------------------------------------------------------------------------------
 
 	template<class T, class ...Ts>
 	inline void SPIRVConstant::Consume(T&& _Constant, Ts&& ..._args)
@@ -83,6 +103,8 @@ namespace Tracy
 		if constexpr(sizeof...(_args) > 0u)
 			Consume(std::forward<Ts>(_args)...);
 	}
+	//---------------------------------------------------------------------------------------------------
+
 }; // Tracy
 
 #endif // !TRACY_SPIRVCONSTANT_H

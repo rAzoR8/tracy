@@ -58,8 +58,8 @@ namespace Tracy
 		static SPIRVType Float() { return SPIRVType(spv::OpTypeFloat, 32u, true); }
 		static SPIRVType Struct(const std::vector<SPIRVType>& _MemberTypes = {}) { return SPIRVType(spv::OpTypeStruct, _MemberTypes); }
 		
-		template <class T>
-		static SPIRVType Primitive() { return SPIRVType(optype<T>::type, optype<T>::bits, optype<T>::sign); }
+		template <class T, class U = std::decay_t<T>>
+		static SPIRVType Primitive() { return SPIRVType(optype<U>::type, optype<U>::bits, optype<U>::sign); }
 
 		template <class T, uint32_t Dim = 4>
 		static SPIRVType Vec()

@@ -1,5 +1,6 @@
 #include "SPIRVTypeResolver.h"
 #include "SPIRVType.h"
+#include "SPIRVConstant.h"
 #include "Logger.h"
 
 using namespace Tracy;
@@ -67,25 +68,84 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 		break;
 	case spv::OpTypeArray:
 		HASSERT(SubTypes.size() == 1u, "Invalid number of array component types");
+		HASSERT(_Type.GetDimension() > 0u, "Invalid array length");
+
 		Operands.push_back(SubTypes.front()); // column type
-		//Length is the number of elements in the array.It must be at least 1.
 		//Length must come from a constant instruction of an integer - type scalar whose value is at least 1.
-		// TODO Resolve constants:
-		// uint32_t uConstant = ConstantResolver(spv::OpTypeInt, _Type.GetDimension());
-		// Operands.push_back(uConstant); // length
-		//break;
+		Operands.push_back(Resolve(SPIRVConstant(_Type.GetDimension()))); // length
+		break;
 	default:
-		HFATAL("Not implemented");
+		HFATAL("Type not implemented");
 		break;
 	}
 
 	// create type instruction
 	SPIRVInstruction Type(
 		_Type.GetType(),
+		SPIRVInstruction::kInvalidId, // typeid
 		uId, // result id
 		Operands);
 
-	m_TypeDefines.push_back(std::move(Type));
+	m_Defines.push_back(std::move(Type));
+
+	return uId;
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVTypeResolver::Resolve(const SPIRVConstant& _Constant)
+{
+	const size_t uHash = _Constant.GetHash();
+	auto it = m_ConstantIds.find(uHash);
+
+	if (it != m_ConstantIds.end())
+	{
+		// constant exists
+		return it->second;
+	}
+
+	// resolve type first to enforce result id ordering
+	const SPIRVType& CompositeType(_Constant.GetCompositeType());
+	uint32_t uTypeId = Resolve(_Constant.GetCompositeType());
+
+	uint32_t uId = m_uCurrentId++;
+	m_ConstantIds.insert({ uHash, uId });
+	
+	std::vector<uint32_t> Operands;
+
+	switch (_Constant.GetType())
+	{
+		// nothing to do here:
+	case spv::OpConstantNull:
+		break;
+		// validate base type to be boolean
+	case spv::OpConstantTrue:
+	case spv::OpConstantFalse:
+	case spv::OpSpecConstantTrue:
+	case spv::OpSpecConstantFalse:
+		HASSERT(CompositeType.GetType() == spv::OpTypeBool, "Invalid constant composite type");
+		break;
+		// copy literals as operands
+	case spv::OpConstant:
+	case spv::OpConstantComposite:
+	case spv::OpSpecConstant:
+	case spv::OpSpecConstantComposite:
+		Operands = _Constant.GetLiterals();
+		break;
+	//case spv::OpSpecConstantOp:
+	//case spv::OpConstantSampler:
+	default:
+		HFATAL("Constant type not implemented");
+		break;
+	}
+
+	// create type instruction
+	SPIRVInstruction Constant(
+		_Constant.GetType(), // instruction opcode
+		uTypeId, // type id
+		uId, // result id
+		Operands);
+
+	m_Defines.push_back(std::move(Constant));
 
 	return uId;
 }

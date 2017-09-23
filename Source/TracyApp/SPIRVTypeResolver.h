@@ -10,6 +10,7 @@ namespace Tracy
 {
 	// forward decl
 	class SPIRVType;
+	class SPIRVConstant;
 
 	class SPIRVTypeResolver
 	{
@@ -19,12 +20,17 @@ namespace Tracy
 
 		uint32_t Resolve(const SPIRVType& _Type);
 
+		uint32_t Resolve(const SPIRVConstant& _Constant);
+
 	private:
 		uint32_t& m_uCurrentId;
 
-		std::vector<SPIRVInstruction> m_TypeDefines;
+		std::vector<SPIRVInstruction> m_Defines;
 		// type hash -> id
 		std::unordered_map<size_t, uint32_t> m_TypeIds;
+		// constant hash -> id
+		std::unordered_map<size_t, uint32_t> m_ConstantIds;
+
 	};
 }; // Tracy
 

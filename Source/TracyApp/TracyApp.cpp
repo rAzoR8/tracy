@@ -12,17 +12,19 @@ TracyApp::TracyApp(QWidget *parent)
 	using namespace Tracy;
 	VulkanInitializer::Instance();
 
-	//SPIRVType a = SPIRVType(spv::OpTypeArray, 5u).Append({ spv::OpTypeFloat, 32u });
+	SPIRVType a = SPIRVType(spv::OpTypeArray, 5u).Append({ spv::OpTypeFloat, 32u });
 	auto mat = SPIRVType::Mat<float,4,3>();
 
 	uint32_t uStartId = 0u;
 	SPIRVTypeResolver Types(uStartId);
 
 	uint32_t matid = Types.Resolve(mat);
-	//uint32_t arrayid = Types.Resolve(a);
+	uint32_t arrayid = Types.Resolve(a);
 
 	SPIRVType s = SPIRVType::Struct().Member(SPIRVType::Float()).Member(SPIRVType::Int()).Member(mat);
 	uint32_t sid = Types.Resolve(s);
 
 	SPIRVConstant c(1, 1, 1);
+
+	auto m = hlx::max(1, 3.f, 'a', 4u);
 }
