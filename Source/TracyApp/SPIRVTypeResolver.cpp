@@ -65,6 +65,7 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 		// If an operand is not yet defined, it must be defined by an OpTypePointer,
 		// where the type pointed to is an OpTypeStruct (fwahlster: not sure if we need that, ignore it for now)
 		Operands = std::move(SubTypes);
+		// TODO: create Decorations OpMemberDecorate %17 1 Offset 16
 		break;
 	case spv::OpTypeArray:
 		HASSERT(SubTypes.size() == 1u, "Invalid number of array component types");

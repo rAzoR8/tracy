@@ -121,6 +121,7 @@
     <ClInclude Include="SPIRVConstant.h" />
     <ClInclude Include="SPIRVInstruction.h" />
     <ClInclude Include="SPIRVModule.h" />
+    <ClInclude Include="SPIRVProgram.h" />
     <ClInclude Include="SPIRVType.h" />
     <ClInclude Include="SPIRVTypeResolver.h" />
     <ClInclude Include="VulkanAPI.h" />
