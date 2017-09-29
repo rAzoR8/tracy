@@ -11,5 +11,8 @@ TracyApp::TracyApp(QWidget *parent)
 	VulkanInitializer::Instance();
 
 	SPIRVProgram<false> prog;
+
+	Tracy::SPIRVConstant::Make(1.f, 2.f, 3.f);
+
 	prog.Execute();
 }

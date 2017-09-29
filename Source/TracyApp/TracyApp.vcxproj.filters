@@ -115,5 +115,8 @@
     <ClInclude Include="SPIRVProgram.h">
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
+    <ClInclude Include="SPIRVVariable.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

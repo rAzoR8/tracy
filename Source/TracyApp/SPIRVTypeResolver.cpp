@@ -73,7 +73,7 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 
 		Operands.push_back(SubTypes.front()); // column type
 		//Length must come from a constant instruction of an integer - type scalar whose value is at least 1.
-		Operands.push_back(Resolve(SPIRVConstant(_Type.GetDimension()))); // length
+		Operands.push_back(Resolve(SPIRVConstant::Make(_Type.GetDimension()))); // length
 		break;
 	default:
 		HFATAL("Type not implemented");

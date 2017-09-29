@@ -2,44 +2,13 @@
 #define TRACY_SPIRVPROGRAM_H
 
 #include "SPIRVConstant.h"
+#include "SPIRVInstruction.h"
 #include <unordered_map>
 #include <variant>
 
+#include "SPIRVVariable.h"
 namespace Tracy
 {
-	//forward decls
-	template <bool Assemble>
-	class SPIRVProgram;
-
-	template <bool Assemble>
-	struct var_decoration{};
-
-	template <>
-	struct var_decoration<true>
-	{
-		var_decoration(SPIRVProgram<true>* _pParent, const std::string& _sName) :
-			pParent(_pParent), sName(_sName) {}
-		SPIRVProgram<true> const* pParent;
-		const std::string sName;
-	};
-
-	template <>
-	struct var_decoration<false>
-	{
-		template <class... Ts>
-		var_decoration(Ts ... _args) {} // consume arguments
-	};
-
-	template <typename T, bool Assemble = true>
-	struct var : public var_decoration<Assemble>
-	{
-		var(SPIRVProgram<Assemble>* _pParent, const std::string& _sName, const T& _Val = {}) :
-			var_decoration<Assemble>(_pParent, _sName), Value(_Val) {}
-
-		var(const T& _Val) : var_decoration<Assemble>(), Value(_Val) {}
-		T Value;
-	};
-
 	template <bool Assemble>
 	class SPIRVProgram
 	{
@@ -52,10 +21,16 @@ namespace Tracy
 		// does not work as member:
 		//float operator+(const float& l, const float& r);
 
+		uint32_t NextId() { return m_uId++; }
+
 		template <class T>
 		var<T, Assemble>& make_var(const T& _Val = {}, const std::string& _sName = {}); // creates a new variable
+
 	private:
-		
+		size_t AddConstant(const SPIRVConstant& _Const);
+
+	private:
+		uint32_t m_uId = 0u;// internal id
 		// todo: add vector and matrix types
 		using spv_types = std::variant<var<int32_t, Assemble>, var<uint32_t, Assemble>, var<float, Assemble>>;
 
@@ -87,11 +62,26 @@ namespace Tracy
 	}
 
 	template<bool Assemble>
-	template<class T>
-	inline var<T, Assemble>& SPIRVProgram<Assemble>::make_var(const T & _Val, const std::string & _sName)
+	inline size_t SPIRVProgram<Assemble>::AddConstant(const SPIRVConstant& _Const)
 	{
-		// todo: check if variable with same name exists, if a name is used
-		m_Variables.push_back(std::move(var<T, Assemble>(this, _sName, _Val)));
+		const size_t uHash = _Const.GetHash();
+		if (m_Constants.count(uHash) == 0ull)
+		{
+			m_Constants.insert({ uHash, _Const });
+		}
+
+		return uHash;
+	}
+
+	template<bool Assemble>
+	template<class T>
+	inline var<T, Assemble>& SPIRVProgram<Assemble>::make_var(const T& _Val, const std::string& _sName)
+	{
+		var<T, Assemble> new_var(this, _sName, _Val);
+		size_t uConst = AddConstant(SPIRVConstant::Make(_Val));
+
+		// TODO: create OpVariable instr
+		m_Variables.push_back(std::move(new_var));
 		return std::get<var<T, Assemble>>(m_Variables.back());
 	}
 
@@ -102,8 +92,10 @@ namespace Tracy
 		// intermediate values?
 		if constexpr(Assemble)
 		{
+			auto v = l.pParent->make_var<float, true>(l.pParent, "imm", val);
+			v.uImmediateId = l.pParent->NextId();
 			// TODO: create instruction etc
-			return l.pParent->make_var<float, true>(l.pParent, "imm", val);
+			return v;
 		}
 		else
 		{

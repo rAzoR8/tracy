@@ -124,6 +124,7 @@
     <ClInclude Include="SPIRVProgram.h" />
     <ClInclude Include="SPIRVType.h" />
     <ClInclude Include="SPIRVTypeResolver.h" />
+    <ClInclude Include="SPIRVVariable.h" />
     <ClInclude Include="VulkanAPI.h" />
     <ClInclude Include="VulkanDevice.h" />
     <ClInclude Include="VulkanInitializer.h" />
