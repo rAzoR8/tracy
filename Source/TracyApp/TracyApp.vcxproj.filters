@@ -124,5 +124,8 @@
     <ClInclude Include="SPIRVOperation.h">
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
+    <ClInclude Include="GLM.h">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

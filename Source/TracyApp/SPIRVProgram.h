@@ -4,6 +4,8 @@
 #include "SPIRVConstant.h"
 #include "SPIRVVariable.h"
 #include "SPIRVOperation.h"
+#include "GLM.h"
+#include "glm\glm.hpp"
 
 #include <unordered_map>
 #include <variant>
@@ -61,6 +63,9 @@ namespace Tracy
 	template <bool Assemble>
 	void SPIRVProgram<Assemble>::Execute()
 	{
+		//va_type_t<float, float> a(1.f, 1.f);
+		//va_type_t<uint32_t, uint32_t, uint32_t> b;
+
 		auto& f1 = make_var<float>(1.f);
 		auto& f2 = make_var<float>(2.f);
 

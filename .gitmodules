@@ -1,3 +1,6 @@
 [submodule "Source/hlx"]
 	path = Source/hlx
 url=https://coding-corner.com/helix/hlx.git
+[submodule "Source/glm"]
+	path = Source/glm
+	url = https://github.com/g-truc/glm/
