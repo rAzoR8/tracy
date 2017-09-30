@@ -32,6 +32,12 @@ namespace Tracy
 	template <>
 	struct optype<unsigned short>{ OPDEFS(spv::OpTypeInt, false, 16u) };
 
+	//template <class ...Ts>
+	//struct list_to_type {};
+
+	//template <>
+	//struct list_to_type<float, float> { typedef float3 type; };
+
 	class SPIRVType
 	{
 	public:

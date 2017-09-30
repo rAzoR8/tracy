@@ -22,6 +22,9 @@ namespace Tracy
 
 		uint32_t Resolve(const SPIRVConstant& _Constant);
 
+		uint32_t GetTypeId(const size_t& _uHash) const;
+		uint32_t GetConstantId(const size_t& _uHash) const;
+
 	private:
 		uint32_t& m_uCurrentId;
 

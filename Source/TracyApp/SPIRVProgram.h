@@ -2,11 +2,12 @@
 #define TRACY_SPIRVPROGRAM_H
 
 #include "SPIRVConstant.h"
-#include "SPIRVInstruction.h"
+#include "SPIRVVariable.h"
+#include "SPIRVOperation.h"
+
 #include <unordered_map>
 #include <variant>
 
-#include "SPIRVVariable.h"
 namespace Tracy
 {
 	template <bool Assemble>
@@ -24,20 +25,25 @@ namespace Tracy
 		uint32_t NextId() { return m_uId++; }
 
 		template <class T>
-		var<T, Assemble>& make_var(const T& _Val = {}, const std::string& _sName = {}); // creates a new variable
+		var<T, Assemble>& make_var(
+			const T& _Val = {},
+			const spv::StorageClass _kClass = spv::StorageClassFunction,
+			const std::string& _sName = {}); // creates a new variable
 
 	private:
 		size_t AddConstant(const SPIRVConstant& _Const);
 
 	private:
-		uint32_t m_uId = 0u;// internal id
+		uint32_t m_uId = 0u;// internal instruction id
+
 		// todo: add vector and matrix types
 		using spv_types = std::variant<var<int32_t, Assemble>, var<uint32_t, Assemble>, var<float, Assemble>>;
-
 		std::vector<spv_types> m_Variables;
 
-		std::unordered_map<size_t, SPIRVType> m_Types;
+		std::unordered_map<size_t, SPIRVType> m_Types; // types that are NOT used with constants
 		std::unordered_map<size_t, SPIRVConstant> m_Constants;
+
+		std::vector<SPIRVOperation> m_Instructions; // unresolved local instruction stream
 	};
 
 	template <bool Assemble>
@@ -73,13 +79,45 @@ namespace Tracy
 		return uHash;
 	}
 
+	// problems to solve:
+	// Structs! this function only handles fundamental types (int, float, vec, mat)
+	// Global struct names are omited (for CBuffers / uniforms):
+	// Struct SType { float member1;}
+	// SType CBStuff;
+	// void func(...) { return color * member1;}
+
+	// also vectors etc: var<float3>, SPIRVConstant::Make(_Val) does not work with that 
+	// Solutions:
+	//	1)	make overloads for common types? SPIRVConstant::Make<float3>(const float3& vec)
+	//		->Not good, does not make use of variadic arguments
+	//	2) create a constexpr / SFINAE that converts Ts... to one type:
+
 	template<bool Assemble>
 	template<class T>
-	inline var<T, Assemble>& SPIRVProgram<Assemble>::make_var(const T& _Val, const std::string& _sName)
+	inline var<T, Assemble>& SPIRVProgram<Assemble>::make_var(
+		const T& _Val, const spv::StorageClass _kClass,
+		const std::string& _sName)
 	{
-		var<T, Assemble> new_var(this, _sName, _Val);
-		size_t uConst = AddConstant(SPIRVConstant::Make(_Val));
+		// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
+		// Result Type must be an OpTypePointer. Its Type operand is the type of object in memory.
+		// Storage Class is the Storage Class of the memory holding the object. It cannot be Generic.
+		// Initializer is optional. If Initializer is present, it will be the initial value of the variable’s memory content.
+		// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
+		// Initializer must havethe same type as the type pointed to by Result Type.
 
+		var<T, Assemble> new_var(this, _sName, _Val);
+
+		SPIRVConstant Constant(SPIRVConstant::Make(_Val));
+		const size_t uConstHash = AddConstant(Constant);
+		//const size_t uTypeHash = Constant.GetCompositeType().GetHash();
+
+		if constexpr(Assemble)
+		{
+			new_var.kStorageClass = _kClass;
+			//new_var.uVarId = ResultId of OpLoad
+		}
+
+		// TODO: create OpTypePointer instr
 		// TODO: create OpVariable instr
 		m_Variables.push_back(std::move(new_var));
 		return std::get<var<T, Assemble>>(m_Variables.back());
@@ -95,6 +133,7 @@ namespace Tracy
 			auto v = l.pParent->make_var<float, true>(l.pParent, "imm", val);
 			v.uImmediateId = l.pParent->NextId();
 			// TODO: create instruction etc
+			// operands: l.immediateId != HUNDEFINED32 ? l.immediateId : l.VarId, same for r
 			return v;
 		}
 		else

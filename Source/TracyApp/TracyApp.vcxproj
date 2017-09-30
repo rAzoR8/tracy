@@ -86,6 +86,7 @@
     <ClCompile Include="SPIRVConstant.cpp" />
     <ClCompile Include="SPIRVInstruction.cpp" />
     <ClCompile Include="SPIRVModule.cpp" />
+    <ClCompile Include="SPIRVOperation.cpp" />
     <ClCompile Include="SPIRVType.cpp" />
     <ClCompile Include="SPIRVTypeResolver.cpp" />
     <ClCompile Include="TracyApp.cpp" />
@@ -121,6 +122,7 @@
     <ClInclude Include="SPIRVConstant.h" />
     <ClInclude Include="SPIRVInstruction.h" />
     <ClInclude Include="SPIRVModule.h" />
+    <ClInclude Include="SPIRVOperation.h" />
     <ClInclude Include="SPIRVProgram.h" />
     <ClInclude Include="SPIRVType.h" />
     <ClInclude Include="SPIRVTypeResolver.h" />

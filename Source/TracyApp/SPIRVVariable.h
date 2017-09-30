@@ -26,6 +26,7 @@ namespace Tracy
 		uint32_t uVarId = HUNDEFINED32; // result id of opload
 		uint32_t uImmediateId = HUNDEFINED32; // result of arithmetic instructions
 		 // TODO: add storage class, and decorations
+		spv::StorageClass kStorageClass = spv::StorageClassFunction;
 	};
 
 	template <>

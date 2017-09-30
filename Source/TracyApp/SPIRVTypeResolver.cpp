@@ -151,3 +151,29 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVConstant& _Constant)
 	return uId;
 }
 //---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVTypeResolver::GetTypeId(const size_t& _uHash) const
+{
+	auto it = m_TypeIds.find(_uHash);
+
+	if (it != m_TypeIds.end())
+	{
+		return it->second;
+	}
+
+	return HUNDEFINED32;
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVTypeResolver::GetConstantId(const size_t& _uHash) const
+{
+	auto it = m_ConstantIds.find(_uHash);
+
+	if (it != m_ConstantIds.end())
+	{
+		return it->second;
+	}
+
+	return HUNDEFINED32;
+}
+//---------------------------------------------------------------------------------------------------
