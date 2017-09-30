@@ -17,16 +17,12 @@ namespace Tracy
 	template <>
 	struct var_decoration<true>
 	{
-		var_decoration(SPIRVProgram<true>* _pParent,
-			const std::string& _sName) :
-			pParent(_pParent), sName(_sName) {}
-
-		SPIRVProgram<true> const* pParent;
-		const std::string sName;
-		uint32_t uVarId = HUNDEFINED32; // result id of opload
-		uint32_t uImmediateId = HUNDEFINED32; // result of arithmetic instructions
-		 // TODO: add storage class, and decorations
+		SPIRVProgram<true>* pParent;
+		std::string sName;
+		//uint32_t uVarId = HUNDEFINED32; // result id of opload
+		uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions
 		spv::StorageClass kStorageClass = spv::StorageClassFunction;
+		 // TODO: add decorations
 	};
 
 	template <>
@@ -39,10 +35,9 @@ namespace Tracy
 	template <typename T, bool Assemble = true>
 	struct var : public var_decoration<Assemble>
 	{
-		var(SPIRVProgram<Assemble>* _pParent, const std::string& _sName, const T& _Val = {}) :
-			var_decoration<Assemble>(_pParent, _sName), Value(_Val) {}
+		template <class... Ts>
+		var(Ts ... _args) : var_decoration<Assemble>(), Value(_args...) {}
 
-		var(const T& _Val) : var_decoration<Assemble>(), Value(_Val) {}
 		T Value;
 	};
 }

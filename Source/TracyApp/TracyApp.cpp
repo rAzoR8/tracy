@@ -10,7 +10,7 @@ TracyApp::TracyApp(QWidget *parent)
 	using namespace Tracy;
 	VulkanInitializer::Instance();
 
-	SPIRVProgram<false> prog;
+	SPIRVProgram<true> prog;
 
 	Tracy::SPIRVConstant::Make(1.f, 2.f, 3.f);
 

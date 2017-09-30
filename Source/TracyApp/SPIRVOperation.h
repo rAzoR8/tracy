@@ -11,8 +11,7 @@ namespace Tracy
 	{
 		kOperandType_Type = 0,  // 64bit hash
 		kOperandType_Constant, // 64bit hash
-		kOperandType_Variable, // result of OpLoad + TypeId of type
-		kOperandType_Arithmetic, // dunno yet
+		kOperandType_Intermediate, // result of OpLoad + TypeId of type, or intermediate
 		kOperandType_Unknown, // unmapped
 	};
 
@@ -44,11 +43,18 @@ namespace Tracy
 		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {});
 		~SPIRVOperation();
 
+		const spv::Op& GetOpCode() const;
+
 	private:
 		spv::Op m_kOpCode = spv::OpNop;
-
 		std::vector<SPIRVOperand> m_Operands;
+
 	};
+
+	inline const spv::Op& Tracy::SPIRVOperation::GetOpCode() const
+	{
+		return m_kOpCode;
+	}
 } // !Tracy
 
 #endif // !TRACY_SPIRVOPERATION_H
