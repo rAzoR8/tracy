@@ -28,7 +28,11 @@ namespace Tracy
 		template <class... Ts, class T = va_type_t<Ts...>>
 		var<T, Assemble>& make_var(const Ts& ..._Val);
 
-		uint32_t AddInstruction(const SPIRVOperation& _Instr);
+		uint32_t AddInstruction(SPIRVOperation& _Instr);
+		
+	protected:
+		// sets storage class environment for all following variable definitions
+		void SetStorageClass(const spv::StorageClass _kClass);
 
 	private:
 		size_t AddConstant(const SPIRVConstant& _Const);
@@ -36,6 +40,7 @@ namespace Tracy
 
 	private:
 		uint32_t m_uId = 0u;// internal instruction id
+		spv::StorageClass m_kCurrentStorageClass = spv::StorageClassFunction;
 
 		// todo: add int matrix types
 		using spv_types = std::variant<
@@ -88,7 +93,7 @@ namespace Tracy
 	}
 
 	template<bool Assemble>
-	inline uint32_t SPIRVProgram<Assemble>::AddInstruction(const SPIRVOperation& _Instr)
+	inline uint32_t SPIRVProgram<Assemble>::AddInstruction(SPIRVOperation& _Instr)
 	{
 		m_Instructions.push_back(_Instr);
 		
@@ -126,8 +131,15 @@ namespace Tracy
 		case spv::OpFunctionEnd:
 			return m_uId;
 		default:
+			_Instr.m_uResultId = m_uId;
 			return m_uId++;
 		}
+	}
+
+	template<bool Assemble>
+	inline void SPIRVProgram<Assemble>::SetStorageClass(const spv::StorageClass _kClass)
+	{
+		m_kCurrentStorageClass = _kClass;
 	}
 
 	template<bool Assemble>
@@ -176,27 +188,20 @@ namespace Tracy
 		if constexpr(Assemble)
 		{
 			new_var.pParent = this;
-			//new_var.kStorageClass = _kClass;
+			new_var.kStorageClass = m_kCurrentStorageClass;
 
 			// create variable constant
 			SPIRVConstant Constant(SPIRVConstant::Make(_Val...));
 			const size_t uConstHash = AddConstant(Constant);
-			//SPIRVOperation OpConst(Constant.GetType(), { SPIRVOperand(kOperandType_Constant, uConstHash) });
-			//const uint32_t uConstId = AddInstruction(OpConst);
 
 			// composite type
 			const SPIRVType& Type(Constant.GetCompositeType());
 			const size_t uTypeHash = Type.GetHash();
-			// SPIRVOperation OpType(Type.GetType(), { SPIRVOperand(kOperandType_Type, uTypeHash) });
-			// const uint32_t uTypeId = AddInstruction(OpType);
-			// no need to add this type since its embedded in the constant, for now
+			new_var.uTypeHash = uTypeHash;
 
 			// pointer type
-			SPIRVType PointerType(spv::OpTypePointer); 
-			PointerType.Append(Type);
+			SPIRVType PointerType(spv::OpTypePointer, Type); 
 			const size_t uPtrTypeHash = AddType(PointerType);
-			//SPIRVOperation OpPtrType(PointerType.GetType(),{ SPIRVOperand(kOperandType_Type, uPtrTypeHash) });
-			//const uint32_t uPtrId = AddInstruction(OpPtrType);
 
 			// OpVariable:
 			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
@@ -206,10 +211,11 @@ namespace Tracy
 			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
 			// Initializer must havethe same type as the type pointed to by Result Type.
 
-			SPIRVOperation OpVar(spv::OpVariable, 
-			{ 
-				SPIRVOperand(kOperandType_Type, uPtrTypeHash), // SPIRVOperand(kOperandType_Intermediate, uPtrId),
-				SPIRVOperand(kOperandType_Constant, uConstHash)//SPIRVOperand(kOperandType_Intermediate, uConstId)
+			SPIRVOperation OpVar(spv::OpVariable,
+			{
+				SPIRVOperand(kOperandType_Type, uPtrTypeHash), 
+				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(new_var.kStorageClass)), // variable storage location
+				SPIRVOperand(kOperandType_Constant, uConstHash)
 			});
 
 			const uint32_t uVarId = AddInstruction(OpVar);
@@ -233,6 +239,8 @@ namespace Tracy
 		return std::get<var<T, Assemble>>(m_Variables.back());
 	}
 
+	// template <class T>
+	// void Decorate(const var<T, Assemble>& var, spv::Decoration kDec) { AddDecoration(var.uTypeHash, var.uResultId, kDec); }
 
 	template <class T, bool Assemble>
 	inline var<T, Assemble> operator+(const var<T, Assemble>& l, const var<T, Assemble>& r)
@@ -242,18 +250,36 @@ namespace Tracy
 		// intermediate values?
 		if constexpr(Assemble)
 		{
-			HASSERT(l.pParent == r.pParent, "Variables from different programs not supported, yet");
+			HASSERT(l.pParent != nullptr && r.pParent != nullptr, "Invalid program pointer");
 			var.pParent = l.pParent;
-			
+			var.uTypeHash = l.uTypeHash;
+			var.kStorageClass = l.kStorageClass;
 			//Floating - point addition of Operand 1 and	Operand 2.
 			//Result Type	must be a scalar or vector of floating - point type.
 			//The types of Operand 1 and Operand 2 both must be the same as Result Type.
 
-			// todo: get fundamental type from T value
-			SPIRVOperation Op(spv::OpFAdd, { SPIRVOperand(kOperandType_Intermediate, l.uResultId),SPIRVOperand(kOperandType_Intermediate, r.uResultId) });
+			spv::Op kType = spv::OpNop;
+			using BaseType = base_type_t<T>;
+			if constexpr(std::is_same_v<BaseType, float>)
+			{
+				kType = spv::OpFAdd;
+			}
+			else if constexpr(std::is_same_v<BaseType, int32_t> || std::is_same_v<BaseType, uint32_t>)
+			{
+				kType = spv::OpIAdd;
+			}
+
+			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+			HASSERT(l.uTypeHash == r.uTypeHash, "Operand type mismatch!");
+
+			SPIRVOperation Op(kType,
+			{
+				SPIRVOperand(kOperandType_Type, l.uTypeHash),
+				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
+				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
+			});
+
 			var.uResultId = l.pParent->AddInstruction(Op);
-			
-			// operands: l.immediateId != HUNDEFINED32 ? l.immediateId : l.VarId, same for r
 		}
 		
 		return var;

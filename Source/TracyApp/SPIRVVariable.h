@@ -23,6 +23,7 @@ namespace Tracy
 		uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions
 		spv::StorageClass kStorageClass = spv::StorageClassFunction;
 		 // TODO: add decorations
+		size_t uTypeHash = 0u;
 	};
 
 	template <>

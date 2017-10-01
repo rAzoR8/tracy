@@ -30,6 +30,7 @@ namespace Tracy
 	using float4x4 = glm::mat4x4;
 	using matrix = glm::mat4x4;
 
+#pragma region va_type
 	template <class ...Ts>
 	struct va_type {};
 
@@ -62,6 +63,57 @@ namespace Tracy
 	
 	template <class ...Ts>
 	using va_type_t = typename va_type<typename std::decay_t<Ts>...>::type;
+#pragma endregion
+
+#pragma region base_type
+	template <class VecT>
+	struct base_type {};
+
+	template <>
+	struct base_type<float2> { typedef float type; };
+
+	template <>
+	struct base_type<float3> { typedef float type; };
+
+	template <>
+	struct base_type<float4> { typedef float type; };
+
+	template <>
+	struct base_type<int2> { typedef int32_t type; };
+
+	template <>
+	struct base_type<int3> { typedef int32_t type; };
+
+	template <>
+	struct base_type<int4> { typedef int32_t type; };
+
+	template <>
+	struct base_type<uint2> { typedef uint32_t type; };
+
+	template <>
+	struct base_type<uint3> { typedef uint32_t type; };
+
+	template <>
+	struct base_type<uint4> { typedef uint32_t type; };
+
+	template <>
+	struct base_type<float2x2> { typedef float type; };
+
+	template <>
+	struct base_type<float3x3> { typedef float type; };
+
+	template <>
+	struct base_type<float3x4> { typedef float type; };
+
+	template <>
+	struct base_type<float4x3> { typedef float type; };
+
+	template <>
+	struct base_type<float4x4> { typedef float type; };
+	
+	template <class VecT>
+	using base_type_t = typename base_type<VecT>::type;
+#pragma endregion
 }; // Tracy
 
 #endif // !TRACY_GLM_H
