@@ -83,6 +83,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SPIRVAssembler.cpp" />
     <ClCompile Include="SPIRVConstant.cpp" />
     <ClCompile Include="SPIRVInstruction.cpp" />
     <ClCompile Include="SPIRVModule.cpp" />
@@ -120,6 +121,7 @@
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_TracyApp.h" />
     <ClInclude Include="GLM.h" />
+    <ClInclude Include="SPIRVAssembler.h" />
     <ClInclude Include="SPIRVConstant.h" />
     <ClInclude Include="SPIRVInstruction.h" />
     <ClInclude Include="SPIRVModule.h" />

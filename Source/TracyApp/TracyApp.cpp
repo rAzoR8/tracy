@@ -1,6 +1,7 @@
 #include "TracyApp.h"
 #include "VulkanInitializer.h"
 #include "SPIRVProgram.h"
+#include "SPIRVAssembler.h"
 
 TracyApp::TracyApp(QWidget *parent)
 	: QMainWindow(parent)
@@ -9,8 +10,8 @@ TracyApp::TracyApp(QWidget *parent)
 
 	using namespace Tracy;
 	VulkanInitializer::Instance();
-
-	SPIRVProgram<true> prog;
+	SPIRVAssembler Assembler;
+	SPIRVProgram<true> prog(Assembler);
 
 	Tracy::SPIRVConstant::Make(1.f, 2.f, 3.f);
 

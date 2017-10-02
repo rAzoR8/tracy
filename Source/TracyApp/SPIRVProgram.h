@@ -1,9 +1,7 @@
 #ifndef TRACY_SPIRVPROGRAM_H
 #define TRACY_SPIRVPROGRAM_H
 
-#include "SPIRVConstant.h"
-#include "SPIRVVariable.h"
-#include "SPIRVOperation.h"
+#include "SPIRVAssembler.h"
 #include "GLM.h"
 #include "glm\glm.hpp"
 
@@ -11,13 +9,14 @@
 #include <unordered_map>
 #include <variant>
 
+
 namespace Tracy
 {
 	template <bool Assemble>
 	class SPIRVProgram
 	{
 	public:
-		SPIRVProgram();
+		SPIRVProgram(SPIRVAssembler& _Assembler);
 		~SPIRVProgram();
 
 		void Execute();
@@ -26,55 +25,18 @@ namespace Tracy
 		//float operator+(const float& l, const float& r);
 
 		template <class... Ts, class T = va_type_t<Ts...>>
-		var<T, Assemble>& make_var(const Ts& ..._Val);
-
-		uint32_t AddInstruction(SPIRVOperation& _Instr);
+		var<T, Assemble> make_var(const Ts& ..._Val);
 		
-	protected:
-		// sets storage class environment for all following variable definitions
-		void SetStorageClass(const spv::StorageClass _kClass);
-
+		SPIRVAssembler& GetAssembler();
+		
 	private:
-		size_t AddConstant(const SPIRVConstant& _Const);
-		size_t AddType(const SPIRVType& _Type);
-
-	private:
-		uint32_t m_uId = 0u;// internal instruction id
-		spv::StorageClass m_kCurrentStorageClass = spv::StorageClassFunction;
-
-		// todo: add int matrix types
-		using spv_types = std::variant<
-			var<int32_t, Assemble>,
-			var<uint32_t, Assemble>,
-			var<float, Assemble>,
-			var<float2, Assemble>,
-			var<float3, Assemble>,
-			var<float4, Assemble>,
-			var<int2, Assemble>,
-			var<int3, Assemble>,
-			var<int4, Assemble>,
-			var<uint2, Assemble>,
-			var<uint3, Assemble>,
-			var<uint4, Assemble>,
-			var<matrix, Assemble>,
-			var<float2x2, Assemble>,
-			var<float3x3, Assemble>,
-			var<float3x4, Assemble>,
-			var<float4x3, Assemble>
-		>;
-
-		std::vector<spv_types> m_Variables;
-
-		std::unordered_map<size_t, SPIRVType> m_Types; // types that are NOT used with constants
-		std::unordered_map<size_t, SPIRVConstant> m_Constants;
-
-		std::vector<SPIRVOperation> m_Instructions; // unresolved local instruction stream
+		SPIRVAssembler& m_Assembler;
 	};
 
 	template <bool Assemble>
-	SPIRVProgram<Assemble>::SPIRVProgram()
+	SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler) :
+		m_Assembler(_Assembler)
 	{
-		m_Variables.reserve(4096);
 	}
 
 	template <bool Assemble>
@@ -93,77 +55,9 @@ namespace Tracy
 	}
 
 	template<bool Assemble>
-	inline uint32_t SPIRVProgram<Assemble>::AddInstruction(SPIRVOperation& _Instr)
+	inline SPIRVAssembler& SPIRVProgram<Assemble>::GetAssembler()
 	{
-		m_Instructions.push_back(_Instr);
-		
-		switch (_Instr.GetOpCode())
-		{
-			// instructions that don't create a result id (incomplete list)
-		//case spv::OpTypeVoid:
-		//case spv::OpTypeBool:
-		//case spv::OpTypeInt:
-		//case spv::OpTypeFloat:
-		//case spv::OpTypeVector:
-		//case spv::OpTypeMatrix:
-		//case spv::OpTypeImage:
-		//case spv::OpTypeSampler:
-		//case spv::OpTypeSampledImage:
-		//case spv::OpTypeArray:
-		//case spv::OpTypeRuntimeArray:
-		//case spv::OpTypeStruct:
-		//case spv::OpTypeOpaque:
-		//case spv::OpTypePointer:
-		//case spv::OpTypeFunction:
-		//case spv::OpTypeEvent:
-		//case spv::OpTypeDeviceEvent:
-		//case spv::OpTypeReserveId:
-		//case spv::OpTypeQueue:
-		//case spv::OpTypePipe:
-		//case spv::OpTypeForwardPointer:
-
-		case spv::OpStore:
-		case spv::OpSelectionMerge:
-		case spv::OpBranchConditional:
-		case spv::OpBranch:
-		case spv::OpLoopMerge:
-		case spv::OpReturn:
-		case spv::OpFunctionEnd:
-			return m_uId;
-		default:
-			_Instr.m_uResultId = m_uId;
-			return m_uId++;
-		}
-	}
-
-	template<bool Assemble>
-	inline void SPIRVProgram<Assemble>::SetStorageClass(const spv::StorageClass _kClass)
-	{
-		m_kCurrentStorageClass = _kClass;
-	}
-
-	template<bool Assemble>
-	inline size_t SPIRVProgram<Assemble>::AddConstant(const SPIRVConstant& _Const)
-	{
-		const size_t uHash = _Const.GetHash();
-		if (m_Constants.count(uHash) == 0ull)
-		{
-			m_Constants.insert({ uHash, _Const });
-		}
-
-		return uHash;
-	}
-
-	template<bool Assemble>
-	inline size_t SPIRVProgram<Assemble>::AddType(const SPIRVType& _Type)
-	{
-		const size_t uHash = _Type.GetHash();
-		if (m_Types.count(uHash) == 0ull)
-		{
-			m_Types.insert({ uHash, _Type });
-		}
-
-		return uHash;
+		return m_Assembler;
 	}
 
 	// problems to solve:
@@ -181,18 +75,18 @@ namespace Tracy
 
 	template<bool Assemble>
 	template<class ...Ts, class T>
-	inline var<T, Assemble>& SPIRVProgram<Assemble>::make_var(const Ts& ..._Val)
+	inline var<T, Assemble> SPIRVProgram<Assemble>::make_var(const Ts& ..._Val)
 	{
 		var<T, Assemble> new_var(_Val...);
 
 		if constexpr(Assemble)
 		{
-			new_var.pParent = this;
-			new_var.kStorageClass = m_kCurrentStorageClass;
+			new_var.pAssembler = &m_Assembler;
+			new_var.kStorageClass = spv::StorageClassFunction;
 
 			// create variable constant
 			SPIRVConstant Constant(SPIRVConstant::Make(_Val...));
-			const size_t uConstHash = AddConstant(Constant);
+			const size_t uConstHash = m_Assembler.AddConstant(Constant);
 
 			// composite type
 			const SPIRVType& Type(Constant.GetCompositeType());
@@ -201,7 +95,7 @@ namespace Tracy
 
 			// pointer type
 			SPIRVType PointerType(spv::OpTypePointer, Type); 
-			const size_t uPtrTypeHash = AddType(PointerType);
+			const size_t uPtrTypeHash = m_Assembler.AddType(PointerType);
 
 			// OpVariable:
 			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
@@ -218,7 +112,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Constant, uConstHash)
 			});
 
-			const uint32_t uVarId = AddInstruction(OpVar);
+			const uint32_t uVarId = m_Assembler.AddInstruction(OpVar);
 
 			// OpLoad:
 			// Result Type is the type of the loaded object.
@@ -232,11 +126,10 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Intermediate, uVarId)
 			});
 
-			new_var.uResultId = AddInstruction(OpLoad);
+			new_var.uResultId = m_Assembler.AddInstruction(OpLoad);
 		}
 
-		m_Variables.push_back(std::move(new_var)); // maybe put this in constexpr if too and return just new_var and changing return type to auto?
-		return std::get<var<T, Assemble>>(m_Variables.back());
+		return new_var;
 	}
 
 	// template <class T>
@@ -250,13 +143,14 @@ namespace Tracy
 		// intermediate values?
 		if constexpr(Assemble)
 		{
-			HASSERT(l.pParent != nullptr && r.pParent != nullptr, "Invalid program pointer");
-			var.pParent = l.pParent;
+			// TODO: check if the variable has a Assembler assigned, if not, use the assembler of a variable that has one
+			// variables could come from global scope or input / output
+			// better solution: user has to initialize the global variables in the constructor of the spv program
+
+			HASSERT(l.pAssembler != nullptr && l.pAssembler == r.pAssembler, "Invalid program assembler");
+			var.pAssembler = l.pAssembler;
 			var.uTypeHash = l.uTypeHash;
-			var.kStorageClass = l.kStorageClass;
-			//Floating - point addition of Operand 1 and	Operand 2.
-			//Result Type	must be a scalar or vector of floating - point type.
-			//The types of Operand 1 and Operand 2 both must be the same as Result Type.
+			var.kStorageClass = spv::StorageClassFunction;
 
 			spv::Op kType = spv::OpNop;
 			using BaseType = base_type_t<T>;
@@ -272,6 +166,10 @@ namespace Tracy
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 			HASSERT(l.uTypeHash == r.uTypeHash, "Operand type mismatch!");
 
+			//Floating - point addition of Operand 1 and	Operand 2.
+			//Result Type	must be a scalar or vector of floating - point type.
+			//The types of Operand 1 and Operand 2 both must be the same as Result Type.
+
 			SPIRVOperation Op(kType,
 			{
 				SPIRVOperand(kOperandType_Type, l.uTypeHash),
@@ -279,7 +177,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
 			});
 
-			var.uResultId = l.pParent->AddInstruction(Op);
+			var.uResultId = l.pAssembler->AddInstruction(Op);
 		}
 		
 		return var;

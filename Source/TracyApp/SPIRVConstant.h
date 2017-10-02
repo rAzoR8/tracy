@@ -3,6 +3,7 @@
 
 #include "SPIRVType.h"
 #include "FunctionalUtils.h"
+#include "Logger.h"
 
 namespace Tracy
 {	
@@ -48,6 +49,29 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+
+	inline std::vector<uint32_t> MakeLiterals(const std::string& _sString)
+	{
+		struct chars
+		{
+			char elem[sizeof(uint32_t)];
+		};
+
+		std::vector<uint32_t> Literals(_sString.size() / sizeof(uint32_t));
+
+		uint32_t i = 0u;
+		for (const char& c : _sString)
+		{
+			chars& chunk = reinterpret_cast<chars&>(Literals[i / sizeof(uint32_t)]);
+			chunk.elem[i % sizeof(uint32_t)] = c;
+			++i;
+		}
+
+		return Literals;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	
 	// Helper
 	template<class T, class ...Ts>
 	inline std::vector<uint32_t> MakeLiterals(T&& _Constant, Ts&& ..._args)
@@ -96,9 +120,9 @@ namespace Tracy
 
 			switch (uSize)
 			{
-			case 4u:
-				uRow = uCol = 2;
-				break;
+			//case 4u:
+			//	uRow = uCol = 2;
+			//	break;
 			case 9u:
 				uRow = uCol = 3;
 				break;
@@ -109,6 +133,7 @@ namespace Tracy
 				uRow = 4; uCol = 4;
 				break;
 			default:
+				HFATAL("Unsuppored number of arguments for constant");
 				break;
 			}
 

@@ -40,8 +40,7 @@ namespace Tracy
 	// and is used in a SPIRV program when resolving and assembling the instruction stream
 	class SPIRVOperation
 	{
-		template <bool Assemble>
-		friend class SPIRVProgram/*<Assemble>*/;
+		friend class SPIRVAssembler;
 	public:
 		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {});
 		~SPIRVOperation();

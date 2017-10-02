@@ -8,8 +8,7 @@
 namespace Tracy
 {
 	//forward decls
-	template <bool Assemble>
-	class SPIRVProgram;
+	class SPIRVAssembler;
 
 	template <bool Assemble>
 	struct var_decoration {};
@@ -17,13 +16,18 @@ namespace Tracy
 	template <>
 	struct var_decoration<true>
 	{
-		SPIRVProgram<true>* pParent;
-		std::string sName;
+		SPIRVAssembler* pAssembler;
+		//std::string sName;
 		//uint32_t uVarId = HUNDEFINED32; // result id of opload
 		uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions
 		spv::StorageClass kStorageClass = spv::StorageClassFunction;
 		 // TODO: add decorations
 		size_t uTypeHash = 0u;
+
+		void SetStorageClass(spv::StorageClass _kStorageClass)
+		{
+			kStorageClass = _kStorageClass;
+		}
 	};
 
 	template <>

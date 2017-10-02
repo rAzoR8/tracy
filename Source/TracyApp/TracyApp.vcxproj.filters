@@ -75,6 +75,9 @@
     <ClCompile Include="SPIRVOperation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SPIRVAssembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="TracyApp.h">
@@ -126,6 +129,9 @@
     </ClInclude>
     <ClInclude Include="GLM.h">
       <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVAssembler.h">
+      <Filter>Display\SPIRV</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
