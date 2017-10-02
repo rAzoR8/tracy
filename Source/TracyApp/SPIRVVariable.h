@@ -16,10 +16,10 @@ namespace Tracy
 	template <>
 	struct var_decoration<true>
 	{
-		SPIRVAssembler* pAssembler;
+		SPIRVAssembler* pAssembler = nullptr;
 		//std::string sName;
-		//uint32_t uVarId = HUNDEFINED32; // result id of opload
-		uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions
+		uint32_t uVarId = HUNDEFINED32; // result id OpVar
+		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
 		spv::StorageClass kStorageClass = spv::StorageClassFunction;
 		 // TODO: add decorations
 		size_t uTypeHash = 0u;

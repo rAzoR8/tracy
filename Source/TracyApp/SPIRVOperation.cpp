@@ -20,7 +20,11 @@ SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& 
 	}
 }
 
-
 SPIRVOperation::~SPIRVOperation()
 {
+}
+
+void SPIRVOperation::AddOperand(const SPIRVOperand& _Operand)
+{
+	m_Operands.push_back(_Operand);
 }

@@ -10,22 +10,32 @@ namespace Tracy
 	class ExampleProg : public SPIRVProgram<Assemble>
 	{
 	public:
-		ExampleProg(SPIRVAssembler& _Assembler) : SPIRVProgram<Assemble>(_Assembler){};
+		ExampleProg(SPIRVAssembler& _Assembler) :
+			SPIRVProgram<Assemble>(_Assembler, InputScale, InputPos)
+		{
+		};
 		~ExampleProg() {};
 
-		void Execute() final;
+		void OnExecute() final;
 		
-		var_in<float> SomeInputFloat;
+		var_in<float> InputScale;
+		var_in<float3> InputPos;
 	private:
 
 	};
 
 	template<bool Assemble>
-	inline void ExampleProg<Assemble>::Execute()
+	inline void ExampleProg<Assemble>::OnExecute()
 	{
 		var<float> t = make_var(1.f);
 
-		//auto res = t + SomeInputFloat;
+		var<bool> b = make_var(true);
+
+		If(b, [&]()
+		{
+			auto res = t + InputScale;			
+		});
+
 	}
 }; // !Tracy
 

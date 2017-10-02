@@ -35,6 +35,9 @@ namespace Tracy
 	struct va_type {};
 
 	template <>
+	struct va_type<bool> { typedef bool type; };
+
+	template <>
 	struct va_type<float> { typedef float type; };
 	template <>
 	struct va_type<float, float> { typedef float2 type; };
@@ -68,6 +71,9 @@ namespace Tracy
 #pragma region base_type
 	template <class VecT>
 	struct base_type {};
+
+	template <>
+	struct base_type<bool> { typedef bool type; };
 
 	template <>
 	struct base_type<float> { typedef float type; };

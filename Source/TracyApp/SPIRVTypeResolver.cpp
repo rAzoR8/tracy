@@ -6,8 +6,8 @@
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
-SPIRVTypeResolver::SPIRVTypeResolver(uint32_t& _uCurrentId) :
-	m_uCurrentId(_uCurrentId)
+SPIRVTypeResolver::SPIRVTypeResolver(uint32_t& _uCurrentId, std::vector<SPIRVInstruction>& _Instructions) :
+	m_uCurrentId(_uCurrentId), m_Instructions(_Instructions)
 {
 }
 //---------------------------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 		uId, // result id
 		Operands);
 
-	m_Defines.push_back(std::move(Type));
+	m_Instructions.push_back(std::move(Type));
 
 	return uId;
 }
@@ -146,7 +146,7 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVConstant& _Constant)
 		uId, // result id
 		Operands);
 
-	m_Defines.push_back(std::move(Constant));
+	m_Instructions.push_back(std::move(Constant));
 
 	return uId;
 }
@@ -175,5 +175,11 @@ uint32_t SPIRVTypeResolver::GetConstantId(const size_t& _uHash) const
 	}
 
 	return HUNDEFINED32;
+}
+//---------------------------------------------------------------------------------------------------
+void SPIRVTypeResolver::Reset()
+{
+	m_ConstantIds.clear();
+	m_TypeIds.clear();
 }
 //---------------------------------------------------------------------------------------------------

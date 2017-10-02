@@ -14,6 +14,16 @@ SPIRVConstant::SPIRVConstant(
 	m_Constants(_Constants)
 {
 	HASSERT(_kConstantType >= spv::OpConstantTrue && _kConstantType <= spv::OpSpecConstantOp, "Invalid constant type");
+	switch (_kConstantType)
+	{
+	case spv::OpConstantTrue:
+	case spv::OpConstantFalse:
+	case spv::OpSpecConstantTrue:
+	case spv::OpSpecConstantFalse:
+		m_CompositeType = SPIRVType::Bool();
+	default:
+		break;
+	}
 }
 //---------------------------------------------------------------------------------------------------
 

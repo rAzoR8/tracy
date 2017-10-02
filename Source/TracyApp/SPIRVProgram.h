@@ -13,6 +13,26 @@
 
 namespace Tracy
 {
+	//using spv_types = std::variant<
+	//	var_t<int32_t, Assemble>,
+	//	var_t<uint32_t, Assemble>,
+	//	var_t<float, Assemble>,
+	//	var_t<float2, Assemble>,
+	//	var_t<float3, Assemble>,
+	//	var_t<float4, Assemble>,
+	//	var_t<int2, Assemble>,
+	//	var_t<int3, Assemble>,
+	//	var_t<int4, Assemble>,
+	//	var_t<uint2, Assemble>,
+	//	var_t<uint3, Assemble>,
+	//	var_t<uint4, Assemble>,
+	//	var_t<matrix, Assemble>,
+	//	var_t<float2x2, Assemble>,
+	//	var_t<float3x3, Assemble>,
+	//	var_t<float3x4, Assemble>,
+	//	var_t<float4x3, Assemble>
+	//>;
+
 	template <bool Assemble>
 	class SPIRVProgram
 	{
@@ -27,19 +47,35 @@ namespace Tracy
 		using var_out = var_out_t<T, Assemble>;
 
 		SPIRVProgram(SPIRVAssembler& _Assembler);
+
+		template <class T, class... Ts>
+		SPIRVProgram(SPIRVAssembler& _Assembler, var<T>& _FirstVar, var<Ts>&... _Rest);
+
 		~SPIRVProgram();
 
-		virtual void Execute() {};
+		SPIRVAssembler& GetAssembler();
+
+		void Execute();
+
+	protected:
+		virtual void OnExecute() {};
 
 		// does not work as member:
 		//float operator+(const float& l, const float& r);
 
 		template <class... Ts, class T = va_type_t<Ts...>>
-		var_t<T, Assemble> make_var(const Ts& ..._Val);
-		
-		SPIRVAssembler& GetAssembler();
-		
+		var_t<T, Assemble> make_var(const Ts& ..._Val);		
+
+		template <class LambdaFunc>
+		void If(const var_t<bool, Assemble>&, LambdaFunc& _Func);
+
 	private:
+		template <class T, class... Ts>
+		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
+
+	private:
+		//std::vector<spv_types> m_Variables;
+
 		SPIRVAssembler& m_Assembler;
 	};
 
@@ -47,6 +83,14 @@ namespace Tracy
 	SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler) :
 		m_Assembler(_Assembler)
 	{
+	}
+
+	template<bool Assemble>
+	template<class T, class ...Ts>
+	inline SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler, var<T>& _FirstVar, var<Ts>&... _Rest) :
+		m_Assembler(_Assembler)
+	{
+		InitVar(_FirstVar, _Rest...);
 	}
 
 	template <bool Assemble>
@@ -58,6 +102,16 @@ namespace Tracy
 	inline SPIRVAssembler& SPIRVProgram<Assemble>::GetAssembler()
 	{
 		return m_Assembler;
+	}
+
+	template<bool Assemble>
+	inline void SPIRVProgram<Assemble>::Execute()
+	{
+		// TODO: creat OpFunction & OpFunctionParameter
+
+		OnExecute();
+
+		// OpFunctionEnd
 	}
 
 	// problems to solve:
@@ -84,13 +138,21 @@ namespace Tracy
 			new_var.pAssembler = &m_Assembler;
 			new_var.kStorageClass = spv::StorageClassFunction;
 
+			SPIRVConstant Constant;
 			// create variable constant
-			SPIRVConstant Constant(SPIRVConstant::Make(_Val...));
+			if constexpr(std::is_same<std::decay_t<T>, bool>::value)
+			{
+				Constant = SPIRVConstant(new_var.Value ? spv::OpConstantTrue : spv::OpConstantFalse);
+			}
+			else
+			{
+				Constant = SPIRVConstant::Make(_Val...);
+			}
 			const size_t uConstHash = m_Assembler.AddConstant(Constant);
 
 			// composite type
 			const SPIRVType& Type(Constant.GetCompositeType());
-			const size_t uTypeHash = Type.GetHash();
+			const size_t uTypeHash = Type.GetHash(); // no need to add type, is resolved by constant already
 			new_var.uTypeHash = uTypeHash;
 
 			// pointer type
@@ -112,24 +174,56 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Constant, uConstHash)
 			});
 
-			const uint32_t uVarId = m_Assembler.AddInstruction(OpVar);
-
-			// OpLoad:
-			// Result Type is the type of the loaded object.
-			// Pointer is the pointer to load through. Its type must be an OpTypePointer whose Type operand is the same as ResultType.
-			// Memory Access must be a Memory Access literal. If not present, it is the same as specifying None.
-			// bsp: None, Volatile, Aligned, Nontemporal
-
-			SPIRVOperation OpLoad(spv::OpLoad,
-			{
-				SPIRVOperand(kOperandType_Type, uTypeHash), //SPIRVOperand(kOperandType_Intermediate, uTypeId)
-				SPIRVOperand(kOperandType_Intermediate, uVarId)
-			});
-
-			new_var.uResultId = m_Assembler.AddInstruction(OpLoad);
+			new_var.uVarId = m_Assembler.AddOperation(OpVar);
 		}
 
 		return new_var;
+	}
+
+	template<bool Assemble>
+	template<class LambdaFunc>
+	inline void SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, LambdaFunc& _Func)
+	{
+		if (_Cond.Value || Assemble)
+			_Func();
+	}
+
+	template<bool Assemble>
+	template<class T, class ...Ts>
+	inline void SPIRVProgram<Assemble>::InitVar(var<T>& _FirstVar, var<Ts>& ..._Rest)
+	{
+		if constexpr(Assemble)
+		{
+			_FirstVar.pAssembler = &m_Assembler;
+			// create types
+			SPIRVType Type(SPIRVType::FromType<T>());
+			_FirstVar.uTypeHash = m_Assembler.AddType(Type);
+
+			SPIRVType PointerType(spv::OpTypePointer, Type);
+			const size_t uPtrTypeHash = m_Assembler.AddType(PointerType);
+
+			// OpVariable:
+			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
+			// Result Type must be an OpTypePointer. Its Type operand is the type of object in memory.
+			// Storage Class is the Storage Class of the memory holding the object. It cannot be Generic.
+			// Initializer is optional. If Initializer is present, it will be the initial value of the variable’s memory content.
+			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
+			// Initializer must havethe same type as the type pointed to by Result Type.
+
+			// create var instruction
+			SPIRVOperation OpVar(spv::OpVariable,
+			{
+				SPIRVOperand(kOperandType_Type, uPtrTypeHash),
+				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_FirstVar.kStorageClass)) // variable storage location
+			});
+
+			_FirstVar.uVarId = m_Assembler.AddOperation(OpVar);
+			_FirstVar.uResultId = HUNDEFINED32;
+
+			// create rest of the variables
+			if constexpr(sizeof...(Ts) > 0)
+				InitVar(_Rest...);
+		}
 	}
 
 	// template <class T>

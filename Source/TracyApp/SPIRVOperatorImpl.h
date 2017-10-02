@@ -6,6 +6,31 @@
 
 namespace Tracy
 {
+	template <class T>
+	inline uint32_t LoadVar(const var_t<T, true>& _var, SPIRVAssembler& _Assembler)
+	{
+		if (_var.uResultId != HUNDEFINED32)
+			return _var.uResultId;
+
+		HASSERT(_var.uVarId != HUNDEFINED32, "Invalid VarId");
+		HASSERT(_var.uTypeHash != 0u, "Invalid TypeHash");
+
+		// OpLoad:
+		// Result Type is the type of the loaded object.
+		// Pointer is the pointer to load through. Its type must be an OpTypePointer whose Type operand is the same as ResultType.
+		// Memory Access must be a Memory Access literal. If not present, it is the same as specifying None.
+		// bsp: None, Volatile, Aligned, Nontemporal
+
+		SPIRVOperation OpLoad(spv::OpLoad,
+		{
+			SPIRVOperand(kOperandType_Type, _var.uTypeHash),
+			SPIRVOperand(kOperandType_Intermediate, _var.uVarId)
+		});
+
+		_var.uResultId = _Assembler.AddOperation(OpLoad);
+		return _var.uResultId;
+	}
+
 	template <class T, bool Assemble>
 	inline var_t<T, Assemble> operator+(const var_t<T, Assemble>& l, const var_t<T, Assemble>& r)
 	{
@@ -18,7 +43,10 @@ namespace Tracy
 			// variables could come from global scope or input / output
 			// better solution: user has to initialize the global variables in the constructor of the spv program
 
-			HASSERT(l.pAssembler != nullptr && l.pAssembler == r.pAssembler, "Invalid program assembler");
+			HASSERT(l.pAssembler != nullptr && l.pAssembler == r.pAssembler, "Invalid program assembler");	
+			LoadVar(l, *l.pAssembler);
+			LoadVar(r, *r.pAssembler);
+			
 			var.pAssembler = l.pAssembler;
 			var.uTypeHash = l.uTypeHash;
 			var.kStorageClass = spv::StorageClassFunction;
@@ -48,7 +76,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
 			});
 
-			var.uResultId = l.pAssembler->AddInstruction(Op);
+			var.uResultId = l.pAssembler->AddOperation(Op);
 		}
 
 		return var;

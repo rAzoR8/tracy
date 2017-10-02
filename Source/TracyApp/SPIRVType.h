@@ -4,6 +4,7 @@
 #include <vulkan\spirv.hpp>
 #include <vector>
 #include <stdint.h>
+#include "GLM.h"
 
 namespace Tracy
 {
@@ -16,6 +17,9 @@ namespace Tracy
 
 	template <class T>
 	struct optype {};
+
+	template <>
+	struct optype<bool> { OPDEFS(spv::OpTypeBool, false, 0u) };
 
 	template <>
 	struct optype<float> { OPDEFS(spv::OpTypeFloat, true, 32u)};
@@ -51,6 +55,7 @@ namespace Tracy
 		const bool& GetSign() const;
 
 		// type helpers
+		static SPIRVType Bool() { return SPIRVType(spv::OpTypeBool, 0u, false); }
 		static SPIRVType Int() { return SPIRVType(spv::OpTypeInt, 32u, true); }
 		static SPIRVType UInt() { return SPIRVType(spv::OpTypeInt, 32u, false); }
 		static SPIRVType Short() { return SPIRVType(spv::OpTypeInt, 16u, true); }
@@ -74,7 +79,7 @@ namespace Tracy
 			return SPIRVType(spv::OpTypeVector, Primitive<T>(), Dim);
 		}
 
-		template <class T, uint32_t row = 4, uint32_t col = 4>
+		template <class T = float, uint32_t row = 4, uint32_t col = 4>
 		static SPIRVType Mat()
 		{
 			static_assert(col > 1 && col < 5, "Invalid dimension [2,4]");
@@ -86,6 +91,9 @@ namespace Tracy
 		{
 			return SPIRVType(spv::OpTypeMatrix, Vec<T>(row), col);
 		}
+
+		template <class T>
+		static SPIRVType FromType();
 
 	private:
 		std::vector<SPIRVType> m_SubTypes; // struct members etc
@@ -111,6 +119,62 @@ namespace Tracy
 	{
 		return m_bSign;
 	}
+
+#pragma region FromType
+	template<>
+	inline SPIRVType SPIRVType::FromType<bool>() { return SPIRVType::Bool(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float>(){return SPIRVType::Primitive<float>();}
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<int32_t>(){return SPIRVType::Primitive<int32_t>();}
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<uint32_t>() { return SPIRVType::Primitive<uint32_t>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<int2>() { return SPIRVType::Vec<int32_t, 2>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<int3>() { return SPIRVType::Vec<int32_t, 3>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<int4>() { return SPIRVType::Vec<int32_t, 4>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<uint2>() { return SPIRVType::Vec<uint32_t, 2>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<uint3>() { return SPIRVType::Vec<uint32_t, 3>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<uint4>() { return SPIRVType::Vec<uint32_t, 4>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float2>() { return SPIRVType::Vec<float, 2>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float3>() { return SPIRVType::Vec<float, 3>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float4>() { return SPIRVType::Vec<float, 4>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float4x4>() { return SPIRVType::Mat<float>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float2x2>() { return SPIRVType::Mat<float, 2, 2>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float3x3>() { return SPIRVType::Mat<float, 3, 3>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float4x3>() { return SPIRVType::Mat<float, 4, 3>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromType<float3x4>() { return SPIRVType::Mat<float, 3, 4>(); }
+#pragma endregion
 } // Tracy
 
 #endif // !TRACY_SPIRVTYPE_H

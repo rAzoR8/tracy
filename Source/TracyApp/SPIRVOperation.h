@@ -49,17 +49,25 @@ namespace Tracy
 		~SPIRVOperation();
 
 		const spv::Op& GetOpCode() const;
-
+		void AddOperand(const SPIRVOperand& _Operand);
+		const std::vector<SPIRVOperand>& GetOperands() const;
 	private:
 		spv::Op m_kOpCode = spv::OpNop;
 		std::vector<SPIRVOperand> m_Operands;
+		uint32_t m_uInstrId = HUNDEFINED32;
 		uint32_t m_uResultId = HUNDEFINED32;
 	};
 
-	inline const spv::Op& Tracy::SPIRVOperation::GetOpCode() const
+	inline const spv::Op& SPIRVOperation::GetOpCode() const
 	{
 		return m_kOpCode;
 	}
+
+	inline const std::vector<SPIRVOperand>& SPIRVOperation::GetOperands() const
+	{
+		return m_Operands;
+	}
+
 } // !Tracy
 
 #endif // !TRACY_SPIRVOPERATION_H
