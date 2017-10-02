@@ -9,10 +9,9 @@ namespace Tracy
 	template <class T>
 	inline uint32_t LoadVar(const var_t<T, true>& _var, SPIRVAssembler& _Assembler)
 	{
-		if (_var.uResultId != HUNDEFINED32)
+		if (_var.uResultId != HUNDEFINED32 || _var.uVarId == HUNDEFINED32)
 			return _var.uResultId;
-
-		HASSERT(_var.uVarId != HUNDEFINED32, "Invalid VarId");
+		
 		HASSERT(_var.uTypeHash != 0u, "Invalid TypeHash");
 
 		// OpLoad:

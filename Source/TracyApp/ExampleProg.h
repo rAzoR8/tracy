@@ -10,16 +10,17 @@ namespace Tracy
 	class ExampleProg : public SPIRVProgram<Assemble>
 	{
 	public:
-		ExampleProg(SPIRVAssembler& _Assembler) :
-			SPIRVProgram<Assemble>(_Assembler, InputScale, InputPos)
+		ExampleProg(SPIRVAssembler& _Assembler) :SPIRVProgram<Assemble>(_Assembler)
 		{
+			InitVar(InputScale, InputPos);
+
 		};
 		~ExampleProg() {};
 
 		void OnExecute() final;
-		
 		var_in<float> InputScale;
 		var_in<float3> InputPos;
+
 	private:
 
 	};
@@ -28,14 +29,14 @@ namespace Tracy
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
 		var<float> t = make_var(1.f);
-
 		var<bool> b = make_var(true);
 
 		If(b, [&]()
 		{
-			auto res = t + InputScale;			
+			// Problem to solve: access chain to x, how to overload operator+ correctly
+			// auto res = t + InputPos.x;
 		});
-
+		
 	}
 }; // !Tracy
 

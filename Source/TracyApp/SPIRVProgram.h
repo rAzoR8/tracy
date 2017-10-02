@@ -13,26 +13,6 @@
 
 namespace Tracy
 {
-	//using spv_types = std::variant<
-	//	var_t<int32_t, Assemble>,
-	//	var_t<uint32_t, Assemble>,
-	//	var_t<float, Assemble>,
-	//	var_t<float2, Assemble>,
-	//	var_t<float3, Assemble>,
-	//	var_t<float4, Assemble>,
-	//	var_t<int2, Assemble>,
-	//	var_t<int3, Assemble>,
-	//	var_t<int4, Assemble>,
-	//	var_t<uint2, Assemble>,
-	//	var_t<uint3, Assemble>,
-	//	var_t<uint4, Assemble>,
-	//	var_t<matrix, Assemble>,
-	//	var_t<float2x2, Assemble>,
-	//	var_t<float3x3, Assemble>,
-	//	var_t<float3x4, Assemble>,
-	//	var_t<float4x3, Assemble>
-	//>;
-
 	template <bool Assemble>
 	class SPIRVProgram
 	{
@@ -47,10 +27,6 @@ namespace Tracy
 		using var_out = var_out_t<T, Assemble>;
 
 		SPIRVProgram(SPIRVAssembler& _Assembler);
-
-		template <class T, class... Ts>
-		SPIRVProgram(SPIRVAssembler& _Assembler, var<T>& _FirstVar, var<Ts>&... _Rest);
-
 		~SPIRVProgram();
 
 		SPIRVAssembler& GetAssembler();
@@ -60,22 +36,16 @@ namespace Tracy
 	protected:
 		virtual void OnExecute() {};
 
-		// does not work as member:
-		//float operator+(const float& l, const float& r);
-
 		template <class... Ts, class T = va_type_t<Ts...>>
 		var_t<T, Assemble> make_var(const Ts& ..._Val);		
 
 		template <class LambdaFunc>
 		void If(const var_t<bool, Assemble>&, LambdaFunc& _Func);
 
-	private:
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
 
 	private:
-		//std::vector<spv_types> m_Variables;
-
 		SPIRVAssembler& m_Assembler;
 	};
 
@@ -83,14 +53,6 @@ namespace Tracy
 	SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler) :
 		m_Assembler(_Assembler)
 	{
-	}
-
-	template<bool Assemble>
-	template<class T, class ...Ts>
-	inline SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler, var<T>& _FirstVar, var<Ts>&... _Rest) :
-		m_Assembler(_Assembler)
-	{
-		InitVar(_FirstVar, _Rest...);
 	}
 
 	template <bool Assemble>
