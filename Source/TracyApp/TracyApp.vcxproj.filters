@@ -133,5 +133,11 @@
     <ClInclude Include="SPIRVAssembler.h">
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
+    <ClInclude Include="SPIRVOperatorImpl.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="ExampleProg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

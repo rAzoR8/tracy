@@ -119,6 +119,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ExampleProg.h" />
     <ClInclude Include="GeneratedFiles\ui_TracyApp.h" />
     <ClInclude Include="GLM.h" />
     <ClInclude Include="SPIRVAssembler.h" />
@@ -126,6 +127,7 @@
     <ClInclude Include="SPIRVInstruction.h" />
     <ClInclude Include="SPIRVModule.h" />
     <ClInclude Include="SPIRVOperation.h" />
+    <ClInclude Include="SPIRVOperatorImpl.h" />
     <ClInclude Include="SPIRVProgram.h" />
     <ClInclude Include="SPIRVType.h" />
     <ClInclude Include="SPIRVTypeResolver.h" />

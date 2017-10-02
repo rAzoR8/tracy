@@ -70,6 +70,9 @@ namespace Tracy
 	struct base_type {};
 
 	template <>
+	struct base_type<float> { typedef float type; };
+
+	template <>
 	struct base_type<float2> { typedef float type; };
 
 	template <>
@@ -79,6 +82,9 @@ namespace Tracy
 	struct base_type<float4> { typedef float type; };
 
 	template <>
+	struct base_type<int32_t> { typedef int32_t type; };
+
+	template <>
 	struct base_type<int2> { typedef int32_t type; };
 
 	template <>
@@ -86,6 +92,9 @@ namespace Tracy
 
 	template <>
 	struct base_type<int4> { typedef int32_t type; };
+
+	template <>
+	struct base_type<uint32_t> { typedef uint32_t type; };
 
 	template <>
 	struct base_type<uint2> { typedef uint32_t type; };

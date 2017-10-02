@@ -1,14 +1,15 @@
 #ifndef TRACY_SPIRVPROGRAM_H
 #define TRACY_SPIRVPROGRAM_H
 
-#include "SPIRVAssembler.h"
+#include "SPIRVOperatorImpl.h"
+
 #include "GLM.h"
 #include "glm\glm.hpp"
 
 #include "Logger.h"
+
 #include <unordered_map>
 #include <variant>
-
 
 namespace Tracy
 {
@@ -16,16 +17,25 @@ namespace Tracy
 	class SPIRVProgram
 	{
 	public:
+		template <class T>
+		using var = var_t<T, Assemble>;
+
+		template <class T>
+		using var_in = var_in_t<T, Assemble>;
+
+		template <class T>
+		using var_out = var_out_t<T, Assemble>;
+
 		SPIRVProgram(SPIRVAssembler& _Assembler);
 		~SPIRVProgram();
 
-		void Execute();
+		virtual void Execute() {};
 
 		// does not work as member:
 		//float operator+(const float& l, const float& r);
 
 		template <class... Ts, class T = va_type_t<Ts...>>
-		var<T, Assemble> make_var(const Ts& ..._Val);
+		var_t<T, Assemble> make_var(const Ts& ..._Val);
 		
 		SPIRVAssembler& GetAssembler();
 		
@@ -42,16 +52,6 @@ namespace Tracy
 	template <bool Assemble>
 	SPIRVProgram<Assemble>::~SPIRVProgram()
 	{
-	}
-
-	// currently just test code
-	template <bool Assemble>
-	void SPIRVProgram<Assemble>::Execute()
-	{
-		auto& f1 = make_var(1.f, 1.f);
-		auto& f2 = make_var(2.f, 3.f);
-
-		auto f3 = f1 + f2;
 	}
 
 	template<bool Assemble>
@@ -75,9 +75,9 @@ namespace Tracy
 
 	template<bool Assemble>
 	template<class ...Ts, class T>
-	inline var<T, Assemble> SPIRVProgram<Assemble>::make_var(const Ts& ..._Val)
+	inline var_t<T, Assemble> SPIRVProgram<Assemble>::make_var(const Ts& ..._Val)
 	{
-		var<T, Assemble> new_var(_Val...);
+		var_t<T, Assemble> new_var(_Val...);
 
 		if constexpr(Assemble)
 		{
@@ -134,55 +134,6 @@ namespace Tracy
 
 	// template <class T>
 	// void Decorate(const var<T, Assemble>& var, spv::Decoration kDec) { AddDecoration(var.uTypeHash, var.uResultId, kDec); }
-
-	template <class T, bool Assemble>
-	inline var<T, Assemble> operator+(const var<T, Assemble>& l, const var<T, Assemble>& r)
-	{
-		var<T, Assemble> var(l.Value + r.Value);
-
-		// intermediate values?
-		if constexpr(Assemble)
-		{
-			// TODO: check if the variable has a Assembler assigned, if not, use the assembler of a variable that has one
-			// variables could come from global scope or input / output
-			// better solution: user has to initialize the global variables in the constructor of the spv program
-
-			HASSERT(l.pAssembler != nullptr && l.pAssembler == r.pAssembler, "Invalid program assembler");
-			var.pAssembler = l.pAssembler;
-			var.uTypeHash = l.uTypeHash;
-			var.kStorageClass = spv::StorageClassFunction;
-
-			spv::Op kType = spv::OpNop;
-			using BaseType = base_type_t<T>;
-			if constexpr(std::is_same_v<BaseType, float>)
-			{
-				kType = spv::OpFAdd;
-			}
-			else if constexpr(std::is_same_v<BaseType, int32_t> || std::is_same_v<BaseType, uint32_t>)
-			{
-				kType = spv::OpIAdd;
-			}
-
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-			HASSERT(l.uTypeHash == r.uTypeHash, "Operand type mismatch!");
-
-			//Floating - point addition of Operand 1 and	Operand 2.
-			//Result Type	must be a scalar or vector of floating - point type.
-			//The types of Operand 1 and Operand 2 both must be the same as Result Type.
-
-			SPIRVOperation Op(kType,
-			{
-				SPIRVOperand(kOperandType_Type, l.uTypeHash),
-				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
-				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
-			});
-
-			var.uResultId = l.pAssembler->AddInstruction(Op);
-		}
-		
-		return var;
-	}
-
 }; // !Tracy
 
 #endif // !TRACY_SPIRVPROGRAM_H

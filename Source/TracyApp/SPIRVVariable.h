@@ -1,7 +1,7 @@
 #ifndef TRACY_SPIRVVARIABLE_H
 #define TRACY_SPIRVVARIABLE_H
 
-#include <stdint.h>
+#include <vulkan\spirv.hpp>
 #include "StandardDefines.h"
 #include <string>
 
@@ -38,12 +38,26 @@ namespace Tracy
 	};
 
 	template <typename T, bool Assemble = true>
-	struct var : public var_decoration<Assemble>
+	struct var_t : public var_decoration<Assemble>
 	{
 		template <class... Ts>
-		var(Ts ... _args) : var_decoration<Assemble>(), Value(_args...) {}
+		var_t(Ts ... _args) : var_decoration<Assemble>(), Value(_args...) {}
 
 		T Value;
+	};
+
+	template <typename T, bool Assemble>
+	struct var_in_t : public var_t<T, Assemble>
+	{
+		template <class... Ts>
+		var_in_t(Ts ... _args) : var_t<T, Assemble>(_args...) { kStorageClass = spv::StorageClassInput; }
+	};
+
+	template <typename T, bool Assemble>
+	struct var_out_t : public var_t<T, Assemble>
+	{
+		template <class... Ts>
+		var_out_t(Ts ... _args) : var_t<T, Assemble>(_args...) { kStorageClass = spv::StorageClassOutput; }
 	};
 }
 
