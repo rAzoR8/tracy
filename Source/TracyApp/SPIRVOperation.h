@@ -42,7 +42,10 @@ namespace Tracy
 	{
 		friend class SPIRVAssembler;
 	public:
+		SPIRVOperation(const spv::Op _kOp, const SPIRVOperand& _Operand);
 		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {});
+		SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& _Literals);
+
 		~SPIRVOperation();
 
 		const spv::Op& GetOpCode() const;

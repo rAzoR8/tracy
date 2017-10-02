@@ -4,13 +4,39 @@ using namespace Tracy;
 
 SPIRVAssembler::SPIRVAssembler()
 {
+	Init();
 }
+//---------------------------------------------------------------------------------------------------
 
 SPIRVAssembler::~SPIRVAssembler()
 {
 }
+//---------------------------------------------------------------------------------------------------
 
-uint32_t SPIRVAssembler::AddInstruction(SPIRVOperation & _Instr)
+void SPIRVAssembler::Init()
+{
+	m_Constants.clear();
+	m_Instructions.clear();
+	m_Types.clear();
+	m_uId = 0u;
+
+	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
+	AddInstruction(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Unknown, (uint32_t)spv::CapabilityShader)));
+	
+	// OpExtension (unused)
+
+	// OpExtInstImport:
+	AddInstruction(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString("GLSL.std.450")));
+
+	//OpMemoryModel
+	AddInstruction(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::MemoryModelGLSL450, (uint32_t)spv::AddressingModelLogical)));
+
+	// TODO: OpEntryPoint
+	// TODO: OpExecutionMode
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVAssembler::AddInstruction(SPIRVOperation& _Instr)
 {
 	m_Instructions.push_back(_Instr);
 
@@ -52,6 +78,7 @@ uint32_t SPIRVAssembler::AddInstruction(SPIRVOperation & _Instr)
 		return m_uId++;
 	}
 }
+//---------------------------------------------------------------------------------------------------
 
 size_t SPIRVAssembler::AddConstant(const SPIRVConstant & _Const)
 {
@@ -63,6 +90,7 @@ size_t SPIRVAssembler::AddConstant(const SPIRVConstant & _Const)
 
 	return uHash;
 }
+//---------------------------------------------------------------------------------------------------
 
 size_t SPIRVAssembler::AddType(const SPIRVType & _Type)
 {
@@ -74,3 +102,4 @@ size_t SPIRVAssembler::AddType(const SPIRVType & _Type)
 
 	return uHash;
 }
+//---------------------------------------------------------------------------------------------------

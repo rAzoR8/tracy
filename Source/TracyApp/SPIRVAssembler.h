@@ -13,6 +13,8 @@ namespace Tracy
 		SPIRVAssembler();
 		~SPIRVAssembler();
 
+		void Init();
+
 		uint32_t AddInstruction(SPIRVOperation& _Instr);
 		size_t AddConstant(const SPIRVConstant& _Const);
 		size_t AddType(const SPIRVType& _Type);

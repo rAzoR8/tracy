@@ -16,7 +16,7 @@ namespace Tracy
 			const std::vector<uint32_t>& _Constants = {});
 
 		~SPIRVConstant();
-
+		
 		// composite & scalar constructor
 		template<class T, class ...Ts>
 		static SPIRVConstant Make(T&& first, Ts&& ..._args);
@@ -50,7 +50,7 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	inline std::vector<uint32_t> MakeLiterals(const std::string& _sString)
+	inline std::vector<uint32_t> MakeLiteralString(const std::string& _sString)
 	{
 		struct chars
 		{
