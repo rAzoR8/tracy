@@ -6,6 +6,7 @@ using namespace Tracy;
 SPIRVAssembler::SPIRVAssembler() :
 	m_TypeResolver(m_uResultId, m_Definitions)
 {
+	m_Operations.reserve(4096u);
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -41,6 +42,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	//m_Constants.clear();
 	//m_Types.clear();
 	//m_uInstrId = 0u;
+	//m_pOpEntryPoint = nullptr;
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader)));
@@ -53,11 +55,11 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	//OpMemoryModel
 	AddOperation(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::MemoryModelGLSL450, (uint32_t)spv::AddressingModelLogical)));
 
-	// TODO: OpEntryPoint
+	// OpEntryPoint
 	// Op1: Execution model
-	// Op2: entry point id must be the result id of an OpFunction instruction
-	const uint32_t uEPId = AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)));
-	// TODO: resolve 
+	const uint32_t uEPId = AddOperation(
+		SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)),
+		&m_pOpEntryPoint);
 
 	AddOperation(SPIRVOperation(spv::OpExecutionMode,
 	{ 
@@ -68,12 +70,20 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	// add types for entry point function
 	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
 
-	AddOperation(SPIRVOperation(spv::OpFunction,
+	// TODO: add input var types & OpVariable instructions
+
+	const uint32_t uFuncId = AddOperation(SPIRVOperation(spv::OpFunction,
 	{
 		SPIRVOperand(kOperandType_Type, SPIRVType::Void().GetHash()), // result type
 		SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
 		SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
 	}));
+
+	// Op2: entry point id must be the result id of an OpFunction instruction
+	m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
+	// Op3: Name is a name string for the entry point.A module cannot have two OpEntryPoint
+	// instructions with the same Execution Model and the same Name	string.
+	m_pOpEntryPoint->AddLiterals(MakeLiteralString("main"));
 
 	//OpFunctionParameter not needed since OpEntryPoint resolves them
 
@@ -116,10 +126,16 @@ void SPIRVAssembler::Resolve()
 }
 //---------------------------------------------------------------------------------------------------
 
-uint32_t SPIRVAssembler::AddOperation(SPIRVOperation& _Instr)
+uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr)
 {
-	_Instr.m_uInstrId = m_uInstrId;
 	m_Operations.push_back(_Instr);
+	m_Operations.back().m_uInstrId = m_uInstrId;
+
+	if (_pOutInstr != nullptr)
+	{
+		*_pOutInstr = &m_Operations.back();
+	}
+
 	return m_uInstrId++;
 }
 //---------------------------------------------------------------------------------------------------

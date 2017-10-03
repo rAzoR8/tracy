@@ -50,6 +50,8 @@ namespace Tracy
 
 		const spv::Op& GetOpCode() const;
 		void AddOperand(const SPIRVOperand& _Operand);
+		void AddLiterals(const std::vector<uint32_t>& _Literals);
+
 		const std::vector<SPIRVOperand>& GetOperands() const;
 	private:
 		spv::Op m_kOpCode = spv::OpNop;

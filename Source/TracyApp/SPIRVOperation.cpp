@@ -14,10 +14,7 @@ SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const std::vector<SPIRVOperan
 SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& _Literals) :
 	m_kOpCode(_kOp)
 {
-	for (const uint32_t& uLiteral : _Literals)
-	{
-		m_Operands.push_back(SPIRVOperand(kOperandType_Literal, uLiteral));
-	}
+	AddLiterals(_Literals);
 }
 
 SPIRVOperation::~SPIRVOperation()
@@ -27,4 +24,12 @@ SPIRVOperation::~SPIRVOperation()
 void SPIRVOperation::AddOperand(const SPIRVOperand& _Operand)
 {
 	m_Operands.push_back(_Operand);
+}
+
+void SPIRVOperation::AddLiterals(const std::vector<uint32_t>& _Literals)
+{
+	for (const uint32_t& uLiteral : _Literals)
+	{
+		m_Operands.push_back(SPIRVOperand(kOperandType_Literal, uLiteral));
+	}
 }

@@ -57,7 +57,7 @@ namespace Tracy
 			char elem[sizeof(uint32_t)];
 		};
 
-		std::vector<uint32_t> Literals(_sString.size() / sizeof(uint32_t));
+		std::vector<uint32_t> Literals(_sString.size() / sizeof(uint32_t), 0u);
 
 		uint32_t i = 0u;
 		for (const char& c : _sString)
@@ -65,6 +65,12 @@ namespace Tracy
 			chars& chunk = reinterpret_cast<chars&>(Literals[i / sizeof(uint32_t)]);
 			chunk.elem[i % sizeof(uint32_t)] = c;
 			++i;
+		}
+
+		// add string terminator
+		if (i % sizeof(uint32_t) == 0u)
+		{
+			Literals.push_back(0u);
 		}
 
 		return Literals;
