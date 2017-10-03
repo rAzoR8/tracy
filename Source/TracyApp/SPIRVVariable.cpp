@@ -10,9 +10,19 @@ var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>
 
 	HASSERT(pAssembler == _Other.pAssembler && pAssembler != nullptr, "Assembler mismatch");
 
-	if (uVarId != HUNDEFINED32)
+	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
 	{
 		HASSERT(uTypeHash == _Other.uTypeHash, "Variable type mismatch");
+
+		// source variable has not been loaded yet
+		if (_Other.uResultId == HUNDEFINED32)
+		{
+			_Other.uResultId = pAssembler->AddOperation(SPIRVOperation(spv::OpLoad,
+			{
+				SPIRVOperand(kOperandType_Type, uTypeHash),
+				SPIRVOperand(kOperandType_Intermediate, _Other.uVarId)
+			}));
+		}
 	
 		// create store
 		pAssembler->AddOperation(SPIRVOperation(spv::OpStore,

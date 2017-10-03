@@ -59,20 +59,13 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	// OpEntryPoint
 	// Op1: Execution model
-	const uint32_t uEPId = AddOperation(
-		SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)),
-		&m_pOpEntryPoint);
+	AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)), &m_pOpEntryPoint);
 
-	AddOperation(SPIRVOperation(spv::OpExecutionMode,
-	{ 
-		SPIRVOperand(kOperandType_Intermediate, uEPId),
-		SPIRVOperand(kOperandType_Literal, (uint32_t)_kMode),
-	}));
+	SPIRVOperation* pOpExeutionMode = nullptr;
+	AddOperation(SPIRVOperation(spv::OpExecutionMode), &pOpExeutionMode);
 
 	// add types for entry point function
 	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
-
-	// TODO: add input var types & OpVariable instructions
 
 	const uint32_t uFuncId = AddOperation(SPIRVOperation(spv::OpFunction,
 	{
@@ -81,6 +74,9 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 		SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
 	}));
 
+	pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
+	pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Literal, (uint32_t)_kMode));
+
 	// Op2: entry point id must be the result id of an OpFunction instruction
 	m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
 	// Op3: Name is a name string for the entry point.A module cannot have two OpEntryPoint
@@ -88,7 +84,6 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	m_pOpEntryPoint->AddLiterals(MakeLiteralString("main"));
 
 	//OpFunctionParameter not needed since OpEntryPoint resolves them
-
 	AddOperation(SPIRVOperation(spv::OpLabel));
 }
 //---------------------------------------------------------------------------------------------------
@@ -97,11 +92,15 @@ void SPIRVAssembler::Resolve()
 {
 	HASSERT(m_Operations.size() > 3, "Insufficient operations");
 
+	// close function body opend in init
+	AddOperation(SPIRVOperation(spv::OpReturn));
+	AddOperation(SPIRVOperation(spv::OpFunctionEnd));
+
 	size_t i = 0u;
 
-	AddInstruction(Translate(m_Operations[i++])); // OpCapability
-	AddInstruction(Translate(m_Operations[i++])); // OpExtInstImport  creates the first resutl id
-	AddInstruction(Translate(m_Operations[i++])); // OpMemoryModel
+	AddInstruction(Translate(m_Operations[i++], true)); // OpCapability
+	AddInstruction(Translate(m_Operations[i++], true)); // OpExtInstImport  creates the first resutl id
+	AddInstruction(Translate(m_Operations[i++], true)); // OpMemoryModel
 
 	// resolve types & constants to definitions stream
 	for (const auto& KV : m_Constants)
@@ -113,13 +112,15 @@ void SPIRVAssembler::Resolve()
 		m_TypeResolver.Resolve(KV.second);
 	}
 
-	// find input / output vars
+	// find input / output vars and assign ids
 	for (size_t j = i; j < m_Operations.size(); ++j)
 	{
-		const SPIRVOperation& OpVar(m_Operations[j]);
-		if (OpVar.GetOpCode() == spv::OpVariable)
+		SPIRVOperation& Op(m_Operations[j]);
+		AssignId(Op);
+
+		if (Op.GetOpCode() == spv::OpVariable)
 		{
-			const std::vector<SPIRVOperand>& Operands(OpVar.GetOperands());
+			const std::vector<SPIRVOperand>& Operands(Op.GetOperands());
 			HASSERT(Operands.size() > 1, "Invalid number of OpVariable operands");
 
 			const SPIRVOperand& ClassOp = Operands[1];
@@ -128,7 +129,7 @@ void SPIRVAssembler::Resolve()
 			spv::StorageClass kClass = static_cast<spv::StorageClass>(ClassOp.uId);
 			if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
 			{
-				m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, OpVar.m_uInstrId));
+				m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, Op.m_uInstrId));
 			}
 		}
 	}
@@ -136,14 +137,8 @@ void SPIRVAssembler::Resolve()
 	AddInstruction(Translate(m_Operations[i++])); // OpEntryPoint
 	AddInstruction(Translate(m_Operations[i++])); // OpExecutionMode
 
-	// todo: collect operations with unresolved ids, continue resolving others until no change
-	// restart resolving with set of unresolved ids till empty
-
 	// add type definitions and constants
 	m_Instructions.insert(m_Instructions.end(), m_Definitions.begin(), m_Definitions.end());
-
-	AddOperation(SPIRVOperation(spv::OpReturn));
-	AddOperation(SPIRVOperation(spv::OpFunctionEnd));
 
 	for (; i < m_Operations.size(); ++i)
 	{
@@ -189,40 +184,14 @@ size_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 	return uHash;
 }
 //---------------------------------------------------------------------------------------------------
-SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
+SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op, const bool _bAssigneId)
 {
-	const spv::Op kOp = _Op.GetOpCode();
-
-	std::vector<uint32_t> Operands;
-	uint32_t uResultId = SPIRVInstruction::kInvalidId;
-
-	switch (kOp)
+	if (_bAssigneId)
 	{
-		// instructions that don't create a result id (incomplete list)
-	case spv::OpCapability:
-	case spv::OpMemoryModel:
-	case spv::OpEntryPoint:
-	case spv::OpExecutionMode:
-	case spv::OpSource:
-	case spv::OpName:
-	case spv::OpMemberName:
-	case spv::OpDecorate:
-	case spv::OpMemberDecorate:
-
-	case spv::OpStore:
-	case spv::OpSelectionMerge:
-	case spv::OpBranchConditional:
-	case spv::OpBranch:
-	case spv::OpLoopMerge:
-	case spv::OpReturn:
-	case spv::OpFunctionEnd:
-		break;
-	default:
-		uResultId = m_uResultId++;
+		AssignId(_Op);
 	}
 
-	_Op.m_uResultId = uResultId;
-
+	std::vector<uint32_t> Operands;
 	uint32_t uTypeId = SPIRVInstruction::kInvalidId;
 
 	for (const SPIRVOperand& Operand : _Op.GetOperands())
@@ -230,7 +199,14 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
 		switch (Operand.kType)
 		{
 		case kOperandType_Type:
-			uTypeId = m_TypeResolver.GetTypeId(Operand.uHash);
+			if (uTypeId == SPIRVInstruction::kInvalidId)
+			{
+				uTypeId = m_TypeResolver.GetTypeId(Operand.uHash);
+			}
+			else
+			{
+				Operands.push_back(m_TypeResolver.GetTypeId(Operand.uHash));
+			}
 			break;
 		case kOperandType_Constant:
 			Operands.push_back(m_TypeResolver.GetConstantId(Operand.uHash));
@@ -256,11 +232,43 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
 		}
 	}
 
-	return SPIRVInstruction(_Op.GetOpCode(), uTypeId, uResultId, Operands);
+	return SPIRVInstruction(_Op.GetOpCode(), uTypeId, _Op.m_uResultId, Operands);
 }
 //---------------------------------------------------------------------------------------------------
 void SPIRVAssembler::AddInstruction(const SPIRVInstruction& _Instr)
 {
 	m_Instructions.push_back(_Instr);
+}
+//---------------------------------------------------------------------------------------------------
+void SPIRVAssembler::AssignId(SPIRVOperation& _Op)
+{
+	uint32_t uResultId = SPIRVInstruction::kInvalidId;
+
+	switch (_Op.GetOpCode())
+	{
+		// instructions that don't create a result id (incomplete list)
+	case spv::OpCapability:
+	case spv::OpMemoryModel:
+	case spv::OpEntryPoint:
+	case spv::OpExecutionMode:
+	case spv::OpSource:
+	case spv::OpName:
+	case spv::OpMemberName:
+	case spv::OpDecorate:
+	case spv::OpMemberDecorate:
+
+	case spv::OpStore:
+	case spv::OpSelectionMerge:
+	case spv::OpBranchConditional:
+	case spv::OpBranch:
+	case spv::OpLoopMerge:
+	case spv::OpReturn:
+	case spv::OpFunctionEnd:
+		break;
+	default:
+		uResultId = m_uResultId++;
+	}
+
+	_Op.m_uResultId = uResultId;
 }
 //---------------------------------------------------------------------------------------------------

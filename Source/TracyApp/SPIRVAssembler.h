@@ -31,9 +31,11 @@ namespace Tracy
 
 		void Resolve();
 
-		SPIRVInstruction Translate(SPIRVOperation& _Op);
+		SPIRVInstruction Translate(SPIRVOperation& _Op, const bool _bAssigneId = false);
 
 		void AddInstruction(const SPIRVInstruction& _Instr);
+
+		void AssignId(SPIRVOperation& _Op);
 
 	private:
 		uint32_t m_uInstrId = 0u; // internal instruction id
