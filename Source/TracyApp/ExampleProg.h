@@ -12,11 +12,10 @@ namespace Tracy
 	public:
 		ExampleProg(SPIRVAssembler& _Assembler) :SPIRVProgram<Assemble>(_Assembler)
 		{
-			InitVar(InputScale, InputPos);
-
 		};
 		~ExampleProg() {};
 
+		void InitInOutVariables() final;
 		void Execute() final;
 		var_in<float> InputScale;
 		var_in<float3> InputPos;
@@ -26,15 +25,23 @@ namespace Tracy
 	};
 
 	template<bool Assemble>
+	inline void ExampleProg<Assemble>::InitInOutVariables()
+	{
+		InitVar(InputScale, InputPos);
+	}
+
+	template<bool Assemble>
 	inline void ExampleProg<Assemble>::Execute()
 	{
 		var<float> t = make_var(1.f);
 		var<bool> b = make_var(true);
 
+		auto res = t + InputPos.x;
 		If(b, [&]()
 		{
 			// Problem to solve: access chain to x, how to overload operator+ correctly
-			// auto res = t + InputPos.x;
+			//auto res = t + InputPos.x;
+
 		});
 		
 	}

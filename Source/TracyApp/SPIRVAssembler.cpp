@@ -19,6 +19,8 @@ SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv:
 {
 	Init(_kModel, _kMode);
 
+	_EntryPoint.InitInOutVariables();
+
 	_EntryPoint.Execute();
 
 	Resolve();
@@ -33,23 +35,23 @@ SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv:
 
 void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode)
 {
-	//m_uResultId = 0u;
-	//m_Instructions.clear();
-	//m_Definitions.clear();
-	//m_TypeResolver.Reset();
+	m_uResultId = 0u;
+	m_Instructions.clear();
+	m_Definitions.clear();
+	m_TypeResolver.Reset();
 
-	//m_Operations.clear();
-	//m_Constants.clear();
-	//m_Types.clear();
-	//m_uInstrId = 0u;
-	//m_pOpEntryPoint = nullptr;
+	m_Operations.clear();
+	m_Constants.clear();
+	m_Types.clear();
+	m_uInstrId = 0u;
+	m_pOpEntryPoint = nullptr;
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader)));
 	
 	// OpExtension (unused)
 
-	// OpExtInstImport:
+	// OpExtInstImport
 	AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString("GLSL.std.450")));
 
 	//OpMemoryModel
@@ -100,13 +102,34 @@ void SPIRVAssembler::Resolve()
 	AddInstruction(Translate(m_Operations[i++])); // OpCapability
 	AddInstruction(Translate(m_Operations[i++])); // OpExtInstImport
 	AddInstruction(Translate(m_Operations[i++])); // OpMemoryModel
-	// TODO: entry point
 
-	//AddInstruction(Translate(m_Operations[4])); // OpExecutionMode
+	// find input / output vars
+	for (size_t j = i; j < m_Operations.size(); ++j)
+	{
+		const SPIRVOperation& OpVar(m_Operations[j]);
+		if (OpVar.GetOpCode() == spv::OpVariable)
+		{
+			const std::vector<SPIRVOperand>& Operands(OpVar.GetOperands());
+			HASSERT(Operands.size() < 2, "Invalid number of OpVariable operands");
+
+			const SPIRVOperand& ClassOp = Operands[1];
+			HASSERT(ClassOp.uId != HUNDEFINED32 && ClassOp.kType == kOperandType_Literal, "Invalid OpVariable operand storage class [literal]");
+
+			spv::StorageClass kClass = static_cast<spv::StorageClass>(ClassOp.uId);
+			if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
+			{
+				m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, OpVar.m_uInstrId));
+			}
+		}
+	}
+
+	AddInstruction(Translate(m_Operations[i++])); // OpEntryPoint
+	AddInstruction(Translate(m_Operations[i++])); // OpExecutionMode
+
+	// todo: resolve types on diffenent stream?
 
 	// OpExtInstImport creates the first resutl id
 	// resolve types & constants
-	// this works on the definitions
 	for (const auto& KV : m_Constants)
 	{
 		m_TypeResolver.Resolve(KV.second);

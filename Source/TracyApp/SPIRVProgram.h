@@ -31,6 +31,9 @@ namespace Tracy
 
 		SPIRVAssembler& GetAssembler();
 
+		// Only all InitVar from within this function:
+		virtual void InitInOutVariables() {};
+
 		virtual void Execute() {};
 
 	protected:
