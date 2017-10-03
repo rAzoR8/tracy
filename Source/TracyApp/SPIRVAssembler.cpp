@@ -1,11 +1,11 @@
 #include "SPIRVAssembler.h"
+#include "SPIRVProgram.h"
 
 using namespace Tracy;
 
 SPIRVAssembler::SPIRVAssembler() :
 	m_TypeResolver(m_uResultId, m_Definitions)
 {
-	Init();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -14,17 +14,33 @@ SPIRVAssembler::~SPIRVAssembler()
 }
 //---------------------------------------------------------------------------------------------------
 
+SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode)
+{
+	Init(_kModel, _kMode);
+
+	_EntryPoint.Execute();
+
+	Resolve();
+
+	SPIRVModule Module(m_uResultId + 1u);
+
+	Module.Write(m_Instructions);
+
+	return Module;
+}
+//---------------------------------------------------------------------------------------------------
+
 void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode)
 {
-	m_uResultId = 0u;
-	m_Instructions.clear();
-	m_Definitions.clear();
-	m_TypeResolver.Reset();
+	//m_uResultId = 0u;
+	//m_Instructions.clear();
+	//m_Definitions.clear();
+	//m_TypeResolver.Reset();
 
-	m_Operations.clear();
-	m_Constants.clear();
-	m_Types.clear();
-	m_uInstrId = 0u;
+	//m_Operations.clear();
+	//m_Constants.clear();
+	//m_Types.clear();
+	//m_uInstrId = 0u;
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader)));
@@ -48,6 +64,20 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 		SPIRVOperand(kOperandType_Intermediate, uEPId),
 		SPIRVOperand(kOperandType_Literal, (uint32_t)_kMode),
 	}));
+
+	// add types for entry point function
+	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
+
+	AddOperation(SPIRVOperation(spv::OpFunction,
+	{
+		SPIRVOperand(kOperandType_Type, SPIRVType::Void().GetHash()), // result type
+		SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
+		SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
+	}));
+
+	//OpFunctionParameter not needed since OpEntryPoint resolves them
+
+	AddOperation(SPIRVOperation(spv::OpLabel));
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -55,10 +85,11 @@ void SPIRVAssembler::Resolve()
 {
 	HASSERT(m_Operations.size() > 3, "Insufficient operations");
 
-	// TODO: resolve OpCapability, OpExtInstImport, OpMemoryModel etc
-	AddInstruction(Translate(m_Operations[0])); // OpCapability
-	AddInstruction(Translate(m_Operations[1])); // OpExtInstImport
-	AddInstruction(Translate(m_Operations[2])); // OpMemoryModel
+	size_t i = 0u;
+
+	AddInstruction(Translate(m_Operations[i++])); // OpCapability
+	AddInstruction(Translate(m_Operations[i++])); // OpExtInstImport
+	AddInstruction(Translate(m_Operations[i++])); // OpMemoryModel
 	// TODO: entry point
 
 	//AddInstruction(Translate(m_Operations[4])); // OpExecutionMode
@@ -75,8 +106,13 @@ void SPIRVAssembler::Resolve()
 		m_TypeResolver.Resolve(KV.second);
 	}
 
-	// todo: creat OpFunction "main"
-	// todo: create OpEntryPoint instruction, push_front m_Instructions
+	AddOperation(SPIRVOperation(spv::OpReturn));
+	AddOperation(SPIRVOperation(spv::OpFunctionEnd));
+
+	for (; i < m_Operations.size(); ++i)
+	{
+		AddInstruction(Translate(m_Operations[i]));
+	}
 }
 //---------------------------------------------------------------------------------------------------
 

@@ -3,32 +3,29 @@
 
 #include <vector>
 #include <stdint.h>
-#include "SPIRVInstruction.h"
 
 namespace Tracy
 {
+	// forward decls
+	class SPIRVInstruction;
+
 	class SPIRVModule
 	{
 	public:
-		SPIRVModule();
+		SPIRVModule(const uint32_t _uBounds);
 		~SPIRVModule();
 
-		void Write();
+		void Write(const std::vector<SPIRVInstruction>& _Instructions);
 
 		static constexpr uint32_t uGenerator = 'trcy';
 		static constexpr uint32_t uSchema = 0u;
 
 	private:
-		uint32_t GetNextId();
-
 		void Put(const uint32_t& _uWord);
 		void Put(const SPIRVInstruction& _Instr);
 
 	private:
 		std::vector<uint32_t> m_InstructionStream;
-		uint32_t m_uCurrentId = 0u;
-
-		std::vector<SPIRVInstruction> m_Instructions;
 	};
 }; // !Tracy
 

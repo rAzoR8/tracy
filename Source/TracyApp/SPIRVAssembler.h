@@ -5,33 +5,40 @@
 #include "SPIRVVariable.h"
 #include "SPIRVOperation.h"
 #include "SPIRVTypeResolver.h"
+#include "SPIRVModule.h"
 
 namespace Tracy
 {
+	// forward decls
+	template <bool Assemble>
+	class SPIRVProgram;
+
 	class SPIRVAssembler
 	{
 	public:
 		SPIRVAssembler();
 		~SPIRVAssembler();
-
-		void Init(const spv::ExecutionModel _kModel = spv::ExecutionModelFragment, const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft);
-
-		void Resolve();
+		
+		SPIRVModule Assemble(SPIRVProgram<true>& _EntryPoint, const spv::ExecutionModel _kModel = spv::ExecutionModelFragment, const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft);
 
 		uint32_t AddOperation(SPIRVOperation& _Instr);
 		size_t AddConstant(const SPIRVConstant& _Const);
 		size_t AddType(const SPIRVType& _Type);
 
 	private:
+		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode);
+
+		void Resolve();
+
 		SPIRVInstruction Translate(SPIRVOperation& _Op);
 
 		void AddInstruction(const SPIRVInstruction& _Instr);
 
 	private:
-		uint32_t m_uInstrId = 0u;// internal instruction id
+		uint32_t m_uInstrId = 0u; // internal instruction id
+		uint32_t m_uResultId = 0u; // actual result ids
 
 		SPIRVTypeResolver m_TypeResolver;
-		uint32_t m_uResultId = 0u;
 		std::vector<SPIRVInstruction> m_Instructions;
 		std::vector<SPIRVInstruction> m_Definitions;
 

@@ -31,11 +31,9 @@ namespace Tracy
 
 		SPIRVAssembler& GetAssembler();
 
-		void Execute();
+		virtual void Execute() {};
 
 	protected:
-		virtual void OnExecute() {};
-
 		template <class... Ts, class T = va_type_t<Ts...>>
 		var_t<T, Assemble> make_var(const Ts& ..._Val);		
 
@@ -64,16 +62,6 @@ namespace Tracy
 	inline SPIRVAssembler& SPIRVProgram<Assemble>::GetAssembler()
 	{
 		return m_Assembler;
-	}
-
-	template<bool Assemble>
-	inline void SPIRVProgram<Assemble>::Execute()
-	{
-		// TODO: creat OpFunction & OpFunctionParameter
-
-		OnExecute();
-
-		// OpFunctionEnd
 	}
 
 	// problems to solve:

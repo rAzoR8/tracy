@@ -17,7 +17,7 @@ namespace Tracy
 		};
 		~ExampleProg() {};
 
-		void OnExecute() final;
+		void Execute() final;
 		var_in<float> InputScale;
 		var_in<float3> InputPos;
 
@@ -26,7 +26,7 @@ namespace Tracy
 	};
 
 	template<bool Assemble>
-	inline void ExampleProg<Assemble>::OnExecute()
+	inline void ExampleProg<Assemble>::Execute()
 	{
 		var<float> t = make_var(1.f);
 		var<bool> b = make_var(true);

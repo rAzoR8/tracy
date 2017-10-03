@@ -55,6 +55,7 @@ namespace Tracy
 		const bool& GetSign() const;
 
 		// type helpers
+		static SPIRVType Void() { return SPIRVType(spv::OpTypeVoid, 0u, false); }
 		static SPIRVType Bool() { return SPIRVType(spv::OpTypeBool, 0u, false); }
 		static SPIRVType Int() { return SPIRVType(spv::OpTypeInt, 32u, true); }
 		static SPIRVType UInt() { return SPIRVType(spv::OpTypeInt, 32u, false); }

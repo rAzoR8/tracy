@@ -1,11 +1,17 @@
 #include "SPIRVModule.h"
+#include "SPIRVInstruction.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
-SPIRVModule::SPIRVModule()
+SPIRVModule::SPIRVModule(const uint32_t _uBounds)
 {
-	m_InstructionStream.reserve(4096);
+	// write header
+	Put(spv::MagicNumber);
+	Put(spv::Version);
+	Put(uGenerator); // tracy
+	Put(_uBounds); // Bounds
+	Put(uSchema);
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -14,57 +20,15 @@ SPIRVModule::~SPIRVModule()
 }
 //---------------------------------------------------------------------------------------------------
 
-void SPIRVModule::Write()
+void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 {
-	m_InstructionStream.clear();
-
-	// write header
-	Put(spv::MagicNumber);
-	Put(spv::Version);
-	Put(uGenerator); // tracy
-	Put(m_uCurrentId + 1u); // Bounds
-	Put(uSchema);
-
-	// TODO:
-	// OpCapability
-	// OpExtension
-	// OpExtInstImport
-	// OpMemoryModel
-	// OpEntryPoint
-	// OpExecutionMode
-
-	// debug instructions: OpString, OpSource, OpName OpMemberName etc
-	// annotaions: OpeDecorate, OpMemberDecorate etc
-
-	// all OpTypeXXXX instructions
-	// all OpConstant instrcutions
-	// all global OpVariable instr (not declared inside function)
-
-	// function declarations: OpFunction, OpFunctionParameter, OpFunctionEnd
-	// function definitions:
-	// OpFunction
-	// OpFunctionParameter
-	// block
-	// block ...
-	// OpFunctionEnd
-	
-	// block:
-	// OpLabel
-	// Instructions
-	// OpSelectionMerge, OpLoopMerge, OpBranch, OpSwitch, OpReturn, OpKill, OpUnreachable etc
-
 	// write instructions
-	for (const SPIRVInstruction& Instr : m_Instructions)
+	for (const SPIRVInstruction& Instr : _Instructions)
 	{
 		Put(Instr);
 	}
 }
-//---------------------------------------------------------------------------------------------------
 
-uint32_t SPIRVModule::GetNextId()
-{
-	return m_uCurrentId++;
-}
 //---------------------------------------------------------------------------------------------------
 
 void SPIRVModule::Put(const uint32_t & _uWord)
