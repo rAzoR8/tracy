@@ -109,8 +109,7 @@ namespace Tracy
 			new_var.uTypeHash = uTypeHash;
 
 			// pointer type
-			SPIRVType PointerType(spv::OpTypePointer, Type); 
-			const size_t uPtrTypeHash = m_Assembler.AddType(PointerType);
+			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
 
 			// OpVariable:
 			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
@@ -152,8 +151,8 @@ namespace Tracy
 			SPIRVType Type(SPIRVType::FromType<T>());
 			_FirstVar.uTypeHash = m_Assembler.AddType(Type);
 
-			SPIRVType PointerType(spv::OpTypePointer, Type);
-			const size_t uPtrTypeHash = m_Assembler.AddType(PointerType);
+			HASSERT(_FirstVar.kStorageClass < spv::StorageClassMax, "Invalid variable storage class");
+			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, _FirstVar.kStorageClass));
 
 			// OpVariable:
 			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.

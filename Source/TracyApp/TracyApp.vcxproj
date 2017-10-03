@@ -90,6 +90,7 @@
     <ClCompile Include="SPIRVOperation.cpp" />
     <ClCompile Include="SPIRVType.cpp" />
     <ClCompile Include="SPIRVTypeResolver.cpp" />
+    <ClCompile Include="SPIRVVariable.cpp" />
     <ClCompile Include="TracyApp.cpp" />
     <ClCompile Include="VulkanDevice.cpp" />
     <ClCompile Include="VulkanInitializer.cpp" />

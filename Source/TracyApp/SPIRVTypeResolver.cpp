@@ -19,13 +19,6 @@ SPIRVTypeResolver::~SPIRVTypeResolver()
 
 uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 {
-	std::vector<uint32_t> SubTypes, Operands; // member / subtypes
-
-	for (const SPIRVType& Type : _Type.GetSubTypes())
-	{
-		SubTypes.push_back(Resolve(Type));
-	}
-
 	const size_t uHash = _Type.GetHash();
 	auto it = m_TypeIds.find(uHash);
 
@@ -35,11 +28,19 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 		return it->second;
 	}
 
+	std::vector<uint32_t> SubTypes, Operands; // member / subtypes
+
+	for (const SPIRVType& Type : _Type.GetSubTypes())
+	{
+		SubTypes.push_back(Resolve(Type));
+	}
+
 	uint32_t uId = m_uCurrentId++;
 	m_TypeIds.insert({ uHash, uId });
 
+	const spv::Op kType = _Type.GetType();
 	// create operands
-	switch (_Type.GetType())
+	switch (kType)
 	{
 	case spv::OpTypeVoid:
 	case spv::OpTypeBool:
@@ -75,14 +76,24 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 		//Length must come from a constant instruction of an integer - type scalar whose value is at least 1.
 		Operands.push_back(Resolve(SPIRVConstant::Make(_Type.GetDimension()))); // length
 		break;
+	case spv::OpTypeFunction:
+		HASSERT(SubTypes.size() > 0u, "Invalid number of return type and parameters");
+		Operands = std::move(SubTypes);
+		break;
+	case spv::OpTypePointer:
+		// dimension is used as storage class
+		HASSERT(SubTypes.size() == 1u, "Pointer can only have one subtype");
+		Operands.push_back(_Type.GetDimension()); // storage class
+		Operands.push_back(SubTypes.front()); // type
+		break;
 	default:
-		HFATAL("Type not implemented");
+		HFATAL("Type %d not implemented", );
 		break;
 	}
 
 	// create type instruction
 	SPIRVInstruction Type(
-		_Type.GetType(),
+		kType,
 		SPIRVInstruction::kInvalidId, // typeid
 		uId, // result id
 		Operands);

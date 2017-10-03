@@ -100,8 +100,18 @@ void SPIRVAssembler::Resolve()
 	size_t i = 0u;
 
 	AddInstruction(Translate(m_Operations[i++])); // OpCapability
-	AddInstruction(Translate(m_Operations[i++])); // OpExtInstImport
+	AddInstruction(Translate(m_Operations[i++])); // OpExtInstImport  creates the first resutl id
 	AddInstruction(Translate(m_Operations[i++])); // OpMemoryModel
+
+	// resolve types & constants to definitions stream
+	for (const auto& KV : m_Constants)
+	{
+		m_TypeResolver.Resolve(KV.second);
+	}
+	for (const auto& KV : m_Types)
+	{
+		m_TypeResolver.Resolve(KV.second);
+	}
 
 	// find input / output vars
 	for (size_t j = i; j < m_Operations.size(); ++j)
@@ -110,7 +120,7 @@ void SPIRVAssembler::Resolve()
 		if (OpVar.GetOpCode() == spv::OpVariable)
 		{
 			const std::vector<SPIRVOperand>& Operands(OpVar.GetOperands());
-			HASSERT(Operands.size() < 2, "Invalid number of OpVariable operands");
+			HASSERT(Operands.size() > 1, "Invalid number of OpVariable operands");
 
 			const SPIRVOperand& ClassOp = Operands[1];
 			HASSERT(ClassOp.uId != HUNDEFINED32 && ClassOp.kType == kOperandType_Literal, "Invalid OpVariable operand storage class [literal]");
@@ -126,18 +136,11 @@ void SPIRVAssembler::Resolve()
 	AddInstruction(Translate(m_Operations[i++])); // OpEntryPoint
 	AddInstruction(Translate(m_Operations[i++])); // OpExecutionMode
 
-	// todo: resolve types on diffenent stream?
+	// todo: collect operations with unresolved ids, continue resolving others until no change
+	// restart resolving with set of unresolved ids till empty
 
-	// OpExtInstImport creates the first resutl id
-	// resolve types & constants
-	for (const auto& KV : m_Constants)
-	{
-		m_TypeResolver.Resolve(KV.second);
-	}
-	for (const auto& KV : m_Types)
-	{
-		m_TypeResolver.Resolve(KV.second);
-	}
+	// add type definitions and constants
+	m_Instructions.insert(m_Instructions.end(), m_Definitions.begin(), m_Definitions.end());
 
 	AddOperation(SPIRVOperation(spv::OpReturn));
 	AddOperation(SPIRVOperation(spv::OpFunctionEnd));

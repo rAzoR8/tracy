@@ -38,10 +38,6 @@ namespace Tracy
 		// intermediate values?
 		if constexpr(Assemble)
 		{
-			// TODO: check if the variable has a Assembler assigned, if not, use the assembler of a variable that has one
-			// variables could come from global scope or input / output
-			// better solution: user has to initialize the global variables in the constructor of the spv program
-
 			HASSERT(l.pAssembler != nullptr && l.pAssembler == r.pAssembler, "Invalid program assembler");	
 			LoadVar(l, *l.pAssembler);
 			LoadVar(r, *r.pAssembler);

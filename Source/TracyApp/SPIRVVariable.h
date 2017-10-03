@@ -3,7 +3,7 @@
 
 #include <vulkan\spirv.hpp>
 #include "StandardDefines.h"
-#include <string>
+#include "Logger.h"
 
 namespace Tracy
 {
@@ -20,14 +20,12 @@ namespace Tracy
 		//std::string sName;
 		uint32_t uVarId = HUNDEFINED32; // result id OpVar
 		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
-		spv::StorageClass kStorageClass = spv::StorageClassFunction;
+		spv::StorageClass kStorageClass = spv::StorageClassMax;
 		 // TODO: add decorations
-		size_t uTypeHash = 0u;
+		size_t uTypeHash = HUNDEFINED;
 
-		void SetStorageClass(spv::StorageClass _kStorageClass)
-		{
-			kStorageClass = _kStorageClass;
-		}
+		~var_decoration<true>();
+		var_decoration<true>& operator=(const var_decoration<true>& _Other);
 	};
 
 	template <>
@@ -42,6 +40,16 @@ namespace Tracy
 	{
 		template <class... Ts>
 		var_t(Ts ... _args) : var_decoration<Assemble>(), Value(_args...) {}
+
+		var_t& operator=(const var_t& _Other)
+		{
+			if constexpr(Assemble)
+			{
+				var_decoration<Assemble>::operator=(_Other);
+			}
+			Value = _Other.Value;
+			return *this;
+		}
 
 		T Value;
 	};
@@ -59,6 +67,8 @@ namespace Tracy
 		template <class... Ts>
 		var_out_t(Ts ... _args) : var_t<T, Assemble>(_args...) { kStorageClass = spv::StorageClassOutput; }
 	};
+
+	// todo: make constructors private, friend class SPIRVProgram, factory pattern to avoid users creating uninitialized variables
 }
 
 #endif // !TRACY_SPIRVVARIABLE_H

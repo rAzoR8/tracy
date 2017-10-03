@@ -63,7 +63,9 @@ namespace Tracy
 		static SPIRVType UShort() { return SPIRVType(spv::OpTypeInt, 16u, false); }
 		static SPIRVType Float() { return SPIRVType(spv::OpTypeFloat, 32u, true); }
 		static SPIRVType Struct(const std::vector<SPIRVType>& _MemberTypes = {}) { return SPIRVType(spv::OpTypeStruct, _MemberTypes); }
-		
+		static SPIRVType Function(const SPIRVType& _ReturnType = Void(), const std::vector<SPIRVType>& _ParameterTypes = {});
+		static SPIRVType Pointer(const SPIRVType& _Type, const spv::StorageClass _kClass = spv::StorageClassFunction) { return SPIRVType(spv::OpTypePointer, _Type, (uint32_t)_kClass); }
+
 		template <class T, class U = std::decay_t<T>>
 		static SPIRVType Primitive() { return SPIRVType(optype<U>::type, optype<U>::bits, optype<U>::sign); }
 
@@ -119,6 +121,16 @@ namespace Tracy
 	inline const bool& SPIRVType::GetSign() const
 	{
 		return m_bSign;
+	}
+
+	inline SPIRVType SPIRVType::Function(const SPIRVType & _ReturnType, const std::vector<SPIRVType>& _ParameterTypes)
+	{
+		SPIRVType Func(spv::OpTypeFunction, _ReturnType);
+		for (const SPIRVType& Param : _ParameterTypes)
+		{
+			Func.Member(Param);
+		}
+		return Func;
 	}
 
 #pragma region FromType
