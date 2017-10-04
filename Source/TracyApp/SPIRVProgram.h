@@ -40,6 +40,9 @@ namespace Tracy
 		template <class... Ts, class T = va_type_t<Ts...>>
 		var_t<T, Assemble> make_var(const Ts& ..._Val);		
 
+		template <class T>
+		var_t<T, Assemble> make_var();
+
 		template <class LambdaFunc>
 		void If(const var_t<bool, Assemble>&, LambdaFunc& _Func);
 
@@ -50,6 +53,7 @@ namespace Tracy
 		SPIRVAssembler& m_Assembler;
 	};
 
+	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>
 	SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler) :
 		m_Assembler(_Assembler)
@@ -66,6 +70,7 @@ namespace Tracy
 	{
 		return m_Assembler;
 	}
+	//---------------------------------------------------------------------------------------------------
 
 	// problems to solve:
 	// Structs! this function only handles fundamental types (int, float, vec, mat)
@@ -79,6 +84,7 @@ namespace Tracy
 	//	1)	make overloads for common types? SPIRVConstant::Make<float3>(const float3& vec)
 	//		->Not good, does not make use of variadic arguments
 	//	2) create a constexpr / SFINAE that converts Ts... to one type: va_type_t<Ts...>
+	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
 	template<class ...Ts, class T>
@@ -105,8 +111,7 @@ namespace Tracy
 
 			// composite type
 			const SPIRVType& Type(Constant.GetCompositeType());
-			const size_t uTypeHash = Type.GetHash(); // no need to add type, is resolved by constant already
-			new_var.uTypeHash = uTypeHash;
+			new_var.uTypeHash  = Type.GetHash(); // no need to add type, is resolved by constant already
 
 			// pointer type
 			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
@@ -130,6 +135,33 @@ namespace Tracy
 
 		return new_var;
 	}
+	//---------------------------------------------------------------------------------------------------
+
+	template<bool Assemble>
+	template<class T>
+	inline var_t<T, Assemble> SPIRVProgram<Assemble>::make_var()
+	{
+		var_t<T, Assemble> new_var;
+
+		if constexpr(Assemble)
+		{
+			new_var.pAssembler = &m_Assembler;
+			new_var.kStorageClass = spv::StorageClassFunction;
+
+			const SPIRVType Type = SPIRVType::FromType<T>();
+			new_var.uTypeHash = Type.GetHash();
+
+			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
+
+			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
+				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(new_var.kStorageClass))); // variable storage location
+			
+			new_var.uVarId = m_Assembler.AddOperation(OpVar);
+		}
+
+		return new_var;
+	}
+	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
 	template<class LambdaFunc>
@@ -138,6 +170,8 @@ namespace Tracy
 		if (_Cond.Value || Assemble)
 			_Func();
 	}
+
+	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
 	template<class T, class ...Ts>
@@ -174,6 +208,7 @@ namespace Tracy
 				InitVar(_Rest...);
 		}
 	}
+	//---------------------------------------------------------------------------------------------------
 
 	// template <class T>
 	// void Decorate(const var<T, Assemble>& var, spv::Decoration kDec) { AddDecoration(var.uTypeHash, var.uResultId, kDec); }

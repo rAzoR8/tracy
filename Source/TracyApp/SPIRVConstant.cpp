@@ -30,6 +30,7 @@ SPIRVConstant::SPIRVConstant(
 SPIRVConstant::~SPIRVConstant()
 {
 }
+
 //---------------------------------------------------------------------------------------------------
 SPIRVConstant::SPIRVConstant(const SPIRVConstant& _Other) :
 	m_kConstantType(_Other.m_kConstantType),
