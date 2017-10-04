@@ -119,11 +119,10 @@ namespace Tracy
 			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
 			// Initializer must havethe same type as the type pointed to by Result Type.
 
-			SPIRVOperation OpVar(spv::OpVariable,
+			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
 			{
-				SPIRVOperand(kOperandType_Type, uPtrTypeHash), 
 				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(new_var.kStorageClass)), // variable storage location
-				SPIRVOperand(kOperandType_Constant, uConstHash)
+				SPIRVOperand(kOperandType_Constant, uConstHash) // initializer
 			});
 
 			new_var.uVarId = m_Assembler.AddOperation(OpVar);
@@ -163,11 +162,9 @@ namespace Tracy
 			// Initializer must havethe same type as the type pointed to by Result Type.
 
 			// create var instruction
-			SPIRVOperation OpVar(spv::OpVariable,
-			{
-				SPIRVOperand(kOperandType_Type, uPtrTypeHash),
-				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_FirstVar.kStorageClass)) // variable storage location
-			});
+			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash // result type
+				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_FirstVar.kStorageClass))); // variable storage location
+			
 
 			_FirstVar.uVarId = m_Assembler.AddOperation(OpVar);
 			_FirstVar.uResultId = HUNDEFINED32;

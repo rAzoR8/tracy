@@ -20,11 +20,8 @@ namespace Tracy
 		// Memory Access must be a Memory Access literal. If not present, it is the same as specifying None.
 		// bsp: None, Volatile, Aligned, Nontemporal
 
-		SPIRVOperation OpLoad(spv::OpLoad,
-		{
-			SPIRVOperand(kOperandType_Type, _var.uTypeHash),
-			SPIRVOperand(kOperandType_Intermediate, _var.uVarId)
-		});
+		SPIRVOperation OpLoad(spv::OpLoad, _var.uTypeHash, // result type
+			SPIRVOperand(kOperandType_Intermediate, _var.uVarId)); // pointer
 
 		_var.uResultId = _Assembler.AddOperation(OpLoad);
 		return _var.uResultId;
@@ -64,9 +61,8 @@ namespace Tracy
 			//Result Type	must be a scalar or vector of floating - point type.
 			//The types of Operand 1 and Operand 2 both must be the same as Result Type.
 
-			SPIRVOperation Op(kType,
+			SPIRVOperation Op(kType, l.uTypeHash, // result type
 			{
-				SPIRVOperand(kOperandType_Type, l.uTypeHash),
 				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
 				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
 			});

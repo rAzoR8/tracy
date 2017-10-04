@@ -42,8 +42,12 @@ namespace Tracy
 	{
 		friend class SPIRVAssembler;
 	public:
+		SPIRVOperation(const spv::Op _kOp, const size_t _uResultTypeHash,  const SPIRVOperand& _Operand);
 		SPIRVOperation(const spv::Op _kOp, const SPIRVOperand& _Operand);
-		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {});
+
+		SPIRVOperation(const spv::Op _kOp, const size_t _uResultTypeHash, const std::vector<SPIRVOperand>& _Operands = {});
+		SPIRVOperation(const spv::Op _kOp, const std::vector<SPIRVOperand>& _Operands = {});
+
 		SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& _Literals);
 
 		~SPIRVOperation();
@@ -51,11 +55,12 @@ namespace Tracy
 		const spv::Op& GetOpCode() const;
 		void AddOperand(const SPIRVOperand& _Operand);
 		void AddLiterals(const std::vector<uint32_t>& _Literals);
-
+		const size_t& GetResultType()  const;
 		const std::vector<SPIRVOperand>& GetOperands() const;
 	private:
 		spv::Op m_kOpCode = spv::OpNop;
 		std::vector<SPIRVOperand> m_Operands;
+		size_t m_uResultTypeHash = UndefinedSizeT;
 		uint32_t m_uInstrId = HUNDEFINED32;
 		uint32_t m_uResultId = HUNDEFINED32;
 	};
@@ -69,6 +74,12 @@ namespace Tracy
 	{
 		return m_Operands;
 	}
+
+	inline const size_t & Tracy::SPIRVOperation::GetResultType() const
+	{
+		return m_uResultTypeHash;
+	}
+
 
 } // !Tracy
 

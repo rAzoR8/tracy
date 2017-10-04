@@ -17,11 +17,9 @@ var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>
 		// source variable has not been loaded yet
 		if (_Other.uResultId == HUNDEFINED32)
 		{
-			_Other.uResultId = pAssembler->AddOperation(SPIRVOperation(spv::OpLoad,
-			{
-				SPIRVOperand(kOperandType_Type, uTypeHash),
-				SPIRVOperand(kOperandType_Intermediate, _Other.uVarId)
-			}));
+			_Other.uResultId = pAssembler->AddOperation(
+				SPIRVOperation(spv::OpLoad, uTypeHash, // result tpye
+				SPIRVOperand(kOperandType_Intermediate, _Other.uVarId)));
 		}
 	
 		// create store

@@ -1,8 +1,18 @@
 #include "SPIRVOperation.h"
 using namespace Tracy;
 
+SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const size_t _uResultTypeHash, const SPIRVOperand& _Operand) :
+	m_kOpCode(_kOp), m_Operands(1u, _Operand), m_uResultTypeHash(_uResultTypeHash)
+{
+}
+
 SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const SPIRVOperand& _Operand) :
 	m_kOpCode(_kOp), m_Operands(1u, _Operand)
+{
+}
+
+SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const size_t _uTypeHash, const std::vector<SPIRVOperand>& _Operands) :
+	m_kOpCode(_kOp), m_Operands(_Operands), m_uResultTypeHash(_uTypeHash)
 {
 }
 

@@ -67,9 +67,10 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	// add types for entry point function
 	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
 
-	const uint32_t uFuncId = AddOperation(SPIRVOperation(spv::OpFunction,
+	const uint32_t uFuncId = AddOperation(SPIRVOperation(
+		spv::OpFunction,
+		SPIRVType::Void().GetHash(), // result type
 	{
-		SPIRVOperand(kOperandType_Type, SPIRVType::Void().GetHash()), // result type
 		SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
 		SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
 	}));
@@ -121,9 +122,9 @@ void SPIRVAssembler::Resolve()
 		if (Op.GetOpCode() == spv::OpVariable)
 		{
 			const std::vector<SPIRVOperand>& Operands(Op.GetOperands());
-			HASSERT(Operands.size() > 1, "Invalid number of OpVariable operands");
+			HASSERT(Operands.size() > 0u, "Invalid number of OpVariable operands");
 
-			const SPIRVOperand& ClassOp = Operands[1];
+			const SPIRVOperand& ClassOp = Operands.front();
 			HASSERT(ClassOp.uId != HUNDEFINED32 && ClassOp.kType == kOperandType_Literal, "Invalid OpVariable operand storage class [literal]");
 
 			spv::StorageClass kClass = static_cast<spv::StorageClass>(ClassOp.uId);
@@ -194,19 +195,17 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op, const bool _bAss
 	std::vector<uint32_t> Operands;
 	uint32_t uTypeId = SPIRVInstruction::kInvalidId;
 
+	if (_Op.GetResultType() != UndefinedSizeT)
+	{
+		uTypeId = m_TypeResolver.GetTypeId(_Op.GetResultType());
+	}
+
 	for (const SPIRVOperand& Operand : _Op.GetOperands())
 	{
 		switch (Operand.kType)
 		{
 		case kOperandType_Type:
-			if (uTypeId == SPIRVInstruction::kInvalidId)
-			{
-				uTypeId = m_TypeResolver.GetTypeId(Operand.uHash);
-			}
-			else
-			{
-				Operands.push_back(m_TypeResolver.GetTypeId(Operand.uHash));
-			}
+			Operands.push_back(m_TypeResolver.GetTypeId(Operand.uHash));
 			break;
 		case kOperandType_Constant:
 			Operands.push_back(m_TypeResolver.GetConstantId(Operand.uHash));
