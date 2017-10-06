@@ -12,6 +12,6 @@ TracyApp::TracyApp(QWidget *parent)
 	VulkanInitializer::Instance();
 	SPIRVAssembler Assembler;
 	ExampleProg<true> prog(Assembler);
-
+	//prog.Execute();
 	SPIRVModule code(Assembler.Assemble(prog));
 }

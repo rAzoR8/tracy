@@ -61,14 +61,14 @@ namespace Tracy
 	struct var_in_t : public var_t<T, Assemble>
 	{
 		template <class... Ts>
-		var_in_t(Ts ... _args) : var_t<T, Assemble>(_args...) { kStorageClass = spv::StorageClassInput; }
+		var_in_t(Ts ... _args) : var_t<T, Assemble>(_args...){if constexpr(Assemble) kStorageClass = spv::StorageClassInput; }
 	};
 
 	template <typename T, bool Assemble>
 	struct var_out_t : public var_t<T, Assemble>
 	{
 		template <class... Ts>
-		var_out_t(Ts ... _args) : var_t<T, Assemble>(_args...) { kStorageClass = spv::StorageClassOutput; }
+		var_out_t(Ts ... _args) : var_t<T, Assemble>(_args...) { if constexpr(Assemble) kStorageClass = spv::StorageClassOutput; }
 	};
 
 	//---------------------------------------------------------------------------------------------------

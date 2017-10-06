@@ -43,14 +43,16 @@ namespace Tracy
 		var_t<T, Assemble> make_var();
 
 		template <class LambdaFunc>
-		std::unique_ptr<BranchNode<Assemble>> If(const var_t<bool, Assemble>&, LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
+		BranchNode<Assemble>& If(const var_t<bool, Assemble>&, LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
 
 	private:
 		SPIRVAssembler& m_Assembler;
+		BranchNode<Assemble> m_BranchNode; //non assemble case
 
+		std::vector<BranchNode<Assemble>> m_BranchNodes;
 		std::vector<var_decoration<true>*> m_InOutVariables;
 	};
 
@@ -59,6 +61,10 @@ namespace Tracy
 	SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler) :
 		m_Assembler(_Assembler)
 	{
+		if constexpr(Assemble)
+		{
+			m_BranchNodes.reserve(32u);
+		}
 	}
 
 	template <bool Assemble>
@@ -189,44 +195,62 @@ namespace Tracy
 
 	template<bool Assemble>
 	template<class LambdaFunc>
-	inline std::unique_ptr<BranchNode<Assemble>> SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
+	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
 	{
-		auto pNode(std::make_unique<BranchNode<Assemble>>());
-
 		if constexpr(Assemble)
 		{
-			pNode->pAssembler = &m_Assembler;
-			pNode->kMask = _kMask;
-
 			_Cond.Load();
 			HASSERT(_Cond.uResultId != HUNDEFINED32, "Invalid condition variable");
 
-			m_Assembler.AddOperation(SPIRVOperation(spv::OpSelectionMerge), &pNode->pSelectionMerge);
-			m_Assembler.AddOperation(SPIRVOperation(spv::OpBranchConditional, SPIRVOperand(kOperandType_Intermediate, _Cond.uResultId)), &pNode->pBranchConditional);
+			m_BranchNodes.emplace_back();
+			BranchNode<Assemble>& Node(m_BranchNodes.back());
+			Node.pAssembler = &m_Assembler;
+
+			m_Assembler.AddOperation(SPIRVOperation(spv::OpSelectionMerge,
+			{
+				SPIRVOperand(kOperandType_Intermediate, HUNDEFINED32), // merge id
+				SPIRVOperand(kOperandType_Literal, (const uint32_t)_kMask) // selection class
+			}),	&Node.pSelectionMerge);
+
+			m_Assembler.AddOperation(
+				SPIRVOperation(spv::OpBranchConditional, SPIRVOperand(kOperandType_Intermediate, _Cond.uResultId)),
+				&Node.pBranchConditional);
 		}
 		if constexpr(Assemble == false)
 		{
-			pNode->bCondition = _Cond.Value;
+			m_BranchNode.bCondition = _Cond.Value;
 		}
 
 		if (_Cond.Value || Assemble)
 		{
 			if constexpr(Assemble)
 			{
+				BranchNode<Assemble>& Node(m_BranchNodes.back());
 				const uint32_t uTrueLableId = m_Assembler.AddOperation(SPIRVOperation(spv::OpLabel));
-				pNode->pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uTrueLableId));
+				Node.pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uTrueLableId));
 			}
 
 			_Func();
 
 			if constexpr(Assemble)
 			{
+				BranchNode<Assemble>& Node(m_BranchNodes.back());
 				const uint32_t uFalseLableId = m_Assembler.AddOperation(SPIRVOperation(spv::OpLabel));
-				pNode->pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFalseLableId));
+
+				std::vector<SPIRVOperand>& Operands = Node.pSelectionMerge->GetOperands();
+				HASSERT(Operands.size() == 2u, "Invalid number of operands for selection merge");
+				Operands.front().uId = uFalseLableId; // use false label as merge label
+
+				Node.pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFalseLableId));
 			}
 		}
 
-		return std::move(pNode);
+		if constexpr(Assemble)
+		{
+			return m_BranchNodes.back();
+		}
+
+		return m_BranchNode;
 	}
 
 	//---------------------------------------------------------------------------------------------------

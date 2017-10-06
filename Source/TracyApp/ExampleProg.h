@@ -43,7 +43,7 @@ namespace Tracy
 		If(b, [&]()
 		{
 			OutputColor = t * d;
-		})->Else([&]()
+		}).Else([&]()
 		{
 			OutputColor = t * c * d;
 		});

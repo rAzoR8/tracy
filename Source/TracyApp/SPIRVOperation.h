@@ -57,6 +57,8 @@ namespace Tracy
 		void AddLiterals(const std::vector<uint32_t>& _Literals);
 		const size_t& GetResultType()  const;
 		const std::vector<SPIRVOperand>& GetOperands() const;
+		std::vector<SPIRVOperand>& GetOperands();
+
 	private:
 		spv::Op m_kOpCode = spv::OpNop;
 		std::vector<SPIRVOperand> m_Operands;
@@ -71,6 +73,11 @@ namespace Tracy
 	}
 
 	inline const std::vector<SPIRVOperand>& SPIRVOperation::GetOperands() const
+	{
+		return m_Operands;
+	}
+
+	inline std::vector<SPIRVOperand>& SPIRVOperation::GetOperands()
 	{
 		return m_Operands;
 	}

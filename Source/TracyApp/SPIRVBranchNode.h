@@ -11,6 +11,9 @@ namespace Tracy
 	template <>
 	class BranchNodeBase<false>
 	{
+		template <bool T>
+		friend class SPIRVProgram;
+	protected:
 		bool bCondition = false;
 	};
 
@@ -21,24 +24,16 @@ namespace Tracy
 		SPIRVOperation* pSelectionMerge = nullptr;
 		SPIRVOperation* pBranchConditional = nullptr;
 		SPIRVAssembler* pAssembler = nullptr;
-
-		bool bMerged = false;
-		spv::SelectionControlMask kMask = spv::SelectionControlMaskNone;
 	};
 
 	template <bool Assemble>
 	class BranchNode : public BranchNodeBase<Assemble>
 	{
-	public:
-		template <bool _Assemble>
+		template <bool T>
 		friend class SPIRVProgram;
-
+	public:
 		template <class LambdaFunc>
 		void Else(LambdaFunc& _Func);
-
-		~BranchNode();
-	private:
-		void Merge();
 	};
 	//---------------------------------------------------------------------------------------------------
 	
@@ -49,35 +44,17 @@ namespace Tracy
 		if constexpr (Assemble)
 		{
 			_Func();
-			Merge();
+
+			HASSERT(pSelectionMerge != nullptr && pAssembler != nullptr, "Invalid branch node");
+			std::vector<SPIRVOperand>& Operands = pSelectionMerge->GetOperands();
+			HASSERT(Operands.size() == 2u, "Invalid number of operands for selection merge");
+			Operands.front().uId = pAssembler->AddOperation(SPIRVOperation(spv::OpLabel));
 		} 
 		if constexpr(Assemble == false)
 		{
 			if (bCondition)
 				_Func();
 		}
-	}
-	//---------------------------------------------------------------------------------------------------
-	template<bool Assemble>
-	inline BranchNode<Assemble>::~BranchNode()
-	{
-		if constexpr(Assemble)
-		{
-			if (bMerged == false)
-				Merge();
-		}
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	inline void BranchNode<Assemble>::Merge()
-	{
-		HASSERT(bMerged == false, "BranchNode has already been merged");
-		HASSERT(pSelectionMerge != nullptr && pAssembler != nullptr, "Invalid branch node");
-		const uint32_t uMergeLableId = pAssembler->AddOperation(SPIRVOperation(spv::OpLabel));
-		pSelectionMerge->AddOperand(SPIRVOperand(kOperandType_Intermediate, uMergeLableId));
-		bMerged = true;
 	}
 	//---------------------------------------------------------------------------------------------------
 
