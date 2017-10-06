@@ -142,5 +142,8 @@
     <ClInclude Include="ExampleProg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SPIRVBranchNode.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

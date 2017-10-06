@@ -2,14 +2,12 @@
 #define TRACY_SPIRVPROGRAM_H
 
 #include "SPIRVOperatorImpl.h"
+#include "SPIRVBranchNode.h"
 
 #include "GLM.h"
 #include "glm\glm.hpp"
 
 #include "Logger.h"
-
-#include <unordered_map>
-#include <variant>
 
 namespace Tracy
 {
@@ -45,7 +43,7 @@ namespace Tracy
 		var_t<T, Assemble> make_var();
 
 		template <class LambdaFunc>
-		void If(const var_t<bool, Assemble>&, LambdaFunc& _Func);
+		std::unique_ptr<BranchNode<Assemble>> If(const var_t<bool, Assemble>&, LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
@@ -191,10 +189,44 @@ namespace Tracy
 
 	template<bool Assemble>
 	template<class LambdaFunc>
-	inline void SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, LambdaFunc& _Func)
+	inline std::unique_ptr<BranchNode<Assemble>> SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
 	{
+		auto pNode(std::make_unique<BranchNode<Assemble>>());
+
+		if constexpr(Assemble)
+		{
+			pNode->pAssembler = &m_Assembler;
+			pNode->kMask = _kMask;
+
+			_Cond.Load();
+			HASSERT(_Cond.uResultId != HUNDEFINED32, "Invalid condition variable");
+
+			m_Assembler.AddOperation(SPIRVOperation(spv::OpSelectionMerge), &pNode->pSelectionMerge);
+			m_Assembler.AddOperation(SPIRVOperation(spv::OpBranchConditional, SPIRVOperand(kOperandType_Intermediate, _Cond.uResultId)), &pNode->pBranchConditional);
+		}
+		if constexpr(Assemble == false)
+		{
+			pNode->bCondition = _Cond.Value;
+		}
+
 		if (_Cond.Value || Assemble)
+		{
+			if constexpr(Assemble)
+			{
+				const uint32_t uTrueLableId = m_Assembler.AddOperation(SPIRVOperation(spv::OpLabel));
+				pNode->pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uTrueLableId));
+			}
+
 			_Func();
+
+			if constexpr(Assemble)
+			{
+				const uint32_t uFalseLableId = m_Assembler.AddOperation(SPIRVOperation(spv::OpLabel));
+				pNode->pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFalseLableId));
+			}
+		}
+
+		return std::move(pNode);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -237,8 +269,6 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	// template <class T>
-	// void Decorate(const var<T, Assemble>& var, spv::Decoration kDec) { AddDecoration(var.uTypeHash, var.uResultId, kDec); }
 }; // !Tracy
 
 #endif // !TRACY_SPIRVPROGRAM_H

@@ -10,9 +10,7 @@ namespace Tracy
 	class ExampleProg : public SPIRVProgram<Assemble>
 	{
 	public:
-		ExampleProg(SPIRVAssembler& _Assembler) :SPIRVProgram<Assemble>(_Assembler)
-		{
-		};
+		ExampleProg(SPIRVAssembler& _Assembler) :SPIRVProgram<Assemble>(_Assembler){};
 		~ExampleProg() {};
 
 		void OnInitInOutVariables() final;
@@ -36,20 +34,22 @@ namespace Tracy
 	{
 		var<float3> t = make_var(1.f, 1.f ,1.f);
 		var<float3> c = make_var(1.f, 2.f, 3.f);
+		var<float> d = make_var<>(0.5f);
 
 		c += t;
 		c /= make_var(2.f);
 
-		var<float> d = make_var<float>();
-
-		OutputColor = t * d;
-
 		var<bool> b = make_var(true);
 		If(b, [&]()
 		{
-			// Problem to solve: access chain to x, how to overload operator+ correctly
-			//auto res = t + InputPos.x;
-		});		
+			OutputColor = t * d;
+		})->Else([&]()
+		{
+			OutputColor = t * c * d;
+		});
+
+		// Problem to solve: access chain to x, how to overload operator+ correctly
+		//auto res = t + InputPos.x;
 	}
 }; // !Tracy
 

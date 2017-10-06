@@ -124,6 +124,7 @@
     <ClInclude Include="GeneratedFiles\ui_TracyApp.h" />
     <ClInclude Include="GLM.h" />
     <ClInclude Include="SPIRVAssembler.h" />
+    <ClInclude Include="SPIRVBranchNode.h" />
     <ClInclude Include="SPIRVConstant.h" />
     <ClInclude Include="SPIRVInstruction.h" />
     <ClInclude Include="SPIRVModule.h" />
