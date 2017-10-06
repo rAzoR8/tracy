@@ -2,6 +2,27 @@
 #include "SPIRVAssembler.h"
 
 using namespace Tracy;
+//---------------------------------------------------------------------------------------------------
+
+void var_decoration<true>::Store()
+{
+	// store the lastest intermediate result
+	if (//kStorageClass != spv::StorageClassFunction &&
+		uVarId != HUNDEFINED32 &&
+		uResultId != HUNDEFINED32 &&
+		uResultId != uLastStoredId)
+	{
+		// create store
+		pAssembler->AddOperation(SPIRVOperation(spv::OpStore,
+		{
+			SPIRVOperand(kOperandType_Intermediate, uVarId), // destination
+			SPIRVOperand(kOperandType_Intermediate, uResultId) // source
+		}));
+
+		uLastStoredId = uResultId;
+	}
+}
+//---------------------------------------------------------------------------------------------------
 
 var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>& _Other)
 {
@@ -29,6 +50,9 @@ var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>
 			SPIRVOperand(kOperandType_Intermediate, _Other.uResultId) // source
 		}));
 		// storage class stays the same
+
+		uResultId = _Other.uResultId;
+		uLastStoredId = _Other.uResultId;
 	}
 	else // intermediate
 	{
@@ -42,15 +66,11 @@ var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>
 	return *this;
 }
 
-var_decoration<true>::~var_decoration()
-{
-	//if (uVarId != HUNDEFINED32 && uResultId != HUNDEFINED32)
-	//{
-	//	// create store
-	//	pAssembler->AddOperation(SPIRVOperation(spv::OpStore,
-	//	{
-	//		SPIRVOperand(kOperandType_Intermediate, uVarId), // destination
-	//		SPIRVOperand(kOperandType_Intermediate, uResultId) // source
-	//	}));
-	//}
-}
+//var_decoration<true>::~var_decoration()
+//{
+//	// store the lastest intermediate result
+//	if (kStorageClass != spv::StorageClassFunction)
+//	{
+//		Store();
+//	}
+//}

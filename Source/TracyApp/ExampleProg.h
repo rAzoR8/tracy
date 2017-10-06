@@ -15,8 +15,9 @@ namespace Tracy
 		};
 		~ExampleProg() {};
 
-		void InitInOutVariables() final;
-		void Execute() final;
+		void OnInitInOutVariables() final;
+		void OnExecute() final;
+
 		var_in<float> InputScale;
 		var_in<float3> InputPos;
 		var_out<float3> OutputColor;
@@ -25,18 +26,19 @@ namespace Tracy
 	};
 
 	template<bool Assemble>
-	inline void ExampleProg<Assemble>::InitInOutVariables()
+	inline void ExampleProg<Assemble>::OnInitInOutVariables()
 	{
 		InitVar(InputScale, InputPos, OutputColor);
 	}
 
 	template<bool Assemble>
-	inline void ExampleProg<Assemble>::Execute()
+	inline void ExampleProg<Assemble>::OnExecute()
 	{
 		var<float3> t = make_var(1.f, 1.f ,1.f);
-		var<float3> c = make_var(0.f, 0.f, 0.f);
+		var<float3> c = make_var(1.f, 2.f, 3.f);
 
-		c = t; // assignment (op store)
+		c += t;
+		c /= make_var(2.f);
 
 		var<float> d = make_var<float>();
 

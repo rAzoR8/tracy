@@ -31,12 +31,13 @@ namespace Tracy
 
 		SPIRVAssembler& GetAssembler();
 
-		// Only all InitVar from within this function:
-		virtual void InitInOutVariables() {};
-
-		virtual void Execute() {};
+		void Execute();
 
 	protected:
+		// Only all InitVar from within this function:
+		virtual void OnInitInOutVariables() {};
+		virtual void OnExecute() {};
+
 		template <class... Ts, class T = va_type_t<Ts...>>
 		var_t<T, Assemble> make_var(const Ts& ..._Val);		
 
@@ -51,6 +52,8 @@ namespace Tracy
 
 	private:
 		SPIRVAssembler& m_Assembler;
+
+		std::vector<var_decoration<true>*> m_InOutVariables;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -69,6 +72,29 @@ namespace Tracy
 	inline SPIRVAssembler& SPIRVProgram<Assemble>::GetAssembler()
 	{
 		return m_Assembler;
+	}
+
+	template<bool Assemble>
+	inline void SPIRVProgram<Assemble>::Execute()
+	{
+		if constexpr(Assemble)
+		{
+			OnInitInOutVariables();
+		}
+
+		OnExecute();
+
+		// store intermediate results to outputs
+		if constexpr(Assemble)
+		{
+			for (auto& pVar : m_InOutVariables)
+			{
+				if (pVar->kStorageClass == spv::StorageClassOutput)
+				{
+					pVar->Store();
+				}
+			}
+		}
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -179,6 +205,8 @@ namespace Tracy
 	{
 		if constexpr(Assemble)
 		{
+			m_InOutVariables.push_back(&_FirstVar);
+
 			_FirstVar.pAssembler = &m_Assembler;
 			// create types
 			SPIRVType Type(SPIRVType::FromType<T>());
@@ -199,7 +227,6 @@ namespace Tracy
 			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash // result type
 				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_FirstVar.kStorageClass))); // variable storage location
 			
-
 			_FirstVar.uVarId = m_Assembler.AddOperation(OpVar);
 			_FirstVar.uResultId = HUNDEFINED32;
 

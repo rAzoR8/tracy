@@ -19,8 +19,6 @@ SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv:
 {
 	Init(_kModel, _kMode);
 
-	_EntryPoint.InitInOutVariables();
-
 	_EntryPoint.Execute();
 
 	Resolve();
@@ -195,7 +193,7 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op, const bool _bAss
 	std::vector<uint32_t> Operands;
 	uint32_t uTypeId = SPIRVInstruction::kInvalidId;
 
-	if (_Op.GetResultType() != UndefinedSizeT)
+	if (_Op.GetResultType() != kUndefinedSizeT)
 	{
 		uTypeId = m_TypeResolver.GetTypeId(_Op.GetResultType());
 	}
