@@ -4,7 +4,7 @@
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
-void var_decoration<true>::Store()
+void var_decoration<true>::Store() const
 {
 	// store the lastest intermediate result
 	if (//kStorageClass != spv::StorageClassFunction &&
@@ -21,6 +21,28 @@ void var_decoration<true>::Store()
 
 		uLastStoredId = uResultId;
 	}
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t var_decoration<true>::Load() const
+{
+	HASSERT(pAssembler != nullptr, "Invalid Assembler");
+	HASSERT(uTypeHash != 0u && uTypeHash != kUndefinedSizeT, "Invalid TypeHash");
+
+	if (uResultId != HUNDEFINED32 || uVarId == HUNDEFINED32)
+		return uResultId;
+
+	// OpLoad:
+	// Result Type is the type of the loaded object.
+	// Pointer is the pointer to load through. Its type must be an OpTypePointer whose Type operand is the same as ResultType.
+	// Memory Access must be a Memory Access literal. If not present, it is the same as specifying None.
+	// bsp: None, Volatile, Aligned, Nontemporal
+
+	SPIRVOperation OpLoad(spv::OpLoad, uTypeHash, // result type
+		SPIRVOperand(kOperandType_Intermediate, uVarId)); // pointer
+
+	uResultId = pAssembler->AddOperation(OpLoad);
+	return uResultId;
 }
 //---------------------------------------------------------------------------------------------------
 

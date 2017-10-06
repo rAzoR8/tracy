@@ -24,7 +24,8 @@ namespace Tracy
 		size_t uTypeHash = kUndefinedSizeT;
 		 // TODO: add decorations
 
-		void Store();
+		void Store() const;
+		uint32_t Load() const;
 
 		//~var_decoration<true>();
 		var_decoration<true>& operator=(const var_decoration<true>& _Other);
@@ -103,33 +104,12 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	template <class T>
-	inline uint32_t LoadVar(const var_t<T, true>& _var, SPIRVAssembler& _Assembler)
-	{
-		if (_var.uResultId != HUNDEFINED32 || _var.uVarId == HUNDEFINED32)
-			return _var.uResultId;
-
-		HASSERT(_var.uTypeHash != 0u && _var.uTypeHash != kUndefinedSizeT, "Invalid TypeHash");
-
-		// OpLoad:
-		// Result Type is the type of the loaded object.
-		// Pointer is the pointer to load through. Its type must be an OpTypePointer whose Type operand is the same as ResultType.
-		// Memory Access must be a Memory Access literal. If not present, it is the same as specifying None.
-		// bsp: None, Volatile, Aligned, Nontemporal
-
-		SPIRVOperation OpLoad(spv::OpLoad, _var.uTypeHash, // result type
-			SPIRVOperand(kOperandType_Intermediate, _var.uVarId)); // pointer
-
-		_var.uResultId = _Assembler.AddOperation(OpLoad);
-		return _var.uResultId;
-	}
-
 	template <class U, class V>
 	inline void LoadVariables(const var_t<U, true>& l, const var_t<V, true>& r)
 	{
 		HASSERT(l.pAssembler != nullptr && l.pAssembler == r.pAssembler, "Invalid program assembler");
-		LoadVar(l, *l.pAssembler);
-		LoadVar(r, *r.pAssembler);
+		l.Load();
+		r.Load();
 	}
 
 #pragma endregion
