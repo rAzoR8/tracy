@@ -20,6 +20,8 @@ namespace Tracy
 		static constexpr uint32_t uGenerator = 'trcy';
 		static constexpr uint32_t uSchema = 0u;
 
+		bool Save(const std::string& _sFilePath);
+
 	private:
 		void Put(const uint32_t& _uWord);
 		void Put(const SPIRVInstruction& _Instr);

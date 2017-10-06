@@ -14,4 +14,5 @@ TracyApp::TracyApp(QWidget *parent)
 	ExampleProg<true> prog(Assembler);
 	//prog.Execute();
 	SPIRVModule code(Assembler.Assemble(prog));
+	code.Save("test.spv");
 }

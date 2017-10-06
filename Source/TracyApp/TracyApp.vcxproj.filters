@@ -72,13 +72,13 @@
     <ClCompile Include="SPIRVConstant.cpp">
       <Filter>Display\SPIRV</Filter>
     </ClCompile>
+    <ClCompile Include="SPIRVVariable.cpp">
+      <Filter>Display\SPIRV</Filter>
+    </ClCompile>
     <ClCompile Include="SPIRVOperation.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Display\SPIRV</Filter>
     </ClCompile>
     <ClCompile Include="SPIRVAssembler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SPIRVVariable.cpp">
       <Filter>Display\SPIRV</Filter>
     </ClCompile>
   </ItemGroup>

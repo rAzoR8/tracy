@@ -27,7 +27,8 @@ namespace Tracy
 		size_t AddType(const SPIRVType& _Type);
 
 	private:
-		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode);
+		void Init(const spv::ExecutionModel _kModel);
+		void FunctionPreamble(const spv::ExecutionMode _kMode);
 
 		void Resolve();
 
@@ -39,9 +40,11 @@ namespace Tracy
 
 	private:
 		uint32_t m_uInstrId = 0u; // internal instruction id
-		uint32_t m_uResultId = 0u; // actual result ids
+		uint32_t m_uResultId = 1u; // actual result ids
 
 		SPIRVOperation* m_pOpEntryPoint = nullptr;
+		SPIRVOperation* m_pOpExeutionMode = nullptr;
+
 		SPIRVTypeResolver m_TypeResolver;
 		std::vector<SPIRVInstruction> m_Instructions;
 		std::vector<SPIRVInstruction> m_Definitions;

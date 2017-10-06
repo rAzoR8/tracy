@@ -21,6 +21,7 @@ namespace Tracy
 	class BranchNodeBase<true>
 	{
 	protected:
+		SPIRVOperation* pThenBranch = nullptr;
 		SPIRVOperation* pSelectionMerge = nullptr;
 		SPIRVOperation* pBranchConditional = nullptr;
 		SPIRVAssembler* pAssembler = nullptr;
@@ -45,10 +46,25 @@ namespace Tracy
 		{
 			_Func();
 
-			HASSERT(pSelectionMerge != nullptr && pAssembler != nullptr, "Invalid branch node");
-			std::vector<SPIRVOperand>& Operands = pSelectionMerge->GetOperands();
-			HASSERT(Operands.size() == 2u, "Invalid number of operands for selection merge");
-			Operands.front().uId = pAssembler->AddOperation(SPIRVOperation(spv::OpLabel));
+			HASSERT(pThenBranch != nullptr && pSelectionMerge != nullptr && pAssembler != nullptr, "Invalid branch node");
+			
+			// end of then block
+			SPIRVOperation* pElseBranch = nullptr;
+			pAssembler->AddOperation(SPIRVOperation(spv::OpBranch), &pElseBranch);
+
+			// selection merge
+			std::vector<SPIRVOperand>& SelectionOperands = pSelectionMerge->GetOperands();
+			HASSERT(SelectionOperands.size() == 2u, "Invalid number of operands for selection merge");
+			const uint32_t uMergeId = pAssembler->AddOperation(SPIRVOperation(spv::OpLabel));
+			SelectionOperands.front().uId = uMergeId;
+
+			// then branch update
+			std::vector<SPIRVOperand>& ThenOperands = pThenBranch->GetOperands();
+			HASSERT(ThenOperands.size() == 1u, "Invalid number of operands for then branch");
+			ThenOperands.front().uId = uMergeId;
+
+			// end of else block
+			pElseBranch->AddOperand(SPIRVOperand(kOperandType_Intermediate, uMergeId));
 		} 
 		if constexpr(Assemble == false)
 		{

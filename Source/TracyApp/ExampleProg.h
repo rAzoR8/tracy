@@ -40,10 +40,10 @@ namespace Tracy
 		c /= make_var(2.f);
 
 		var<bool> b = make_var(true);
-		If(b, [&]()
+		If(b, [=]()
 		{
 			OutputColor = t * d;
-		}).Else([&]()
+		}).Else([=]()
 		{
 			OutputColor = t * c * d;
 		});

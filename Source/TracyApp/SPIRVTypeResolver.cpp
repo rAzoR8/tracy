@@ -117,7 +117,7 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVConstant& _Constant)
 
 	// resolve type first to enforce result id ordering
 	const SPIRVType& CompositeType(_Constant.GetCompositeType());
-	uint32_t uTypeId = Resolve(_Constant.GetCompositeType());
+	uint32_t uTypeId = Resolve(CompositeType);
 
 	uint32_t uId = m_uCurrentId++;
 	m_ConstantIds.insert({ uHash, uId });
@@ -138,10 +138,15 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVConstant& _Constant)
 		break;
 		// copy literals as operands
 	case spv::OpConstant:
-	case spv::OpConstantComposite:
 	case spv::OpSpecConstant:
-	case spv::OpSpecConstantComposite:
 		Operands = _Constant.GetLiterals();
+		break;
+	case spv::OpConstantComposite:
+	case spv::OpSpecConstantComposite:
+		for (const SPIRVConstant& Component : _Constant.GetComponents())
+		{
+			Operands.push_back(Resolve(Component));
+		}
 		break;
 	//case spv::OpSpecConstantOp:
 	//case spv::OpConstantSampler:

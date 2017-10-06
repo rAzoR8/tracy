@@ -1,5 +1,6 @@
 #include "SPIRVModule.h"
 #include "SPIRVInstruction.h"
+#include <fstream>
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
@@ -31,7 +32,21 @@ void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 
 //---------------------------------------------------------------------------------------------------
 
-void SPIRVModule::Put(const uint32_t & _uWord)
+bool SPIRVModule::Save(const std::string& _sFilePath)
+{
+	std::ofstream File(_sFilePath, std::ios::out | std::ios::binary);
+
+	if (File.is_open() == false)
+		return false;
+
+	File.write(reinterpret_cast<const char*>(m_InstructionStream.data()), m_InstructionStream.size() * sizeof(uint32_t));
+	File.close();
+
+	return true;
+}
+//---------------------------------------------------------------------------------------------------
+
+void SPIRVModule::Put(const uint32_t& _uWord)
 {
 	m_InstructionStream.push_back(_uWord);
 }

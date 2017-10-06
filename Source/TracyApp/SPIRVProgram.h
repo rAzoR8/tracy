@@ -14,6 +14,7 @@ namespace Tracy
 	template <bool Assemble>
 	class SPIRVProgram
 	{
+		friend class SPIRVAssembler;
 	public:
 		template <class T>
 		using var = var_t<T, Assemble>;
@@ -81,10 +82,7 @@ namespace Tracy
 	template<bool Assemble>
 	inline void SPIRVProgram<Assemble>::Execute()
 	{
-		if constexpr(Assemble)
-		{
-			OnInitInOutVariables();
-		}
+		m_BranchNodes.clear();
 
 		OnExecute();
 
@@ -235,7 +233,12 @@ namespace Tracy
 			if constexpr(Assemble)
 			{
 				BranchNode<Assemble>& Node(m_BranchNodes.back());
+
+				// end of then block
+				m_Assembler.AddOperation(SPIRVOperation(spv::OpBranch), &Node.pThenBranch);
+
 				const uint32_t uFalseLableId = m_Assembler.AddOperation(SPIRVOperation(spv::OpLabel));
+				Node.pThenBranch->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFalseLableId));
 
 				std::vector<SPIRVOperand>& Operands = Node.pSelectionMerge->GetOperands();
 				HASSERT(Operands.size() == 2u, "Invalid number of operands for selection merge");
@@ -268,7 +271,9 @@ namespace Tracy
 			SPIRVType Type(SPIRVType::FromType<T>());
 			_FirstVar.uTypeHash = m_Assembler.AddType(Type);
 
-			HASSERT(_FirstVar.kStorageClass < spv::StorageClassMax, "Invalid variable storage class");
+			HASSERT(_FirstVar.kStorageClass == spv::StorageClassInput ||
+				_FirstVar.kStorageClass == spv::StorageClassOutput, "Invalid variable storage class");
+
 			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, _FirstVar.kStorageClass));
 
 			// OpVariable:

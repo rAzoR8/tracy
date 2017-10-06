@@ -11,9 +11,14 @@ namespace Tracy
 	{
 	public:
 		explicit SPIRVConstant(
-			const spv::Op m_kConstantType = spv::OpConstantNull,
+			const spv::Op _kConstantType = spv::OpConstantNull,
 			const SPIRVType& _CompositeType = {},
 			const std::vector<uint32_t>& _Constants = {});
+
+		explicit SPIRVConstant(
+			const spv::Op _kConstantType,
+			const SPIRVType& _CompositeType,
+			const std::vector<SPIRVConstant>& _Components);
 
 		~SPIRVConstant();
 		
@@ -28,9 +33,13 @@ namespace Tracy
 		const spv::Op& GetType() const;
 		const SPIRVType& GetCompositeType() const;
 		const std::vector<uint32_t>& GetLiterals() const;
+		const std::vector<SPIRVConstant>& GetComponents() const;
 
 	private:
 		spv::Op m_kConstantType = spv::OpNop;
+
+		std::vector<SPIRVConstant> m_Components;
+
 		SPIRVType m_CompositeType;
 		std::vector<uint32_t> m_Constants; // binary data
 	};
@@ -46,6 +55,11 @@ namespace Tracy
 	inline const std::vector<uint32_t>& SPIRVConstant::GetLiterals() const
 	{
 		return m_Constants;
+	}
+
+	inline const std::vector<SPIRVConstant>& SPIRVConstant::GetComponents() const
+	{
+		return m_Components;
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -110,14 +124,17 @@ namespace Tracy
 			return SPIRVConstant(
 				spv::OpConstant,
 				SPIRVType::Primitive<T>(),
-				MakeLiterals(std::forward<T>(first), std::forward<Ts>(_args)...));
+				MakeLiterals(std::forward<T>(first)));
 		}
 		else if constexpr(uSize < 5u) // 2-4
 		{
 			return SPIRVConstant(
 				spv::OpConstantComposite,
 				SPIRVType::Vec<T, uSize>(),
-				MakeLiterals(std::forward<T>(first), std::forward<Ts>(_args)...));
+				{
+					Make(std::forward<T>(first)),
+					Make(std::forward<Ts>(_args))...
+				});
 		}
 		else if constexpr (uSize >= 5u)// matrix
 		{
@@ -146,7 +163,10 @@ namespace Tracy
 			return SPIRVConstant(
 				spv::OpConstantComposite,
 				SPIRVType::Mat<T>(uRow, uCol),
-				MakeLiterals(std::forward<T>(first), std::forward<Ts>(_args)...));
+				{
+					Make(std::forward<T>(first)),
+					Make(std::forward<Ts>(_args))...
+				});
 		}
 
 		return SPIRVConstant(spv::OpConstantNull);

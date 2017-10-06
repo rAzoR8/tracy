@@ -27,6 +27,18 @@ SPIRVConstant::SPIRVConstant(
 }
 //---------------------------------------------------------------------------------------------------
 
+SPIRVConstant::SPIRVConstant(
+	const spv::Op _kConstantType,
+	const SPIRVType& _CompositeType,
+	const std::vector<SPIRVConstant>& _Components) : 
+	m_kConstantType(_kConstantType),
+	m_CompositeType(_CompositeType),
+	m_Components(_Components)
+{
+	HASSERT(_kConstantType == spv::OpConstantComposite || _kConstantType == spv::OpSpecConstantComposite, "Invalid constant type");
+}
+//---------------------------------------------------------------------------------------------------
+
 SPIRVConstant::~SPIRVConstant()
 {
 }
@@ -35,7 +47,8 @@ SPIRVConstant::~SPIRVConstant()
 SPIRVConstant::SPIRVConstant(const SPIRVConstant& _Other) :
 	m_kConstantType(_Other.m_kConstantType),
 	m_CompositeType(_Other.m_CompositeType),
-	m_Constants(_Other.m_Constants)
+	m_Constants(_Other.m_Constants),
+	m_Components(_Other.m_Components)
 {
 }
 //---------------------------------------------------------------------------------------------------

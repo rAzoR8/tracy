@@ -17,7 +17,11 @@ SPIRVAssembler::~SPIRVAssembler()
 
 SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode)
 {
-	Init(_kModel, _kMode);
+	Init(_kModel);
+
+	_EntryPoint.OnInitInOutVariables();
+
+	FunctionPreamble(_kMode);
 
 	_EntryPoint.Execute();
 
@@ -31,9 +35,9 @@ SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv:
 }
 //---------------------------------------------------------------------------------------------------
 
-void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode)
+void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
 {
-	m_uResultId = 0u;
+	m_uResultId = 1u;
 	m_Instructions.clear();
 	m_Definitions.clear();
 	m_TypeResolver.Reset();
@@ -53,28 +57,30 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString("GLSL.std.450")));
 
 	//OpMemoryModel
-	AddOperation(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::MemoryModelGLSL450, (uint32_t)spv::AddressingModelLogical)));
+	AddOperation(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::AddressingModelLogical, (uint32_t)spv::MemoryModelGLSL450)));
 
 	// OpEntryPoint
 	// Op1: Execution model
 	AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)), &m_pOpEntryPoint);
 
-	SPIRVOperation* pOpExeutionMode = nullptr;
-	AddOperation(SPIRVOperation(spv::OpExecutionMode), &pOpExeutionMode);
-
+	AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode);
+}
+//---------------------------------------------------------------------------------------------------
+void SPIRVAssembler::FunctionPreamble(const spv::ExecutionMode _kMode)
+{
 	// add types for entry point function
 	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
 
 	const uint32_t uFuncId = AddOperation(SPIRVOperation(
 		spv::OpFunction,
 		SPIRVType::Void().GetHash(), // result type
-	{
-		SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
-		SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
-	}));
+		{
+			SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
+			SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
+		}));
 
-	pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
-	pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Literal, (uint32_t)_kMode));
+	m_pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
+	m_pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Literal, (uint32_t)_kMode));
 
 	// Op2: entry point id must be the result id of an OpFunction instruction
 	m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));

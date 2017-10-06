@@ -24,13 +24,13 @@ SPIRVInstruction::~SPIRVInstruction()
 
 uint32_t SPIRVInstruction::GetOpCode() const
 {
-	uint16_t uWordCount = (uint16_t)m_Operands.size();
+	uint16_t uWordCount = 1u + (uint16_t)m_Operands.size();
 
 	if (m_uTypeId != kInvalidId)
-		uWordCount++;
+		++uWordCount;
 
 	if (m_uResultId != kInvalidId)
-		uWordCount++;
+		++uWordCount;
 
 	return (m_kOperation & spv::OpCodeMask) | (uWordCount << spv::WordCountShift);
 }
