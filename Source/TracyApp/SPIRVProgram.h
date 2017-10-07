@@ -9,6 +9,8 @@
 
 #include "Logger.h"
 
+#include <variant>
+
 namespace Tracy
 {
 	template <bool Assemble>
@@ -24,6 +26,27 @@ namespace Tracy
 
 		template <class T>
 		using var_out = var_out_t<T, Assemble>;
+
+		//using spvtypes_t = typename std::variant<
+		//	var<bool>,
+		//	var<int32_t>,
+		//	var<int2>,
+		//	var<int3>,
+		//	var<int4>,
+		//	var<uint32_t>,
+		//	var<uint2>,
+		//	var<uint3>,
+		//	var<uint4>,
+		//	var<float>,
+		//	var<float2>,
+		//	var<float3>,
+		//	var<float4>,
+		//	var<float2x2>,
+		//	var<float3x3>,
+		//	var<float3x4>,
+		//	var<float4x3>,
+		//	var<float4x4>
+		//>;
 
 		SPIRVProgram(SPIRVAssembler& _Assembler);
 		~SPIRVProgram();
@@ -44,17 +67,20 @@ namespace Tracy
 		var_t<T, Assemble> make_var();
 
 		template <class LambdaFunc>
-		BranchNode<Assemble>& If(const var_t<bool, Assemble>&, LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
+		BranchNode<Assemble>& If(const var_t<bool, Assemble>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
+
+		template <class T, class... Ts>
+		void StoreVariables(const T& _kFirstClass, const Ts& ..._kRestClass);
 
 	private:
 		SPIRVAssembler& m_Assembler;
 		BranchNode<Assemble> m_BranchNode; //non assemble case
 
 		std::vector<BranchNode<Assemble>> m_BranchNodes;
-		std::vector<var_decoration<true>*> m_InOutVariables;
+		std::vector<var_decoration<true>*> m_MemberVariables;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -87,16 +113,16 @@ namespace Tracy
 		OnExecute();
 
 		// store intermediate results to outputs
-		if constexpr(Assemble)
-		{
-			for (auto& pVar : m_InOutVariables)
-			{
-				if (pVar->kStorageClass == spv::StorageClassOutput)
-				{
-					pVar->Store();
-				}
-			}
-		}
+		//if constexpr(Assemble)
+		//{
+		//	for (auto& pVar : m_MemberVariables)
+		//	{
+		//		if (pVar->kStorageClass == spv::StorageClassOutput)
+		//		{
+		//			pVar->Store();
+		//		}
+		//	}
+		//}
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -193,7 +219,7 @@ namespace Tracy
 
 	template<bool Assemble>
 	template<class LambdaFunc>
-	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
+	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
 	{
 		if constexpr(Assemble)
 		{
@@ -264,7 +290,7 @@ namespace Tracy
 	{
 		if constexpr(Assemble)
 		{
-			m_InOutVariables.push_back(&_FirstVar);
+			m_MemberVariables.push_back(&_FirstVar);
 
 			_FirstVar.pAssembler = &m_Assembler;
 			// create types
@@ -294,6 +320,21 @@ namespace Tracy
 			// create rest of the variables
 			if constexpr(sizeof...(Ts) > 0)
 				InitVar(_Rest...);
+		}
+	}
+	template<bool Assemble>
+	template<class T, class ...Ts>
+	inline void SPIRVProgram<Assemble>::StoreVariables(const T & _kFirstClass, const Ts & ..._kRestClass)
+	{
+		if constexpr(Assemble)
+		{
+			for (auto& pVar : m_InOutVariables)
+			{
+				if (pVar->kStorageClass == spv::StorageClassOutput)
+				{
+					pVar->Store();
+				}
+			}
 		}
 	}
 	//---------------------------------------------------------------------------------------------------

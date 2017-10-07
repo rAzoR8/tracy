@@ -7,8 +7,7 @@ using namespace Tracy;
 void var_decoration<true>::Store() const
 {
 	// store the lastest intermediate result
-	if (//kStorageClass != spv::StorageClassFunction &&
-		uVarId != HUNDEFINED32 &&
+	if (uVarId != HUNDEFINED32 &&
 		uResultId != HUNDEFINED32 &&
 		uResultId != uLastStoredId)
 	{
@@ -42,11 +41,12 @@ uint32_t var_decoration<true>::Load() const
 		SPIRVOperand(kOperandType_Intermediate, uVarId)); // pointer
 
 	uResultId = pAssembler->AddOperation(OpLoad);
+	uLastStoredId = uResultId;
 	return uResultId;
 }
 //---------------------------------------------------------------------------------------------------
 
-var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>& _Other)
+const var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>& _Other) const
 {
 	if (this == &_Other)
 		return *this;
@@ -80,19 +80,53 @@ var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>
 	{
 		HASSERT(uTypeHash == HUNDEFINED, "Variable type already assinged");
 		uTypeHash = _Other.uTypeHash;
-		uVarId = _Other.uVarId;
+		uVarId = _Other.uVarId; // might become actual var
 		uResultId = _Other.uResultId;
+		uLastStoredId = _Other.uLastStoredId;
 		kStorageClass = _Other.kStorageClass;
 	}
 
 	return *this;
 }
 
-//var_decoration<true>::~var_decoration()
+//var_decoration<true>& Tracy::var_decoration<true>::operator=(var_decoration<true>&& _Other)
 //{
-//	// store the lastest intermediate result
-//	if (kStorageClass != spv::StorageClassFunction)
-//	{
-//		Store();
-//	}
+//	pAssembler = _Other.pAssembler;
+//	uVarId = _Other.uVarId; // might become actual var
+//	uResultId = _Other.uResultId;
+//	uLastStoredId = _Other.uLastStoredId;
+//	kStorageClass = _Other.kStorageClass;
+//	uTypeHash = _Other.uTypeHash;
+//
+//	_Other.uVarId = HUNDEFINED32;
+//	_Other.uResultId = HUNDEFINED32;
+//	_Other.pAssembler = nullptr;
+//
+//	return *this;
 //}
+
+//var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
+//	pAssembler(_Other.pAssembler),
+//	uVarId(_Other.uVarId),
+//	uResultId(_Other.uResultId),
+//	uLastStoredId(_Other.uLastStoredId),
+//	kStorageClass(_Other.kStorageClass),
+//	uTypeHash(_Other.uTypeHash)
+//{
+//}
+//
+//var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
+//	pAssembler(_Other.pAssembler),
+//	uVarId(_Other.uVarId),
+//	uResultId(_Other.uResultId),
+//	uLastStoredId(_Other.uLastStoredId),
+//	kStorageClass(_Other.kStorageClass),
+//	uTypeHash(_Other.uTypeHash)
+//{
+//}
+
+var_decoration<true>::~var_decoration()
+{
+	// store the lastest intermediate result
+	Store();
+}
