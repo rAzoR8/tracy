@@ -79,6 +79,11 @@ namespace Tracy
 	using longer_type_t = typename std::conditional<sizeof(U) >= sizeof(V), U, V>::type;
 
 	//---------------------------------------------------------------------------------------------------
+	template <class T>
+	inline spv::Op OpTypeDecider(const spv::Op _kOp)
+	{
+		return _kOp;
+	}
 
 	template <class OperandType>
 	spv::Op OpTypeDecider(const spv::Op _FloatOp, const spv::Op _SIntOp, const spv::Op _UIntOp = spv::OpNop)

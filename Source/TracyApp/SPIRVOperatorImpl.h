@@ -3,101 +3,25 @@
 
 #include "SPIRVVariable.h"
 #include "SPIRVAssembler.h"
+#include <functional>
 
 namespace Tracy
 {
-	template <class T, bool Assemble>
-	inline var_t<T, Assemble> operator+(const var_t<T, Assemble>& l, const var_t<T, Assemble>& r)
-	{
-		var_t<T, Assemble> var(l.Value + r.Value);
-
-		// intermediate values?
-		if constexpr(Assemble)
-		{
-			LoadVariables(l, r);
-			
-			var.pAssembler = l.pAssembler;
-			var.uTypeHash = l.uTypeHash;
-			var.kStorageClass = spv::StorageClassFunction;
-
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFAdd, spv::OpIAdd);
-
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-			HASSERT(l.uTypeHash == r.uTypeHash, "Operand type mismatch!");
-
-			//Floating - point addition of Operand 1 and	Operand 2.
-			//Result Type	must be a scalar or vector of floating - point type.
-			//The types of Operand 1 and Operand 2 both must be the same as Result Type.
-
-			SPIRVOperation Op(kType, l.uTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
-				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
-			});
-
-			var.uResultId = l.pAssembler->AddOperation(Op);
-		}
-
-		return var;
-	}
-
 	//---------------------------------------------------------------------------------------------------
-	template <class T, bool Assemble>
-	inline var_t<T, Assemble> operator-(const var_t<T, Assemble>& l, const var_t<T, Assemble>& r)
+	template <class U, class V, class OpFunc, bool Assemble, class T = std::invoke_result_t<OpFunc, const U&, const V&>, class ...Ops >
+	inline var_t<T, Assemble> make_op(const var_t<U, Assemble>& l, const var_t<V, Assemble>& r, const OpFunc& _OpFunc, const Ops ..._Ops)
 	{
-		var_t<T, Assemble> var(l.Value - r.Value);
+		var_t<T, Assemble> var(_OpFunc(l.Value, r.Value));
 
 		if constexpr(Assemble)
 		{
 			LoadVariables(l, r);
-
-			var.pAssembler = l.pAssembler;
-			var.uTypeHash = l.uTypeHash;
-			var.kStorageClass = spv::StorageClassFunction;
-
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFSub, spv::OpISub);
-
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-			HASSERT(l.uTypeHash == r.uTypeHash, "Operand type mismatch!");
-
-			//Floating - point addition of Operand 1 and	Operand 2.
-			//Result Type	must be a scalar or vector of floating - point type.
-			//The types of Operand 1 and Operand 2 both must be the same as Result Type.
-
-			SPIRVOperation Op(kType, l.uTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
-				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
-			});
-
-			var.uResultId = l.pAssembler->AddOperation(Op);
-		}
-
-		return var;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	template <class U, class V, bool Assemble, class T = longer_type_t<U,V>>
-	inline var_t<T, Assemble> operator*(const var_t<U, Assemble>& l, const var_t<V, Assemble>& r)
-	{
-		var_t<T, Assemble> var(l.Value * r.Value);
-
-		if constexpr(Assemble)
-		{
-			LoadVariables(l, r);
-
 			var.pAssembler = l.pAssembler;
 			var.uTypeHash = SPIRVType::FromType<T>().GetHash();
 			var.kStorageClass = spv::StorageClassFunction;
 
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFMul, spv::OpIMul);
+			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-
-			// Floating - point multiplication of Operand 1 and Operand 2.
-			// Result Type must be a scalar or vector of floating - point type.
-			// The types of	Operand 1 and Operand 2 both must be the same as Result Type. (not true according to the example)
-			// Results are computed per component.
 
 			SPIRVOperation Op(kType, var.uTypeHash, // result type
 			{
@@ -109,40 +33,60 @@ namespace Tracy
 		}
 
 		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// OPERATOR IMPLEMENTATIONS
+	//---------------------------------------------------------------------------------------------------
+
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> operator+(const var_t<T, Assemble>& l, const var_t<T, Assemble>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 + v2; }, spv::OpFAdd, spv::OpIAdd);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> operator-(const var_t<T, Assemble>& l, const var_t<T, Assemble>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 - v2; }, spv::OpFSub, spv::OpISub);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class U, class V, bool Assemble, class T = longer_type_t<U,V>>
+	inline var_t<T, Assemble> operator*(const var_t<U, Assemble>& l, const var_t<V, Assemble>& r)
+	{
+		return make_op(l, r, [](const U& v1, const V& v2)-> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class U, class V, bool Assemble, class T = longer_type_t<U, V>>
 	inline var_t<T, Assemble> operator/(const var_t<U, Assemble>& l, const var_t<V, Assemble>& r)
 	{
-		var_t<T, Assemble> var(l.Value / r.Value);
-
-		if constexpr(Assemble)
-		{
-			LoadVariables(l, r);
-
-			var.pAssembler = l.pAssembler;
-			var.uTypeHash = SPIRVType::FromType<T>().GetHash();
-			var.kStorageClass = spv::StorageClassFunction;
-
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-
-			// Floating - point multiplication of Operand 1 and Operand 2.
-			// Result Type must be a scalar or vector of floating - point type.
-			// The types of	Operand 1 and Operand 2 both must be the same as Result Type. (not true according to the example)
-			// Results are computed per component.
-
-			SPIRVOperation Op(kType, var.uTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
-				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
-			});
-
-			var.uResultId = l.pAssembler->AddOperation(Op);
-		}
-
-		return var;
+		return make_op(l, r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<bool, Assemble> operator==(const var_t<T, Assemble>& l, const var_t<T, Assemble>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 == v2; }, spv::OpLogicalEqual);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<bool, Assemble> operator!=(const var_t<T, Assemble>& l, const var_t<T, Assemble>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 != v2; }, spv::OpLogicalNotEqual);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <bool Assemble>
+	inline var_t<bool, Assemble> operator||(const var_t<bool, Assemble>& l, const var_t<bool, Assemble>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 || v2; }, spv::OpLogicalOr);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <bool Assemble>
+	inline var_t<bool, Assemble> operator&&(const var_t<bool, Assemble>& l, const var_t<bool, Assemble>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
+	}
+	//---------------------------------------------------------------------------------------------------
 
 }; //!Tracy
 

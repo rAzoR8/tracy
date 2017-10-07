@@ -37,15 +37,22 @@ namespace Tracy
 		var<float> d = make_var<>(0.5f);
 
 		c += t;
-		c /= make_var(2.f);
+		c = t / make_var(2.f);
 
-		var<bool> b = make_var(true);
-		If(b, [=]()
+		//var<bool> b = make_var(true);
+		//auto b2 = make_var(false);
+
+		If(t == c, [=]()
 		{
 			OutputColor = t * d;
 		}).Else([=]()
 		{
 			OutputColor = t * c * d;
+
+			//If(b2, [=]
+			//{
+			//	OutputColor *= OutputColor;
+			//});
 		});
 
 		// Problem to solve: access chain to x, how to overload operator+ correctly
