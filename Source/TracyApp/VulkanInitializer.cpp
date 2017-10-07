@@ -45,6 +45,8 @@ VulkanInitializer::VulkanInitializer()
 
 VulkanInitializer::~VulkanInitializer()
 {
+	m_Devices.clear();
+
 	if (m_Instance)
 	{
 		m_Instance.destroy();
