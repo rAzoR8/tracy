@@ -61,10 +61,10 @@ namespace Tracy
 
 	private:
 		spv::Op m_kOpCode = spv::OpNop;
-		std::vector<SPIRVOperand> m_Operands;
-		size_t m_uResultTypeHash = kUndefinedSizeT;
 		uint32_t m_uInstrId = HUNDEFINED32;
 		uint32_t m_uResultId = HUNDEFINED32;
+		std::vector<SPIRVOperand> m_Operands;
+		size_t m_uResultTypeHash = kUndefinedSizeT;
 	};
 
 	inline const spv::Op& SPIRVOperation::GetOpCode() const

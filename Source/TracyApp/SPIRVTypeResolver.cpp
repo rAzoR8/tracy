@@ -177,6 +177,8 @@ uint32_t SPIRVTypeResolver::GetTypeId(const size_t& _uHash) const
 		return it->second;
 	}
 
+	HFATAL("Failed to resovle type!");
+
 	return HUNDEFINED32;
 }
 //---------------------------------------------------------------------------------------------------
@@ -189,6 +191,8 @@ uint32_t SPIRVTypeResolver::GetConstantId(const size_t& _uHash) const
 	{
 		return it->second;
 	}
+
+	HFATAL("Failed to resovle constant!");
 
 	return HUNDEFINED32;
 }

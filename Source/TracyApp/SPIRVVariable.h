@@ -49,12 +49,23 @@ namespace Tracy
 		var_t& operator-=(const var_t& _Other);
 
 		template <class U>
-		var_t<T,Assemble>& operator*=(const var_t<U, Assemble>& _Other);
+		var_t<T, Assemble>& operator*=(const var_t<U, Assemble>& _Other);
 
 		template <class U>
 		var_t<T, Assemble>& operator/=(const var_t<U, Assemble>& _Other);
 
+		var_t& operator!();
+
 		T Value;
+
+	private:
+		// two operands (self + other)
+		template <class U, class OpFunc, class ...Ops>
+		var_t<T, Assemble>& make_op2(const var_t<U, Assemble>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops);
+
+		// one operand (self)
+		template <class OpFunc, class ...Ops>
+		var_t<T, Assemble>& make_op1( const OpFunc& _OpFunc, const Ops ..._Ops);
 	};
 
 	template <typename T, bool Assemble>
@@ -86,10 +97,13 @@ namespace Tracy
 	}
 
 	template <class OperandType>
-	spv::Op OpTypeDecider(const spv::Op _FloatOp, const spv::Op _SIntOp, const spv::Op _UIntOp = spv::OpNop)
+	spv::Op OpTypeDecider(const spv::Op _FloatOp, const spv::Op _SIntOp, const spv::Op _UIntOp = spv::OpNop, const spv::Op _BoolOp = spv::OpNop)
 	{
 		if (std::is_same_v<OperandType, float>)
 			return _FloatOp;
+
+		if (std::is_same_v<OperandType, bool>)
+			return _BoolOp;
 
 		if (_UIntOp == spv::OpNop)
 		{
@@ -117,6 +131,55 @@ namespace Tracy
 		r.Load();
 	}
 
+	//---------------------------------------------------------------------------------------------------
+	template<typename T, bool Assemble>
+	template<class U, class OpFunc, class ...Ops>
+	inline var_t<T, Assemble>& var_t<T, Assemble>::make_op2(const var_t<U, Assemble>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops)
+	{
+		_OpFunc(Value, _Other.Value);
+
+		if constexpr(Assemble)
+		{
+			LoadVariables(*this, _Other);
+
+			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
+			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+
+			SPIRVOperation Op(kType, uTypeHash, // result type
+			{
+				SPIRVOperand(kOperandType_Intermediate, uResultId),
+				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
+			});
+
+			uResultId = pAssembler->AddOperation(Op);
+		}
+
+		return *this;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	template<typename T, bool Assemble>
+	template<class OpFunc, class ...Ops>
+	inline var_t<T, Assemble>& var_t<T, Assemble>::make_op1(const OpFunc& _OpFunc, const Ops ..._Ops)
+	{
+		_OpFunc(Value);
+
+		if constexpr(Assemble)
+		{
+			HASSERT(pAssembler != nullptr, "Invalid program assembler");
+			Load();
+
+			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
+			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+			HASSERT(uTypeHash != kUndefinedSizeT, "Invalid type");
+
+			SPIRVOperation Op(kType, uTypeHash,	SPIRVOperand(kOperandType_Intermediate, uResultId));
+			uResultId = pAssembler->AddOperation(Op);
+		}
+
+		return *this;
+	}
+
 #pragma endregion
 
 	//---------------------------------------------------------------------------------------------------
@@ -139,82 +202,24 @@ namespace Tracy
 	template<typename T, bool Assemble>
 	inline var_t<T, Assemble>& var_t<T, Assemble>::operator+=(const var_t<T, Assemble>& _Other)
 	{
-		Value += _Other.Value;
-
-		if constexpr(Assemble)
-		{
-			LoadVariables(*this, _Other);
-
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFAdd, spv::OpIAdd);
-
-			HASSERT(uTypeHash == _Other.uTypeHash, "Operand type mismatch!");
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-
-			SPIRVOperation Op(kType, uTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, uResultId),
-				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
-			});
-
-			uResultId = pAssembler->AddOperation(Op);
-		}
-
-		return *this;
+		return make_op2(_Other, [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
 	}
 	//---------------------------------------------------------------------------------------------------
 
 	template<typename T, bool Assemble>
 	inline var_t<T, Assemble>& var_t<T, Assemble>::operator-=(const var_t<T, Assemble>& _Other)
 	{
-		Value -= _Other.Value;
-
-		if constexpr(Assemble)
-		{
-			LoadVariables(*this, _Other);
-
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFSub, spv::OpISub);
-
-			HASSERT(uTypeHash == _Other.uTypeHash, "Operand type mismatch!");
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-
-			SPIRVOperation Op(kType, uTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, uResultId),
-				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
-			});
-
-			uResultId = pAssembler->AddOperation(Op);
-		}
-
-		return *this;
+		return make_op2(_Other, [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
 	}
+
 	//---------------------------------------------------------------------------------------------------
 	template<typename T, bool Assemble>
 	template<class U>
 	inline var_t<T, Assemble>& var_t<T, Assemble>::operator*=(const var_t<U, Assemble>& _Other)
 	{
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
-		Value *= _Other.Value;
-
-		if constexpr(Assemble)
-		{
-			LoadVariables(*this, _Other);
-
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFMul, spv::OpIMul);
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-
-			SPIRVOperation Op(kType, uTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, uResultId),
-				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
-			});
-
-			uResultId = pAssembler->AddOperation(Op);
-		}
-
-		return *this;
+		return make_op2(_Other, [](T& v1, const T& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
 	}
-
 	//---------------------------------------------------------------------------------------------------
 
 	template<typename T, bool Assemble>
@@ -222,25 +227,14 @@ namespace Tracy
 	inline var_t<T, Assemble>& var_t<T, Assemble>::operator/=(const var_t<U, Assemble>& _Other)
 	{
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
-		Value /= _Other.Value;
+		return make_op2(_Other, [](T& v1, const T& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
+	}
+	//---------------------------------------------------------------------------------------------------
 
-		if constexpr(Assemble)
-		{
-			LoadVariables(*this, _Other);
-
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-
-			SPIRVOperation Op(kType, uTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, uResultId),
-				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
-			});
-
-			uResultId = pAssembler->AddOperation(Op);
-		}
-
-		return *this;
+	template<typename T, bool Assemble>
+	inline var_t<T, Assemble>& var_t<T, Assemble>::operator!()
+	{
+		return make_op1([](T& _Value) {_Value = !_Value; }, spv::OpFNegate, spv::OpSNegate, spv::OpNop, spv::OpLogicalNot);
 	}
 	//---------------------------------------------------------------------------------------------------
 #pragma endregion

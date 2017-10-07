@@ -17,7 +17,7 @@ namespace Tracy
 		{
 			LoadVariables(l, r);
 			var.pAssembler = l.pAssembler;
-			var.uTypeHash = SPIRVType::FromType<T>().GetHash();
+			var.uTypeHash = var.pAssembler->AddType(SPIRVType::FromType<T>());
 			var.kStorageClass = spv::StorageClassFunction;
 
 			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
@@ -29,7 +29,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
 			});
 
-			var.uResultId = l.pAssembler->AddOperation(Op);
+			var.uResultId = var.pAssembler->AddOperation(Op);
 		}
 
 		return var;

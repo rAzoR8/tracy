@@ -32,9 +32,11 @@ namespace Tracy
 	template<bool Assemble>
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
+		var<float> d = make_var<>(0.5f);
+		//var<float> e = make_var<>(0.5f);		
+
 		var<float3> t = make_var(1.f, 1.f ,1.f);
 		var<float3> c = make_var(1.f, 2.f, 3.f);
-		var<float> d = make_var<>(0.5f);
 
 		c += t;
 		c = t / make_var(2.f);
