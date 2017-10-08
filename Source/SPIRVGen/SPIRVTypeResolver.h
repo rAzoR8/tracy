@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <unordered_map>
 
-#include <SPIRVInstruction.h>
+#include "SPIRVInstruction.h"
 
 namespace Tracy
 {

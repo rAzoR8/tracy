@@ -83,14 +83,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="SPIRVAssembler.cpp" />
-    <ClCompile Include="SPIRVConstant.cpp" />
-    <ClCompile Include="SPIRVInstruction.cpp" />
-    <ClCompile Include="SPIRVModule.cpp" />
-    <ClCompile Include="SPIRVOperation.cpp" />
-    <ClCompile Include="SPIRVType.cpp" />
-    <ClCompile Include="SPIRVTypeResolver.cpp" />
-    <ClCompile Include="SPIRVVariable.cpp" />
     <ClCompile Include="TracyApp.cpp" />
     <ClCompile Include="VulkanDevice.cpp" />
     <ClCompile Include="VulkanInitializer.cpp" />
@@ -120,21 +112,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ExampleProg.h" />
     <ClInclude Include="GeneratedFiles\ui_TracyApp.h" />
-    <ClInclude Include="GLM.h" />
-    <ClInclude Include="SPIRVAssembler.h" />
-    <ClInclude Include="SPIRVBranchNode.h" />
-    <ClInclude Include="SPIRVConstant.h" />
-    <ClInclude Include="SPIRVInstruction.h" />
-    <ClInclude Include="SPIRVModule.h" />
-    <ClInclude Include="SPIRVOperation.h" />
-    <ClInclude Include="SPIRVOperatorImpl.h" />
-    <ClInclude Include="SPIRVProgram.h" />
-    <ClInclude Include="SPIRVStruct.h" />
-    <ClInclude Include="SPIRVType.h" />
-    <ClInclude Include="SPIRVTypeResolver.h" />
-    <ClInclude Include="SPIRVVariable.h" />
     <ClInclude Include="VulkanAPI.h" />
     <ClInclude Include="VulkanDevice.h" />
     <ClInclude Include="VulkanInitializer.h" />

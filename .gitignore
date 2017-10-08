@@ -5,3 +5,5 @@ Source/x64/
 *.user
 Source/TracyApp/GeneratedFiles/
 Source/TracyApp/x64/
+Source/SPIRVGen/x64/
+Source/SPIRVGenTest/x64/
