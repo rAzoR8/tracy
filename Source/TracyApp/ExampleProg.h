@@ -10,11 +10,17 @@ namespace Tracy
 	class ExampleProg : public SPIRVProgram<Assemble>
 	{
 	public:
-		ExampleProg(SPIRVAssembler& _Assembler) :SPIRVProgram<Assemble>(_Assembler){};
+		ExampleProg(SPIRVAssembler& _Assembler) : SPIRVProgram<Assemble>(_Assembler){};
 		~ExampleProg() {};
 
 		void OnInitInOutVariables() final;
 		void OnExecute() final;
+
+		struct buff : public spv_struct
+		{
+			f32 Member1;
+			float3 Member2;
+		} bufinst;
 
 		var_in<float> InputScale;
 		var_in<float3_t> InputPos;
@@ -27,6 +33,7 @@ namespace Tracy
 	inline void ExampleProg<Assemble>::OnInitInOutVariables()
 	{
 		InitVar(InputScale, InputPos, OutputColor);
+		InitMembers(bufinst, bufinst.Member1, bufinst.Member2);
 	}
 
 	template<bool Assemble>

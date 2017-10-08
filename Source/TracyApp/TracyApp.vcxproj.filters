@@ -145,5 +145,8 @@
     <ClInclude Include="SPIRVBranchNode.h">
       <Filter>Display\SPIRV</Filter>
     </ClInclude>
+    <ClInclude Include="SPIRVStruct.h">
+      <Filter>Display\SPIRV</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

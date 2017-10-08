@@ -3,6 +3,7 @@
 
 #include "SPIRVOperatorImpl.h"
 #include "SPIRVBranchNode.h"
+#include "SPIRVStruct.h"
 
 #include "GLM.h"
 #include "glm\glm.hpp"
@@ -28,6 +29,8 @@ namespace Tracy
 
 		template <class T>
 		using var_out = var_out_t<T, Assemble>;
+
+		using spv_struct = SPIRVStruct<Assemble>;
 
 		using s32 = var<int32_t>;
 		using s64 = var<int64_t>;
@@ -99,6 +102,9 @@ namespace Tracy
 
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
+
+		template <class... Ts>
+		void InitMembers(spv_struct& _Struct, var<Ts>&... _Members);
 
 	private:
 		SPIRVAssembler& m_Assembler;
@@ -334,6 +340,14 @@ namespace Tracy
 			if constexpr(sizeof...(Ts) > 0)
 				InitVar(_Rest...);
 		}
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	template<bool Assemble>
+	template<class ...Ts>
+	inline void SPIRVProgram<Assemble>::InitMembers(spv_struct& _Struct, var<Ts>& ..._Rest)
+	{
+		_Struct.InitMembers(m_Assembler, _Rest...);
 	}
 
 	//---------------------------------------------------------------------------------------------------
