@@ -9,7 +9,7 @@
 
 #include "Logger.h"
 
-#include <variant>
+//#include <variant>
 
 namespace Tracy
 {
@@ -18,6 +18,8 @@ namespace Tracy
 	{
 		friend class SPIRVAssembler;
 	public:
+
+#pragma region type_defs
 		template <class T>
 		using var = var_t<T, Assemble>;
 
@@ -26,6 +28,31 @@ namespace Tracy
 
 		template <class T>
 		using var_out = var_out_t<T, Assemble>;
+
+		using s32 = var<int32_t>;
+		using s64 = var<int64_t>;
+		using int2 = var<int2_t>;
+		using int3 = var<int3_t>;
+		using int4 = var<int4_t>;
+
+		using u32 = var<uint32_t>;
+		using u64 = var<uint64_t>;
+		using uint2 = var<uint2_t>;
+		using uint3 = var<uint3_t>;
+		using uint4 = var<uint4_t>;
+
+		using f32 = var<float>;
+		using f64 = var<double>;
+		using float2 = var<float2_t>;
+		using float3 = var<float3_t>;
+		using float4 = var<float4_t>;
+
+		using float2x2 = var<float2x2_t>;
+		using float3x3 = var<float3x3_t>;
+		using float3x4 = var<float3x4_t>;
+		using float4x3 = var<float4x3_t>;
+		using float4x4 = var<float4x4_t>;
+		using matrix = var<float4x4_t>;
 
 		//using spvtypes_t = typename std::variant<
 		//	var<bool>,
@@ -48,6 +75,7 @@ namespace Tracy
 		//	var<float4x4>
 		//>;
 
+#pragma endregion
 		SPIRVProgram(SPIRVAssembler& _Assembler);
 		~SPIRVProgram();
 
@@ -72,15 +100,12 @@ namespace Tracy
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
 
-		template <class T, class... Ts>
-		void StoreVariables(const T& _kFirstClass, const Ts& ..._kRestClass);
-
 	private:
 		SPIRVAssembler& m_Assembler;
-		BranchNode<Assemble> m_BranchNode; //non assemble case
 
+		BranchNode<Assemble> m_BranchNode; //non assemble case
 		std::vector<BranchNode<Assemble>> m_BranchNodes;
-		std::vector<var_decoration<true>*> m_MemberVariables;
+		//std::vector<var_decoration<true>*> m_MemberVariables;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -111,18 +136,6 @@ namespace Tracy
 		m_BranchNodes.clear();
 
 		OnExecute();
-
-		// store intermediate results to outputs
-		//if constexpr(Assemble)
-		//{
-		//	for (auto& pVar : m_MemberVariables)
-		//	{
-		//		if (pVar->kStorageClass == spv::StorageClassOutput)
-		//		{
-		//			pVar->Store();
-		//		}
-		//	}
-		//}
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -290,7 +303,7 @@ namespace Tracy
 	{
 		if constexpr(Assemble)
 		{
-			m_MemberVariables.push_back(&_FirstVar);
+			//m_MemberVariables.push_back(&_FirstVar);
 
 			_FirstVar.pAssembler = &m_Assembler;
 			// create types
@@ -322,21 +335,7 @@ namespace Tracy
 				InitVar(_Rest...);
 		}
 	}
-	template<bool Assemble>
-	template<class T, class ...Ts>
-	inline void SPIRVProgram<Assemble>::StoreVariables(const T & _kFirstClass, const Ts & ..._kRestClass)
-	{
-		if constexpr(Assemble)
-		{
-			for (auto& pVar : m_InOutVariables)
-			{
-				if (pVar->kStorageClass == spv::StorageClassOutput)
-				{
-					pVar->Store();
-				}
-			}
-		}
-	}
+
 	//---------------------------------------------------------------------------------------------------
 
 }; // !Tracy

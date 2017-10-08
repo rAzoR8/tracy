@@ -8,6 +8,7 @@
 
 namespace Tracy
 {
+#pragma region type defs
 #ifndef OPDEFS
 #define OPDEFS(t, s, b) \
 		static constexpr spv::Op type = t; \
@@ -22,19 +23,29 @@ namespace Tracy
 	struct optype<bool> { OPDEFS(spv::OpTypeBool, false, 0u) };
 
 	template <>
+	struct optype<int16_t> { OPDEFS(spv::OpTypeInt, true, 16u) };
+
+	template <>
+	struct optype<uint16_t> { OPDEFS(spv::OpTypeInt, false, 16u) };
+
+	template <>
 	struct optype<float> { OPDEFS(spv::OpTypeFloat, true, 32u)};
 
 	template <>
-	struct optype<int> { OPDEFS(spv::OpTypeInt, true, 32u)};
+	struct optype<double> { OPDEFS(spv::OpTypeFloat, true, 64u) };
 
 	template <>
-	struct optype<unsigned>{ OPDEFS(spv::OpTypeInt, false, 32u) };
+	struct optype<int32_t> { OPDEFS(spv::OpTypeInt, true, 32u)};
 
 	template <>
-	struct optype<short>{ OPDEFS(spv::OpTypeInt, true, 16u) };
+	struct optype<uint32_t>{ OPDEFS(spv::OpTypeInt, false, 32u) };
 
 	template <>
-	struct optype<unsigned short>{ OPDEFS(spv::OpTypeInt, false, 16u) };
+	struct optype<int64_t> { OPDEFS(spv::OpTypeInt, true, 64u) };
+
+	template <>
+	struct optype<uint64_t> { OPDEFS(spv::OpTypeInt, false, 64u) };
+#pragma endregion
 
 	class SPIRVType
 	{
@@ -147,46 +158,46 @@ namespace Tracy
 	inline SPIRVType SPIRVType::FromType<uint32_t>() { return SPIRVType::Primitive<uint32_t>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<int2>() { return SPIRVType::Vec<int32_t, 2>(); }
+	inline SPIRVType SPIRVType::FromType<int2_t>() { return SPIRVType::Vec<int32_t, 2>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<int3>() { return SPIRVType::Vec<int32_t, 3>(); }
+	inline SPIRVType SPIRVType::FromType<int3_t>() { return SPIRVType::Vec<int32_t, 3>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<int4>() { return SPIRVType::Vec<int32_t, 4>(); }
+	inline SPIRVType SPIRVType::FromType<int4_t>() { return SPIRVType::Vec<int32_t, 4>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<uint2>() { return SPIRVType::Vec<uint32_t, 2>(); }
+	inline SPIRVType SPIRVType::FromType<uint2_t>() { return SPIRVType::Vec<uint32_t, 2>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<uint3>() { return SPIRVType::Vec<uint32_t, 3>(); }
+	inline SPIRVType SPIRVType::FromType<uint3_t>() { return SPIRVType::Vec<uint32_t, 3>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<uint4>() { return SPIRVType::Vec<uint32_t, 4>(); }
+	inline SPIRVType SPIRVType::FromType<uint4_t>() { return SPIRVType::Vec<uint32_t, 4>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float2>() { return SPIRVType::Vec<float, 2>(); }
+	inline SPIRVType SPIRVType::FromType<float2_t>() { return SPIRVType::Vec<float, 2>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float3>() { return SPIRVType::Vec<float, 3>(); }
+	inline SPIRVType SPIRVType::FromType<float3_t>() { return SPIRVType::Vec<float, 3>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float4>() { return SPIRVType::Vec<float, 4>(); }
+	inline SPIRVType SPIRVType::FromType<float4_t>() { return SPIRVType::Vec<float, 4>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float4x4>() { return SPIRVType::Mat<float>(); }
+	inline SPIRVType SPIRVType::FromType<float4x4_t>() { return SPIRVType::Mat<float>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float2x2>() { return SPIRVType::Mat<float, 2, 2>(); }
+	inline SPIRVType SPIRVType::FromType<float2x2_t>() { return SPIRVType::Mat<float, 2, 2>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float3x3>() { return SPIRVType::Mat<float, 3, 3>(); }
+	inline SPIRVType SPIRVType::FromType<float3x3_t>() { return SPIRVType::Mat<float, 3, 3>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float4x3>() { return SPIRVType::Mat<float, 4, 3>(); }
+	inline SPIRVType SPIRVType::FromType<float4x3_t>() { return SPIRVType::Mat<float, 4, 3>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromType<float3x4>() { return SPIRVType::Mat<float, 3, 4>(); }
+	inline SPIRVType SPIRVType::FromType<float3x4_t>() { return SPIRVType::Mat<float, 3, 4>(); }
 #pragma endregion
 } // Tracy
 

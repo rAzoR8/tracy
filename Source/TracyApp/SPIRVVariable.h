@@ -198,7 +198,7 @@ namespace Tracy
 
 #pragma region Operations
 	template<typename T, bool Assemble>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator=(const var_t & _Other) const
+	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator=(const var_t& _Other) const
 	{
 		if constexpr(Assemble)
 		{

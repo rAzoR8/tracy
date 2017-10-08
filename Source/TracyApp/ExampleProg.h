@@ -17,8 +17,8 @@ namespace Tracy
 		void OnExecute() final;
 
 		var_in<float> InputScale;
-		var_in<float3> InputPos;
-		var_out<float3> OutputColor;
+		var_in<float3_t> InputPos;
+		var_out<float3_t> OutputColor;
 	private:
 
 	};
@@ -32,11 +32,11 @@ namespace Tracy
 	template<bool Assemble>
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
-		//var<float> d = make_var<>(0.5f);
-		//var<float> e = make_var<>(0.5f);		
+		//f32 d = make_var<>(0.5f);
+		//f32 e = make_var<>(0.5f);		
 
-		var<float3> t = make_var(1.f, 1.f ,1.f);
-		var<float3> c = make_var(1.f, 2.f, 3.f);
+		float3 t = make_var(1.f, 1.f ,1.f);
+		float3 c = make_var(1.f, 2.f, 3.f);
 
 		//c += t;
 		//c = t / make_var(2.f);
@@ -49,7 +49,6 @@ namespace Tracy
 			OutputColor = t + c;
 		}).Else([=]()
 		{
-			OutputColor = t - c;
 			OutputColor = t - c;
 
 			c += t * OutputColor;
