@@ -11,5 +11,9 @@ int main(int argc, char* argv[])
 	SPIRVModule code(Assembler.Assemble(prog));
 	code.Save("test.spv");
 
+	system("spirv-dis test.spv");
+	system("spirv-val test.spv");
+	system("pause");
+
 	return 0;
 }
