@@ -2,6 +2,7 @@
 #define TRACY_SPIRVSTRUCT_H
 
 #include "SPIRVAssembler.h"
+#include "GetStructMember.h"
 
 namespace Tracy
 {
@@ -72,6 +73,55 @@ namespace Tracy
 				InitMembers(_Assembler, _Rest...);
 		}
 	}
+
+	struct TSPVStructTag {};
+
+#ifndef SPVStruct
+#define SPVStruct typedef TSPVStructTag SPVStructTag;
+#endif
+
+	template< class, class = std::void_t<> >
+	struct has_spv_tag : std::false_type { };
+
+	template< class T >
+	struct has_spv_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
+
+	template <class T>
+	void InitVar(T& _Member) {}
+
+	template <class T, bool Assemble>
+	void InitVar(var_t<T, Assemble>& _Member)
+	{
+		// actual stuff happening here
+	}
+
+	template <size_t N, class T, bool Assemble>
+	void InitStruct(T& _Struct)
+	{
+		if constexpr(N > 0u)
+		{
+			decltype(auto) member = hlx::get<N-1>(_Struct);
+			using MemberType = typename std::decay_t<decltype(member)>;
+			if constexpr(has_spv_tag<MemberType>::value)
+			{
+				constexpr size_t n = hlx::aggregate_arity<MemberType>::size();
+				InitStruct<n, MemberType, Assemble>(member);				
+			}
+			else
+			{
+				InitVar(member);
+				InitStruct<N - 1, T, Assemble>(_Struct);
+			}
+		}
+	}
+
+	template <class T, bool Assemble>
+	void InitializeStruct(T& _Struct)
+	{
+		constexpr size_t N = hlx::aggregate_arity<T>::size();
+		InitStruct<N, T, Assemble>(_Struct);
+	}
+
 }; // Tracy
 
 #endif // !TRACY_SPIRVSTRUCT_H
