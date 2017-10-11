@@ -87,8 +87,14 @@ namespace Tracy
 	template< class T >
 	struct has_spv_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
 
+	template <class T, bool Assemble>
+	constexpr bool is_var_t(/*const*/ var_t<T, Assemble>& _Member) { return true; }
+
 	template <class T>
-	void InitVar(T& _Member) {}
+	constexpr bool is_var_t(T& _Member) { return false; }
+
+	template <class T>
+	void InitVar(T& _Member) { std::cout << typeid(T).name() << std::endl; }
 
 	template <class T, bool Assemble>
 	void InitVar(var_t<T, Assemble>& _Member)
@@ -97,21 +103,25 @@ namespace Tracy
 		std::cout << typeid(T).name() << std::endl;
 	}
 
-	template <size_t N, class T, bool Assemble>
+	template <size_t n, size_t N, class T>
 	void InitStruct(T& _Struct)
 	{
-		if constexpr(N > 0u)
+		std::cout << "n " << n << " N " << N << std::endl;
+		if constexpr(n < N)
 		{
-			decltype(auto) member = hlx::get<N-1>(_Struct);
-			if constexpr(has_spv_tag<decltype(member)>::value)
+			decltype(auto) member = hlx::get<n>(_Struct);
+			using MemberType = std::remove_cv_t<decltype(member)>;
+			std::cout << /*tid.name() << " "*/ typeid(MemberType).hash_code() << std::endl;
+
+			if (is_var_t(member))
 			{
-				constexpr size_t n = hlx::aggregate_arity<decltype(member)>::size();
-				InitStruct<n, decltype(member), Assemble>(member);
+				InitVar(member);
+				InitStruct<n + 1, N, T>(_Struct);
 			}
 			else
 			{
-				InitVar(member);
-				InitStruct<N - 1, T, Assemble>(_Struct);
+				constexpr size_t M = hlx::aggregate_arity<MemberType>::size();
+				InitStruct<0, M, MemberType>(member);
 			}
 		}
 	}
@@ -119,8 +129,11 @@ namespace Tracy
 	template <class T, bool Assemble>
 	void InitializeStruct(T& _Struct)
 	{
-		constexpr size_t N = hlx::aggregate_arity<T>::size();
-		InitStruct<N, T, Assemble>(_Struct);
+		if constexpr(Assemble)
+		{
+			constexpr size_t N = hlx::aggregate_arity<T>::size();
+			InitStruct<0, N, T>(_Struct);
+		}
 	}
 
 }; // Tracy

@@ -24,6 +24,9 @@ struct C { int i; };
 int main(int argc, char* argv[])
 {
 	A a{};
+	
+	constexpr size_t N = hlx::aggregate_arity<B>::size();
+	std::cout <<N <<" " << typeid(B).hash_code() << std::endl;
 	InitializeStruct<A, true>(a);
 
 	SPIRVAssembler Assembler;
