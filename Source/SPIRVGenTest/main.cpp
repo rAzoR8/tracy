@@ -6,25 +6,25 @@ using namespace Tracy;
 struct B
 {
 	SPVStruct;
-	var_t<float2_t, true> f4;
+	var_t<float4_t, true> f4;
 };
 
 struct A
 {
 	SPVStruct;
-	var_t<float2_t, true> f2;
-	var_t<float3_t, true> f3;
-	float d;
-
 	B b;
+
+	//var_t<float2_t, true> f2;
+	//var_t<float3_t, true> f3;
+	//float d;
 };
 
 struct C { int i; };
 
 int main(int argc, char* argv[])
 {
-	//A a{};
-	//InitializeStruct<A, true>(a);
+	A a{};
+	InitializeStruct<A, true>(a);
 
 	SPIRVAssembler Assembler;
 	ExampleProg<true> prog(Assembler);

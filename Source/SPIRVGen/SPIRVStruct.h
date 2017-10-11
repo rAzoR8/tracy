@@ -73,6 +73,7 @@ namespace Tracy
 				InitMembers(_Assembler, _Rest...);
 		}
 	}
+#include <typeinfo>
 
 	struct TSPVStructTag {};
 
@@ -93,6 +94,7 @@ namespace Tracy
 	void InitVar(var_t<T, Assemble>& _Member)
 	{
 		// actual stuff happening here
+		std::cout << typeid(T).name() << std::endl;
 	}
 
 	template <size_t N, class T, bool Assemble>
@@ -101,11 +103,10 @@ namespace Tracy
 		if constexpr(N > 0u)
 		{
 			decltype(auto) member = hlx::get<N-1>(_Struct);
-			using MemberType = typename std::decay_t<decltype(member)>;
-			if constexpr(has_spv_tag<MemberType>::value)
+			if constexpr(has_spv_tag<decltype(member)>::value)
 			{
-				constexpr size_t n = hlx::aggregate_arity<MemberType>::size();
-				InitStruct<n, MemberType, Assemble>(member);				
+				constexpr size_t n = hlx::aggregate_arity<decltype(member)>::size();
+				InitStruct<n, decltype(member), Assemble>(member);
 			}
 			else
 			{
