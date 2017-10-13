@@ -14,7 +14,7 @@ void var_decoration<true>::Store() const
 		// create store
 		pAssembler->AddOperation(SPIRVOperation(spv::OpStore,
 		{
-			SPIRVOperand(kOperandType_Intermediate, uVarId), // destination
+			SPIRVOperand(kOperandType_Variable, uVarId), // destination
 			SPIRVOperand(kOperandType_Intermediate, uResultId) // source
 		}));
 
@@ -38,7 +38,7 @@ uint32_t var_decoration<true>::Load() const
 	// bsp: None, Volatile, Aligned, Nontemporal
 
 	SPIRVOperation OpLoad(spv::OpLoad, uTypeHash, // result type
-		SPIRVOperand(kOperandType_Intermediate, uVarId)); // pointer
+		SPIRVOperand(kOperandType_Variable, uVarId)); // pointer
 
 	uResultId = pAssembler->AddOperation(OpLoad);
 	uLastStoredId = uResultId;
@@ -62,13 +62,13 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 		{
 			_Other.uResultId = pAssembler->AddOperation(
 				SPIRVOperation(spv::OpLoad, uTypeHash, // result tpye
-				SPIRVOperand(kOperandType_Intermediate, _Other.uVarId)));
+				SPIRVOperand(kOperandType_Variable, _Other.uVarId)));
 		}
 	
 		// create store
 		pAssembler->AddOperation(SPIRVOperation(spv::OpStore,
 		{
-			SPIRVOperand(kOperandType_Intermediate, uVarId), // destination
+			SPIRVOperand(kOperandType_Variable, uVarId), // destination
 			SPIRVOperand(kOperandType_Intermediate, _Other.uResultId) // source
 		}));
 		// storage class stays the same

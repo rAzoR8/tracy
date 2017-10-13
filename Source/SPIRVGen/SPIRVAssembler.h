@@ -36,7 +36,7 @@ namespace Tracy
 
 		void Resolve();
 
-		SPIRVInstruction Translate(SPIRVOperation& _Op, const bool _bAssigneId = false);
+		SPIRVInstruction Translate(SPIRVOperation& _Op, const bool _bAssigneId = true);
 
 		void AddInstruction(const SPIRVInstruction& _Instr);
 
@@ -45,8 +45,12 @@ namespace Tracy
 	private:
 		std::vector<std::string> m_Extensions;
 		std::unordered_map<std::string, uint32_t> m_ExtensionIds;
+
 		uint32_t m_uInstrId = 0u; // internal instruction id
+		uint32_t m_uVarId = 0u; // internal variable id
 		uint32_t m_uResultId = 1u; // actual result ids
+
+		uint32_t m_uFunctionLableIndex = 0u;
 
 		SPIRVOperation* m_pOpEntryPoint = nullptr;
 		SPIRVOperation* m_pOpExeutionMode = nullptr;
@@ -59,6 +63,7 @@ namespace Tracy
 		std::unordered_map<size_t, SPIRVConstant> m_Constants;
 
 		std::vector<SPIRVOperation> m_Operations; // unresolved local instruction stream
+		std::vector<SPIRVOperation> m_Variables; // unresolved local instruction stream
 	};
 }
 

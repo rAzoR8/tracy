@@ -11,7 +11,7 @@ namespace Tracy
 		kOperandType_Type = 0,  // 64bit hash
 		kOperandType_Constant, // 64bit hash
 		kOperandType_Intermediate, // operand of a instruction, result of OpLoad + TypeId of type, or intermediate
-		// kOperandType_ResultId, not needed, generated automatically for each new operation
+		kOperandType_Variable, // id of a variable
 		kOperandType_Literal, 
 		kOperandType_Unknown, // unmapped
 	};
