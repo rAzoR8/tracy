@@ -20,7 +20,7 @@ namespace Tracy
 			var.uTypeHash = var.pAssembler->AddType(SPIRVType::FromType<T>());
 			var.kStorageClass = spv::StorageClassFunction;
 
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
+			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
 			SPIRVOperation Op(kType, var.uTypeHash, // result type
@@ -34,7 +34,37 @@ namespace Tracy
 
 		return var;
 	}
+	//---------------------------------------------------------------------------------------------------
+	template <class U, class OpFunc, bool Assemble, class T = std::invoke_result_t<OpFunc, const U&>, class ...Ops >
+	inline var_t<T, Assemble> make_ext_op1(const var_t<U, Assemble>& l, const OpFunc& _OpFunc, const std::string& _sExt, const Ops ..._Ops)
+	{
+		var_t<T, Assemble> var(_OpFunc(l.Value));
 
+		if constexpr(Assemble)
+		{
+			l.Load();
+			var.pAssembler = l.pAssembler;
+			var.uTypeHash = var.pAssembler->AddType(SPIRVType::FromType<T>());
+			var.kStorageClass = spv::StorageClassFunction;
+
+			uint32_t kType = OpTypeDecider<base_type_t<T>>(_Ops...);
+			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+
+			uint32_t uExtId = var.pAssembler->GetExtensionId(_sExt);
+			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
+
+			SPIRVOperation Op(spv::OpExtInst, var.uTypeHash, // result type
+			{
+				SPIRVOperand(kOperandType_Intermediate, uExtId),
+				SPIRVOperand(kOperandType_Literal, kType), // instr opcode
+				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
+			});
+
+			var.uResultId = var.pAssembler->AddOperation(Op);
+		}
+
+		return var;
+	}
 	//---------------------------------------------------------------------------------------------------
 	// OPERATOR IMPLEMENTATIONS
 	//---------------------------------------------------------------------------------------------------
@@ -85,6 +115,12 @@ namespace Tracy
 	inline var_t<bool, Assemble> operator&&(const var_t<bool, Assemble>& l, const var_t<bool, Assemble>& r)
 	{
 		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> sqrt(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::sqrt(v1); }, ExtGLSL450 ,GLSLstd450Sqrt);
 	}
 	//---------------------------------------------------------------------------------------------------
 

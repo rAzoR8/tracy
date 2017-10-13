@@ -13,13 +13,17 @@ namespace Tracy
 	template <bool Assemble>
 	class SPIRVProgram;
 
+	static const std::string ExtGLSL450 = "GLSL.std.450";
+
 	class SPIRVAssembler
 	{
 	public:
-		SPIRVAssembler();
+		SPIRVAssembler(const std::vector<std::string>& _Extensions = { ExtGLSL450 });
 		~SPIRVAssembler();
 		
 		SPIRVModule Assemble(SPIRVProgram<true>& _EntryPoint, const spv::ExecutionModel _kModel = spv::ExecutionModelFragment, const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft);
+
+		uint32_t GetExtensionId(const std::string& _sExt = ExtGLSL450);
 
 		// _pOutInstr gets a pointer to the stored instruction so that i can be modified later (add operands)
 		uint32_t AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr = nullptr);
@@ -39,6 +43,8 @@ namespace Tracy
 		void AssignId(SPIRVOperation& _Op);
 
 	private:
+		std::vector<std::string> m_Extensions;
+		std::unordered_map<std::string, uint32_t> m_ExtensionIds;
 		uint32_t m_uInstrId = 0u; // internal instruction id
 		uint32_t m_uResultId = 1u; // actual result ids
 

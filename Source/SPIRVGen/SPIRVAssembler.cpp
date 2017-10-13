@@ -3,8 +3,9 @@
 
 using namespace Tracy;
 
-SPIRVAssembler::SPIRVAssembler() :
-	m_TypeResolver(m_uResultId, m_Definitions)
+SPIRVAssembler::SPIRVAssembler(const std::vector<std::string>& _Extensions) :
+	m_TypeResolver(m_uResultId, m_Definitions),
+	m_Extensions(_Extensions)
 {
 	m_Operations.reserve(4096u);
 }
@@ -35,6 +36,18 @@ SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv:
 }
 //---------------------------------------------------------------------------------------------------
 
+uint32_t SPIRVAssembler::GetExtensionId(const std::string& _sExt)
+{
+	auto it = m_ExtensionIds.find(_sExt);
+	if(it != m_ExtensionIds.end())
+	{
+		return it->second;
+	}
+
+	return HUNDEFINED32;
+}
+//---------------------------------------------------------------------------------------------------
+
 void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
 {
 	m_uResultId = 1u;
@@ -54,7 +67,11 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
 	// OpExtension (unused)
 
 	// OpExtInstImport
-	AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString("GLSL.std.450")));
+	for(const std::string& sExt : m_Extensions)
+	{
+		uint32_t uId = AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString(sExt)));
+		m_ExtensionIds[sExt] = uId;
+	}
 
 	//OpMemoryModel
 	AddOperation(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::AddressingModelLogical, (uint32_t)spv::MemoryModelGLSL450)));

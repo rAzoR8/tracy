@@ -44,7 +44,7 @@ namespace Tracy
 
 		float3 t = make_var(1.f, 1.f ,1.f);
 		float3 c = make_var(1.f, 2.f, 3.f);
-
+		auto s = sqrt(make_var(2.f));
 		//c += t;
 		//c = t / make_var(2.f);
 

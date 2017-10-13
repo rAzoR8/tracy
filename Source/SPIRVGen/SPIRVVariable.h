@@ -2,6 +2,7 @@
 #define TRACY_SPIRVVARIABLE_H
 
 #include <vulkan\spirv.hpp>
+#include <vulkan\GLSL.std.450.h>
 #include "StandardDefines.h"
 #include "Logger.h"
 
@@ -101,13 +102,13 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	template <class T>
-	inline spv::Op OpTypeDecider(const spv::Op _kOp)
+	inline uint32_t OpTypeDecider(const uint32_t _kOp)
 	{
 		return _kOp;
 	}
 
 	template <class OperandType>
-	spv::Op OpTypeDecider(const spv::Op _FloatOp, const spv::Op _SIntOp, const spv::Op _UIntOp = spv::OpNop, const spv::Op _BoolOp = spv::OpNop)
+	uint32_t OpTypeDecider(const uint32_t _FloatOp, const uint32_t _SIntOp, const uint32_t _UIntOp = spv::OpNop, const spv::Op _BoolOp = spv::OpNop)
 	{
 		if (std::is_same_v<OperandType, float>)
 			return _FloatOp;
@@ -152,7 +153,7 @@ namespace Tracy
 		{
 			LoadVariables(*this, _Other);
 
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
+			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
 			SPIRVOperation Op(kType, uTypeHash, // result type
