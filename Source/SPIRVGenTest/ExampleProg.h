@@ -43,20 +43,18 @@ namespace Tracy
 		float3 t = make_var(1.f, 1.f ,1.f);
 		float3 c = make_var(1.f, 2.f, 3.f);
 
-		If(t == c, [=]()
+		If(t == c)
 		{
 			OutputColor = t + c;
-		}).Else([=]()
-		{
+		} Else	{
 			OutputColor = t - c;
 
 			c += t * OutputColor * sqrt(make_var(2.f));
 			var<bool> b = (c == t);
 
-			If(b, [=]()
-			{
+			If(b) {
 				OutputColor *= OutputColor;
-			});
+			});			
 		});
 
 		// Problem to solve: access chain to x, how to overload operator+ correctly

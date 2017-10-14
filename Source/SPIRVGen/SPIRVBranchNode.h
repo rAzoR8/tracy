@@ -34,13 +34,13 @@ namespace Tracy
 		friend class SPIRVProgram;
 	public:
 		template <class LambdaFunc>
-		void Else(const LambdaFunc& _Func);
+		void AddBranch(const LambdaFunc& _Func);
 	};
 	//---------------------------------------------------------------------------------------------------
 	
 	template<bool Assemble>
 	template<class LambdaFunc>
-	inline void BranchNode<Assemble>::Else(const LambdaFunc& _Func)
+	inline void BranchNode<Assemble>::AddBranch(const LambdaFunc& _Func)
 	{
 		if constexpr (Assemble)
 		{

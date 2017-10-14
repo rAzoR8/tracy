@@ -92,13 +92,38 @@ namespace Tracy
 		virtual void OnExecute() {};
 
 		template <class... Ts, class T = va_type_t<Ts...>>
-		var_t<T, Assemble> make_var(const Ts& ..._Val);		
+		var_t<T, Assemble> make_var(const Ts& ..._Val);
 
 		template <class T>
 		var_t<T, Assemble> make_var();
 
 		template <class LambdaFunc>
-		BranchNode<Assemble>& If(const var_t<bool, Assemble>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
+		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
+
+		// renamed If and Else functions so that the macros are not part of the name
+#ifndef If
+#define If(_cond) ConditonBranch((_cond), [=]()
+#endif // !If
+
+#ifndef Endif
+#define Endif );
+#endif // !Endif
+
+#ifndef Else
+#define Else ).AddBranch([=]()
+#endif // !Else
+
+#ifndef IF
+#define IF(_cond) ConditonBranch((_cond), [=]() {
+#endif // !If
+
+#ifndef ENDIF
+#define ENDIF });
+#endif // !Endif
+
+#ifndef ELSE
+#define ELSE }).AddBranch([=]() {
+#endif // !Else
 
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
@@ -238,7 +263,7 @@ namespace Tracy
 
 	template<bool Assemble>
 	template<class LambdaFunc>
-	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::If(const var_t<bool, Assemble>& _Cond, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
+	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::ConditonBranch(const var_t<bool, Assemble>& _Cond, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
 	{
 		if constexpr(Assemble)
 		{
