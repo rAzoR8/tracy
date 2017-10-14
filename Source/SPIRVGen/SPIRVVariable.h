@@ -51,6 +51,8 @@ namespace Tracy
 	template <typename T, bool Assemble = true>
 	struct var_t : public var_decoration<Assemble>
 	{
+		typedef void var_tag;
+
 		template <class... Ts>
 		var_t(Ts ... _args) : var_decoration<Assemble>(), Value(_args...) {}
 
