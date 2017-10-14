@@ -1,10 +1,8 @@
 #ifndef TRACY_SPIRVVARIABLE_H
 #define TRACY_SPIRVVARIABLE_H
 
-#include <vulkan\spirv.hpp>
 #include <vulkan\GLSL.std.450.h>
-#include "StandardDefines.h"
-#include "Logger.h"
+#include "SPIRVDecoration.h"
 
 namespace Tracy
 {
@@ -27,7 +25,7 @@ namespace Tracy
 		mutable uint32_t uMemberIndex = HUNDEFINED32; 
 		mutable uint32_t uMemberOffset = HUNDEFINED32; // in bytes
 
-		 // TODO: add decorations
+		std::vector<SPIRVDecoration> Decorations;
 
 		void Store() const;
 		uint32_t Load() const;
@@ -38,7 +36,6 @@ namespace Tracy
 		~var_decoration<true>();
 		const var_decoration<true>& operator=(const var_decoration<true>& _Other) const;
 		//var_decoration<true>& operator=(var_decoration<true>&& _Other);
-
 	};
 
 	template <>

@@ -139,6 +139,7 @@
     <ClInclude Include="SPIRVAssembler.h" />
     <ClInclude Include="SPIRVBranchNode.h" />
     <ClInclude Include="SPIRVConstant.h" />
+    <ClInclude Include="SPIRVDecoration.h" />
     <ClInclude Include="SPIRVInstruction.h" />
     <ClInclude Include="SPIRVModule.h" />
     <ClInclude Include="SPIRVOperation.h" />
