@@ -117,13 +117,107 @@ namespace Tracy
 		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
 	}
 	//---------------------------------------------------------------------------------------------------
+	// GLSLstd450 EXTENSION
+	//---------------------------------------------------------------------------------------------------
+
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> radians(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::radians(v1); }, ExtGLSL450, GLSLstd450Radians);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> degrees(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::degrees(v1); }, ExtGLSL450, GLSLstd450Degrees);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> sin(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::sin(v1); }, ExtGLSL450, GLSLstd450Sin);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> cos(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::cos(v1); }, ExtGLSL450, GLSLstd450Cos);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> tan(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::tan(v1); }, ExtGLSL450, GLSLstd450Tan);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> asin(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::asin(v1); }, ExtGLSL450, GLSLstd450Asin);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> acos(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::acos(v1); }, ExtGLSL450, GLSLstd450Acos);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> atan(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::atan(v1); }, ExtGLSL450, GLSLstd450Atan);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> sinh(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::sinh(v1); }, ExtGLSL450, GLSLstd450Sinh);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> cosh(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::cos(v1); }, ExtGLSL450, GLSLstd450Cosh);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> tanh(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::tan(v1); }, ExtGLSL450, GLSLstd450Tanh);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> asinh(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::asinh(v1); }, ExtGLSL450, GLSLstd450Asinh);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> acosh(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::acosh(v1); }, ExtGLSL450, GLSLstd450Acosh);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> atanh(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::atanh(v1); }, ExtGLSL450, GLSLstd450Atanh);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// TODO: atan2
+
 	template <class T, bool Assemble>
 	inline var_t<T, Assemble> sqrt(const var_t<T, Assemble>& l)
 	{
-		return make_ext_op1(l, [](const T& v1) {return glm::sqrt(v1); }, ExtGLSL450 ,GLSLstd450Sqrt);
+		return make_ext_op1(l, [](const T& v1) {return glm::sqrt(v1); }, ExtGLSL450, GLSLstd450Sqrt);
 	}
 	//---------------------------------------------------------------------------------------------------
-
+	template <class T, bool Assemble>
+	inline var_t<T, Assemble> normalize(const var_t<T, Assemble>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::normalize(v1); }, ExtGLSL450, GLSLstd450Normalize);
+	}
+	//---------------------------------------------------------------------------------------------------
 }; //!Tracy
 
 #endif // !TRACY_SPIRVOPERATORIMPL_H

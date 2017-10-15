@@ -44,15 +44,17 @@ namespace Tracy
 			_Member.kStorageClass = m_kStorageClass;
 			_Member.AccessChain = _AccessChain;
 
-			// member offset
+			// member offset, check for 16byte allignment
 
-			SPIRVType Type(SPIRVType::FromType<T>());
+			// translate bool members to int (taken from example)
+			using VarT = std::conditional_t<std::is_same_v<T, bool>, int32_t, T>;
+
+			SPIRVType Type(SPIRVType::FromType<VarT>());
 			_Member.uTypeHash = Type.GetHash();
 
 			_Type.Member(Type);
 
-			SPIRVType ACType = SPIRVType::Struct({ Type }); // struct with one member
-			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(ACType, m_kStorageClass));
+			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, m_kStorageClass));
 
 			//OpVariable
 			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
@@ -60,8 +62,6 @@ namespace Tracy
 			);
 
 			_Member.uVarId = m_Assembler.AddOperation(OpVar);
-
-			_Member.Decorate(spv::DecorationBlock);
 		}
 
 		template <size_t n, size_t N, class T>
@@ -79,6 +79,8 @@ namespace Tracy
 					SPIRVType NestedType(spv::OpTypeStruct);
 					InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain);
 					_Type.Member(NestedType);
+
+					// todo: decorate struct with Decorate(spv::DecorationBlock);
 				}
 				else
 				{
@@ -105,53 +107,6 @@ namespace Tracy
 	{
 		return m_Type;
 	}
-	//template<bool Assemble>
-	//template<class T, class ...Ts>
-	//inline void SPIRVStruct<Assemble>::InitMembers(SPIRVAssembler& _Assembler, var_t<T, Assemble>& _FirstMember, var_t<Ts, Assemble>& ..._Rest)
-	//{
-	//	// init member info
-	//	if constexpr (Assemble)
-	//	{
-	//		SPIRVType BaseType = SPIRVType::FromType<T>();
-	//		// create struct type
-	//		if (uStructType == kUndefinedSizeT)
-	//		{
-	//			SPIRVType Type = SPIRVType::Struct({ BaseType, SPIRVType::FromType<Ts>()... });
-	//			uStructType = _Assembler.AddType(Type);
-	//		}
-
-	//		_FirstMember.pAssembler = &_Assembler;
-	//		//_FirstMember.uStructTypeHash = uStructType;
-	//		_FirstMember.uTypeHash = _Assembler.AddType(BaseType);
-	//		_FirstMember.kStorageClass = kStorageClass;
-	//		_FirstMember.uMemberIndex = uMemberIndex++;
-	//		_FirstMember.uMemberOffset = uMemerOffset;
-	//		uMemerOffset += static_cast<uint32_t>(sizeof(T));
-
-	//		SPIRVType ACType = SPIRVType::Struct({ BaseType });
-	//		const size_t uPtrTypeHash = _Assembler.AddType(SPIRVType::Pointer(ACType, kStorageClass));
-	//		const size_t uMemberIndexHash = _Assembler.AddConstant(SPIRVConstant::Make(_FirstMember.uMemberIndex));
-	//		
-	//		//OpVariable
-	//		SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
-	//			SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass)) // variable storage location
-	//		);
-
-	//		//new_var.uVarId = m_Assembler.AddOperation(OpVar);
-
-	//		//OpAccessChain
-	//		//SPIRVOperation OpAC(spv::OpAccessChain,
-	//		//{
-	//		//
-	//		//});
-
-	//		//OpVariable
-
-	//		// init rest of the members
-	//		if constexpr(sizeof...(Ts) > 0)
-	//			InitMembers(_Assembler, _Rest...);
-	//	}
-	//}
 	
 	template<class S>
 	inline SPIRVStruct::SPIRVStruct(SPIRVAssembler& _Assembler, S& _Struct) :

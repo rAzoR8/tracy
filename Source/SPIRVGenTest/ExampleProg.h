@@ -58,9 +58,10 @@ namespace Tracy
 		{
 			OutputColor = t + c * InputScale;
 		} Else	{
-			OutputColor = t - c;
+			OutputColor = normalize(t - c);
 
 			c += t * OutputColor * sqrt(make_var(2.f));
+
 			var<bool> b = (c == t);
 
 			If(b) {
