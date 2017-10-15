@@ -10,7 +10,12 @@ namespace Tracy
 	class SPIRVAssembler;
 
 	template <bool Assemble>
-	struct var_decoration {};
+	struct var_decoration
+	{
+		void Decorate(const SPIRVDecoration& _Decoration) {};
+		void Store() const {};
+		uint32_t Load() const {return HUNDEFINED32};
+	};
 
 	template <>
 	struct var_decoration<true>
@@ -26,6 +31,8 @@ namespace Tracy
 		mutable uint32_t uMemberOffset = HUNDEFINED32; // in bytes
 
 		std::vector<SPIRVDecoration> Decorations;
+
+		void Decorate(const SPIRVDecoration& _Decoration);
 
 		void Store() const;
 		uint32_t Load() const;

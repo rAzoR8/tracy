@@ -65,6 +65,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
 
 	m_uVarId = 0u;
 	m_Variables.clear();
+	m_Decorations.clear();
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader)));
@@ -125,9 +126,14 @@ void SPIRVAssembler::Resolve()
 
 	size_t i = 0u;
 
-	AddInstruction(Translate(m_Operations[i++])); // OpCapability
-	AddInstruction(Translate(m_Operations[i++])); // OpExtInstImport  creates the first resutl id
-	AddInstruction(Translate(m_Operations[i++])); // OpMemoryModel
+	AddInstruction(Translate(m_Operations[i++], true)); // OpCapability
+	AddInstruction(Translate(m_Operations[i++], true)); // OpExtInstImport  creates the first resutl id
+	AddInstruction(Translate(m_Operations[i++], true)); // OpMemoryModel
+
+	// TODO: remove types that are never used (variable never loaded etc) by looking through hashes
+	// and matching them with the operations & variables
+
+	// same goes for unused variables, var ids that are never used in later instructions are obsolte
 
 	// resolve types & constants to definitions stream
 	for (const auto& KV : m_Constants)
@@ -163,14 +169,23 @@ void SPIRVAssembler::Resolve()
 		}
 	}
 
-	// resovle function preamble
-	for (size_t j = i; j < (m_uFunctionLableIndex + 1) && j < m_Operations.size(); ++j)
+	// assign unresolved operation ids
+	for (SPIRVOperation& Op : m_Operations)
 	{
-		AssignId(m_Operations[j]);
+		if (Op.m_uResultId == HUNDEFINED32)
+		{
+			AssignId(Op);
+		}
 	}
 
 	AddInstruction(Translate(m_Operations[i++])); // OpEntryPoint
 	AddInstruction(Translate(m_Operations[i++])); // OpExecutionMode
+
+	// add decorations
+	for (SPIRVOperation& Op : m_Decorations)
+	{
+		AddInstruction(Translate(Op));
+	}
 
 	// add type definitions and constants
 	m_Instructions.insert(m_Instructions.end(), m_Definitions.begin(), m_Definitions.end());
@@ -181,23 +196,14 @@ void SPIRVAssembler::Resolve()
 		spv::StorageClass kClass = getStorageClass(Op);
 		if (kClass != spv::StorageClassFunction)
 		{
-			AddInstruction(Translate(Op, false)); // OpVariable, ids already assigned
-		}
-	}
-
-	// assign unresolved ids
-	for (SPIRVOperation& Op : m_Operations)
-	{
-		if (Op.m_uResultId == HUNDEFINED32)
-		{
-			AssignId(Op);
+			AddInstruction(Translate(Op)); // OpVariable, ids already assigned
 		}
 	}
 
 	// translate function preamble
 	for (; i < (m_uFunctionLableIndex+1) && i < m_Operations.size(); ++i)
 	{
-		AddInstruction(Translate(m_Operations[i], false));
+		AddInstruction(Translate(m_Operations[i]));
 	}
 
 	// translate function variables, this resolves the problem that variables can not be declared in branch blocks
@@ -206,22 +212,23 @@ void SPIRVAssembler::Resolve()
 		spv::StorageClass kClass = getStorageClass(Op);
 		if (kClass == spv::StorageClassFunction)
 		{
-			AddInstruction(Translate(Op, false)); // OpVariable
+			AddInstruction(Translate(Op)); // OpVariable
 		}
 	}
 
 	// rest of the program
 	for (; i < m_Operations.size(); ++i)
 	{
-		AddInstruction(Translate(m_Operations[i], false));
+		AddInstruction(Translate(m_Operations[i]));
 	}
 }
 //---------------------------------------------------------------------------------------------------
 
 uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr)
 {
-	if (_Instr.GetOpCode() == spv::OpVariable)
+	switch (_Instr.GetOpCode())
 	{
+	case spv::OpVariable:
 		m_Variables.push_back(_Instr);
 		m_Variables.back().m_uInstrId = m_uVarId;
 
@@ -231,9 +238,14 @@ uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperati
 		}
 
 		return m_uVarId++;
-	}
-	else
-	{
+
+	case spv::OpDecorate:
+	case spv::OpMemberDecorate:
+
+		m_Decorations.push_back(_Instr);
+		return HUNDEFINED32;
+
+	default:
 		m_Operations.push_back(_Instr);
 		m_Operations.back().m_uInstrId = m_uInstrId;
 

@@ -36,7 +36,7 @@ namespace Tracy
 
 		void Resolve();
 
-		SPIRVInstruction Translate(SPIRVOperation& _Op, const bool _bAssigneId = true);
+		SPIRVInstruction Translate(SPIRVOperation& _Op, const bool _bAssigneId = false);
 
 		void AddInstruction(const SPIRVInstruction& _Instr);
 
@@ -64,6 +64,8 @@ namespace Tracy
 
 		std::vector<SPIRVOperation> m_Operations; // unresolved local instruction stream
 		std::vector<SPIRVOperation> m_Variables; // unresolved local instruction stream
+		std::vector<SPIRVOperation> m_Decorations; // unresolved local instruction stream
+
 	};
 }
 

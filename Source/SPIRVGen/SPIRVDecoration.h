@@ -36,10 +36,10 @@ namespace Tracy
 
 		// helper
 		SPIRVDecoration(
-			const EDecorationType _kType,
 			const spv::Decoration _kDecoration,
-			const uint32_t _uLiteral,
-			const uint32_t _uTargetId,
+			const uint32_t _uLiteral = HUNDEFINED32,
+			const uint32_t _uTargetId = HUNDEFINED32,
+			const EDecorationType _kType = kDecorationType_Default,
 			const uint32_t _uMemberIndex = HUNDEFINED32,
 			const EOperandType _kTargetType = kOperandType_Variable) :
 			m_kType(_kType),
@@ -51,7 +51,7 @@ namespace Tracy
 
 		~SPIRVDecoration() {};
 
-		SPIRVOperation MakeOperation() const;
+		SPIRVOperation MakeOperation(const uint32_t _uTargetId = HUNDEFINED32, const EOperandType _kTargetType = kOperandType_Unknown) const;
 
 	private:
 		EDecorationType m_kType = kDecorationType_Default;
@@ -62,25 +62,29 @@ namespace Tracy
 		std::vector<uint32_t> m_Literals;
 	};
 
-	inline SPIRVOperation SPIRVDecoration::MakeOperation() const
+	inline SPIRVOperation SPIRVDecoration::MakeOperation(const uint32_t _uTargetId, const EOperandType _kTargetType) const
 	{
-		HASSERT(m_uTargetId != HUNDEFINED32, "Invalid target id");
-		HASSERT(m_kDecoration < spv::DecorationMax, "Invalid decoration");
-		HASSERT(m_kTargetType != kOperandType_Intermediate &&
-			m_kTargetType != kOperandType_Literal &&
-			m_kTargetType != kOperandType_Unknown, "Invalid target type");
+		const uint32_t uTargetId = _uTargetId == HUNDEFINED32 ? m_uTargetId : _uTargetId;
+		const EOperandType kTargetType = _kTargetType == HUNDEFINED32 ? m_kTargetType : _kTargetType;
 
-		std::vector<SPIRVOperand> Operands = { SPIRVOperand(m_kTargetType, m_uTargetId) };
+		HASSERT(uTargetId != HUNDEFINED32, "Invalid target id");
+		HASSERT(m_kDecoration < spv::DecorationMax, "Invalid decoration");
+		HASSERT(kTargetType != kOperandType_Intermediate &&
+			kTargetType != kOperandType_Literal &&
+			kTargetType != kOperandType_Unknown, "Invalid target type");
+
+		std::vector<SPIRVOperand> Operands = { SPIRVOperand(m_kTargetType, uTargetId) };
 
 		spv::Op kOp = spv::OpNop;
 		switch (m_kType)
 		{
 		case kDecorationType_Default:
+			Operands.push_back(SPIRVOperand::Literal((uint32_t)m_kDecoration));
 			kOp = spv::OpDecorate;
 			break;
 		case kDecorationType_Member:
 			HASSERT(m_uMemberIndex != HUNDEFINED32, "Invalid member index for decoration");
-			Operands.push_back(SPIRVOperand(kOperandType_Literal, m_uMemberIndex));
+			Operands.push_back(SPIRVOperand::Literal(m_uMemberIndex));
 			kOp = spv::OpMemberDecorate;
 			break;
 		default:
@@ -89,7 +93,10 @@ namespace Tracy
 
 		SPIRVOperation OpDecorate(kOp, Operands);
 
-		OpDecorate.AddLiterals(m_Literals);
+		for (const uint32_t& uLiteral : m_Literals)
+		{
+			OpDecorate.AddOperand(SPIRVOperand::Literal(uLiteral));
+		}
 
 		return OpDecorate;
 	}

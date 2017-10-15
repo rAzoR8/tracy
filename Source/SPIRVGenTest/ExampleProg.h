@@ -34,6 +34,8 @@ namespace Tracy
 	{
 		InitVar(InputScale, InputPos, OutputColor);
 		InitMembers(bufinst, bufinst.Member1, bufinst.Member2);
+		
+		InputScale.Decorate(SPIRVDecoration(spv::DecorationDescriptorSet, 0u));
 	}
 
 	template<bool Assemble>
@@ -45,7 +47,7 @@ namespace Tracy
 
 		If(t == c)
 		{
-			OutputColor = t + c;
+			OutputColor = t + c * InputScale;
 		} Else	{
 			OutputColor = t - c;
 

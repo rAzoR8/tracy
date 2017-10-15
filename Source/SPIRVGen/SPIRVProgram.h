@@ -100,6 +100,7 @@ namespace Tracy
 		template <class LambdaFunc>
 		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
+#pragma region if_else
 		// renamed If and Else functions so that the macros are not part of the name
 #ifndef If
 #define If(_cond) ConditonBranch((_cond), [=]()
@@ -124,6 +125,7 @@ namespace Tracy
 #ifndef ELSE
 #define ELSE }).AddBranch([=]() {
 #endif // !Else
+#pragma endregion
 
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);

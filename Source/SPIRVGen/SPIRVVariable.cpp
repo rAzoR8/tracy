@@ -4,6 +4,12 @@
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
+void var_decoration<true>::Decorate(const SPIRVDecoration& _Decoration)
+{
+	Decorations.push_back(_Decoration);
+}
+//---------------------------------------------------------------------------------------------------
+
 void var_decoration<true>::Store() const
 {
 	// store the lastest intermediate result
@@ -30,6 +36,12 @@ uint32_t var_decoration<true>::Load() const
 
 	if (uResultId != HUNDEFINED32 || uVarId == HUNDEFINED32)
 		return uResultId;
+
+	// instantiate decorations
+	for (const SPIRVDecoration& Decoration : Decorations)
+	{
+		 pAssembler->AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
+	}
 
 	// OpLoad:
 	// Result Type is the type of the loaded object.
