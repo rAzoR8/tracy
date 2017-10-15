@@ -16,11 +16,21 @@ namespace Tracy
 		void OnInitInOutVariables() final;
 		void OnExecute() final;
 
-		struct buff : public spv_struct
+		struct B
 		{
-			f32 Member1;
-			float3 Member2;
-		} bufinst;
+			SPVStruct
+			var_t<float4_t, true> f4;
+		};
+
+		struct A
+		{
+			SPVStruct
+			B b;
+
+			var_t<float2_t, true> f2;
+			var_t<float3_t, true> f3;
+			float k;
+		} TestStruct;
 
 		var_in<float> InputScale;
 		var_in<float3_t> InputPos;
@@ -33,8 +43,7 @@ namespace Tracy
 	inline void ExampleProg<Assemble>::OnInitInOutVariables()
 	{
 		InitVar(InputScale, InputPos, OutputColor);
-		InitMembers(bufinst, bufinst.Member1, bufinst.Member2);
-		
+		InitStruct(TestStruct);
 		InputScale.Decorate(SPIRVDecoration(spv::DecorationDescriptorSet, 0u));
 	}
 

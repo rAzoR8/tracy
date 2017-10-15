@@ -26,9 +26,7 @@ namespace Tracy
 		mutable uint32_t uLastStoredId = HUNDEFINED32;
 		mutable spv::StorageClass kStorageClass = spv::StorageClassMax;
 		mutable size_t uTypeHash = kUndefinedSizeT;
-		//mutable size_t uStructTypeHash = kUndefinedSizeT; // or hash
-		mutable uint32_t uMemberIndex = HUNDEFINED32; 
-		mutable uint32_t uMemberOffset = HUNDEFINED32; // in bytes
+		mutable std::vector<uint32_t> AccessChain;
 
 		std::vector<SPIRVDecoration> Decorations;
 

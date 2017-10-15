@@ -30,8 +30,6 @@ namespace Tracy
 		template <class T>
 		using var_out = var_out_t<T, Assemble>;
 
-		using spv_struct = SPIRVStruct<Assemble>;
-
 		using s32 = var<int32_t>;
 		using s64 = var<int64_t>;
 		using int2 = var<int2_t>;
@@ -130,8 +128,8 @@ namespace Tracy
 		template <class T, class... Ts>
 		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
 
-		template <class... Ts>
-		void InitMembers(spv_struct& _Struct, var<Ts>&... _Members);
+		template <class S>
+		void InitStruct(S& _Struct);
 
 	private:
 		SPIRVAssembler& m_Assembler;
@@ -368,13 +366,14 @@ namespace Tracy
 				InitVar(_Rest...);
 		}
 	}
-	//---------------------------------------------------------------------------------------------------
-
 	template<bool Assemble>
-	template<class ...Ts>
-	inline void SPIRVProgram<Assemble>::InitMembers(spv_struct& _Struct, var<Ts>& ..._Rest)
+	template<class S>
+	inline void SPIRVProgram<Assemble>::InitStruct(S& _Struct)
 	{
-		_Struct.InitMembers(m_Assembler, _Rest...);
+		if constexpr(Assemble)
+		{
+			SPIRVStruct init(m_Assembler, _Struct);
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------
