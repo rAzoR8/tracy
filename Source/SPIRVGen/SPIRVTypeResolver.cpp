@@ -197,6 +197,36 @@ uint32_t SPIRVTypeResolver::GetConstantId(const size_t& _uHash) const
 	return HUNDEFINED32;
 }
 //---------------------------------------------------------------------------------------------------
+
+bool SPIRVTypeResolver::RemoveType(const size_t& _uHash)
+{
+	return m_TypeIds.erase(_uHash) != 0u;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool SPIRVTypeResolver::RemoveConstant(const size_t& _uHash)
+{
+	return m_ConstantIds.erase(_uHash) != 0u;
+}
+//---------------------------------------------------------------------------------------------------
+
+void SPIRVTypeResolver::GetTypes(std::vector<size_t>& _OutHashes) const
+{
+	for (const auto&[hash, id] : m_TypeIds)
+	{
+		_OutHashes.push_back(hash);
+	}
+}
+//---------------------------------------------------------------------------------------------------
+
+void SPIRVTypeResolver::GetConstants(std::vector<size_t>& _OutHashes) const
+{
+	for (const auto&[hash, id] : m_ConstantIds)
+	{
+		_OutHashes.push_back(hash);
+	}
+}
+//---------------------------------------------------------------------------------------------------
 void SPIRVTypeResolver::Reset()
 {
 	m_ConstantIds.clear();

@@ -130,21 +130,6 @@ void SPIRVAssembler::Resolve()
 	AddInstruction(Translate(m_Operations[i++], true)); // OpExtInstImport  creates the first resutl id
 	AddInstruction(Translate(m_Operations[i++], true)); // OpMemoryModel
 
-	// TODO: remove types that are never used (variable never loaded etc) by looking through hashes
-	// and matching them with the operations & variables
-
-	// same goes for unused variables, var ids that are never used in later instructions are obsolte
-
-	// resolve types & constants to definitions stream
-	for (const auto& KV : m_Constants)
-	{
-		m_TypeResolver.Resolve(KV.second);
-	}
-	for (const auto& KV : m_Types)
-	{
-		m_TypeResolver.Resolve(KV.second);
-	}
-
 	// helper function
 	auto getStorageClass = [](const SPIRVOperation& _Op) -> spv::StorageClass
 	{
@@ -169,6 +154,31 @@ void SPIRVAssembler::Resolve()
 		}
 	}
 
+	// cleanup unused ops
+	if (m_bRemoveUnused)
+	{
+		RemoveUnused(); // removes entries from m_Constants & m_Types
+	}
+
+	// resolve types & constants to definitions stream
+	for (const auto& KV : m_Constants)
+	{
+		m_TypeResolver.Resolve(KV.second);
+	}
+	for (const auto& KV : m_Types)
+	{
+		m_TypeResolver.Resolve(KV.second);
+	}
+	
+	// check if op is actually used
+	auto TranslateOp = [this](SPIRVOperation& _Op)
+	{
+		if (_Op.GetUsed())
+		{
+			AddInstruction(Translate(_Op));
+		}
+	};
+
 	// assign unresolved operation ids
 	for (SPIRVOperation& Op : m_Operations)
 	{
@@ -178,13 +188,14 @@ void SPIRVAssembler::Resolve()
 		}
 	}
 
+	// end of header
 	AddInstruction(Translate(m_Operations[i++])); // OpEntryPoint
 	AddInstruction(Translate(m_Operations[i++])); // OpExecutionMode
 
 	// add decorations
 	for (SPIRVOperation& Op : m_Decorations)
 	{
-		AddInstruction(Translate(Op));
+		TranslateOp(Op);
 	}
 
 	// add type definitions and constants
@@ -196,14 +207,14 @@ void SPIRVAssembler::Resolve()
 		spv::StorageClass kClass = getStorageClass(Op);
 		if (kClass != spv::StorageClassFunction)
 		{
-			AddInstruction(Translate(Op)); // OpVariable, ids already assigned
+			TranslateOp(Op); // OpVariable, ids already assigned
 		}
 	}
 
 	// translate function preamble
 	for (; i < (m_uFunctionLableIndex+1) && i < m_Operations.size(); ++i)
 	{
-		AddInstruction(Translate(m_Operations[i]));
+		TranslateOp(m_Operations[i]);
 	}
 
 	// translate function variables, this resolves the problem that variables can not be declared in branch blocks
@@ -212,14 +223,14 @@ void SPIRVAssembler::Resolve()
 		spv::StorageClass kClass = getStorageClass(Op);
 		if (kClass == spv::StorageClassFunction)
 		{
-			AddInstruction(Translate(Op)); // OpVariable
+			TranslateOp(Op); // OpVariable
 		}
 	}
 
-	// rest of the program
+	// assemble rest of the program
 	for (; i < m_Operations.size(); ++i)
 	{
-		AddInstruction(Translate(m_Operations[i]));
+		TranslateOp(m_Operations[i]);
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -347,33 +358,124 @@ void SPIRVAssembler::AddInstruction(const SPIRVInstruction& _Instr)
 void SPIRVAssembler::AssignId(SPIRVOperation& _Op)
 {
 	HASSERT(_Op.m_uResultId == SPIRVInstruction::kInvalidId, "Instruction already has a result id!");
+
 	uint32_t uResultId = SPIRVInstruction::kInvalidId;
 
-	switch (_Op.GetOpCode())
+	if (_Op.m_bUsed) // dont resolve unused ops
 	{
-		// instructions that don't create a result id (incomplete list)
-	case spv::OpCapability:
-	case spv::OpMemoryModel:
-	case spv::OpEntryPoint:
-	case spv::OpExecutionMode:
-	case spv::OpSource:
-	case spv::OpName:
-	case spv::OpMemberName:
-	case spv::OpDecorate:
-	case spv::OpMemberDecorate:
+		switch (_Op.GetOpCode())
+		{
+			// instructions that don't create a result id (incomplete list)
+		case spv::OpCapability:
+		case spv::OpMemoryModel:
+		case spv::OpEntryPoint:
+		case spv::OpExecutionMode:
+		case spv::OpSource:
+		case spv::OpName:
+		case spv::OpMemberName:
+		case spv::OpDecorate:
+		case spv::OpMemberDecorate:
 
-	case spv::OpStore:
-	case spv::OpSelectionMerge:
-	case spv::OpBranchConditional:
-	case spv::OpBranch:
-	case spv::OpLoopMerge:
-	case spv::OpReturn:
-	case spv::OpFunctionEnd:
-		break;
-	default:
-		uResultId = m_uResultId++;
+		case spv::OpStore:
+		case spv::OpSelectionMerge:
+		case spv::OpBranchConditional:
+		case spv::OpBranch:
+		case spv::OpLoopMerge:
+		case spv::OpReturn:
+		case spv::OpFunctionEnd:
+			break;
+		default:
+			uResultId = m_uResultId++;
+		}
 	}
 
 	_Op.m_uResultId = uResultId;
+}
+//---------------------------------------------------------------------------------------------------
+
+void SPIRVAssembler::RemoveUnused()
+{
+	auto findInOperands = [](std::vector<SPIRVOperation>& _Operations, const SPIRVOperand& _Operand) -> bool
+	{
+		for (SPIRVOperation& Op : _Operations)
+		{
+			if (Op.GetUsed())
+			{
+				for (const SPIRVOperand& Operand : Op.GetOperands())
+				{
+					if (Operand == _Operand)
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	};
+
+	// find unused variables
+	for (SPIRVOperation& Var : m_Variables)
+	{
+		Var.m_bUsed = findInOperands(m_Operations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));
+
+		// remove decorations for removed variable => not necessary since unused variables are never loaded and thus dont
+		// create any decorations
+		//if (Var.m_bUsed == false)
+		//{
+		//	SPIRVOperation* pConsumingDecorate = findOp(m_Decorations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));;
+		//	if (pConsumingDecorate != nullptr)
+		//	{
+		//		pConsumingDecorate->m_bUsed = false;
+		//	}
+		//}
+	}
+
+	// remove unused constants
+	for (auto it = m_Constants.begin(); it != m_Constants.end();)
+	{
+		bool bUsed =
+			findInOperands(m_Operations, SPIRVOperand(kOperandType_Constant, it->first)) && 
+			findInOperands(m_Variables, SPIRVOperand(kOperandType_Constant, it->first));
+
+		if (bUsed = false)
+		{
+			it = m_Constants.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	auto findInResultType = [](std::vector<SPIRVOperation>& _Operations, const size_t& _uHash) -> bool
+	{
+		for (const SPIRVOperation& Op : _Operations)
+		{
+			if (Op.GetUsed() && Op.GetResultType() == _uHash)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	// remove unused types
+	for (auto it = m_Types.begin(); it != m_Types.end();)
+	{
+		bool bUsed =
+			findInResultType(m_Variables, it->first) ||
+			findInResultType(m_Operations, it->first) ||
+			findInOperands(m_Operations, SPIRVOperand(kOperandType_Type, it->first));
+		if (bUsed == false)
+		{
+			it = m_Types.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
 }
 //---------------------------------------------------------------------------------------------------

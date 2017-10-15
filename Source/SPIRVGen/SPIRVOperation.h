@@ -41,6 +41,17 @@ namespace Tracy
 		};
 	};
 
+	inline bool operator==(const SPIRVOperand& l, const SPIRVOperand& r)
+	{
+		return l.kType == r.kType && l.uHash == r.uHash;
+	}
+
+	inline bool operator!=(const SPIRVOperand& l, const SPIRVOperand& r)
+	{
+		return l.kType != r.kType || l.uHash != r.uHash;
+	}
+
+
 	// The SPIRV operation is the immediate logical counter part to the SPIRV instruction
 	// and is used in a SPIRV program when resolving and assembling the instruction stream
 	class SPIRVOperation
@@ -58,6 +69,7 @@ namespace Tracy
 		~SPIRVOperation();
 
 		const spv::Op& GetOpCode() const;
+		bool GetUsed() const;
 		void AddOperand(const SPIRVOperand& _Operand);
 		void AddLiterals(const std::vector<uint32_t>& _Literals);
 		const size_t& GetResultType()  const;
@@ -70,11 +82,17 @@ namespace Tracy
 		uint32_t m_uResultId = HUNDEFINED32;
 		std::vector<SPIRVOperand> m_Operands;
 		size_t m_uResultTypeHash = kUndefinedSizeT;
+		bool m_bUsed = true;
 	};
 
 	inline const spv::Op& SPIRVOperation::GetOpCode() const
 	{
 		return m_kOpCode;
+	}
+
+	inline bool SPIRVOperation::GetUsed() const
+	{
+		return m_bUsed;
 	}
 
 	inline const std::vector<SPIRVOperand>& SPIRVOperation::GetOperands() const

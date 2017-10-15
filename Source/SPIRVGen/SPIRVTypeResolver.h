@@ -15,6 +15,8 @@ namespace Tracy
 	class SPIRVTypeResolver
 	{
 	public:
+		using TIdMap = std::unordered_map<size_t, uint32_t>;
+
 		SPIRVTypeResolver(uint32_t& _uCurrentId, std::vector<SPIRVInstruction>& _Instructions);
 		~SPIRVTypeResolver();
 
@@ -25,6 +27,13 @@ namespace Tracy
 		uint32_t GetTypeId(const size_t& _uHash) const;
 		uint32_t GetConstantId(const size_t& _uHash) const;
 
+		// does not check for child types consitency
+		bool RemoveType(const size_t& _uHash);
+		bool RemoveConstant(const size_t& _uHash);
+
+		void GetTypes(std::vector<size_t>& _OutHashes) const;
+		void GetConstants(std::vector<size_t>& _OutHashes) const;
+
 		void Reset();
 
 	private:
@@ -32,9 +41,9 @@ namespace Tracy
 
 		std::vector<SPIRVInstruction>& m_Instructions;
 		// type hash -> id
-		std::unordered_map<size_t, uint32_t> m_TypeIds;
+		TIdMap m_TypeIds;
 		// constant hash -> id
-		std::unordered_map<size_t, uint32_t> m_ConstantIds;
+		TIdMap m_ConstantIds;
 
 	};
 }; // Tracy

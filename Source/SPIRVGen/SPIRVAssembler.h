@@ -42,7 +42,12 @@ namespace Tracy
 
 		void AssignId(SPIRVOperation& _Op);
 
+		void RemoveUnused();
+
 	private:
+		// remove variables, types, constants
+		bool m_bRemoveUnused = true;
+
 		std::vector<std::string> m_Extensions;
 		std::unordered_map<std::string, uint32_t> m_ExtensionIds;
 

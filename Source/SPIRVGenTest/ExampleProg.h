@@ -41,7 +41,7 @@ namespace Tracy
 	template<bool Assemble>
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
-
+		auto unused = make_var(1, 2);
 		float3 t = make_var(1.f, 1.f ,1.f);
 		float3 c = make_var(1.f, 2.f, 3.f);
 
