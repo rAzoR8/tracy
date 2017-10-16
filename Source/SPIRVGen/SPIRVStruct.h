@@ -19,6 +19,8 @@ namespace Tracy
 	template< class T >
 	struct has_spv_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
 
+	constexpr uint32_t kAlignmentSize = 16u;
+
 	//template <bool Assemble>
 	class SPIRVStruct
 	{
@@ -40,7 +42,7 @@ namespace Tracy
 		void SetBaseId(var_t<T, true>& _Member, const uint32_t& _uBaseId){ _Member.uBaseId = _uBaseId;	}
 
 		template <size_t n, size_t N, class T>
-		void SetBaseId(T& _Struct, const uint32_t& _uBaseId)
+		void InitBaseId(T& _Struct, const uint32_t& _uBaseId)
 		{
 			if constexpr(n < N)
 			{
@@ -48,13 +50,13 @@ namespace Tracy
 				using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(member)>>;
 				if constexpr(has_spv_tag<MemberType>::value)
 				{
-					SetBaseId<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, _uBaseId);
+					InitBaseId<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, _uBaseId);
 				}
 				else
 				{
 					SetBaseId(member, _uBaseId);
 				}
-				SetBaseId<n + 1, N, T>(_Struct, _uBaseId);
+				InitBaseId<n + 1, N, T>(_Struct, _uBaseId);
 			}
 		}
 
@@ -68,25 +70,30 @@ namespace Tracy
 			_Member.pAssembler = &m_Assembler;
 			_Member.kStorageClass = m_kStorageClass;
 			_Member.AccessChain = _AccessChain;
-
-			// member offset, check for 16byte allignment
-
+			
 			// translate bool members to int (taken from example)
 			using VarT = std::conditional_t<std::is_same_v<T, bool>, int32_t, T>;
 
 			SPIRVType Type(SPIRVType::FromType<VarT>());
 			_Member.uTypeHash = Type.GetHash();
-
 			_Type.Member(Type);
 
-			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, m_kStorageClass));
+			uint32_t uOffset = 0u;
 
-			//OpVariable
-			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
-				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(m_kStorageClass)) // variable storage location
-			);
+			// member offset, check for 16byte allignment
+			if(m_uMemerOffset + sizeof(VarT) <= m_uAlignmentBoundary)
+			{
+				uOffset = m_uMemerOffset;
+			}
+			else
+			{
+				uOffset = m_uAlignmentBoundary;
+				m_uAlignmentBoundary += kAlignmentSize;
+			}
 
-			_Member.uVarId = m_Assembler.AddOperation(OpVar);
+			_Member.Decorate(SPIRVDecoration(spv::DecorationOffset, uOffset, kDecorationType_Member, _AccessChain.back()));
+
+			m_uMemerOffset += sizeof(VarT);
 		}
 
 		template <size_t n, size_t N, class T>
@@ -121,9 +128,9 @@ namespace Tracy
 		SPIRVType m_Type;
 
 		spv::StorageClass m_kStorageClass = spv::StorageClassUniform;
-
-		uint32_t uMemerOffset = 0u;
-		uint32_t uVarId
+		uint32_t m_uMemerOffset = 0u;
+		uint32_t m_uAlignmentBoundary = kAlignmentSize;
+		uint32_t m_uVarId = HUNDEFINED32;
 	};
 	//---------------------------------------------------------------------------------------------------
 	inline const SPIRVType& Tracy::SPIRVStruct::GetType() const
@@ -140,9 +147,10 @@ namespace Tracy
 	
 		const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(m_Type, m_kStorageClass));
 		SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(m_kStorageClass)));
+		m_uVarId = m_Assembler.AddOperation(OpVar);
 
+		InitBaseId<0, hlx::aggregate_arity<S>, S>(_Struct, m_uVarId);
 		// todo: decorate struct with Decorate(spv::DecorationBlock);
-
 	}
 
 }; // Tracy

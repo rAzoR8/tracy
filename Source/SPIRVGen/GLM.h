@@ -144,6 +144,9 @@ namespace Tracy
 	template <class VecT>
 	using base_type_t = typename base_type<VecT>::type;
 #pragma endregion
+
+	template <class T>
+	constexpr size_t Dimmension = sizeof(T) / sizeof(base_type_t<T>);
 }; // Tracy
 
 #endif // !TRACY_GLM_H
