@@ -3,6 +3,7 @@
 
 #include <vulkan\GLSL.std.450.h>
 #include "SPIRVDecoration.h"
+#include "SPIRVType.h"
 
 namespace Tracy
 {
@@ -21,13 +22,15 @@ namespace Tracy
 	struct var_decoration<true>
 	{
 		mutable SPIRVAssembler* pAssembler = nullptr;
-		mutable uint32_t uVarId = HUNDEFINED32; // result id OpVar
+		mutable uint32_t uVarId = HUNDEFINED32; // result id OpVar or OpAccessChain
 		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
 		mutable uint32_t uLastStoredId = HUNDEFINED32;
+		mutable uint32_t uBaseId = HUNDEFINED32; // base VarId from parent structure
 		mutable spv::StorageClass kStorageClass = spv::StorageClassMax;
 		mutable size_t uTypeHash = kUndefinedSizeT;
-		mutable std::vector<uint32_t> AccessChain;
+		std::vector<uint32_t> AccessChain;
 
+		SPIRVType Type;
 		std::vector<SPIRVDecoration> Decorations;
 
 		void Decorate(const SPIRVDecoration& _Decoration);

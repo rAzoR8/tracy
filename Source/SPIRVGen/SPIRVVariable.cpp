@@ -34,6 +34,20 @@ uint32_t var_decoration<true>::Load() const
 	HASSERT(pAssembler != nullptr, "Invalid Assembler");
 	HASSERT(uTypeHash != 0u && uTypeHash != kUndefinedSizeT, "Invalid TypeHash");
 
+	// create access chain for structures and composite types
+	if (uVarId == HUNDEFINED32 && uBaseId != HUNDEFINED32 && AccessChain.empty() == false)
+	{
+		size_t uPtrTypeHash = pAssembler->AddType(SPIRVType::Pointer(Type, kStorageClass));
+		SPIRVOperation OpAccessChain(spv::OpAccessChain, uPtrTypeHash, SPIRVOperand(kOperandType_Variable, uBaseId));
+
+		for (const uint32_t& uMemberIdx : AccessChain)
+		{
+			OpAccessChain.AddOperand(SPIRVOperand(kOperandType_Constant, pAssembler->AddConstant(SPIRVConstant::Make(uMemberIdx))));
+		}
+
+		uVarId= pAssembler->AddOperation(OpAccessChain);
+	}
+
 	if (uResultId != HUNDEFINED32 || uVarId == HUNDEFINED32)
 		return uResultId;
 

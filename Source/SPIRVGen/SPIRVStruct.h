@@ -34,6 +34,31 @@ namespace Tracy
 	private:
 
 		template <class T>
+		void SetBaseId(T& _Member, const uint32_t& _uBaseId) {}
+
+		template <class T>
+		void SetBaseId(var_t<T, true>& _Member, const uint32_t& _uBaseId){ _Member.uBaseId = _uBaseId;	}
+
+		template <size_t n, size_t N, class T>
+		void SetBaseId(T& _Struct, const uint32_t& _uBaseId)
+		{
+			if constexpr(n < N)
+			{
+				decltype(auto) member = hlx::get<n>(_Struct);
+				using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(member)>>;
+				if constexpr(has_spv_tag<MemberType>::value)
+				{
+					SetBaseId<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, _uBaseId);
+				}
+				else
+				{
+					SetBaseId(member, _uBaseId);
+				}
+				SetBaseId<n + 1, N, T>(_Struct, _uBaseId);
+			}
+		}
+
+		template <class T>
 		void InitVar(T& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain) {	}
 
 		template <class T>
@@ -79,8 +104,6 @@ namespace Tracy
 					SPIRVType NestedType(spv::OpTypeStruct);
 					InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain);
 					_Type.Member(NestedType);
-
-					// todo: decorate struct with Decorate(spv::DecorationBlock);
 				}
 				else
 				{
@@ -97,10 +120,10 @@ namespace Tracy
 		SPIRVAssembler& m_Assembler;
 		SPIRVType m_Type;
 
-		size_t uStructType = kUndefinedSizeT;
 		spv::StorageClass m_kStorageClass = spv::StorageClassUniform;
 
 		uint32_t uMemerOffset = 0u;
+		uint32_t uVarId
 	};
 	//---------------------------------------------------------------------------------------------------
 	inline const SPIRVType& Tracy::SPIRVStruct::GetType() const
@@ -112,11 +135,14 @@ namespace Tracy
 	inline SPIRVStruct::SPIRVStruct(SPIRVAssembler& _Assembler, S& _Struct) :
 		m_Assembler(_Assembler), m_Type(spv::OpTypeStruct)
 	{
-		//m_AccessChain.push_back(0);
-
 		static_assert(has_spv_tag<S>::value, "Struct is not a spv struct, use SPVStruct macro to tag the type");
 		InitStruct<0, hlx::aggregate_arity<S>, S>(_Struct, m_Type, {});
-		m_Assembler.AddType(m_Type);
+	
+		const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(m_Type, m_kStorageClass));
+		SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(m_kStorageClass)));
+
+		// todo: decorate struct with Decorate(spv::DecorationBlock);
+
 	}
 
 }; // Tracy
