@@ -29,7 +29,7 @@ namespace Tracy
 
 	public:
 		template <class S>
-		SPIRVStruct(SPIRVAssembler& _Assembler, S& _Struct);
+		SPIRVStruct(S& _Struct);
 
 		const SPIRVType& GetType() const;
 
@@ -67,7 +67,6 @@ namespace Tracy
 		void InitVar(var_t<T, true>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain)
 		{
 			// actual stuff happening here
-			_Member.pAssembler = &m_Assembler;
 			_Member.kStorageClass = m_kStorageClass;
 			_Member.AccessChain = _AccessChain;
 			
@@ -124,7 +123,6 @@ namespace Tracy
 		}
 
 	private:
-		SPIRVAssembler& m_Assembler;
 		SPIRVType m_Type;
 
 		spv::StorageClass m_kStorageClass = spv::StorageClassUniform;
@@ -139,15 +137,15 @@ namespace Tracy
 	}
 	
 	template<class S>
-	inline SPIRVStruct::SPIRVStruct(SPIRVAssembler& _Assembler, S& _Struct) :
-		m_Assembler(_Assembler), m_Type(spv::OpTypeStruct)
+	inline SPIRVStruct::SPIRVStruct(S& _Struct) :
+		m_Type(spv::OpTypeStruct)
 	{
 		static_assert(has_spv_tag<S>::value, "Struct is not a spv struct, use SPVStruct macro to tag the type");
 		InitStruct<0, hlx::aggregate_arity<S>, S>(_Struct, m_Type, {});
 	
-		const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(m_Type, m_kStorageClass));
+		const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(m_Type, m_kStorageClass));
 		SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(m_kStorageClass)));
-		m_uVarId = m_Assembler.AddOperation(OpVar);
+		m_uVarId = GlobalAssembler.AddOperation(OpVar);
 
 		InitBaseId<0, hlx::aggregate_arity<S>, S>(_Struct, m_uVarId);
 		// todo: decorate struct with Decorate(spv::DecorationBlock);

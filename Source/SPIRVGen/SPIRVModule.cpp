@@ -4,25 +4,32 @@
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
-
-SPIRVModule::SPIRVModule(const uint32_t _uBounds)
+SPIRVModule::SPIRVModule(const SPIRVModule& _Other) :
+	m_uBounds(_Other.m_uBounds),
+	m_InstructionStream(_Other.m_InstructionStream)
 {
-	// write header
-	Put(spv::MagicNumber);
-	Put(spv::Version);
-	Put(uGenerator); // tracy
-	Put(_uBounds); // Bounds
-	Put(uSchema);
+}
+//---------------------------------------------------------------------------------------------------
+SPIRVModule::SPIRVModule(const uint32_t _uBounds) :
+	m_uBounds(_uBounds)
+{
 }
 //---------------------------------------------------------------------------------------------------
 
 SPIRVModule::~SPIRVModule()
 {
 }
-//---------------------------------------------------------------------------------------------------
 
+//---------------------------------------------------------------------------------------------------
 void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 {
+	// write header
+	Put(spv::MagicNumber);
+	Put(spv::Version);
+	Put(uGenerator); // tracy
+	Put(m_uBounds); // Bounds
+	Put(uSchema);
+
 	// write instructions
 	for (const SPIRVInstruction& Instr : _Instructions)
 	{

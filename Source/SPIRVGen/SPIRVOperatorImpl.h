@@ -16,8 +16,7 @@ namespace Tracy
 		if constexpr(Assemble)
 		{
 			LoadVariables(l, r);
-			var.pAssembler = l.pAssembler;
-			var.uTypeHash = var.pAssembler->AddType(SPIRVType::FromType<T>());
+			var.uTypeHash = GlobalAssembler.AddType(SPIRVType::FromType<T>());
 			var.kStorageClass = spv::StorageClassFunction;
 
 			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
@@ -29,7 +28,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
 			});
 
-			var.uResultId = var.pAssembler->AddOperation(Op);
+			var.uResultId = GlobalAssembler.AddOperation(Op);
 		}
 
 		return var;
@@ -43,14 +42,13 @@ namespace Tracy
 		if constexpr(Assemble)
 		{
 			l.Load();
-			var.pAssembler = l.pAssembler;
-			var.uTypeHash = var.pAssembler->AddType(SPIRVType::FromType<T>());
+			var.uTypeHash = GlobalAssembler.AddType(SPIRVType::FromType<T>());
 			var.kStorageClass = spv::StorageClassFunction;
 
 			uint32_t kType = OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
-			uint32_t uExtId = var.pAssembler->GetExtensionId(_sExt);
+			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
 			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
 
 			SPIRVOperation Op(spv::OpExtInst, var.uTypeHash, // result type
@@ -60,7 +58,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
 			});
 
-			var.uResultId = var.pAssembler->AddOperation(Op);
+			var.uResultId = GlobalAssembler.AddOperation(Op);
 		}
 
 		return var;

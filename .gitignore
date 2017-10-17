@@ -7,3 +7,4 @@ Source/TracyApp/GeneratedFiles/
 Source/TracyApp/x64/
 Source/SPIRVGen/x64/
 Source/SPIRVGenTest/x64/
+*.spv

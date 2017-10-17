@@ -2,7 +2,6 @@
 #include "SPIRVAssembler.h"
 
 using namespace Tracy;
-//---------------------------------------------------------------------------------------------------
 
 void var_decoration<true>::Decorate(const SPIRVDecoration& _Decoration)
 {
@@ -18,7 +17,7 @@ void var_decoration<true>::Store() const
 		uResultId != uLastStoredId)
 	{
 		// create store
-		pAssembler->AddOperation(SPIRVOperation(spv::OpStore,
+		GlobalAssembler.AddOperation(SPIRVOperation(spv::OpStore,
 		{
 			SPIRVOperand(kOperandType_Variable, uVarId), // destination
 			SPIRVOperand(kOperandType_Intermediate, uResultId) // source
@@ -31,21 +30,20 @@ void var_decoration<true>::Store() const
 
 uint32_t var_decoration<true>::Load() const
 {
-	HASSERT(pAssembler != nullptr, "Invalid Assembler");
 	HASSERT(uTypeHash != 0u && uTypeHash != kUndefinedSizeT, "Invalid TypeHash");
 
 	// create access chain for structures and composite types
 	if (uVarId == HUNDEFINED32 && uBaseId != HUNDEFINED32 && AccessChain.empty() == false)
 	{
-		size_t uPtrTypeHash = pAssembler->AddType(SPIRVType::Pointer(Type, kStorageClass));
+		size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
 		SPIRVOperation OpAccessChain(spv::OpAccessChain, uPtrTypeHash, SPIRVOperand(kOperandType_Variable, uBaseId));
 
 		for (const uint32_t& uMemberIdx : AccessChain)
 		{
-			OpAccessChain.AddOperand(SPIRVOperand(kOperandType_Constant, pAssembler->AddConstant(SPIRVConstant::Make(uMemberIdx))));
+			OpAccessChain.AddOperand(SPIRVOperand(kOperandType_Constant, GlobalAssembler.AddConstant(SPIRVConstant::Make(uMemberIdx))));
 		}
 
-		uVarId= pAssembler->AddOperation(OpAccessChain);
+		uVarId= GlobalAssembler.AddOperation(OpAccessChain);
 	}
 
 	if (uResultId != HUNDEFINED32 || uVarId == HUNDEFINED32)
@@ -54,7 +52,7 @@ uint32_t var_decoration<true>::Load() const
 	// instantiate decorations
 	for (const SPIRVDecoration& Decoration : Decorations)
 	{
-		 pAssembler->AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
+		 GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
 	}
 
 	// OpLoad:
@@ -66,7 +64,7 @@ uint32_t var_decoration<true>::Load() const
 	SPIRVOperation OpLoad(spv::OpLoad, uTypeHash, // result type
 		SPIRVOperand(kOperandType_Variable, uVarId)); // pointer
 
-	uResultId = pAssembler->AddOperation(OpLoad);
+	uResultId = GlobalAssembler.AddOperation(OpLoad);
 	uLastStoredId = uResultId;
 	return uResultId;
 }
@@ -77,8 +75,6 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 	if (this == &_Other)
 		return *this;
 
-	HASSERT(pAssembler == _Other.pAssembler && pAssembler != nullptr, "Assembler mismatch");
-
 	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
 	{
 		HASSERT(uTypeHash == _Other.uTypeHash, "Variable type mismatch");
@@ -86,13 +82,13 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 		// source variable has not been loaded yet
 		if (_Other.uResultId == HUNDEFINED32)
 		{
-			_Other.uResultId = pAssembler->AddOperation(
+			_Other.uResultId = GlobalAssembler.AddOperation(
 				SPIRVOperation(spv::OpLoad, uTypeHash, // result tpye
 				SPIRVOperand(kOperandType_Variable, _Other.uVarId)));
 		}
 	
 		// create store
-		pAssembler->AddOperation(SPIRVOperation(spv::OpStore,
+		GlobalAssembler.AddOperation(SPIRVOperation(spv::OpStore,
 		{
 			SPIRVOperand(kOperandType_Variable, uVarId), // destination
 			SPIRVOperand(kOperandType_Intermediate, _Other.uResultId) // source
@@ -114,45 +110,11 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 
 	return *this;
 }
-
-//var_decoration<true>& Tracy::var_decoration<true>::operator=(var_decoration<true>&& _Other)
-//{
-//	pAssembler = _Other.pAssembler;
-//	uVarId = _Other.uVarId; // might become actual var
-//	uResultId = _Other.uResultId;
-//	uLastStoredId = _Other.uLastStoredId;
-//	kStorageClass = _Other.kStorageClass;
-//	uTypeHash = _Other.uTypeHash;
-//
-//	_Other.uVarId = HUNDEFINED32;
-//	_Other.uResultId = HUNDEFINED32;
-//	_Other.pAssembler = nullptr;
-//
-//	return *this;
-//}
-
-//var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
-//	pAssembler(_Other.pAssembler),
-//	uVarId(_Other.uVarId),
-//	uResultId(_Other.uResultId),
-//	uLastStoredId(_Other.uLastStoredId),
-//	kStorageClass(_Other.kStorageClass),
-//	uTypeHash(_Other.uTypeHash)
-//{
-//}
-//
-//var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
-//	pAssembler(_Other.pAssembler),
-//	uVarId(_Other.uVarId),
-//	uResultId(_Other.uResultId),
-//	uLastStoredId(_Other.uLastStoredId),
-//	kStorageClass(_Other.kStorageClass),
-//	uTypeHash(_Other.uTypeHash)
-//{
-//}
+//---------------------------------------------------------------------------------------------------
 
 var_decoration<true>::~var_decoration()
 {
 	// store the lastest intermediate result
 	Store();
 }
+//---------------------------------------------------------------------------------------------------

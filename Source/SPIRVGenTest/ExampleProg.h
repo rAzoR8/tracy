@@ -10,7 +10,7 @@ namespace Tracy
 	class ExampleProg : public SPIRVProgram<Assemble>
 	{
 	public:
-		ExampleProg(SPIRVAssembler& _Assembler) : SPIRVProgram<Assemble>(_Assembler){};
+		ExampleProg() : SPIRVProgram<Assemble>(){};
 		~ExampleProg() {};
 
 		void OnInitInOutVariables() final;
@@ -68,9 +68,6 @@ namespace Tracy
 				OutputColor *= OutputColor;
 			});			
 		});
-
-		// Problem to solve: access chain to x, how to overload operator+ correctly
-		//auto res = t + InputPos.x;
 	}
 }; // !Tracy
 

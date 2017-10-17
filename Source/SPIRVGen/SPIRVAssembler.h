@@ -6,6 +6,7 @@
 #include "SPIRVOperation.h"
 #include "SPIRVTypeResolver.h"
 #include "SPIRVModule.h"
+#include "Singleton.h"
 
 namespace Tracy
 {
@@ -15,13 +16,17 @@ namespace Tracy
 
 	static const std::string ExtGLSL450 = "GLSL.std.450";
 
-	class SPIRVAssembler
+	class SPIRVAssembler : public hlx::Singleton<SPIRVAssembler>
 	{
 	public:
-		SPIRVAssembler(const std::vector<std::string>& _Extensions = { ExtGLSL450 });
+		SPIRVAssembler();
 		~SPIRVAssembler();
 		
-		SPIRVModule Assemble(SPIRVProgram<true>& _EntryPoint, const spv::ExecutionModel _kModel = spv::ExecutionModelFragment, const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft);
+		SPIRVModule Assemble(
+			SPIRVProgram<true>& _EntryPoint,
+			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
+			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 });
 
 		uint32_t GetExtensionId(const std::string& _sExt = ExtGLSL450);
 
@@ -70,8 +75,11 @@ namespace Tracy
 		std::vector<SPIRVOperation> m_Operations; // unresolved local instruction stream
 		std::vector<SPIRVOperation> m_Variables; // unresolved local instruction stream
 		std::vector<SPIRVOperation> m_Decorations; // unresolved local instruction stream
-
 	};
+
+#ifndef GlobalAssembler
+#define GlobalAssembler (*SPIRVAssembler::Instance())
+#endif
 }
 
 #endif // !TRACY_SPIRVASSEMBLER_H

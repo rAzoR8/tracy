@@ -24,7 +24,6 @@ namespace Tracy
 		SPIRVOperation* pThenBranch = nullptr;
 		SPIRVOperation* pSelectionMerge = nullptr;
 		SPIRVOperation* pBranchConditional = nullptr;
-		SPIRVAssembler* pAssembler = nullptr;
 	};
 
 	template <bool Assemble>
@@ -46,16 +45,16 @@ namespace Tracy
 		{
 			_Func();
 
-			HASSERT(pThenBranch != nullptr && pSelectionMerge != nullptr && pAssembler != nullptr, "Invalid branch node");
+			HASSERT(pThenBranch != nullptr && pSelectionMerge != nullptr, "Invalid branch node");
 			
 			// end of then block
 			SPIRVOperation* pElseBranch = nullptr;
-			pAssembler->AddOperation(SPIRVOperation(spv::OpBranch), &pElseBranch);
+			SPIRVAssembler::Instance()->AddOperation(SPIRVOperation(spv::OpBranch), &pElseBranch);
 
 			// selection merge
 			std::vector<SPIRVOperand>& SelectionOperands = pSelectionMerge->GetOperands();
 			HASSERT(SelectionOperands.size() == 2u, "Invalid number of operands for selection merge");
-			const uint32_t uMergeId = pAssembler->AddOperation(SPIRVOperation(spv::OpLabel));
+			const uint32_t uMergeId = SPIRVAssembler::Instance()->AddOperation(SPIRVOperation(spv::OpLabel));
 			SelectionOperands.front().uId = uMergeId;
 
 			// then branch update

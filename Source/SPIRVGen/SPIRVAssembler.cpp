@@ -3,9 +3,8 @@
 
 using namespace Tracy;
 
-SPIRVAssembler::SPIRVAssembler(const std::vector<std::string>& _Extensions) :
-	m_TypeResolver(m_uResultId, m_Definitions),
-	m_Extensions(_Extensions)
+SPIRVAssembler::SPIRVAssembler() :
+	m_TypeResolver(m_uResultId, m_Definitions)
 {
 	m_Operations.reserve(4096u);
 	m_Variables.reserve(128u);
@@ -17,8 +16,14 @@ SPIRVAssembler::~SPIRVAssembler()
 }
 //---------------------------------------------------------------------------------------------------
 
-SPIRVModule SPIRVAssembler::Assemble(SPIRVProgram<true>& _EntryPoint, const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode)
+SPIRVModule SPIRVAssembler::Assemble(
+	SPIRVProgram<true>& _EntryPoint,
+	const spv::ExecutionModel _kModel,
+	const spv::ExecutionMode _kMode,
+	const std::vector<std::string>& _Extensions)
 {
+	m_Extensions = _Extensions;
+
 	Init(_kModel);
 
 	_EntryPoint.OnInitInOutVariables();

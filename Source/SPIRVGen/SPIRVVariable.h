@@ -4,12 +4,10 @@
 #include <vulkan\GLSL.std.450.h>
 #include "SPIRVDecoration.h"
 #include "SPIRVType.h"
+#include "SPIRVAssembler.h"
 
 namespace Tracy
 {
-	//forward decls
-	class SPIRVAssembler;
-
 	template <bool Assemble>
 	struct var_decoration
 	{
@@ -21,7 +19,6 @@ namespace Tracy
 	template <>
 	struct var_decoration<true>
 	{
-		mutable SPIRVAssembler* pAssembler = nullptr;
 		mutable uint32_t uVarId = HUNDEFINED32; // result id OpVar or OpAccessChain
 		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
 		mutable uint32_t uLastStoredId = HUNDEFINED32;
@@ -38,12 +35,8 @@ namespace Tracy
 		void Store() const;
 		uint32_t Load() const;
 
-		//var_decoration<true>() {};
-		//var_decoration<true>(const var_decoration<true>& _Other);
-		//var_decoration<true>(var_decoration<true>&& _Other);
 		~var_decoration<true>();
 		const var_decoration<true>& operator=(const var_decoration<true>& _Other) const;
-		//var_decoration<true>& operator=(var_decoration<true>&& _Other);
 	};
 
 	template <>
@@ -144,9 +137,7 @@ namespace Tracy
 	template <class U, class V>
 	inline void LoadVariables(const var_t<U, true>& l, const var_t<V, true>& r)
 	{
-		HASSERT(l.pAssembler != nullptr && l.pAssembler == r.pAssembler, "Invalid program assembler");
-		l.Load();
-		r.Load();
+		l.Load(); r.Load();
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -169,7 +160,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
 			});
 
-			uResultId = pAssembler->AddOperation(Op);
+			uResultId = GlobalAssembler.AddOperation(Op);
 
 			Store();
 		}
@@ -194,7 +185,7 @@ namespace Tracy
 			HASSERT(uTypeHash != kUndefinedSizeT, "Invalid type");
 
 			SPIRVOperation Op(kType, uTypeHash,	SPIRVOperand(kOperandType_Intermediate, uResultId));
-			uResultId = pAssembler->AddOperation(Op);
+			uResultId = GlobalAssembler.AddOperation(Op);
 
 			Store();
 		}

@@ -77,10 +77,8 @@ namespace Tracy
 		//>;
 
 #pragma endregion
-		SPIRVProgram(SPIRVAssembler& _Assembler);
+		SPIRVProgram();
 		~SPIRVProgram();
-
-		SPIRVAssembler& GetAssembler();
 
 		void Execute();
 
@@ -132,17 +130,13 @@ namespace Tracy
 		void InitStruct(S& _Struct);
 
 	private:
-		SPIRVAssembler& m_Assembler;
-
 		BranchNode<Assemble> m_BranchNode; //non assemble case
 		std::vector<BranchNode<Assemble>> m_BranchNodes;
-		//std::vector<var_decoration<true>*> m_MemberVariables;
 	};
 
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>
-	SPIRVProgram<Assemble>::SPIRVProgram(SPIRVAssembler& _Assembler) :
-		m_Assembler(_Assembler)
+	SPIRVProgram<Assemble>::SPIRVProgram()
 	{
 		if constexpr(Assemble)
 		{
@@ -153,12 +147,6 @@ namespace Tracy
 	template <bool Assemble>
 	SPIRVProgram<Assemble>::~SPIRVProgram()
 	{
-	}
-
-	template<bool Assemble>
-	inline SPIRVAssembler& SPIRVProgram<Assemble>::GetAssembler()
-	{
-		return m_Assembler;
 	}
 
 	template<bool Assemble>
@@ -192,7 +180,6 @@ namespace Tracy
 
 		if constexpr(Assemble)
 		{
-			new_var.pAssembler = &m_Assembler;
 			new_var.kStorageClass = spv::StorageClassFunction;
 
 			SPIRVConstant Constant;
@@ -205,14 +192,14 @@ namespace Tracy
 			{
 				Constant = SPIRVConstant::Make(_Val...);
 			}
-			const size_t uConstHash = m_Assembler.AddConstant(Constant);
+			const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
 
 			// composite type
 			const SPIRVType& Type(Constant.GetCompositeType());
 			new_var.uTypeHash  = Type.GetHash(); // no need to add type, is resolved by constant already
 
 			// pointer type
-			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
+			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
 
 			// OpVariable:
 			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
@@ -228,7 +215,7 @@ namespace Tracy
 				SPIRVOperand(kOperandType_Constant, uConstHash) // initializer
 			});
 
-			new_var.uVarId = m_Assembler.AddOperation(OpVar);
+			new_var.uVarId = GlobalAssembler.AddOperation(OpVar);
 		}
 
 		return new_var;
@@ -243,18 +230,17 @@ namespace Tracy
 
 		if constexpr(Assemble)
 		{
-			new_var.pAssembler = &m_Assembler;
 			new_var.kStorageClass = spv::StorageClassFunction;
 
 			const SPIRVType Type = SPIRVType::FromType<T>();
 			new_var.uTypeHash = Type.GetHash();
 
-			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
+			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
 
 			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
 				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(new_var.kStorageClass))); // variable storage location
 			
-			new_var.uVarId = m_Assembler.AddOperation(OpVar);
+			new_var.uVarId = GlobalAssembler.AddOperation(OpVar);
 		}
 
 		return new_var;
@@ -272,15 +258,14 @@ namespace Tracy
 
 			m_BranchNodes.emplace_back();
 			BranchNode<Assemble>& Node(m_BranchNodes.back());
-			Node.pAssembler = &m_Assembler;
 
-			m_Assembler.AddOperation(SPIRVOperation(spv::OpSelectionMerge,
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpSelectionMerge,
 			{
 				SPIRVOperand(kOperandType_Intermediate, HUNDEFINED32), // merge id
 				SPIRVOperand(kOperandType_Literal, (const uint32_t)_kMask) // selection class
 			}),	&Node.pSelectionMerge);
 
-			m_Assembler.AddOperation(
+			GlobalAssembler.AddOperation(
 				SPIRVOperation(spv::OpBranchConditional, SPIRVOperand(kOperandType_Intermediate, _Cond.uResultId)),
 				&Node.pBranchConditional);
 		}
@@ -294,7 +279,7 @@ namespace Tracy
 			if constexpr(Assemble)
 			{
 				BranchNode<Assemble>& Node(m_BranchNodes.back());
-				const uint32_t uTrueLableId = m_Assembler.AddOperation(SPIRVOperation(spv::OpLabel));
+				const uint32_t uTrueLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 				Node.pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uTrueLableId));
 			}
 
@@ -305,9 +290,9 @@ namespace Tracy
 				BranchNode<Assemble>& Node(m_BranchNodes.back());
 
 				// end of then block
-				m_Assembler.AddOperation(SPIRVOperation(spv::OpBranch), &Node.pThenBranch);
+				GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &Node.pThenBranch);
 
-				const uint32_t uFalseLableId = m_Assembler.AddOperation(SPIRVOperation(spv::OpLabel));
+				const uint32_t uFalseLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 				Node.pThenBranch->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFalseLableId));
 
 				std::vector<SPIRVOperand>& Operands = Node.pSelectionMerge->GetOperands();
@@ -334,17 +319,14 @@ namespace Tracy
 	{
 		if constexpr(Assemble)
 		{
-			//m_MemberVariables.push_back(&_FirstVar);
-
-			_FirstVar.pAssembler = &m_Assembler;
 			// create types
 			SPIRVType Type(SPIRVType::FromType<T>());
-			_FirstVar.uTypeHash = m_Assembler.AddType(Type);
+			_FirstVar.uTypeHash = GlobalAssembler.AddType(Type);
 
 			HASSERT(_FirstVar.kStorageClass == spv::StorageClassInput ||
 				_FirstVar.kStorageClass == spv::StorageClassOutput, "Invalid variable storage class");
 
-			const size_t uPtrTypeHash = m_Assembler.AddType(SPIRVType::Pointer(Type, _FirstVar.kStorageClass));
+			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, _FirstVar.kStorageClass));
 
 			// OpVariable:
 			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
@@ -358,7 +340,7 @@ namespace Tracy
 			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash // result type
 				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_FirstVar.kStorageClass))); // variable storage location
 			
-			_FirstVar.uVarId = m_Assembler.AddOperation(OpVar);
+			_FirstVar.uVarId = GlobalAssembler.AddOperation(OpVar);
 			_FirstVar.uResultId = HUNDEFINED32;
 
 			// create rest of the variables
@@ -372,7 +354,7 @@ namespace Tracy
 	{
 		if constexpr(Assemble)
 		{
-			SPIRVStruct init(m_Assembler, _Struct);
+			SPIRVStruct init(_Struct);
 		}
 	}
 
