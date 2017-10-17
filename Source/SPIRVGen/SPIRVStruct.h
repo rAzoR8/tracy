@@ -19,6 +19,8 @@ namespace Tracy
 	template< class T >
 	struct has_spv_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
 
+	constexpr uint32_t kAlignmentSize = 16u;
+
 	//template <bool Assemble>
 	class SPIRVStruct
 	{
@@ -43,9 +45,7 @@ namespace Tracy
 			_Member.pAssembler = &m_Assembler;
 			_Member.kStorageClass = m_kStorageClass;
 			_Member.AccessChain = _AccessChain;
-
-			// member offset, check for 16byte allignment
-
+			
 			// translate bool members to int (taken from example)
 			using VarT = std::conditional_t<std::is_same_v<T, bool>, int32_t, T>;
 
@@ -62,6 +62,20 @@ namespace Tracy
 			);
 
 			_Member.uVarId = m_Assembler.AddOperation(OpVar);
+
+			uint32_t uOffset = 0u;
+			// member offset, check for 16byte allignment
+			if(m_uMemerOffset + sizeof(VarT) <= uAlignmentBoundary)
+			{
+				uOffset = m_uMemerOffset;
+			}
+			else
+			{
+				uOffset = uAlignmentBoundary;
+				uAlignmentBoundary += kAlignmentSize;
+			}
+			_Member.Decorate(SPIRVDecoration(spv::DecorationOffset, uOffset, kDecorationType_Member, _AccessChain.back()));
+			m_uMemerOffset += sizeof(VarT);
 		}
 
 		template <size_t n, size_t N, class T>
@@ -97,10 +111,9 @@ namespace Tracy
 		SPIRVAssembler& m_Assembler;
 		SPIRVType m_Type;
 
-		size_t uStructType = kUndefinedSizeT;
 		spv::StorageClass m_kStorageClass = spv::StorageClassUniform;
-
-		uint32_t uMemerOffset = 0u;
+		uint32_t m_uMemerOffset = 0u;
+		uint32_t uAlignmentBoundary = kAlignmentSize;
 	};
 	//---------------------------------------------------------------------------------------------------
 	inline const SPIRVType& Tracy::SPIRVStruct::GetType() const

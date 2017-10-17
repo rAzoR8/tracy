@@ -38,9 +38,9 @@ namespace Tracy
 		SPIRVDecoration(
 			const spv::Decoration _kDecoration,
 			const uint32_t _uLiteral = HUNDEFINED32,
-			const uint32_t _uTargetId = HUNDEFINED32,
 			const EDecorationType _kType = kDecorationType_Default,
 			const uint32_t _uMemberIndex = HUNDEFINED32,
+			const uint32_t _uTargetId = HUNDEFINED32,
 			const EOperandType _kTargetType = kOperandType_Variable) :
 			m_kType(_kType),
 			m_kDecoration(_kDecoration),
