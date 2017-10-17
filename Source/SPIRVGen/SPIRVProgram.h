@@ -22,7 +22,7 @@ namespace Tracy
 
 #pragma region type_defs
 		template <class T>
-		using var = var_t<T, Assemble>;
+		using var = var_t<T, Assemble, spv::StorageClassFunction>;
 
 		template <class T>
 		using var_in = var_in_t<T, Assemble>;
@@ -87,8 +87,8 @@ namespace Tracy
 		virtual void OnInitInOutVariables() {};
 		virtual void OnExecute() {};
 
-		template <class LambdaFunc>
-		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
+		template <class LambdaFunc, spv::StorageClass Class>
+		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble, Class>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
 #pragma region if_else
 		// renamed If and Else functions so that the macros are not part of the name
@@ -151,8 +151,8 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
-	template<class LambdaFunc>
-	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::ConditonBranch(const var_t<bool, Assemble>& _Cond, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
+	template<class LambdaFunc, spv::StorageClass Class>
+	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::ConditonBranch(const var_t<bool, Assemble, Class>& _Cond, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
 	{
 		if constexpr(Assemble)
 		{

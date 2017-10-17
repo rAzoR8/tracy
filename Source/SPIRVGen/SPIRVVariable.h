@@ -11,6 +11,7 @@ namespace Tracy
 	template <bool Assemble>
 	struct var_decoration
 	{
+		var_decoration(const spv::StorageClass _kStorageClass) {};
 		void Decorate(const SPIRVDecoration& _Decoration) {};
 		void Store() const {};
 		uint32_t Load() const {return HUNDEFINED32};
@@ -38,7 +39,7 @@ namespace Tracy
 		void Store() const;
 		uint32_t Load() const;
 
-		var_decoration() {};
+		var_decoration(const spv::StorageClass _kStorageClass) : kStorageClass(_kStorageClass) {};
 		var_decoration<true>(const var_decoration<true>& _Other);
 		var_decoration<true>(var_decoration<true>&& _Other);
 
@@ -54,7 +55,7 @@ namespace Tracy
 		var_decoration(Ts&& ... _args) {} // consume arguments
 	};
 
-	template <typename T, bool Assemble = true> // , spv::StorageClass Class = spv::StorageClassFunction
+	template <typename T, bool Assemble, spv::StorageClass Class> // = spv::StorageClassFunction
 	struct var_t : public var_decoration<Assemble>
 	{
 		typedef void var_tag;
@@ -62,20 +63,26 @@ namespace Tracy
 		template <class... Ts>
 		var_t(const Ts& ... _args);
 
-		var_t(var_t&& _Other);
-		var_t(const var_t& _Other);
+		template <spv::StorageClass C1>
+		var_t(var_t<T, Assemble, C1>&& _Other);
+		template <spv::StorageClass C1>
+		var_t(const var_t<T, Assemble, C1>& _Other);
 
-		const var_t& operator=(const var_t& _Other) const;
-		const var_t& operator=(var_t&& _Other) const;
+		template <spv::StorageClass C1>
+		const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
+		template <spv::StorageClass C1>
+		const var_t& operator=(var_t<T, Assemble, C1>&& _Other) const;
 
-		const var_t& operator+=(const var_t& _Other) const;
-		const var_t& operator-=(const var_t& _Other) const;
+		template <spv::StorageClass C1>
+		const var_t& operator+=(const var_t<T, Assemble, C1>& _Other) const;
+		template <spv::StorageClass C1>
+		const var_t& operator-=(const var_t<T, Assemble, C1>& _Other) const;
 
-		template <class U>
-		const var_t<T, Assemble>& operator*=(const var_t<U, Assemble>& _Other) const;
+		template <class U, spv::StorageClass C1>
+		const var_t& operator*=(const var_t<U, Assemble, C1>& _Other) const;
 
-		template <class U>
-		const var_t<T, Assemble>& operator/=(const var_t<U, Assemble>& _Other) const;
+		template <class U, spv::StorageClass C1>
+		const var_t& operator/=(const var_t<U, Assemble, C1>& _Other) const;
 
 		const var_t& operator!() const;
 
@@ -83,26 +90,26 @@ namespace Tracy
 
 	private:
 		// two operands (self + other)
-		template <class U, class OpFunc, class ...Ops>
-		const var_t<T, Assemble>& make_op2(const var_t<U, Assemble>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const;
+		template <class U, class OpFunc, spv::StorageClass C1, class ...Ops>
+		const var_t<T, Assemble, Class>& make_op2(const var_t<U, Assemble, C1>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const;
 
 		// one operand (self)
 		template <class OpFunc, class ...Ops>
-		const var_t<T, Assemble>& make_op1( const OpFunc& _OpFunc, const Ops ..._Ops) const;
+		const var_t<T, Assemble, Class>& make_op1( const OpFunc& _OpFunc, const Ops ..._Ops) const;
 	};
 
 	template <typename T, bool Assemble>
-	struct var_in_t : public var_t<T, Assemble>
+	struct var_in_t : public var_t<T, Assemble, spv::StorageClassInput>
 	{
 		template <class... Ts>
-		var_in_t(Ts&& ... _args) : var_t<T, Assemble>(std::forward<Ts>(_args)...){if constexpr(Assemble) kStorageClass = spv::StorageClassInput; }
+		var_in_t(Ts&& ... _args) : var_t<T, Assemble, spv::StorageClassInput>(std::forward<Ts>(_args)...){}
 	};
 
 	template <typename T, bool Assemble>
-	struct var_out_t : public var_t<T, Assemble>
+	struct var_out_t : public var_t<T, Assemble, spv::StorageClassOutput>
 	{
 		template <class... Ts>
-		var_out_t(Ts&& ... _args) : var_t<T, Assemble>(std::forward<Ts>(_args)...) { if constexpr(Assemble) kStorageClass = spv::StorageClassOutput; }
+		var_out_t(Ts&& ... _args) : var_t<T, Assemble, spv::StorageClassOutput>(std::forward<Ts>(_args)...) {}
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -146,16 +153,16 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	template <class U, class V>
-	inline void LoadVariables(const var_t<U, true>& l, const var_t<V, true>& r)
+	template <class U, class V, spv::StorageClass C1, spv::StorageClass C2>
+	inline void LoadVariables(const var_t<U, true, C1>& l, const var_t<V, true, C2>& r)
 	{
 		l.Load(); r.Load();
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	template<typename T, bool Assemble>
-	template<class U, class OpFunc, class ...Ops>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::make_op2(const var_t<U, Assemble>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<class U, class OpFunc, spv::StorageClass C1, class ...Ops>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::make_op2(const var_t<U, Assemble, C1>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
 		_OpFunc(Value, _Other.Value);
 
@@ -181,9 +188,9 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	template<typename T, bool Assemble>
+	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class OpFunc, class ...Ops>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::make_op1(const OpFunc& _OpFunc, const Ops ..._Ops) const
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::make_op1(const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
 		_OpFunc(Value);
 
@@ -212,62 +219,67 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 #pragma region Operations
-	template<typename T, bool Assemble>
-	inline var_t<T, Assemble>::var_t(var_t && _Other) :
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline var_t<T, Assemble, Class>::var_t(var_t<T, Assemble, C1>&& _Other) :
 		Value(std::move(_Other.Value)),
-		var_decoration<Assemble>(std::forward<var_t>(_Other))
+		var_decoration<Assemble>(std::forward<var_t<T, Assemble, C1>>(_Other))
 	{
 	}
 
-	template<typename T, bool Assemble>
-	inline var_t<T, Assemble>::var_t(const var_t& _Other) :
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline var_t<T, Assemble, Class>::var_t(const var_t<T, Assemble, C1>& _Other) :
 		var_decoration<Assemble>(_Other),
 		Value(_Other.Value)
 	{
 	}
 
-	template<typename T, bool Assemble>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator=(const var_t& _Other) const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(const var_t<T, Assemble, C1>& _Other) const
 	{
 		var_decoration<Assemble>::operator=(_Other);
 		Value = _Other.Value;
 		return *this;
 	}
 
-	template<typename T, bool Assemble>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator=(var_t && _Other) const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(var_t<T, Assemble, C1>&& _Other) const
 	{
 		Value = std::move(_Other.Value);
-		var_decoration<Assemble>::operator=(std::forward<var_t>(_Other));
+		var_decoration<Assemble>::operator=(std::forward<var_t<T, Assemble, C1>>(_Other));
 		return *this;
 	}
 
 	//---------------------------------------------------------------------------------------------------
 
-	template<typename T, bool Assemble>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator+=(const var_t<T, Assemble>& _Other) const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator+=(const var_t<T, Assemble, C1>& _Other) const
 	{
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	template<typename T, bool Assemble>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator-=(const var_t<T, Assemble>& _Other) const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const var_t<T, Assemble, C1>& _Other) const
 	{
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
 	}
 
 	//---------------------------------------------------------------------------------------------------
 
-	template<typename T, bool Assemble>
+	template<typename T, bool Assemble, spv::StorageClass C1>
 	template<class ...Ts>
-	inline var_t<T, Assemble>::var_t(const Ts& ..._args) : 
-		var_decoration<Assemble>(),
+	inline var_t<T, Assemble, C1>::var_t(const Ts& ..._args) : 
+		var_decoration<Assemble>(C1),
 		Value(_args...)
 	{
 		if constexpr(Assemble)
 		{
-			kStorageClass = spv::StorageClassFunction;
 			Type = SPIRVType::FromType<T>();
 
 			uTypeHash = Type.GetHash(); // no need to add type, is resolved by constant already
@@ -310,26 +322,26 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	template<typename T, bool Assemble>
-	template<class U>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator*=(const var_t<U, Assemble>& _Other) const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<class U, spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator*=(const var_t<U, Assemble, C1>& _Other) const
 	{
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	template<typename T, bool Assemble>
-	template<class U>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator/=(const var_t<U, Assemble>& _Other) const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<class U, spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const var_t<U, Assemble, C1>& _Other) const
 	{
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	template<typename T, bool Assemble>
-	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator!() const
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator!() const
 	{
 		return make_op1([](T& _Value) {_Value = !_Value; }, spv::OpFNegate, spv::OpSNegate, spv::OpNop, spv::OpLogicalNot);
 	}

@@ -70,7 +70,8 @@ uint32_t var_decoration<true>::Load() const
 }
 //---------------------------------------------------------------------------------------------------
 var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
-	uVarId(HUNDEFINED32), // treat as intermediate
+	//uVarId(HUNDEFINED32), // treat as intermediate
+	uVarId(_Other.uVarId),
 	uResultId(_Other.uResultId),
 	uLastStoredId(_Other.uLastStoredId),
 	uBaseId(_Other.uBaseId),

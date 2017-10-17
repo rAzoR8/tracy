@@ -38,8 +38,8 @@ namespace Tracy
 		template <class T>
 		void SetBaseId(T& _Member, const uint32_t& _uBaseId) {}
 
-		template <class T>
-		void SetBaseId(var_t<T, true>& _Member, const uint32_t& _uBaseId){ _Member.uBaseId = _uBaseId;	}
+		template <class T, spv::StorageClass Class>
+		void SetBaseId(var_t<T, true, Class>& _Member, const uint32_t& _uBaseId){ _Member.uBaseId = _uBaseId;	}
 
 		template <size_t n, size_t N, class T>
 		void InitBaseId(T& _Struct, const uint32_t& _uBaseId)
@@ -63,8 +63,8 @@ namespace Tracy
 		template <class T>
 		void InitVar(T& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain) {	}
 
-		template <class T>
-		void InitVar(var_t<T, true>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain)
+		template <class T, spv::StorageClass Class>
+		void InitVar(var_t<T, true, Class>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain)
 		{
 			// actual stuff happening here
 			_Member.kStorageClass = m_kStorageClass;
