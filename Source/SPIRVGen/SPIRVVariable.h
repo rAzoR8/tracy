@@ -14,6 +14,9 @@ namespace Tracy
 		void Decorate(const SPIRVDecoration& _Decoration) {};
 		void Store() const {};
 		uint32_t Load() const {return HUNDEFINED32};
+		var_decoration(const var_decoration& _Other) {}
+		var_decoration(var_decoration&& _Other) {}
+		const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
 	};
 
 	template <>
@@ -35,26 +38,35 @@ namespace Tracy
 		void Store() const;
 		uint32_t Load() const;
 
+		var_decoration() {};
+		var_decoration<true>(const var_decoration<true>& _Other);
+		var_decoration<true>(var_decoration<true>&& _Other);
+
 		~var_decoration<true>();
 		const var_decoration<true>& operator=(const var_decoration<true>& _Other) const;
+		const var_decoration<true>& operator=(var_decoration<true>&& _Other) const;
 	};
 
 	template <>
 	struct var_decoration<false>
 	{
 		template <class... Ts>
-		var_decoration(Ts ... _args) {} // consume arguments
+		var_decoration(Ts&& ... _args) {} // consume arguments
 	};
 
-	template <typename T, bool Assemble = true>
+	template <typename T, bool Assemble = true> // , spv::StorageClass Class = spv::StorageClassFunction
 	struct var_t : public var_decoration<Assemble>
 	{
 		typedef void var_tag;
 
 		template <class... Ts>
-		var_t(Ts ... _args) : var_decoration<Assemble>(), Value(_args...) {}
+		var_t(const Ts& ... _args);
+
+		var_t(var_t&& _Other);
+		var_t(const var_t& _Other);
 
 		const var_t& operator=(const var_t& _Other) const;
+		const var_t& operator=(var_t&& _Other) const;
 
 		const var_t& operator+=(const var_t& _Other) const;
 		const var_t& operator-=(const var_t& _Other) const;
@@ -83,14 +95,14 @@ namespace Tracy
 	struct var_in_t : public var_t<T, Assemble>
 	{
 		template <class... Ts>
-		var_in_t(Ts ... _args) : var_t<T, Assemble>(_args...){if constexpr(Assemble) kStorageClass = spv::StorageClassInput; }
+		var_in_t(Ts&& ... _args) : var_t<T, Assemble>(std::forward<Ts>(_args)...){if constexpr(Assemble) kStorageClass = spv::StorageClassInput; }
 	};
 
 	template <typename T, bool Assemble>
 	struct var_out_t : public var_t<T, Assemble>
 	{
 		template <class... Ts>
-		var_out_t(Ts ... _args) : var_t<T, Assemble>(_args...) { if constexpr(Assemble) kStorageClass = spv::StorageClassOutput; }
+		var_out_t(Ts&& ... _args) : var_t<T, Assemble>(std::forward<Ts>(_args)...) { if constexpr(Assemble) kStorageClass = spv::StorageClassOutput; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -201,13 +213,32 @@ namespace Tracy
 
 #pragma region Operations
 	template<typename T, bool Assemble>
+	inline var_t<T, Assemble>::var_t(var_t && _Other) :
+		Value(std::move(_Other.Value)),
+		var_decoration<Assemble>(std::forward<var_t>(_Other))
+	{
+	}
+
+	template<typename T, bool Assemble>
+	inline var_t<T, Assemble>::var_t(const var_t& _Other) :
+		var_decoration<Assemble>(_Other),
+		Value(_Other.Value)
+	{
+	}
+
+	template<typename T, bool Assemble>
 	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator=(const var_t& _Other) const
 	{
-		if constexpr(Assemble)
-		{
-			var_decoration<Assemble>::operator=(_Other);
-		}
+		var_decoration<Assemble>::operator=(_Other);
 		Value = _Other.Value;
+		return *this;
+	}
+
+	template<typename T, bool Assemble>
+	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator=(var_t && _Other) const
+	{
+		Value = std::move(_Other.Value);
+		var_decoration<Assemble>::operator=(std::forward<var_t>(_Other));
 		return *this;
 	}
 
@@ -224,6 +255,58 @@ namespace Tracy
 	inline const var_t<T, Assemble>& var_t<T, Assemble>::operator-=(const var_t<T, Assemble>& _Other) const
 	{
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
+	template<typename T, bool Assemble>
+	template<class ...Ts>
+	inline var_t<T, Assemble>::var_t(const Ts& ..._args) : 
+		var_decoration<Assemble>(),
+		Value(_args...)
+	{
+		if constexpr(Assemble)
+		{
+			kStorageClass = spv::StorageClassFunction;
+			Type = SPIRVType::FromType<T>();
+
+			uTypeHash = Type.GetHash(); // no need to add type, is resolved by constant already
+
+			// pointer type
+			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
+
+			// OpVariable:
+			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
+			// Result Type must be an OpTypePointer. Its Type operand is the type of object in memory.
+			// Storage Class is the Storage Class of the memory holding the object. It cannot be Generic.
+			// Initializer is optional. If Initializer is present, it will be the initial value of the variable’s memory content.
+			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
+			// Initializer must havethe same type as the type pointed to by Result Type.
+
+			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
+				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
+
+			// constant init
+			if constexpr(sizeof...(_args) > 0u && std::is_arithmetic<std::decay_t<T>>::value)
+			{
+				SPIRVConstant Constant;
+				// create variable constant
+				if constexpr(std::is_same<std::decay_t<T>, bool>::value)
+				{
+					Constant = SPIRVConstant(Value ? spv::OpConstantTrue : spv::OpConstantFalse);
+				}
+				else
+				{
+					Constant = SPIRVConstant::Make(_args...);
+				}
+
+				const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
+
+				OpVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash)); // initializer
+			}
+
+			uVarId = GlobalAssembler.AddOperation(OpVar);
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------

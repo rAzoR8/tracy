@@ -16,21 +16,21 @@ namespace Tracy
 		void OnInitInOutVariables() final;
 		void OnExecute() final;
 
-		struct B
-		{
-			SPVStruct
-			var_t<float4_t, true> f4;
-		};
+		//struct B
+		//{
+		//	SPVStruct
+		//	var_t<float4_t, true> f4;
+		//};
 
-		struct A
-		{
-			SPVStruct
-			B b;
+		//struct A
+		//{
+		//	SPVStruct
+		//	B b;
 
-			var_t<float2_t, true> f2;
-			var_t<float3_t, true> f3;
-			float k;
-		} TestStruct;
+		//	var_t<float2_t, true> f2;
+		//	var_t<float3_t, true> f3;
+		//	float k;
+		//} TestStruct;
 
 		var_in<float> InputScale;
 		var_in<float3_t> InputPos;
@@ -42,17 +42,15 @@ namespace Tracy
 	template<bool Assemble>
 	inline void ExampleProg<Assemble>::OnInitInOutVariables()
 	{
-		InitVar(InputScale, InputPos, OutputColor);
-		InitStruct(TestStruct);
+		//InitStruct(TestStruct);
 		InputScale.Decorate(SPIRVDecoration(spv::DecorationDescriptorSet, 0u));
 	}
 
 	template<bool Assemble>
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
-		auto unused = make_var(1, 2);
-		float3 t = make_var(1.f, 1.f ,1.f);
-		float3 c = make_var(1.f, 2.f, 3.f);
+		float3 t = float3(1.f, 1.f ,1.f);
+		float3 c = float3(1.f, 2.f, 3.f);
 
 		If(t == c)
 		{
@@ -60,7 +58,7 @@ namespace Tracy
 		} Else	{
 			OutputColor = normalize(t - c);
 
-			c += t * OutputColor * sqrt(make_var(2.f));
+			c += t * OutputColor * sqrt(f32(4.f));
 
 			var<bool> b = (c == t);
 

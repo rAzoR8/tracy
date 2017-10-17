@@ -87,12 +87,6 @@ namespace Tracy
 		virtual void OnInitInOutVariables() {};
 		virtual void OnExecute() {};
 
-		template <class... Ts, class T = va_type_t<Ts...>>
-		var_t<T, Assemble> make_var(const Ts& ..._Val);
-
-		template <class T>
-		var_t<T, Assemble> make_var();
-
 		template <class LambdaFunc>
 		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
@@ -122,10 +116,7 @@ namespace Tracy
 #define ELSE }).AddBranch([=]() {
 #endif // !Else
 #pragma endregion
-
-		template <class T, class... Ts>
-		void InitVar(var<T>& _FirstVar, var<Ts>&... _Rest);
-
+		
 		template <class S>
 		void InitStruct(S& _Struct);
 
@@ -156,95 +147,7 @@ namespace Tracy
 
 		OnExecute();
 	}
-	//---------------------------------------------------------------------------------------------------
 
-	// problems to solve:
-	// Structs! this function only handles fundamental types (int, float, vec, mat)
-	// Global struct names are omited (for CBuffers / uniforms):
-	// Struct SType { float member1;}
-	// SType CBStuff;
-	// void func(...) { return color * member1;}
-
-	// also vectors etc: var<float3>, SPIRVConstant::Make(_Val) does not work with that 
-	// Solutions:
-	//	1)	make overloads for common types? SPIRVConstant::Make<float3>(const float3& vec)
-	//		->Not good, does not make use of variadic arguments
-	//	2) create a constexpr / SFINAE that converts Ts... to one type: va_type_t<Ts...>
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template<class ...Ts, class T>
-	inline var_t<T, Assemble> SPIRVProgram<Assemble>::make_var(const Ts& ..._Val)
-	{
-		var_t<T, Assemble> new_var(_Val...);
-
-		if constexpr(Assemble)
-		{
-			new_var.kStorageClass = spv::StorageClassFunction;
-
-			SPIRVConstant Constant;
-			// create variable constant
-			if constexpr(std::is_same<std::decay_t<T>, bool>::value)
-			{
-				Constant = SPIRVConstant(new_var.Value ? spv::OpConstantTrue : spv::OpConstantFalse);
-			}
-			else
-			{
-				Constant = SPIRVConstant::Make(_Val...);
-			}
-			const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
-
-			// composite type
-			const SPIRVType& Type(Constant.GetCompositeType());
-			new_var.uTypeHash  = Type.GetHash(); // no need to add type, is resolved by constant already
-
-			// pointer type
-			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
-
-			// OpVariable:
-			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
-			// Result Type must be an OpTypePointer. Its Type operand is the type of object in memory.
-			// Storage Class is the Storage Class of the memory holding the object. It cannot be Generic.
-			// Initializer is optional. If Initializer is present, it will be the initial value of the variable’s memory content.
-			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
-			// Initializer must havethe same type as the type pointed to by Result Type.
-
-			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
-			{
-				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(new_var.kStorageClass)), // variable storage location
-				SPIRVOperand(kOperandType_Constant, uConstHash) // initializer
-			});
-
-			new_var.uVarId = GlobalAssembler.AddOperation(OpVar);
-		}
-
-		return new_var;
-	}
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template<class T>
-	inline var_t<T, Assemble> SPIRVProgram<Assemble>::make_var()
-	{
-		var_t<T, Assemble> new_var;
-
-		if constexpr(Assemble)
-		{
-			new_var.kStorageClass = spv::StorageClassFunction;
-
-			const SPIRVType Type = SPIRVType::FromType<T>();
-			new_var.uTypeHash = Type.GetHash();
-
-			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, new_var.kStorageClass));
-
-			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
-				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(new_var.kStorageClass))); // variable storage location
-			
-			new_var.uVarId = GlobalAssembler.AddOperation(OpVar);
-		}
-
-		return new_var;
-	}
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
@@ -313,41 +216,6 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	template<bool Assemble>
-	template<class T, class ...Ts>
-	inline void SPIRVProgram<Assemble>::InitVar(var<T>& _FirstVar, var<Ts>& ..._Rest)
-	{
-		if constexpr(Assemble)
-		{
-			// create types
-			SPIRVType Type(SPIRVType::FromType<T>());
-			_FirstVar.uTypeHash = GlobalAssembler.AddType(Type);
-
-			HASSERT(_FirstVar.kStorageClass == spv::StorageClassInput ||
-				_FirstVar.kStorageClass == spv::StorageClassOutput, "Invalid variable storage class");
-
-			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, _FirstVar.kStorageClass));
-
-			// OpVariable:
-			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
-			// Result Type must be an OpTypePointer. Its Type operand is the type of object in memory.
-			// Storage Class is the Storage Class of the memory holding the object. It cannot be Generic.
-			// Initializer is optional. If Initializer is present, it will be the initial value of the variable’s memory content.
-			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
-			// Initializer must havethe same type as the type pointed to by Result Type.
-
-			// create var instruction
-			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash // result type
-				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_FirstVar.kStorageClass))); // variable storage location
-			
-			_FirstVar.uVarId = GlobalAssembler.AddOperation(OpVar);
-			_FirstVar.uResultId = HUNDEFINED32;
-
-			// create rest of the variables
-			if constexpr(sizeof...(Ts) > 0)
-				InitVar(_Rest...);
-		}
-	}
 	template<bool Assemble>
 	template<class S>
 	inline void SPIRVProgram<Assemble>::InitStruct(S& _Struct)

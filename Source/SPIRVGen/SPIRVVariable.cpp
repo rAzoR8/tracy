@@ -69,6 +69,61 @@ uint32_t var_decoration<true>::Load() const
 	return uResultId;
 }
 //---------------------------------------------------------------------------------------------------
+var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
+	uVarId(HUNDEFINED32), // treat as intermediate
+	uResultId(_Other.uResultId),
+	uLastStoredId(_Other.uLastStoredId),
+	uBaseId(_Other.uBaseId),
+	kStorageClass(_Other.kStorageClass),
+	uTypeHash(_Other.uTypeHash),
+	AccessChain(_Other.AccessChain),
+	Type(_Other.Type),
+	Decorations(_Other.Decorations)
+{
+}
+//---------------------------------------------------------------------------------------------------
+
+var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
+	uVarId(_Other.uVarId),
+	uResultId(_Other.uResultId),
+	uLastStoredId(_Other.uLastStoredId),
+	uBaseId(_Other.uBaseId),
+	kStorageClass(_Other.kStorageClass),
+	uTypeHash(_Other.uTypeHash),
+	AccessChain(std::move(_Other.AccessChain)),
+	Type(std::move(_Other.Type)),
+	Decorations(std::move(_Other.Decorations))
+{
+	_Other.uVarId = HUNDEFINED32;
+	_Other.uResultId = HUNDEFINED32;
+	_Other.uLastStoredId = HUNDEFINED32;
+	_Other.kStorageClass = spv::StorageClassMax;
+	_Other.uTypeHash = kUndefinedSizeT;
+	_Other.uBaseId = HUNDEFINED32;
+}
+//---------------------------------------------------------------------------------------------------
+
+const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const
+{
+	HASSERT(uTypeHash == kUndefinedSizeT || uTypeHash == _Other.uTypeHash, "Type mismatch!");
+
+	uVarId = _Other.uVarId; // might become actual var
+	uResultId = _Other.uResultId;
+	kStorageClass = _Other.kStorageClass;
+	uLastStoredId = _Other.uLastStoredId;
+	uBaseId = _Other.uBaseId;
+
+	_Other.uVarId = HUNDEFINED32;
+	_Other.uResultId = HUNDEFINED32;
+	_Other.uLastStoredId = HUNDEFINED32;
+	_Other.kStorageClass = spv::StorageClassMax;
+	_Other.uTypeHash = kUndefinedSizeT;
+	_Other.uBaseId = HUNDEFINED32;
+
+	return *this;
+}
+
+//---------------------------------------------------------------------------------------------------
 
 const var_decoration<true>& var_decoration<true>::operator=(const var_decoration<true>& _Other) const
 {
@@ -105,11 +160,13 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 		uVarId = _Other.uVarId; // might become actual var
 		uResultId = _Other.uResultId;
 		uLastStoredId = _Other.uLastStoredId;
+		uBaseId = _Other.uBaseId;
 		kStorageClass = _Other.kStorageClass;
 	}
 
 	return *this;
 }
+
 //---------------------------------------------------------------------------------------------------
 
 var_decoration<true>::~var_decoration()
