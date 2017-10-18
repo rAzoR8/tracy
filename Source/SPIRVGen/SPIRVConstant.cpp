@@ -52,13 +52,18 @@ SPIRVConstant::SPIRVConstant(const SPIRVConstant& _Other) :
 {
 }
 //---------------------------------------------------------------------------------------------------
-size_t SPIRVConstant::GetHash() const
+size_t SPIRVConstant::GetHash(const bool _bParent) const
 {
-	size_t uHash = m_CompositeType.GetHash();
+	size_t uHash = _bParent ? m_CompositeType.GetHash() : kUndefinedSizeT;
 
 	for (const uint32_t& cval : m_Constants)
 	{
 		uHash = hlx::CombineHashes(uHash, cval);
+	}
+
+	for (const SPIRVConstant& Component : m_Components)
+	{
+		uHash = hlx::CombineHashes(uHash, Component.GetHash(false));
 	}
 
 	return uHash;

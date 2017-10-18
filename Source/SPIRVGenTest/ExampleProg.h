@@ -32,7 +32,7 @@ namespace Tracy
 		//	float k;
 		//} TestStruct;
 
-		//var_in<float> InputScale;
+		var_in<float> InputScale;
 		//var_in<float3_t> InputPos;
 		var_out<float3_t> OutputColor;
 	private:
@@ -50,23 +50,23 @@ namespace Tracy
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
 		float3 t = float3(1.f, 1.f ,1.f);
-		//float3 c = float3(1.f, 2.f, 3.f);
-		OutputColor = t;
+		float3 c = float3(1.f, 2.f, 3.f);
+		OutputColor = t + c * InputScale;
 
-		//If(t == c)
-		//{
-		//	OutputColor = t + c * InputScale;
-		//} Else	{
-		//	OutputColor = normalize(t - c);
-
-		//	c += t * OutputColor * sqrt(f32(4.f));
-
-		//	var<bool> b = (c == t);
-
-		//	If(b) {
-		//		OutputColor *= OutputColor;
-		//	});			
-		//});
+//		If(t == c)
+//		{
+//			OutputColor = t + c * InputScale;
+//		} Else	{
+///*			OutputColor = normalize(t - c);
+//
+//			c += t * OutputColor * sqrt(f32(4.f));
+//
+//			var<bool> b = (c == t);
+//
+//			If(b) {
+//				OutputColor *= OutputColor;
+//			});	*/		
+//		});
 	}
 }; // !Tracy
 

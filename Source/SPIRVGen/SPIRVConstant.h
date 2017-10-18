@@ -28,7 +28,7 @@ namespace Tracy
 
 		SPIRVConstant(const SPIRVConstant& _Other);
 
-		size_t GetHash() const;
+		size_t GetHash(const bool _bParent = true) const;
 
 		const spv::Op& GetType() const;
 		const SPIRVType& GetCompositeType() const;

@@ -322,6 +322,8 @@ namespace Tracy
 					Constant = SPIRVConstant::Make(_args...);
 				}
 
+				HASSERT(uTypeHash == Constant.GetCompositeType().GetHash(), "Base type and constant type mismatch");
+
 				const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
 
 				OpVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash)); // initializer
