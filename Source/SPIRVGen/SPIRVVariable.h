@@ -352,7 +352,7 @@ namespace Tracy
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator*=(const var_t<U, Assemble, C1>& _Other) const
 	{
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
-		return make_op2(_Other, [](T& v1, const T& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
+		return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -361,7 +361,7 @@ namespace Tracy
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const var_t<U, Assemble, C1>& _Other) const
 	{
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
-		return make_op2(_Other, [](T& v1, const T& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
+		return make_op2(_Other, [](T& v1, const U& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
 	//---------------------------------------------------------------------------------------------------
 

@@ -49,9 +49,9 @@ namespace Tracy
 	template<bool Assemble>
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
-		float3 t = float3(1.f, 1.f ,1.f);
-		float3 c = float3(1.f, 2.f, 3.f);
-		OutputColor = t + c * InputScale;
+		//float3 t = float3(1.f, 1.f ,1.f);
+		//float3 c = float3(1.f, 2.f, 3.f);
+		OutputColor *= InputScale;
 
 //		If(t == c)
 //		{

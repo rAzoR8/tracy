@@ -467,20 +467,21 @@ void SPIRVAssembler::RemoveUnused()
 	};
 
 	// remove unused types
-	for (auto it = m_Types.begin(); it != m_Types.end();)
-	{
-		bool bUsed =
-			findInResultType(m_Variables, it->first) ||
-			findInResultType(m_Operations, it->first) ||
-			findInOperands(m_Operations, SPIRVOperand(kOperandType_Type, it->first));
-		if (bUsed == false)
-		{
-			it = m_Types.erase(it);
-		}
-		else
-		{
-			++it;
-		}
-	}
+	// can not remove the type because subtypes might still be needed
+	//for (auto it = m_Types.begin(); it != m_Types.end();)
+	//{
+	//	bool bUsed =
+	//		findInResultType(m_Variables, it->first) ||
+	//		findInResultType(m_Operations, it->first) ||
+	//		findInOperands(m_Operations, SPIRVOperand(kOperandType_Type, it->first));
+	//	if (bUsed == false)
+	//	{
+	//		it = m_Types.erase(it);
+	//	}
+	//	else
+	//	{
+	//		++it;
+	//	}
+	//}
 }
 //---------------------------------------------------------------------------------------------------
