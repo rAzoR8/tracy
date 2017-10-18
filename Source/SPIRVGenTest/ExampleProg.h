@@ -49,24 +49,23 @@ namespace Tracy
 	template<bool Assemble>
 	inline void ExampleProg<Assemble>::OnExecute()
 	{
-		//float3 t = float3(1.f, 1.f ,1.f);
-		//float3 c = float3(1.f, 2.f, 3.f);
-		OutputColor *= InputScale;
+		float3 t = float3(1.f, 1.f ,1.f);
+		float3 c = float3(1.f, 2.f, 3.f);
 
-//		If(t == c)
-//		{
-//			OutputColor = t + c * InputScale;
-//		} Else	{
-///*			OutputColor = normalize(t - c);
-//
-//			c += t * OutputColor * sqrt(f32(4.f));
-//
-//			var<bool> b = (c == t);
-//
-//			If(b) {
-//				OutputColor *= OutputColor;
-//			});	*/		
-//		});
+		If(t == c)
+		{
+			OutputColor = t + c * InputScale;
+		} Else	{
+			OutputColor = normalize(t - c);
+
+			c += t * OutputColor * sqrt(f32(4.f));
+
+			var<bool> b = (c == t);
+
+			If(b) {
+				OutputColor *= OutputColor;
+			});			
+		});
 	}
 }; // !Tracy
 

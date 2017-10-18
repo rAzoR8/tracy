@@ -34,6 +34,14 @@ SPIRVModule SPIRVAssembler::Assemble(
 
 	Resolve();
 
+	m_Operations.clear();
+	m_Constants.clear();
+	m_Types.clear();
+
+	m_uVarId = 0u;
+	m_Variables.clear();
+	m_Decorations.clear();
+
 	SPIRVModule Module(m_uResultId + 1u);
 
 	Module.Write(m_Instructions);
@@ -60,17 +68,9 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
 	m_Instructions.clear();
 	m_Definitions.clear();
 	m_TypeResolver.Reset();
-
-	m_Operations.clear();
-	m_Constants.clear();
-	m_Types.clear();
 	m_uInstrId = 0u;
-	m_pOpEntryPoint = nullptr;
 	m_uFunctionLableIndex = 0u;
-
-	m_uVarId = 0u;
-	m_Variables.clear();
-	m_Decorations.clear();
+	m_pOpEntryPoint = nullptr;
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader)));
