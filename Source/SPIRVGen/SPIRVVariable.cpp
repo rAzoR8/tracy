@@ -72,7 +72,6 @@ uint32_t var_decoration<true>::Load() const
 }
 //---------------------------------------------------------------------------------------------------
 var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
-	//uVarId(HUNDEFINED32), // treat as intermediate
 	uVarId(_Other.uVarId),
 	uResultId(_Other.uResultId),
 	uLastStoredId(_Other.uLastStoredId),
@@ -83,8 +82,6 @@ var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 	Type(_Other.Type),
 	Decorations(_Other.Decorations)
 {
-	//Load();
-	//Store();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -137,24 +134,9 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 	{
 		HASSERT(uTypeHash == _Other.uTypeHash, "Variable type mismatch");
 
-		// source variable has not been loaded yet
-		if (_Other.uResultId == HUNDEFINED32)
-		{
-			_Other.uResultId = GlobalAssembler.AddOperation(
-				SPIRVOperation(spv::OpLoad, uTypeHash, // result tpye
-				SPIRVOperand(kOperandType_Variable, _Other.uVarId)));
-		}
-	
-		// create store
-		GlobalAssembler.AddOperation(SPIRVOperation(spv::OpStore,
-		{
-			SPIRVOperand(kOperandType_Variable, uVarId), // destination
-			SPIRVOperand(kOperandType_Intermediate, _Other.uResultId) // source
-		}));
-		// storage class stays the same
-
-		uResultId = _Other.uResultId;
-		uLastStoredId = _Other.uResultId;
+		_Other.Load();// load source
+		uResultId = _Other.uResultId; // get result
+		Store(); // store result
 	}
 	else // intermediate
 	{
