@@ -43,11 +43,13 @@ uint32_t var_decoration<true>::Load() const
 			OpAccessChain.AddOperand(SPIRVOperand(kOperandType_Constant, GlobalAssembler.AddConstant(SPIRVConstant::Make(uMemberIdx))));
 		}
 
-		uVarId= GlobalAssembler.AddOperation(OpAccessChain);
+		uVarId = GlobalAssembler.AddOperation(OpAccessChain);
 	}
 
-	if (uResultId != HUNDEFINED32 || uVarId == HUNDEFINED32)
+	if (uResultId != HUNDEFINED32)
 		return uResultId;
+
+	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");
 
 	// instantiate decorations
 	for (const SPIRVDecoration& Decoration : Decorations)
@@ -81,6 +83,8 @@ var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 	Type(_Other.Type),
 	Decorations(_Other.Decorations)
 {
+	//Load();
+	//Store();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -98,7 +102,6 @@ var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
 	_Other.uVarId = HUNDEFINED32;
 	_Other.uResultId = HUNDEFINED32;
 	_Other.uLastStoredId = HUNDEFINED32;
-	_Other.kStorageClass = spv::StorageClassMax;
 	_Other.uTypeHash = kUndefinedSizeT;
 	_Other.uBaseId = HUNDEFINED32;
 }
@@ -110,14 +113,13 @@ const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>
 
 	uVarId = _Other.uVarId; // might become actual var
 	uResultId = _Other.uResultId;
-	kStorageClass = _Other.kStorageClass;
+	//kStorageClass = _Other.kStorageClass; storage class cant change
 	uLastStoredId = _Other.uLastStoredId;
 	uBaseId = _Other.uBaseId;
 
 	_Other.uVarId = HUNDEFINED32;
 	_Other.uResultId = HUNDEFINED32;
 	_Other.uLastStoredId = HUNDEFINED32;
-	_Other.kStorageClass = spv::StorageClassMax;
 	_Other.uTypeHash = kUndefinedSizeT;
 	_Other.uBaseId = HUNDEFINED32;
 
@@ -162,7 +164,7 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 		uResultId = _Other.uResultId;
 		uLastStoredId = _Other.uLastStoredId;
 		uBaseId = _Other.uBaseId;
-		kStorageClass = _Other.kStorageClass;
+		//kStorageClass = _Other.kStorageClass;
 	}
 
 	return *this;

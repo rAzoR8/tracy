@@ -11,12 +11,11 @@ namespace Tracy
 	template <class U, class V, class OpFunc, bool Assemble, spv::StorageClass C1, spv::StorageClass C2,  class T = std::invoke_result_t<OpFunc, const U&, const V&>, class ...Ops >
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_op(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r, const OpFunc& _OpFunc, const Ops ..._Ops)
 	{
-		var_t<T, Assemble, spv::StorageClassFunction> var(_OpFunc(l.Value, r.Value));
+		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate(), _OpFunc(l.Value, r.Value));
 
 		if constexpr(Assemble)
 		{
 			LoadVariables(l, r);
-			var.uTypeHash = GlobalAssembler.AddType(SPIRVType::FromType<T>()); // is this needed?
 
 			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
@@ -36,12 +35,11 @@ namespace Tracy
 	template <class U, class OpFunc, bool Assemble, spv::StorageClass C1, class T = std::invoke_result_t<OpFunc, const U&>, class ...Ops >
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_ext_op1(const var_t<U, Assemble, C1>& l, const OpFunc& _OpFunc, const std::string& _sExt, const Ops ..._Ops)
 	{
-		var_t<T, Assemble, spv::StorageClassFunction> var(_OpFunc(l.Value));
+		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate(), _OpFunc(l.Value));
 
 		if constexpr(Assemble)
 		{
 			l.Load();
-			var.uTypeHash = GlobalAssembler.AddType(SPIRVType::FromType<T>());
 
 			uint32_t kType = OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");

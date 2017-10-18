@@ -27,7 +27,7 @@ namespace Tracy
 		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
 		mutable uint32_t uLastStoredId = HUNDEFINED32;
 		mutable uint32_t uBaseId = HUNDEFINED32; // base VarId from parent structure
-		mutable spv::StorageClass kStorageClass = spv::StorageClassMax;
+		const spv::StorageClass kStorageClass;
 		mutable size_t uTypeHash = kUndefinedSizeT;
 		std::vector<uint32_t> AccessChain;
 
@@ -55,13 +55,20 @@ namespace Tracy
 		var_decoration(Ts&& ... _args) {} // consume arguments
 	};
 
-	template <typename T, bool Assemble, spv::StorageClass Class> // = spv::StorageClassFunction
+	struct TIntermediate {};
+
+	template <typename T, bool Assemble, spv::StorageClass Class>
 	struct var_t : public var_decoration<Assemble>
 	{
 		typedef void var_tag;
 
+		// generates OpVar
 		template <class... Ts>
 		var_t(const Ts& ... _args);
+		
+		// does not generate OpVar
+		template <class... Ts>
+		var_t(TIntermediate, const Ts& ... _args);
 
 		template <spv::StorageClass C1>
 		var_t(var_t<T, Assemble, C1>&& _Other);
@@ -103,6 +110,11 @@ namespace Tracy
 	{
 		template <class... Ts>
 		var_in_t(Ts&& ... _args) : var_t<T, Assemble, spv::StorageClassInput>(std::forward<Ts>(_args)...){}
+
+		//template <spv::StorageClass C1>
+		//const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
+		//template <spv::StorageClass C1>
+		//const var_in_t& operator=(var_t<T, Assemble, C1>&& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(std::forward<var_t<T, Assemble, spv::StorageClassInput>>(_Other)); return *this; }
 	};
 
 	template <typename T, bool Assemble>
@@ -110,6 +122,11 @@ namespace Tracy
 	{
 		template <class... Ts>
 		var_out_t(Ts&& ... _args) : var_t<T, Assemble, spv::StorageClassOutput>(std::forward<Ts>(_args)...) {}
+
+		//template <spv::StorageClass C1>
+		//const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other); return *this; }
+		//template <spv::StorageClass C1>
+		//const var_out_t& operator=(var_t<T, Assemble, C1>&& _Other) const { var_t<T, Assemble, spv::StorageClassOutput>::operator=(std::forward<var_t<T, Assemble, spv::StorageClassOutput>>(_Other)); return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -278,11 +295,11 @@ namespace Tracy
 		var_decoration<Assemble>(C1),
 		Value(_args...)
 	{
+		constexpr size_t uArgs = sizeof...(_args);
 		if constexpr(Assemble)
 		{
 			Type = SPIRVType::FromType<T>();
-
-			uTypeHash = Type.GetHash(); // no need to add type, is resolved by constant already
+			uTypeHash = Type.GetHash();
 
 			// pointer type
 			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
@@ -298,8 +315,7 @@ namespace Tracy
 			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
 				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
 
-			// constant init
-			if constexpr(sizeof...(_args) > 0u && std::is_arithmetic<std::decay_t<T>>::value)
+			if constexpr(uArgs > 0u)
 			{
 				SPIRVConstant Constant;
 				// create variable constant
@@ -318,6 +334,19 @@ namespace Tracy
 			}
 
 			uVarId = GlobalAssembler.AddOperation(OpVar);
+		}
+	}
+
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<class ...Ts>
+	inline var_t<T, Assemble, Class>::var_t(TIntermediate, const Ts& ..._args) :
+		var_decoration<Assemble>(Class),
+		Value(_args...)
+	{
+		if constexpr(Assemble)
+		{
+			Type = SPIRVType::FromType<T>();
+			uTypeHash = GlobalAssembler.AddType(Type);
 		}
 	}
 
