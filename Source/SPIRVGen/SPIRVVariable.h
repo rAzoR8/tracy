@@ -110,8 +110,8 @@ namespace Tracy
 	{
 		template <spv::StorageClass C1>
 		const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
-		template <spv::StorageClass C1>
-		const var_in_t& operator=(var_t<T, Assemble, C1>&& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(std::forward<var_t<T, Assemble, spv::StorageClassInput>>(_Other)); return *this; }
+		//template <spv::StorageClass C1>
+		//const var_in_t& operator=(var_t<T, Assemble, C1>&& _Other) const { this->operator=(std::forward<var_t<T, Assemble, spv::StorageClassInput>>(_Other)); return *this; }
 	};
 
 	template <typename T, bool Assemble>
@@ -119,8 +119,12 @@ namespace Tracy
 	{
 		template <spv::StorageClass C1>
 		const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const {var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
-		template <spv::StorageClass C1>
-		const var_out_t& operator=(var_t<T, Assemble, C1>&& _Other) const { var_t<T, Assemble, spv::StorageClassOutput>::operator=(std::forward<var_t<T, Assemble, spv::StorageClassOutput>>(_Other)); return *this; }
+		//template <spv::StorageClass C1>
+		//const var_out_t& operator=(var_t<T, Assemble, C1>&& _Other) const 
+		//{
+		//	this->operator=(std::forward<var_t<T, Assemble, spv::StorageClassOutput>>(_Other));
+		//	return *this;
+		//}
 	};
 
 	//---------------------------------------------------------------------------------------------------
