@@ -7,20 +7,6 @@
 
 namespace Tracy
 {
-	struct TSPVStructTag {};
-
-#ifndef SPVStruct
-#define SPVStruct typedef TSPVStructTag SPVStructTag;
-#endif
-
-	template< class, class = std::void_t<> >
-	struct has_spv_tag : std::false_type { };
-
-	template< class T >
-	struct has_spv_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
-
-	constexpr uint32_t kAlignmentSize = 16u;
-
 	//template <bool Assemble>
 	class SPIRVStruct
 	{
@@ -125,9 +111,7 @@ namespace Tracy
 	private:
 		SPIRVType m_Type;
 
-		spv::StorageClass m_kStorageClass = spv::StorageClassUniform;
-		uint32_t m_uMemerOffset = 0u;
-		uint32_t m_uAlignmentBoundary = kAlignmentSize;
+		
 		uint32_t m_uVarId = HUNDEFINED32;
 	};
 	//---------------------------------------------------------------------------------------------------

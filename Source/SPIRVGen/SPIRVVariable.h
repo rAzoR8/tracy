@@ -8,6 +8,8 @@
 
 namespace Tracy
 {
+	constexpr uint32_t kAlignmentSize = 16u;
+
 	template <bool Assemble>
 	struct var_decoration
 	{
@@ -29,7 +31,12 @@ namespace Tracy
 		mutable uint32_t uBaseId = HUNDEFINED32; // base VarId from parent structure
 		const spv::StorageClass kStorageClass;
 		mutable size_t uTypeHash = kUndefinedSizeT;
+
+		// for structs
 		std::vector<uint32_t> AccessChain;
+		SPIRVOperation* pVarOp = nullptr;
+		uint32_t m_uMemerOffset = 0u;
+		uint32_t m_uAlignmentBoundary = kAlignmentSize;
 
 		SPIRVType Type;
 		std::vector<SPIRVDecoration> Decorations;
@@ -54,6 +61,18 @@ namespace Tracy
 		template <class... Ts>
 		var_decoration(Ts&& ... _args) {} // consume arguments
 	};
+
+	struct TSPVStructTag {};
+
+#ifndef SPVStruct
+#define SPVStruct typedef Tracy::TSPVStructTag SPVStructTag;
+#endif
+
+	template< class, class = std::void_t<> >
+	struct has_spv_tag : std::false_type { };
+
+	template< class T >
+	struct has_spv_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
 
 	struct TIntermediate {};
 
@@ -93,6 +112,8 @@ namespace Tracy
 
 		const var_t& operator!() const;
 
+		const T* operator->() { return &Value; }
+
 		mutable T Value;
 
 	private:
@@ -110,8 +131,6 @@ namespace Tracy
 	{
 		template <spv::StorageClass C1>
 		const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
-		//template <spv::StorageClass C1>
-		//const var_in_t& operator=(var_t<T, Assemble, C1>&& _Other) const { this->operator=(std::forward<var_t<T, Assemble, spv::StorageClassInput>>(_Other)); return *this; }
 	};
 
 	template <typename T, bool Assemble>
@@ -119,12 +138,6 @@ namespace Tracy
 	{
 		template <spv::StorageClass C1>
 		const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const {var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
-		//template <spv::StorageClass C1>
-		//const var_out_t& operator=(var_t<T, Assemble, C1>&& _Other) const 
-		//{
-		//	this->operator=(std::forward<var_t<T, Assemble, spv::StorageClassOutput>>(_Other));
-		//	return *this;
-		//}
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -296,7 +309,15 @@ namespace Tracy
 		constexpr size_t uArgs = sizeof...(_args);
 		if constexpr(Assemble)
 		{
-			Type = SPIRVType::FromType<T>();
+			if constexpr(has_spv_tag<T>::value)
+			{
+				static_assert(uArgs == 0, "spv struct can't be value initialized");
+			}
+			else
+			{
+				Type = SPIRVType::FromType<T>();
+			}
+
 			uTypeHash = Type.GetHash();
 
 			// pointer type
@@ -333,7 +354,7 @@ namespace Tracy
 				OpVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash)); // initializer
 			}
 
-			uVarId = GlobalAssembler.AddOperation(OpVar);
+			uVarId = GlobalAssembler.AddOperation(OpVar, &pVarOp);
 		}
 	}
 

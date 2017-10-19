@@ -13,47 +13,50 @@ namespace Tracy
 		ExampleProg() : SPIRVProgram<Assemble>(){};
 		~ExampleProg() {};
 
-		// functor
-		inline void operator()()
+		struct B
 		{
-			float3 t = float3(1.f, 1.f, 1.f);
-			float3 c = float3(1.f, 2.f, 3.f);
-
-			If(t == c)
-			{
-				OutputColor = t + c * InputScale;
-			} Else{
-				OutputColor = normalize(t - c);
-
-				c += t * OutputColor * sqrt(f32(4.f));
-
-				var<bool> b = (c == t);
-
-				If(b) {
-					OutputColor *= OutputColor;
-				});
-			});
+			SPVStruct
+			float3 member;
 		};
-
-		//struct B
-		//{
-		//	SPVStruct
-		//	var_t<float4_t, true> f4;
-		//};
 
 		//struct A
 		//{
 		//	SPVStruct
 		//	B b;
 
-		//	var_t<float2_t, true> f2;
-		//	var_t<float3_t, true> f3;
+		//	float2 f2;
+		//	float3 f3;
 		//	float k;
-		//} TestStruct;
+		//};
 
-		var_in<float> InputScale;
+		var_t<B, Assemble, spv::StorageClassUniform> TestStruct;
+
+		//var_in<float> InputScale;
 		//var_in<float3_t> InputPos;
 		var_out<float3_t> OutputColor;
+		// functor
+		inline void operator()()
+		{
+			//float3 t = float3(1.f, 1.f, 1.f);
+			//float3 c = float3(1.f, 2.f, 3.f);
+
+			OutputColor = TestStruct->member;
+
+			//If(t == c)
+			//{
+			//	OutputColor = t + c * InputScale;
+			//} Else{
+			//	OutputColor = normalize(t - c);
+
+			//	c += t * OutputColor * sqrt(f32(4.f));
+
+			//	var<bool> b = (c == t);
+
+			//	If(b) {
+			//		OutputColor *= OutputColor;
+			//	});
+			//});
+		};
 	private:
 
 	};
