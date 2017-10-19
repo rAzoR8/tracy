@@ -5,9 +5,9 @@ using namespace Tracy;
 
 int main(int argc, char* argv[])
 {
-	ExampleProg<true> prog;
+	using TProg = ExampleProg<true>;
 
-	SPIRVModule code = GlobalAssembler.Assemble(prog);
+	SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
 	code.Save("test.spv");
 
 	system("spirv-dis test.spv");

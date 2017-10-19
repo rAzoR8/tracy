@@ -80,13 +80,10 @@ namespace Tracy
 		SPIRVProgram();
 		~SPIRVProgram();
 
-		void Execute();
+		template <class TProg, class... Ts>
+		void Execute(Ts&& ..._args);
 
 	protected:
-		// Only all InitVar from within this function:
-		virtual void OnInitInOutVariables() {};
-		virtual void OnExecute() {};
-
 		template <class LambdaFunc, spv::StorageClass Class>
 		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble, Class>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
@@ -117,9 +114,6 @@ namespace Tracy
 #endif // !Else
 #pragma endregion
 		
-		template <class S>
-		void InitStruct(S& _Struct);
-
 	private:
 		BranchNode<Assemble> m_BranchNode; //non assemble case
 		std::vector<BranchNode<Assemble>> m_BranchNodes;
@@ -141,11 +135,12 @@ namespace Tracy
 	}
 
 	template<bool Assemble>
-	inline void SPIRVProgram<Assemble>::Execute()
+	template <class TProg, class... Ts>
+	inline void SPIRVProgram<Assemble>::Execute(Ts&& ..._args)
 	{
 		m_BranchNodes.clear();
 
-		OnExecute();
+		((TProg*)this)->operator()(std::forward<Ts>(_args)...);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -212,18 +207,6 @@ namespace Tracy
 		}
 
 		return m_BranchNode;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template<class S>
-	inline void SPIRVProgram<Assemble>::InitStruct(S& _Struct)
-	{
-		if constexpr(Assemble)
-		{
-			SPIRVStruct init(_Struct);
-		}
 	}
 
 	//---------------------------------------------------------------------------------------------------

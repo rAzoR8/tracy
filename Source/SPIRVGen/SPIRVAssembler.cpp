@@ -16,22 +16,8 @@ SPIRVAssembler::~SPIRVAssembler()
 }
 //---------------------------------------------------------------------------------------------------
 
-SPIRVModule SPIRVAssembler::Assemble(
-	SPIRVProgram<true>& _EntryPoint,
-	const spv::ExecutionModel _kModel,
-	const spv::ExecutionMode _kMode,
-	const std::vector<std::string>& _Extensions)
+SPIRVModule SPIRVAssembler::Assemble()
 {
-	m_Extensions = _Extensions;
-
-	Init(_kModel);
-
-	_EntryPoint.OnInitInOutVariables();
-
-	FunctionPreamble(_kMode);
-
-	_EntryPoint.Execute();
-
 	Resolve();
 
 	m_Operations.clear();
@@ -41,6 +27,8 @@ SPIRVModule SPIRVAssembler::Assemble(
 	m_uVarId = 0u;
 	m_Variables.clear();
 	m_Decorations.clear();
+
+	//m_pProgram.reset();
 
 	SPIRVModule Module(m_uResultId + 1u);
 
@@ -62,7 +50,7 @@ uint32_t SPIRVAssembler::GetExtensionId(const std::string& _sExt)
 }
 //---------------------------------------------------------------------------------------------------
 
-void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
+void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions)
 {
 	m_uResultId = 1u;
 	m_Instructions.clear();
@@ -78,7 +66,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
 	// OpExtension (unused)
 
 	// OpExtInstImport
-	for(const std::string& sExt : m_Extensions)
+	for(const std::string& sExt : _Extensions)
 	{
 		uint32_t uId = AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString(sExt)));
 		m_ExtensionIds[sExt] = uId;
@@ -92,10 +80,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel)
 	AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)), &m_pOpEntryPoint);
 
 	AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode);
-}
-//---------------------------------------------------------------------------------------------------
-void SPIRVAssembler::FunctionPreamble(const spv::ExecutionMode _kMode)
-{
+
 	// add types for entry point function
 	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
 
@@ -119,6 +104,7 @@ void SPIRVAssembler::FunctionPreamble(const spv::ExecutionMode _kMode)
 	//OpFunctionParameter not needed since OpEntryPoint resolves them
 	m_uFunctionLableIndex = AddOperation(SPIRVOperation(spv::OpLabel));
 }
+
 //---------------------------------------------------------------------------------------------------
 
 void SPIRVAssembler::Resolve()

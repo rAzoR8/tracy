@@ -21,12 +21,28 @@ namespace Tracy
 	public:
 		SPIRVAssembler();
 		~SPIRVAssembler();
-		
-		SPIRVModule Assemble(
-			SPIRVProgram<true>& _EntryPoint,
+
+		// todo: check if SPIRVProgam<true> is base of TProg with enable if
+		// also check if TProg has a function operator / is callable
+		template <class TProg, class... Ts>
+		void InitializeProgram(
 			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
 			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
-			const std::vector<std::string>& _Extensions = { ExtGLSL450 });
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
+			Ts&& ..._args);
+
+		template <class TProg, class... Ts>
+		void RecordInstructions(Ts&& ..._args);
+
+		SPIRVModule Assemble();
+
+		// calls InitializeProgram with Ts args, RecordInstructions without args and Assemble
+		template <class TProg, class... Ts>
+		SPIRVModule AssembleSimple(
+			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
+			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
+			Ts&& ..._args);
 
 		uint32_t GetExtensionId(const std::string& _sExt = ExtGLSL450);
 
@@ -36,8 +52,7 @@ namespace Tracy
 		size_t AddType(const SPIRVType& _Type);
 
 	private:
-		void Init(const spv::ExecutionModel _kModel);
-		void FunctionPreamble(const spv::ExecutionMode _kMode);
+		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions);
 
 		void Resolve();
 
@@ -53,7 +68,8 @@ namespace Tracy
 		// remove variables, types, constants
 		bool m_bRemoveUnused = true;
 
-		std::vector<std::string> m_Extensions;
+		std::unique_ptr<SPIRVProgram<true>> m_pProgram = nullptr;
+
 		std::unordered_map<std::string, uint32_t> m_ExtensionIds;
 
 		uint32_t m_uInstrId = 0u; // internal instruction id
@@ -80,6 +96,38 @@ namespace Tracy
 #ifndef GlobalAssembler
 #define GlobalAssembler (*SPIRVAssembler::Instance())
 #endif
+
+	template<class TProg, class ...Ts>
+	inline void SPIRVAssembler::InitializeProgram(
+		const spv::ExecutionModel _kModel,
+		const spv::ExecutionMode _kMode,
+		const std::vector<std::string>& _Extensions,
+		Ts && ..._args)
+	{
+		m_pProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
+
+		Init(_kModel, _kMode, _Extensions);
+	}
+
+	template<class TProg, class ...Ts>
+	inline void SPIRVAssembler::RecordInstructions(Ts && ..._args)
+	{
+		HASSERT(m_pProgram != nullptr, "Invalid program (InitializeProgram not called)");
+
+		m_pProgram->Execute<TProg>(std::forward<Ts>(_args)...);
+	}
+
+	template<class TProg, class ...Ts>
+	inline SPIRVModule SPIRVAssembler::AssembleSimple(
+		const spv::ExecutionModel _kModel,
+		const spv::ExecutionMode _kMode,
+		const std::vector<std::string>& _Extensions,
+		Ts&& ..._args)
+	{
+		InitializeProgram<TProg>(_kModel, _kMode, _Extensions, std::forward<Ts>(_args)...);
+		RecordInstructions<TProg>();
+		return Assemble();
+	}
 }
 
 #endif // !TRACY_SPIRVASSEMBLER_H

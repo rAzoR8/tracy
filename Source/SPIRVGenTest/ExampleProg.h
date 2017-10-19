@@ -13,8 +13,27 @@ namespace Tracy
 		ExampleProg() : SPIRVProgram<Assemble>(){};
 		~ExampleProg() {};
 
-		void OnInitInOutVariables() final;
-		void OnExecute() final;
+		// functor
+		inline void operator()()
+		{
+			float3 t = float3(1.f, 1.f, 1.f);
+			float3 c = float3(1.f, 2.f, 3.f);
+
+			If(t == c)
+			{
+				OutputColor = t + c * InputScale;
+			} Else{
+				OutputColor = normalize(t - c);
+
+				c += t * OutputColor * sqrt(f32(4.f));
+
+				var<bool> b = (c == t);
+
+				If(b) {
+					OutputColor *= OutputColor;
+				});
+			});
+		};
 
 		//struct B
 		//{
@@ -38,35 +57,6 @@ namespace Tracy
 	private:
 
 	};
-
-	template<bool Assemble>
-	inline void ExampleProg<Assemble>::OnInitInOutVariables()
-	{
-		//InitStruct(TestStruct);
-		//InputScale.Decorate(SPIRVDecoration(spv::DecorationDescriptorSet, 0u));
-	}
-
-	template<bool Assemble>
-	inline void ExampleProg<Assemble>::OnExecute()
-	{
-		float3 t = float3(1.f, 1.f ,1.f);
-		float3 c = float3(1.f, 2.f, 3.f);
-
-		If(t == c)
-		{
-			OutputColor = t + c * InputScale;
-		} Else	{
-			OutputColor = normalize(t - c);
-
-			c += t * OutputColor * sqrt(f32(4.f));
-
-			var<bool> b = (c == t);
-
-			If(b) {
-				OutputColor *= OutputColor;
-			});			
-		});
-	}
 }; // !Tracy
 
 #endif // !TRACY_EXAMPLEPROG_H
