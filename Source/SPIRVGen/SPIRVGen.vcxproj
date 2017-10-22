@@ -145,7 +145,6 @@
     <ClInclude Include="SPIRVOperation.h" />
     <ClInclude Include="SPIRVOperatorImpl.h" />
     <ClInclude Include="SPIRVProgram.h" />
-    <ClInclude Include="SPIRVStruct.h" />
     <ClInclude Include="SPIRVType.h" />
     <ClInclude Include="SPIRVTypeResolver.h" />
     <ClInclude Include="SPIRVVariable.h" />

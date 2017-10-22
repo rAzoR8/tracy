@@ -3,7 +3,6 @@
 
 #include "SPIRVOperatorImpl.h"
 #include "SPIRVBranchNode.h"
-#include "SPIRVStruct.h"
 
 #include "GLM.h"
 #include "glm\glm.hpp"

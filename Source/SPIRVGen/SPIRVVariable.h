@@ -2,6 +2,7 @@
 #define TRACY_SPIRVVARIABLE_H
 
 #include <vulkan\GLSL.std.450.h>
+#include "GetStructMember.h"
 #include "SPIRVDecoration.h"
 #include "SPIRVType.h"
 #include "SPIRVAssembler.h"
@@ -35,8 +36,6 @@ namespace Tracy
 		// for structs
 		std::vector<uint32_t> AccessChain;
 		SPIRVOperation* pVarOp = nullptr;
-		uint32_t m_uMemerOffset = 0u;
-		uint32_t m_uAlignmentBoundary = kAlignmentSize;
 
 		SPIRVType Type;
 		std::vector<SPIRVDecoration> Decorations;
@@ -63,23 +62,30 @@ namespace Tracy
 	};
 
 	struct TSPVStructTag {};
+	struct TSPVVarTag {};
 
 #ifndef SPVStruct
 #define SPVStruct typedef Tracy::TSPVStructTag SPVStructTag;
 #endif
 
 	template< class, class = std::void_t<> >
-	struct has_spv_tag : std::false_type { };
+	struct has_struct_tag : std::false_type { };
 
 	template< class T >
-	struct has_spv_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
+	struct has_struct_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
+
+	template< class, class = std::void_t<> >
+	struct has_var_tag : std::false_type { };
+
+	template< class T >
+	struct has_var_tag<T, std::void_t<typename T::SPVVarTag>> : std::true_type { };
 
 	struct TIntermediate {};
 
 	template <typename T, bool Assemble, spv::StorageClass Class>
 	struct var_t : public var_decoration<Assemble>
 	{
-		typedef void var_tag;
+		typedef TSPVVarTag SPVVarTag;
 
 		// generates OpVar
 		template <class... Ts>
@@ -242,11 +248,7 @@ namespace Tracy
 
 #pragma endregion
 
-	//---------------------------------------------------------------------------------------------------
-	// OPERATIONS
-	//---------------------------------------------------------------------------------------------------
-
-#pragma region Operations
+#pragma region constructors
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<spv::StorageClass C1>
 	inline var_t<T, Assemble, Class>::var_t(var_t<T, Assemble, C1>&& _Other) :
@@ -280,6 +282,14 @@ namespace Tracy
 		var_decoration<Assemble>::operator=(std::forward<var_t<T, Assemble, C1>>(_Other));
 		return *this;
 	}
+#pragma endregion
+
+	//---------------------------------------------------------------------------------------------------
+	// OPERATIONS
+	//---------------------------------------------------------------------------------------------------
+
+
+#pragma region Operations
 
 	//---------------------------------------------------------------------------------------------------
 
@@ -300,6 +310,70 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
+	template <class T>
+	void InitVar(T& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary) {	}
+
+	template <class T, spv::StorageClass Class>
+	void InitVar(var_t<T, true, Class>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)
+	{
+		// actual stuff happening here
+		_Member.AccessChain = _AccessChain;
+
+		// translate bool members to int (taken from example)
+		using VarT = std::conditional_t<std::is_same_v<T, bool>, int32_t, T>;
+
+		_Member.Type = SPIRVType::FromType<VarT>();
+		_Member.uTypeHash = _Member.Type.GetHash();
+		_Type.Member(_Member.Type); // struct type
+
+		uint32_t uOffset = 0u;
+
+		// member offset, check for 16byte allignment
+		if (_uCurOffset + sizeof(VarT) <= _uCurBoundary)
+		{
+			uOffset = _uCurOffset;
+		}
+		else
+		{
+			uOffset = _uCurBoundary;
+			_uCurBoundary += kAlignmentSize;
+		}
+
+		_Member.Decorations.clear();
+		_Member.Decorate(SPIRVDecoration(spv::DecorationOffset, uOffset, kDecorationType_Member, _AccessChain.back()));
+
+		_uCurOffset += sizeof(VarT);
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	template <size_t n, size_t N, class T>
+	void InitStruct(T& _Struct, SPIRVType& _Type, std::vector<var_decoration<true>*>& _Members, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)
+	{
+		if constexpr(n < N && has_struct_tag<T>::value)
+		{
+			decltype(auto) member = hlx::get<n>(_Struct);
+			using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(member)>>;
+
+			if constexpr(has_struct_tag<MemberType>::value)
+			{
+				_AccessChain.push_back(n);
+				SPIRVType NestedType(spv::OpTypeStruct);
+				InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain);
+				_Type.Member(NestedType);
+			}
+			else //if constexpr(has_var_tag<MemberType>::value)
+			{
+				std::vector<uint32_t> FinalChain(_AccessChain);
+				FinalChain.push_back(n);
+				InitVar(member, _Type, FinalChain, _uCurOffset, _uCurBoundary);
+				_Members.push_back(&member);
+			}
+
+			InitStruct<n + 1, N, T>(_Struct, _Type, _Members, _AccessChain, _uCurOffset, _uCurBoundary);
+		}
+	}
+	//---------------------------------------------------------------------------------------------------
+
 	template<typename T, bool Assemble, spv::StorageClass C1>
 	template<class ...Ts>
 	inline var_t<T, Assemble, C1>::var_t(const Ts& ..._args) : 
@@ -309,9 +383,15 @@ namespace Tracy
 		constexpr size_t uArgs = sizeof...(_args);
 		if constexpr(Assemble)
 		{
-			if constexpr(has_spv_tag<T>::value)
+			//std::vector<var_decoration<true>*> Members;
+			if constexpr(has_struct_tag<T>::value)
 			{
 				static_assert(uArgs == 0, "spv struct can't be value initialized");
+				Type = SPIRVType::Struct();
+				//uint32_t uMemberOffset = 0u;
+				//uint32_t uAlignmentBoundary = kAlignmentSize;
+				//InitStruct<0, hlx::aggregate_arity<T>, T>(Value, Type, Members, {}, uMemberOffset, uAlignmentBoundary);
+				// todo: decorate struct with Decorate(spv::DecorationBlock);
 			}
 			else
 			{
@@ -355,6 +435,12 @@ namespace Tracy
 			}
 
 			uVarId = GlobalAssembler.AddOperation(OpVar, &pVarOp);
+
+			//for (var_decoration<true>* pMember : Members)
+			//{
+			//	pMember->uBaseId = uVarId;
+			//	// todo: fix storage class in OpVar
+			//}
 		}
 	}
 

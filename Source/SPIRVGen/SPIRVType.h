@@ -107,7 +107,7 @@ namespace Tracy
 		}
 
 		template <class T>
-		static SPIRVType FromType();
+		static SPIRVType FromType() {static_assert(false, "Unsupported type")};
 
 	private:
 		std::vector<SPIRVType> m_SubTypes; // struct members etc

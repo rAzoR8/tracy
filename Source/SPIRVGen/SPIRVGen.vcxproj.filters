@@ -42,9 +42,6 @@
     <ClInclude Include="SPIRVProgram.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SPIRVStruct.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SPIRVType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
