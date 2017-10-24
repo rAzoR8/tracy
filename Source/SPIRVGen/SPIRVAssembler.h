@@ -64,6 +64,8 @@ namespace Tracy
 
 		void RemoveUnused();
 
+		spv::StorageClass GetStorageClass(const SPIRVOperation& _Op) const;
+
 	private:
 		// remove variables, types, constants
 		bool m_bRemoveUnused = true;

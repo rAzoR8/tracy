@@ -30,8 +30,9 @@ namespace Tracy
 		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
 		mutable uint32_t uLastStoredId = HUNDEFINED32;
 		mutable uint32_t uBaseId = HUNDEFINED32; // base VarId from parent structure
-		const spv::StorageClass kStorageClass;
+		spv::StorageClass kStorageClass = spv::StorageClassMax;
 		mutable size_t uTypeHash = kUndefinedSizeT;
+		uint32_t uMemberOffset = HUNDEFINED32;
 
 		// for structs
 		std::vector<uint32_t> AccessChain;
@@ -310,14 +311,17 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	template <class T>
-	void InitVar(T& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary) {	}
+	//template <class T>
+	//void InitVar(T& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary) {	}
 
 	template <class T, spv::StorageClass Class>
-	void InitVar(var_t<T, true, Class>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)
+	void InitVar(var_t<T, true, Class>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, const spv::StorageClass _kStorageClass, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)
 	{
+		// override var id from previous init (should be generated on load with access chain)
+		_Member.uVarId = HUNDEFINED32;
 		// actual stuff happening here
 		_Member.AccessChain = _AccessChain;
+		_Member.kStorageClass = _kStorageClass;
 
 		// translate bool members to int (taken from example)
 		using VarT = std::conditional_t<std::is_same_v<T, bool>, int32_t, T>;
@@ -326,50 +330,52 @@ namespace Tracy
 		_Member.uTypeHash = _Member.Type.GetHash();
 		_Type.Member(_Member.Type); // struct type
 
-		uint32_t uOffset = 0u;
-
 		// member offset, check for 16byte allignment
 		if (_uCurOffset + sizeof(VarT) <= _uCurBoundary)
 		{
-			uOffset = _uCurOffset;
+			_Member.uMemberOffset = _uCurOffset;
 		}
 		else
 		{
-			uOffset = _uCurBoundary;
+			_Member.uMemberOffset = _uCurBoundary;
 			_uCurBoundary += kAlignmentSize;
 		}
-
-		_Member.Decorations.clear();
-		_Member.Decorate(SPIRVDecoration(spv::DecorationOffset, uOffset, kDecorationType_Member, _AccessChain.back()));
 
 		_uCurOffset += sizeof(VarT);
 	}
 	//---------------------------------------------------------------------------------------------------
 
 	template <size_t n, size_t N, class T>
-	void InitStruct(T& _Struct, SPIRVType& _Type, std::vector<var_decoration<true>*>& _Members, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)
+	void InitStruct(
+		T& _Struct,
+		SPIRVType& _Type,
+		std::vector<var_decoration<true>*>& _Members,
+		std::vector<uint32_t> _AccessChain,
+		const spv::StorageClass _kStorageClass,
+		uint32_t& _uCurOffset,
+		uint32_t& _uCurBoundary)
 	{
 		if constexpr(n < N && has_struct_tag<T>::value)
 		{
-			decltype(auto) member = hlx::get<n>(_Struct);
+			auto& member = hlx::get<n>(_Struct);
 			using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(member)>>;
 
 			if constexpr(has_struct_tag<MemberType>::value)
 			{
 				_AccessChain.push_back(n);
 				SPIRVType NestedType(spv::OpTypeStruct);
-				InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain);
+				InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain, _kStorageClass, _uCurOffset, _uCurBoundary);
 				_Type.Member(NestedType);
 			}
-			else //if constexpr(has_var_tag<MemberType>::value)
+			else if constexpr(has_var_tag<MemberType>::value)
 			{
 				std::vector<uint32_t> FinalChain(_AccessChain);
 				FinalChain.push_back(n);
-				InitVar(member, _Type, FinalChain, _uCurOffset, _uCurBoundary);
+				InitVar(member, _Type, FinalChain, _kStorageClass, _uCurOffset, _uCurBoundary);
 				_Members.push_back(&member);
 			}
 
-			InitStruct<n + 1, N, T>(_Struct, _Type, _Members, _AccessChain, _uCurOffset, _uCurBoundary);
+			InitStruct<n + 1, N, T>(_Struct, _Type, _Members, _AccessChain, _kStorageClass, _uCurOffset, _uCurBoundary);
 		}
 	}
 	//---------------------------------------------------------------------------------------------------
@@ -383,22 +389,25 @@ namespace Tracy
 		constexpr size_t uArgs = sizeof...(_args);
 		if constexpr(Assemble)
 		{
-			//std::vector<var_decoration<true>*> Members;
+			std::vector<var_decoration<true>*> Members;
 			if constexpr(has_struct_tag<T>::value)
 			{
 				static_assert(uArgs == 0, "spv struct can't be value initialized");
 				Type = SPIRVType::Struct();
-				//uint32_t uMemberOffset = 0u;
-				//uint32_t uAlignmentBoundary = kAlignmentSize;
-				//InitStruct<0, hlx::aggregate_arity<T>, T>(Value, Type, Members, {}, uMemberOffset, uAlignmentBoundary);
-				// todo: decorate struct with Decorate(spv::DecorationBlock);
+
+				uint32_t uMemberOffset = 0u;
+				uint32_t uAlignmentBoundary = kAlignmentSize;
+				InitStruct<0, hlx::aggregate_arity<T>, T>(Value, Type, Members, {}, kStorageClass, uMemberOffset, uAlignmentBoundary);
+
+				uTypeHash = Type.GetHash();
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBlock).MakeOperation(uTypeHash, kOperandType_Type));
 			}
 			else
 			{
 				Type = SPIRVType::FromType<T>();
+				uTypeHash = Type.GetHash();
 			}
 
-			uTypeHash = Type.GetHash();
 
 			// pointer type
 			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
@@ -436,11 +445,22 @@ namespace Tracy
 
 			uVarId = GlobalAssembler.AddOperation(OpVar, &pVarOp);
 
-			//for (var_decoration<true>* pMember : Members)
-			//{
-			//	pMember->uBaseId = uVarId;
-			//	// todo: fix storage class in OpVar
-			//}
+			for (var_decoration<true>* pMember : Members)
+			{
+				pMember->uBaseId = uVarId;
+
+				// fix storage class in OpVar
+				{
+					HASSERT(pVarOp != nullptr, "Invalid variable op pointer");
+					auto& Operands = pMember->pVarOp->GetOperands();
+					HASSERT(Operands.size() > 0u, "Invalid number of variable operands");
+					Operands.front().uId = (uint32_t)kStorageClass;
+				}
+				
+				// Create member offset decoration
+				SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, kDecorationType_Member, pMember->AccessChain.back());
+				GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeHash, kOperandType_Type));
+			}
 		}
 	}
 

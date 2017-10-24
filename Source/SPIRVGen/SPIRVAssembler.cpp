@@ -106,6 +106,35 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 }
 
 //---------------------------------------------------------------------------------------------------
+spv::StorageClass SPIRVAssembler::GetStorageClass(const SPIRVOperation& _Op) const
+{
+	const std::vector<SPIRVOperand>& Operands(_Op.GetOperands());
+	switch (_Op.GetOpCode())
+	{
+	case spv::OpVariable:
+	{
+		HASSERT(Operands.size() > 0u, "Invalid number of OpVariable operands");
+
+		const SPIRVOperand& ClassOp = Operands.front();
+		HASSERT(ClassOp.uId != HUNDEFINED32 && ClassOp.kType == kOperandType_Literal, "Invalid OpVariable operand storage class [literal]");
+
+		return static_cast<spv::StorageClass>(ClassOp.uId);
+	}
+	case spv::OpAccessChain:
+	{
+		HASSERT(Operands.size() > 0u, "Invalid number of OpAccessChain operands");
+		const SPIRVOperand& BaseIdOp = Operands.front();
+		HASSERT(BaseIdOp.uId != HUNDEFINED32 && BaseIdOp.kType == kOperandType_Variable, "Invalid OpAccessChain operand base id [variable]");
+		HASSERT(BaseIdOp.uId < m_Variables.size(), "Invalid base id");
+
+		return GetStorageClass(m_Variables[BaseIdOp.uId]);
+	}
+	default:
+		HFATAL("Unsupported operation for variable");
+		return spv::StorageClassMax;
+	}
+}
+//---------------------------------------------------------------------------------------------------
 
 void SPIRVAssembler::Resolve()
 {
@@ -121,35 +150,27 @@ void SPIRVAssembler::Resolve()
 	AddInstruction(Translate(m_Operations[i++], true)); // OpExtInstImport  creates the first resutl id
 	AddInstruction(Translate(m_Operations[i++], true)); // OpMemoryModel
 
-	// helper function
-	auto getStorageClass = [](const SPIRVOperation& _Op) -> spv::StorageClass
-	{
-		const std::vector<SPIRVOperand>& Operands(_Op.GetOperands());
-		HASSERT(Operands.size() > 0u, "Invalid number of OpVariable operands");
-
-		const SPIRVOperand& ClassOp = Operands.front();
-		HASSERT(ClassOp.uId != HUNDEFINED32 && ClassOp.kType == kOperandType_Literal, "Invalid OpVariable operand storage class [literal]");
-
-		return static_cast<spv::StorageClass>(ClassOp.uId);
-	};
-
 	// find input / output vars and assign ids
 	for (SPIRVOperation& Op : m_Variables)
 	{
-		spv::StorageClass kClass = getStorageClass(Op);
 		AssignId(Op); // assign ids to be able to resolve op entrypoint
 
-		if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
+		if (Op.GetOpCode() == spv::OpVariable)
 		{
-			m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Variable, Op.m_uInstrId));
+			spv::StorageClass kClass = GetStorageClass(Op);
+
+			if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
+			{
+				m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Variable, Op.m_uInstrId));
+			}
 		}
 	}
 
 	// cleanup unused ops
-	if (m_bRemoveUnused)
-	{
-		RemoveUnused(); // removes entries from m_Constants & m_Types
-	}
+	//if (m_bRemoveUnused)
+	//{
+	//	RemoveUnused(); // removes entries from m_Constants & m_Types
+	//}
 
 	// resolve types & constants to definitions stream
 	for (const auto& KV : m_Constants)
@@ -195,10 +216,14 @@ void SPIRVAssembler::Resolve()
 	// add class member variables
 	for (SPIRVOperation& Op : m_Variables)
 	{
-		spv::StorageClass kClass = getStorageClass(Op);
-		if (kClass != spv::StorageClassFunction)
+		// ignore AccessChain ops
+		if (Op.GetOpCode() == spv::OpVariable)
 		{
-			TranslateOp(Op); // OpVariable, ids already assigned
+			spv::StorageClass kClass = GetStorageClass(Op);
+			if (kClass != spv::StorageClassFunction)
+			{
+				TranslateOp(Op); // OpVariable, ids already assigned
+			}
 		}
 	}
 
@@ -211,8 +236,8 @@ void SPIRVAssembler::Resolve()
 	// translate function variables, this resolves the problem that variables can not be declared in branch blocks
 	for (SPIRVOperation& Op : m_Variables)
 	{
-		spv::StorageClass kClass = getStorageClass(Op);
-		if (kClass == spv::StorageClassFunction)
+		if (Op.GetOpCode() != spv::OpVariable || 
+			GetStorageClass(Op) == spv::StorageClassFunction)
 		{
 			TranslateOp(Op); // OpVariable
 		}
@@ -231,6 +256,7 @@ uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperati
 	switch (_Instr.GetOpCode())
 	{
 	case spv::OpVariable:
+	case spv::OpAccessChain:
 		m_Variables.push_back(_Instr);
 		m_Variables.back().m_uInstrId = m_uVarId;
 

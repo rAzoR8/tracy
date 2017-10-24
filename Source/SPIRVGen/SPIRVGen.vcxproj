@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClCompile Include="SPIRVAssembler.cpp" />
     <ClCompile Include="SPIRVConstant.cpp" />
+    <ClCompile Include="SPIRVDecoration.cpp" />
     <ClCompile Include="SPIRVInstruction.cpp" />
     <ClCompile Include="SPIRVModule.cpp" />
     <ClCompile Include="SPIRVOperation.cpp" />

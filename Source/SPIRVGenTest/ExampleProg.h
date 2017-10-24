@@ -17,6 +17,7 @@ namespace Tracy
 		{
 			SPVStruct
 			float3 member;
+			//float2 member2;
 		};
 
 		//struct A

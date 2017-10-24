@@ -51,7 +51,7 @@ uint32_t var_decoration<true>::Load() const
 
 	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");
 
-	// instantiate decorations
+	// instantiate variable decorations
 	for (const SPIRVDecoration& Decoration : Decorations)
 	{
 		 GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));

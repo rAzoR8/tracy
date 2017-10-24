@@ -3,10 +3,14 @@
 
 using namespace Tracy;
 
+struct S
+{
+	int member;
+};
+
 int main(int argc, char* argv[])
 {
 	using TProg = ExampleProg<true>;
-
 	SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
 	code.Save("test.spv");
 
