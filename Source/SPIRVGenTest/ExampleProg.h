@@ -40,6 +40,9 @@ namespace Tracy
 		{
 			float3 t = float3(1.f, 1.f, 1.f);
 			float3 c = float3(1.f, 2.f, 3.f);
+			float3x3 m;
+
+			c = mul(t, m);
 
 			OutputColor = TestStruct->member;
 

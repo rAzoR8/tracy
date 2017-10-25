@@ -4,6 +4,7 @@
 #include "SPIRVVariable.h"
 #include "SPIRVAssembler.h"
 #include <functional>
+#include "GLM.h"
 
 namespace Tracy
 {
@@ -212,6 +213,30 @@ namespace Tracy
 		return make_ext_op1(l, [](const T& v1) {return glm::normalize(v1); }, ExtGLSL450, GLSLstd450Normalize);
 	}
 	//---------------------------------------------------------------------------------------------------
+
+	template <class V, class M, bool Assemble,
+		spv::StorageClass C1, spv::StorageClass C2,
+		typename = std::enable_if_t<is_vector<V>>,
+		typename = std::enable_if_t<is_matrix<M>>>
+	inline var_t<V, Assemble, spv::StorageClassFunction> mul(
+		const var_t<V, Assemble, C1>& l,
+		const var_t<M, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const V& v, const M& m)-> V {return v * m; }, spv::OpVectorTimesMatrix);
+	}
+	//---------------------------------------------------------------------------------------------------
+	//template <class V, class M, bool Assemble,
+	//	spv::StorageClass C1, spv::StorageClass C2,
+	//	typename = std::enable_if_t<is_matrix<M>>,
+	//	typename = std::enable_if_t<is_vector<V>>>
+	//	inline auto mul(
+	//		const var_t<M, Assemble, C1>& l,
+	//		const var_t<V, Assemble, C2>& r)
+	//{
+	//	return make_op(l, r, [](const V& v, const M& m) {return m * v; }, spv::OpMatrixTimesVector);
+	//}
+	//---------------------------------------------------------------------------------------------------
+
 }; //!Tracy
 
 #endif // !TRACY_SPIRVOPERATORIMPL_H
