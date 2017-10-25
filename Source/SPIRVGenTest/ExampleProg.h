@@ -32,14 +32,14 @@ namespace Tracy
 
 		var_t<B, Assemble, spv::StorageClassUniform> TestStruct;
 
-		//var_in<float> InputScale;
+		var_in<float> InputScale;
 		//var_in<float3_t> InputPos;
 		var_out<float3_t> OutputColor;
 		// functor
 		inline void operator()()
 		{
-			//float3 t = float3(1.f, 1.f, 1.f);
-			//float3 c = float3(1.f, 2.f, 3.f);
+			float3 t = float3(1.f, 1.f, 1.f);
+			float3 c = float3(1.f, 2.f, 3.f);
 
 			OutputColor = TestStruct->member;
 

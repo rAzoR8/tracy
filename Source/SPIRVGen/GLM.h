@@ -5,9 +5,7 @@
 #include <glm\fwd.hpp> // forward decls
 // put this into Source file: #include <glm/glm.hpp> 
 
-//#include <glm\vec2.hpp>
-//#include <glm\vec3.hpp>
-//#include <glm\vec4.hpp>
+#include "FunctionalUtils.h"
 
 namespace Tracy
 {
@@ -147,6 +145,17 @@ namespace Tracy
 
 	template <class T>
 	constexpr size_t Dimmension = sizeof(T) / sizeof(base_type_t<T>);
+
+	template <class T>
+	constexpr bool is_vector =
+		hlx::is_of_type<T,
+		int2_t, int3_t, int4_t,
+		uint2_t, uint3_t, uint4_t,
+		float2_t, float3_t, float4_t>();
+
+	template <class T>
+	constexpr bool is_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float3x4_t, float4x3_t, float4x4_t>();
+
 }; // Tracy
 
 #endif // !TRACY_GLM_H
