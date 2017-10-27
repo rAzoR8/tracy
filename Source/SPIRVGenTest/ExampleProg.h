@@ -42,7 +42,11 @@ namespace Tracy
 			float3 c = float3(1.f, 2.f, 3.f);
 			float3x3 m;
 
+			//auto res = m.Value * t.Value;
+			auto res2 = t.Value * m.Value;
+
 			c = mul(t, m);
+			auto r = mul(m, t);
 
 			OutputColor = TestStruct->member;
 

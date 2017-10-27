@@ -214,27 +214,30 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	template <class V, class M, bool Assemble,
+	template <class M, bool Assemble,
 		spv::StorageClass C1, spv::StorageClass C2,
-		typename = std::enable_if_t<is_vector<V>>,
+		class V = col_type_t<M>,
+		class R = row_type_t<M>,
 		typename = std::enable_if_t<is_matrix<M>>>
-	inline var_t<V, Assemble, spv::StorageClassFunction> mul(
+	inline var_t<R, Assemble, spv::StorageClassFunction> mul(
 		const var_t<V, Assemble, C1>& l,
 		const var_t<M, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const V& v, const M& m)-> V {return v * m; }, spv::OpVectorTimesMatrix);
+		return make_op(l, r, [](const V& v, const M& m)-> R {return v * m; }, spv::OpVectorTimesMatrix);
 	}
 	//---------------------------------------------------------------------------------------------------
-	//template <class V, class M, bool Assemble,
-	//	spv::StorageClass C1, spv::StorageClass C2,
-	//	typename = std::enable_if_t<is_matrix<M>>,
-	//	typename = std::enable_if_t<is_vector<V>>>
-	//	inline auto mul(
-	//		const var_t<M, Assemble, C1>& l,
-	//		const var_t<V, Assemble, C2>& r)
-	//{
-	//	return make_op(l, r, [](const V& v, const M& m) {return m * v; }, spv::OpMatrixTimesVector);
-	//}
+	
+	template <class M, bool Assemble,
+		spv::StorageClass C1, spv::StorageClass C2,
+		class V = col_type_t<M>,
+		class R = row_type_t<M>,
+		typename = std::enable_if_t<is_matrix<M>>>
+		inline var_t<V, Assemble, spv::StorageClassFunction> mul(
+			const var_t<M, Assemble, C1>& l,
+			const var_t<R, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const M& m, const R& v)-> V {return m * v; }, spv::OpMatrixTimesVector);
+	}
 	//---------------------------------------------------------------------------------------------------
 
 }; //!Tracy

@@ -28,6 +28,52 @@ namespace Tracy
 	using float4x4_t = glm::mat4x4;
 	using matrix_t = glm::mat4x4;
 
+#pragma region col_type
+	template <class MatrixT>
+	struct col_type {};
+
+	template<>
+	struct col_type<float2x2_t> { typedef float2_t type; };
+
+	template<>
+	struct col_type<float3x3_t> { typedef float3_t type; };
+
+	template<>
+	struct col_type<float3x4_t> { typedef float4_t type; };
+
+	template<>
+	struct col_type<float4x3_t> { typedef float3_t type; };
+
+	template<>
+	struct col_type<float4x4_t> { typedef float4_t type; };
+
+	template <class T>
+	using col_type_t = typename col_type<T>::type;
+#pragma endregion
+
+#pragma region row_type
+	template <class MatrixT>
+	struct row_type {};
+
+	template<>
+	struct row_type<float2x2_t> { typedef float2_t type; };
+
+	template<>
+	struct row_type<float3x3_t> { typedef float3_t type; };
+
+	template<>
+	struct row_type<float3x4_t> { typedef float3_t type; };
+
+	template<>
+	struct row_type<float4x3_t> { typedef float4_t type; };
+
+	template<>
+	struct row_type<float4x4_t> { typedef float4_t type; };
+
+	template <class T>
+	using row_type_t = typename row_type<T>::type;
+#pragma endregion
+
 #pragma region va_type
 	template <class ...Ts>
 	struct va_type {};
