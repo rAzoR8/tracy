@@ -76,6 +76,7 @@ namespace Tracy
 		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 - v2; }, spv::OpFSub, spv::OpISub);
 	}
 	//---------------------------------------------------------------------------------------------------
+	// enable if U and V are vector types is_vector>
 	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class T = longer_type_t<U,V>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r)
 	{
@@ -218,7 +219,8 @@ namespace Tracy
 		spv::StorageClass C1, spv::StorageClass C2,
 		class V = col_type_t<M>,
 		class R = row_type_t<M>,
-		typename = std::enable_if_t<is_matrix<M>>>
+		typename = std::enable_if_t<is_matrix<M>>,
+		typename = std::enable_if_t<is_vector<V>>>
 	inline var_t<R, Assemble, spv::StorageClassFunction> mul(
 		const var_t<V, Assemble, C1>& l,
 		const var_t<M, Assemble, C2>& r)
@@ -231,7 +233,8 @@ namespace Tracy
 		spv::StorageClass C1, spv::StorageClass C2,
 		class V = col_type_t<M>,
 		class R = row_type_t<M>,
-		typename = std::enable_if_t<is_matrix<M>>>
+		typename = std::enable_if_t<is_matrix<M>>,
+		typename = std::enable_if_t<is_vector<R>>>
 		inline var_t<V, Assemble, spv::StorageClassFunction> mul(
 			const var_t<M, Assemble, C1>& l,
 			const var_t<R, Assemble, C2>& r)
@@ -239,6 +242,24 @@ namespace Tracy
 		return make_op(l, r, [](const M& m, const R& v)-> V {return m * v; }, spv::OpMatrixTimesVector);
 	}
 	//---------------------------------------------------------------------------------------------------
+
+	//template <bool Assemble,
+	//	spv::StorageClass C1, spv::StorageClass C2,
+	//	class MCol, class MRow,
+	//	class NCol, class NRow,
+	//	class M = mat_type_t<MRow, MCol>,
+	//	class N = mat_type_t<NRow, NCol>,
+	//	class R = mat_type_t<NRow, MCol>,
+	//	typename = std::enable_if_t<is_matrix<M>>,
+	//	typename = std::enable_if_t<is_matrix<N>>>
+	//	inline var_t<R, Assemble, spv::StorageClassFunction> mul(
+	//		const var_t<M, Assemble, C1>& l,
+	//		const var_t<N, Assemble, C2>& r)
+	//{
+	//	return make_op(l, r, [](const M& m, const N& n)-> R {return m * n; }, spv::OpMatrixTimesMatrix);
+	//}
+	//---------------------------------------------------------------------------------------------------
+
 
 }; //!Tracy
 

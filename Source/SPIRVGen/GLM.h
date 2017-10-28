@@ -74,6 +74,29 @@ namespace Tracy
 	using row_type_t = typename row_type<T>::type;
 #pragma endregion
 
+#pragma region mat_type
+	template <class Row, class Col>
+	struct mat_type {};
+
+	template <>
+	struct mat_type<float2_t, float2_t> { typedef float2x2_t type; };
+
+	template <>
+	struct mat_type<float3_t, float3_t> { typedef float3x3_t type; };
+
+	template <>
+	struct mat_type<float4_t, float3_t> { typedef float4x3_t type; };
+
+	template <>
+	struct mat_type<float3_t, float4_t> { typedef float3x4_t type; };
+
+	template <>
+	struct mat_type<float4_t, float4_t> { typedef float4x4_t type; };
+
+	template <class Row, class Col>
+	using mat_type_t = typename mat_type<Row, Col>::type;
+#pragma endregion
+
 #pragma region va_type
 	template <class ...Ts>
 	struct va_type {};
