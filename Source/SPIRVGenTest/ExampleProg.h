@@ -38,18 +38,18 @@ namespace Tracy
 		// functor
 		inline void operator()()
 		{
-			float3 t = float3(1.f, 1.f, 1.f);
-			float3 c = float3(1.f, 2.f, 3.f);
-			float4x3 m;
-			float3x4 n;
+			float3 v3 = float3(1.f, 1.f, 1.f);
+			float4 v4 = float4(1.f, 2.f, 3.f, 4.f);
 
-			auto n33 = m.Value * n.Value;
-			//auto mn = mul(m,n);
-			//auto res = m.Value * t.Value;
-			//auto res2 = t.Value * m.Value;
+			float4x3 m43;
+			float3x4 m34;
 
-			//c = mul(t, m);
-			//auto r = mul(m, t);
+			//auto n33 = m.Value * c.Value;
+	
+			auto r2 = mul(m43, v4);
+			auto r1 = mul(v3, m43);
+
+			auto r3 = mul(m34, m43);
 
 			OutputColor = TestStruct->member;
 
