@@ -86,6 +86,8 @@
     <ClCompile Include="TracyApp.cpp" />
     <ClCompile Include="VulkanDevice.cpp" />
     <ClCompile Include="VulkanInitializer.cpp" />
+    <ClCompile Include="VulkanSurface.cpp" />
+    <ClCompile Include="VulkanWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="TracyApp.h">
@@ -116,6 +118,8 @@
     <ClInclude Include="VulkanAPI.h" />
     <ClInclude Include="VulkanDevice.h" />
     <ClInclude Include="VulkanInitializer.h" />
+    <ClInclude Include="VulkanSurface.h" />
+    <ClInclude Include="VulkanWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="TracyApp.qrc">

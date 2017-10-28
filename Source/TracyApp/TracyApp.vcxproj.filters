@@ -54,6 +54,12 @@
     <ClCompile Include="VulkanInitializer.cpp">
       <Filter>Display</Filter>
     </ClCompile>
+    <ClCompile Include="VulkanSurface.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="TracyApp.h">
@@ -77,6 +83,12 @@
       <Filter>Display</Filter>
     </ClInclude>
     <ClInclude Include="VulkanDevice.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanSurface.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanWindow.h">
       <Filter>Display</Filter>
     </ClInclude>
   </ItemGroup>

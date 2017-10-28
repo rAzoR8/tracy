@@ -7,5 +7,6 @@ TracyApp::TracyApp(QWidget *parent)
 	ui.setupUi(this);
 
 	using namespace Tracy;
-	VulkanInitializer::Instance();
+	Tracy::VulkanInitializer* pVkMain = VulkanInitializer::Instance();
+	pVkMain->Init(reinterpret_cast<HWND>(this->winId()), GetModuleHandle(NULL));
 }

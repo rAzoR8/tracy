@@ -160,13 +160,14 @@ void VulkanDevice::Create()
 	// Fetch a pointer to the actual queue for submit
 	{
 		// For each queue type we want, fetch a pointer to the device queue
-		for (size_t uQueueIndex = 0, uEnd = queueFlags.size(); uQueueIndex < uEnd; ++uQueueIndex)
+		for (size_t uQueueFlagIndex = 0, uEnd = queueFlags.size(); uQueueFlagIndex < uEnd; ++uQueueFlagIndex)
 		{
 			// Create an item in the queue map, used for later to ease submit
-			auto queuePair = m_Queues.emplace(queueFlags[uQueueIndex], vk::Queue());
+			auto queuePair = m_Queues.emplace(queueFlags[uQueueFlagIndex], Queue());
 			
 			// Assign the queue
-			queuePair.first->second = m_Device.getQueue(QueueOffset[uQueueIndex].uFamilyIndex, QueueOffset[uQueueIndex].uOffset);
+			queuePair.first->second.uFamilyIndex = QueueOffset[uQueueFlagIndex].uOffset;
+			queuePair.first->second.Handle = m_Device.getQueue(QueueOffset[uQueueFlagIndex].uFamilyIndex, QueueOffset[uQueueFlagIndex].uOffset);
 		}
 	}
 }
