@@ -8,6 +8,18 @@ void var_decoration<true>::Decorate(const SPIRVDecoration& _Decoration)
 	Decorations.push_back(_Decoration);
 }
 //---------------------------------------------------------------------------------------------------
+void var_decoration<true>::MaterializeDecorations() const
+{
+	GlobalAssembler.AddVariableInfo(*this);
+
+	// instantiate variable decorations
+	for (const SPIRVDecoration& Decoration : Decorations)
+	{
+		GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
+	}
+	Decorations.clear();
+}
+//---------------------------------------------------------------------------------------------------
 
 void var_decoration<true>::Store() const
 {
@@ -25,12 +37,7 @@ void var_decoration<true>::Store() const
 
 		uLastStoredId = uResultId;
 
-		// instantiate variable decorations
-		for (const SPIRVDecoration& Decoration : Decorations)
-		{
-			GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
-		}
-		Decorations.clear();
+		MaterializeDecorations();
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -59,11 +66,7 @@ uint32_t var_decoration<true>::Load() const
 	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");
 
 	// instantiate variable decorations
-	for (const SPIRVDecoration& Decoration : Decorations)
-	{
-		 GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
-	}
-	Decorations.clear();
+	MaterializeDecorations();
 
 	// OpLoad:
 	// Result Type is the type of the loaded object.

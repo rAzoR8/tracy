@@ -23,6 +23,7 @@ namespace Tracy
 		const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
 		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet = 0u) {};
 		void SetLocation(const uint32_t _uLocation) {};
+		void MaterializeDecorations() const{};
 	};
 
 	template <>
@@ -48,6 +49,7 @@ namespace Tracy
 		mutable std::vector<SPIRVDecoration> Decorations;
 
 		void Decorate(const SPIRVDecoration& _Decoration);
+		void MaterializeDecorations() const;
 		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet = 0u);
 		void SetLocation(const uint32_t _uLocation);
 

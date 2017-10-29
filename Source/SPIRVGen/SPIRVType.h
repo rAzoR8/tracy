@@ -111,7 +111,7 @@ namespace Tracy
 
 	private:
 		std::vector<SPIRVType> m_SubTypes; // struct members etc
-		spv::Op m_kBaseType;
+		spv::Op m_kBaseType = spv::OpNop;
 		uint32_t m_uDimension = 0u; // OpTypeArray, dimension, bits
 		bool m_bSign = true;
 	};

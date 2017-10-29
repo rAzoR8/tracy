@@ -2,7 +2,6 @@
 #define TRACY_SPIRVASSEMBLER_H
 
 #include "SPIRVConstant.h"
-#include "SPIRVVariable.h"
 #include "SPIRVOperation.h"
 #include "SPIRVTypeResolver.h"
 #include "SPIRVModule.h"
@@ -13,6 +12,9 @@ namespace Tracy
 	// forward decls
 	template <bool Assemble>
 	class SPIRVProgram;
+
+	template <bool Assemble>
+	struct var_decoration;
 
 	static const std::string ExtGLSL450 = "GLSL.std.450";
 
@@ -50,6 +52,8 @@ namespace Tracy
 		uint32_t AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr = nullptr);
 		size_t AddConstant(const SPIRVConstant& _Const);
 		size_t AddType(const SPIRVType& _Type);
+
+		void AddVariableInfo(const var_decoration<true>& _Var);
 
 	private:
 		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions);
@@ -93,6 +97,9 @@ namespace Tracy
 		std::vector<SPIRVOperation> m_Operations; // unresolved local instruction stream
 		std::vector<SPIRVOperation> m_Variables; // unresolved local instruction stream
 		std::vector<SPIRVOperation> m_Decorations; // unresolved local instruction stream
+
+		// var id -> VariableInfo
+		std::unordered_map<uint32_t, VariableInfo> m_UsedVariables; // info on loaded / stored variables
 	};
 
 #ifndef GlobalAssembler

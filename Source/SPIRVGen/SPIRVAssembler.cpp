@@ -1,5 +1,6 @@
 #include "SPIRVAssembler.h"
 #include "SPIRVProgram.h"
+#include "SPIRVVariable.h"
 
 using namespace Tracy;
 
@@ -32,6 +33,15 @@ SPIRVModule SPIRVAssembler::Assemble()
 
 	SPIRVModule Module(m_uResultId + 1u);
 
+	// copy accumulated variable info
+	for (auto&[id, var] : m_UsedVariables)
+	{
+		if (var.kStorageClass != spv::StorageClassFunction)
+		{
+			Module.AddVariable(var);
+		}
+	}
+
 	Module.Write(m_Instructions);
 
 	return Module;
@@ -59,6 +69,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	m_uInstrId = 0u;
 	m_uFunctionLableIndex = 0u;
 	m_pOpEntryPoint = nullptr;
+	m_UsedVariables.clear();
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader)));
@@ -309,6 +320,29 @@ size_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 
 	return uHash;
 }
+//---------------------------------------------------------------------------------------------------
+
+void SPIRVAssembler::AddVariableInfo(const var_decoration<true>& _Var)
+{
+	auto it = m_UsedVariables.find(_Var.uVarId);
+
+	if (it == m_UsedVariables.end())
+	{
+		it = m_UsedVariables.insert({ _Var.uVarId, {} }).first;
+	}
+
+	VariableInfo& Var(it->second);
+
+	Var.uVarId = _Var.uVarId;
+	Var.Type = _Var.Type;
+	Var.kStorageClass = _Var.kStorageClass;
+	Var.uMemberOffset = _Var.uMemberOffset;
+	Var.uBinding = _Var.uBinding;
+	Var.uDescriptorSet = _Var.uDescriptorSet;
+	Var.uLocation = _Var.uLocation;
+	//Var.Decorations.insert(Var.Decorations.end(), _Var.Decorations.begin(), _Var.Decorations.end());
+}
+
 //---------------------------------------------------------------------------------------------------
 SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op, const bool _bAssigneId)
 {
