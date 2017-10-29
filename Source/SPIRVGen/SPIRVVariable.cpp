@@ -24,6 +24,13 @@ void var_decoration<true>::Store() const
 		}));
 
 		uLastStoredId = uResultId;
+
+		// instantiate variable decorations
+		for (const SPIRVDecoration& Decoration : Decorations)
+		{
+			GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
+		}
+		Decorations.clear();
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -56,6 +63,7 @@ uint32_t var_decoration<true>::Load() const
 	{
 		 GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
 	}
+	Decorations.clear();
 
 	// OpLoad:
 	// Result Type is the type of the loaded object.
@@ -158,5 +166,24 @@ var_decoration<true>::~var_decoration()
 {
 	// store the lastest intermediate result
 	Store();
+}
+//---------------------------------------------------------------------------------------------------
+void var_decoration<true>::SetBinding(const uint32_t _uBinding, const uint32_t _uDescriptorSet)
+{
+	HASSERT(uDescriptorSet == HUNDEFINED32 && uBinding == HUNDEFINED32, "Variable already has a binding");
+	Decorate(SPIRVDecoration(spv::DecorationDescriptorSet, _uDescriptorSet));
+	Decorate(SPIRVDecoration(spv::DecorationBinding, _uBinding));
+
+	uDescriptorSet = _uDescriptorSet;
+	uBinding = _uBinding;
+}
+//---------------------------------------------------------------------------------------------------
+
+void var_decoration<true>::SetLocation(const uint32_t _uLocation)
+{
+	HASSERT(uLocation == HUNDEFINED32, "Variable already has a location");
+	Decorate(SPIRVDecoration(spv::DecorationLocation, _uLocation));
+
+	uLocation = _uLocation;
 }
 //---------------------------------------------------------------------------------------------------

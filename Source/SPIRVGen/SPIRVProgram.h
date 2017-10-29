@@ -23,11 +23,14 @@ namespace Tracy
 		template <class T>
 		using var = var_t<T, Assemble, spv::StorageClassFunction>;
 
-		template <class T>
-		using var_in = var_in_t<T, Assemble>;
+		template <class T, uint32_t Location = HUNDEFINED32>
+		using var_in = var_in_t<T, Assemble, Location>;
 
-		template <class T>
-		using var_out = var_out_t<T, Assemble>;
+		template <class T, uint32_t Location = HUNDEFINED32>
+		using var_out = var_out_t<T, Assemble, Location>;
+
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0, uint32_t Location = HUNDEFINED32>
+		using var_uniform = var_uniform_t<T, Assemble, Binding, Set, Location>;
 
 		using s32 = var<int32_t>;
 		using s64 = var<int64_t>;

@@ -21,6 +21,8 @@ namespace Tracy
 		var_decoration(const var_decoration& _Other) {}
 		var_decoration(var_decoration&& _Other) {}
 		const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
+		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet = 0u) {};
+		void SetLocation(const uint32_t _uLocation) {};
 	};
 
 	template <>
@@ -34,14 +36,20 @@ namespace Tracy
 		mutable size_t uTypeHash = kUndefinedSizeT;
 		uint32_t uMemberOffset = HUNDEFINED32;
 
+		uint32_t uDescriptorSet = HUNDEFINED32; // res input
+		uint32_t uBinding = HUNDEFINED32; // local to res input
+		uint32_t uLocation = HUNDEFINED32; // res output
+
 		// for structs
 		std::vector<uint32_t> AccessChain;
 		SPIRVOperation* pVarOp = nullptr;
 
 		SPIRVType Type;
-		std::vector<SPIRVDecoration> Decorations;
+		mutable std::vector<SPIRVDecoration> Decorations;
 
 		void Decorate(const SPIRVDecoration& _Decoration);
+		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet = 0u);
+		void SetLocation(const uint32_t _uLocation);
 
 		void Store() const;
 		uint32_t Load() const;
@@ -61,6 +69,7 @@ namespace Tracy
 		template <class... Ts>
 		var_decoration(Ts&& ... _args) {} // consume arguments
 	};
+	//---------------------------------------------------------------------------------------------------
 
 	struct TSPVStructTag {};
 	struct TSPVVarTag {};
@@ -82,6 +91,7 @@ namespace Tracy
 	struct has_var_tag<T, std::void_t<typename T::SPVVarTag>> : std::true_type { };
 
 	struct TIntermediate {};
+	//---------------------------------------------------------------------------------------------------
 
 	template <typename T, bool Assemble, spv::StorageClass Class>
 	struct var_t : public var_decoration<Assemble>
@@ -133,18 +143,28 @@ namespace Tracy
 		const var_t<T, Assemble, Class>& make_op1( const OpFunc& _OpFunc, const Ops ..._Ops) const;
 	};
 
-	template <typename T, bool Assemble>
+	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
 	struct var_in_t : public var_t<T, Assemble, spv::StorageClassInput>
 	{
+		var_in_t() : var_t<T, Assemble, spv::StorageClassInput>() { if (Location != HUNDEFINED32) SetLocation(Location); }
 		template <spv::StorageClass C1>
 		const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
 	};
 
-	template <typename T, bool Assemble>
+	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
 	struct var_out_t : public var_t<T, Assemble, spv::StorageClassOutput>
 	{
+		var_out_t() : var_t<T, Assemble, spv::StorageClassOutput>() { if (Location != HUNDEFINED32) SetLocation(Location); }
 		template <spv::StorageClass C1>
 		const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const {var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
+	};
+
+	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0u, uint32_t Location = HUNDEFINED32>
+	struct var_uniform_t : public var_t<T, Assemble, spv::StorageClassUniform>
+	{
+		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { if (Binding != HUNDEFINED32) { SetBinding(Binding, Set); } if (Location != HUNDEFINED32) { SetLocation(Location); } }
+		template <spv::StorageClass C1>
+		const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
