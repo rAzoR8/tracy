@@ -86,6 +86,17 @@ uint32_t SPIRVTypeResolver::Resolve(const SPIRVType& _Type)
 		Operands.push_back(_Type.GetDimension()); // storage class
 		Operands.push_back(SubTypes.front()); // type
 		break;
+	case spv::OpTypeImage:
+		HASSERT(SubTypes.size() == 1u, "Invalid number of sampled component types");
+		Operands.push_back(SubTypes.front()); // sampled type
+		Operands.push_back(_Type.GetDimension()); // spv::Dim
+		Operands.push_back(_Type.GetTexDepthType()); 
+		Operands.push_back((uint32_t)_Type.GetArray());
+		Operands.push_back((uint32_t)_Type.GetMultiSampled());
+		Operands.push_back(_Type.GetTexSamplerAccess());
+		Operands.push_back((uint32_t) spv::ImageFormatUnknown); // any format
+		// If Dim is SubpassData, Sampled must be 2, Image Format must be Unknown, and the Execution Model must be Fragment.
+		break;
 	default:
 		HFATAL("Type %d not implemented", );
 		break;

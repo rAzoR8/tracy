@@ -225,6 +225,72 @@ namespace Tracy
 	template <class T>
 	constexpr bool is_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float3x4_t, float4x3_t, float4x4_t>();
 
+#pragma region texture_types
+
+	enum ETexDepthType : uint32_t
+	{
+		kTexDepthType_NonDepth = 0,
+		kTexDepthType_Depth,
+		kTexDepthType_Unspecified
+	};
+
+	// Sampled	indicates whether or not this image will be accessed in combination with a sampler, and must be one of the
+	//following values :
+	//	0 indicates this is only known at run time, not at compile time
+	//	1 indicates will be used with sampler
+	//	2 indicates will be used without a sampler (a storage image)
+	enum ETexSamplerAccess : uint32_t
+	{
+		kTexSamplerAccess_Runtime = 0, 
+		kTexSamplerAccess_Sampled,
+		kTexSamplerAccess_Loaded,
+	};
+
+	// Image Format is the Image Format, which can be Unknown, depending on the client API
+	// we omit the format, since it should be coming from the api anyway
+	template <
+		class T,
+		spv::Dim _Dim,
+		bool _Array = false,
+		ETexDepthType _DType = kTexDepthType_NonDepth,
+		bool _MultiSampled = false,
+		ETexSamplerAccess _SAccess = kTexSamplerAccess_Runtime>
+	struct tex_t
+	{
+		typedef T TexComponentType;
+		static constexpr spv::Dim Dim = _Dim; // 1 2 3
+		static constexpr bool Array = _Array; // is array
+		static constexpr ETexDepthType DepthType = _DType;
+		static constexpr bool MultiSampled = _MultiSampled;
+		static constexpr ETexSamplerAccess SamplerAccess = _SAccess;
+	};
+
+	template<class, class = std::void_t<> >
+	struct is_texture_impl : std::false_type { };
+
+	template<class T>
+	struct is_texture_impl<T, std::void_t<typename T::TexComponentType>> : std::true_type { };
+
+	template <class T>
+	constexpr bool is_texture = is_texture_impl<T>::value;
+
+	template <class T = float4_t>
+	using tex1d_t = tex_t<T, spv::Dim1D>;
+
+	template <class T = float4_t>
+	using tex2d_t = tex_t<T, spv::Dim2D>;
+
+	template <class T = float4_t>
+	using tex3d_t = tex_t<T, spv::Dim3D>;
+
+	template <class T = float4_t>
+	using tex4d_t = tex_t<T, spv::DimCube>;
+
+	template <class TexT>
+	using tex_component_t = typename TexT::ComponentType;
+
+#pragma endregion
+
 }; // Tracy
 
 #endif // !TRACY_SPIRVVARIABLETYPES_H

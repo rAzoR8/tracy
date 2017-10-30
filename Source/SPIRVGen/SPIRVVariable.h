@@ -57,12 +57,12 @@ namespace Tracy
 		uint32_t Load() const;
 
 		var_decoration(const spv::StorageClass _kStorageClass) : kStorageClass(_kStorageClass) {};
-		var_decoration<true>(const var_decoration<true>& _Other);
-		var_decoration<true>(var_decoration<true>&& _Other);
+		var_decoration(const var_decoration<true>& _Other);
+		var_decoration(var_decoration<true>&& _Other);
+		~var_decoration();
 
-		~var_decoration<true>();
-		const var_decoration<true>& operator=(const var_decoration<true>& _Other) const;
-		const var_decoration<true>& operator=(var_decoration<true>&& _Other) const;
+		const var_decoration& operator=(const var_decoration& _Other) const;
+		const var_decoration& operator=(var_decoration&& _Other) const;
 	};
 
 	template <>
@@ -425,8 +425,8 @@ namespace Tracy
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBlock).MakeOperation(uTypeHash, kOperandType_Type));
 			}
 			else
-			{
-				Type = SPIRVType::FromType<T>();
+			{	
+				Type = SPIRVType::FromType<T>();	
 				uTypeHash = Type.GetHash();
 			}
 

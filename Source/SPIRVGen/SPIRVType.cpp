@@ -27,6 +27,12 @@ SPIRVType::SPIRVType(const spv::Op _kOp, const std::vector<SPIRVType>& _SubTypes
 }
 //---------------------------------------------------------------------------------------------------
 
+SPIRVType::SPIRVType(const SPIRVType& _SampledType, const spv::Dim _uDimension, const bool _bArray, const ETexDepthType _kDepthType, const bool _bMultiSampled, const ETexSamplerAccess _kSamplerAccess) :
+	m_SubTypes(1u, _SampledType), m_kBaseType(spv::OpTypeImage), m_uDimension(_uDimension), m_bArray(_bArray), m_kTexDepthType(_kDepthType), m_bMultiSampled(_bMultiSampled), m_kSamplerAccess(_kSamplerAccess)
+{
+}
+//---------------------------------------------------------------------------------------------------
+
 SPIRVType::~SPIRVType()
 {
 }
@@ -56,7 +62,7 @@ SPIRVType& SPIRVType::Member(const SPIRVType& _SubType)
 
 size_t SPIRVType::GetHash() const
 {
-	size_t uHash = hlx::Hash(m_kBaseType, m_uDimension, m_bSign);
+	size_t uHash = hlx::Hash(m_kBaseType, m_uDimension, m_bSign, m_bArray, m_bMultiSampled, m_kTexDepthType, m_kSamplerAccess);
 
 	for (const SPIRVType& subtype : m_SubTypes)
 	{
