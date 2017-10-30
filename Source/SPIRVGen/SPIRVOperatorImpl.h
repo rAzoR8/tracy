@@ -4,7 +4,6 @@
 #include "SPIRVVariable.h"
 #include "SPIRVAssembler.h"
 #include <functional>
-#include "GLM.h"
 
 namespace Tracy
 {

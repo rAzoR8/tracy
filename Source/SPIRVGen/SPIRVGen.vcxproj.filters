@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GLM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SPIRVAssembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -52,6 +49,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SPIRVDecoration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVVariableTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

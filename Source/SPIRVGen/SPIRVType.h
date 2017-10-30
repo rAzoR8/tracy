@@ -4,7 +4,7 @@
 #include <vulkan\spirv.hpp>
 #include <vector>
 #include <stdint.h>
-#include "GLM.h"
+#include "SPIRVVariableTypes.h"
 
 namespace Tracy
 {

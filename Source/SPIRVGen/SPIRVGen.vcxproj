@@ -135,7 +135,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="GLM.h" />
+    <ClInclude Include="SPIRVVariableTypes.h" />
     <ClInclude Include="SPIRVAssembler.h" />
     <ClInclude Include="SPIRVBranchNode.h" />
     <ClInclude Include="SPIRVConstant.h" />

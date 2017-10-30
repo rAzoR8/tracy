@@ -3,13 +3,7 @@
 
 #include "SPIRVOperatorImpl.h"
 #include "SPIRVBranchNode.h"
-
-#include "GLM.h"
 #include "glm\glm.hpp"
-
-#include "Logger.h"
-
-//#include <variant>
 
 namespace Tracy
 {

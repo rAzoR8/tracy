@@ -1,5 +1,5 @@
-#ifndef TRACY_GLM_H
-#define TRACY_GLM_H
+#ifndef TRACY_SPIRVVARIABLETYPES_H
+#define TRACY_SPIRVVARIABLETYPES_H
 
 //http://glm.g-truc.net/0.9.8/glm-0.9.8.pdf
 #include <glm\fwd.hpp> // forward decls
@@ -227,4 +227,4 @@ namespace Tracy
 
 }; // Tracy
 
-#endif // !TRACY_GLM_H
+#endif // !TRACY_SPIRVVARIABLETYPES_H
