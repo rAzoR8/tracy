@@ -24,10 +24,8 @@ namespace Tracy
 		SPIRVOperand(const EOperandType _kType, const uint32_t _uId, const uint32_t _uIdExt = HUNDEFINED32) :
 			kType(_kType), uId(_uId), uIdExt(_uIdExt){};
 
-		static SPIRVOperand Literal(const uint32_t _uLiteral1, const uint32_t _uLiteral2 = HUNDEFINED32)
-		{ 
-			return SPIRVOperand(kOperandType_Literal, _uLiteral1, _uLiteral2);
-		}
+		static SPIRVOperand Literal(const uint32_t _uLiteral1, const uint32_t _uLiteral2 = HUNDEFINED32){ return SPIRVOperand(kOperandType_Literal, _uLiteral1, _uLiteral2); }
+		static SPIRVOperand Intermediate(const uint32_t _uId){return SPIRVOperand(kOperandType_Intermediate, _uId);	}
 
 		EOperandType kType;
 		union
@@ -62,7 +60,7 @@ namespace Tracy
 		SPIRVOperation(const spv::Op _kOp, const SPIRVOperand& _Operand);
 
 		SPIRVOperation(const spv::Op _kOp, const size_t _uResultTypeHash, const std::vector<SPIRVOperand>& _Operands = {});
-		SPIRVOperation(const spv::Op _kOp, const std::vector<SPIRVOperand>& _Operands = {});
+		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {});
 
 		SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& _Literals);
 

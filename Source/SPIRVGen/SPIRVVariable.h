@@ -86,11 +86,17 @@ namespace Tracy
 	template< class T >
 	struct has_struct_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
 
+	template<class T>
+	constexpr bool is_struct = has_struct_tag<T>::value;
+
 	template< class, class = std::void_t<> >
 	struct has_var_tag : std::false_type { };
 
 	template< class T >
 	struct has_var_tag<T, std::void_t<typename T::SPVVarTag>> : std::true_type { };
+
+	template<class T>
+	constexpr bool is_var = has_var_tag<T>::value;
 
 	struct TIntermediate {};
 	//---------------------------------------------------------------------------------------------------
@@ -400,15 +406,71 @@ namespace Tracy
 			InitStruct<n + 1, N, T>(_Struct, _Type, _Members, _AccessChain, _kStorageClass, _uCurOffset, _uCurBoundary);
 		}
 	}
-	//---------------------------------------------------------------------------------------------------
 
+	//---------------------------------------------------------------------------------------------------
+	template <class T, class ...Ts>
+	void ExtractCompnents(SPIRVOperation& _Op, const T& _First, const Ts& ..._Rest)
+	{
+		if constexpr(is_var<T>)
+		{
+			constexpr size_t N = Dimmension<decltype(_First.Value)>;
+
+			// extract all components of variable
+			for (size_t n = 0u; n < N; ++n)
+			{
+				SPIRVOperation OpExtract(spv::OpCompositeExtract, SPIRVOperand(kOperandType_Variable, _First.uVarId)); // var id to extract from
+				OpExtract.AddLiterals(_First.AccessChain); // can be empty
+				OpExtract.AddOperand(SPIRVOperand::Literal((uint32_t)n)); // extraction index
+
+				uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
+				_Op.AddOperand(SPIRVOperand::Intermediate(uId));
+			}
+		}
+		else
+		{
+			// create component constant
+			SPIRVConstant Constant = SPIRVConstant::Make(_First);
+
+			const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
+			_Op.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash));
+		}
+
+		constexpr size_t uArgs = sizeof...(_Rest);
+		if constexpr(uArgs > 0)
+		{
+			ExtractCompnents(_Op, _Rest...);
+		}
+	}
+	//---------------------------------------------------------------------------------------------------
+	// check if any parameter has the variable tag
+	template <class ...Ts>
+	constexpr bool has_var = std::disjunction_v<has_var_tag<Ts>...>;
+
+	//---------------------------------------------------------------------------------------------------
+	// get value base on type
+	template<class T>
+	auto get_arg_value(const T& var)
+	{
+		if constexpr(is_var<T>)
+		{
+			return var.Value;
+		}
+		else
+		{
+			return var;
+		}
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// the all mighty variable constructor
 	template<typename T, bool Assemble, spv::StorageClass C1>
 	template<class ...Ts>
 	inline var_t<T, Assemble, C1>::var_t(const Ts& ..._args) : 
 		var_decoration<Assemble>(C1),
-		Value(_args...)
+		Value(get_arg_value(_args)...)
 	{
 		constexpr size_t uArgs = sizeof...(_args);
+
 		if constexpr(Assemble)
 		{
 			std::vector<var_decoration<true>*> Members;
@@ -429,8 +491,7 @@ namespace Tracy
 				Type = SPIRVType::FromType<T>();	
 				uTypeHash = Type.GetHash();
 			}
-
-
+			
 			// pointer type
 			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
 
@@ -442,38 +503,41 @@ namespace Tracy
 			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
 			// Initializer must havethe same type as the type pointed to by Result Type.
 
-			SPIRVOperation OpVar(spv::OpVariable, uPtrTypeHash, // result type
-				SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
+			SPIRVOperation OpCreateVar;
 
-			if constexpr(uArgs > 0u)
+			// argument list has var_t<> initializers
+			constexpr bool bHasVar = has_var<Ts...>;
+			if constexpr(bHasVar)
 			{
-				SPIRVConstant Constant;
-				// create variable constant
-				if constexpr(std::is_same<std::decay_t<T>, bool>::value)
+				OpCreateVar = SPIRVOperation(spv::OpCompositeConstruct, uPtrTypeHash);
+				ExtractCompnents(OpCreateVar, _args...);
+
+				// composite constructs treated as intermediates as they cant be loaded
+				uResultId = GlobalAssembler.AddOperation(OpCreateVar);
+			}
+			else
+			{
+				OpCreateVar = SPIRVOperation(spv::OpVariable, uPtrTypeHash, // result type
+					SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
+
+				if constexpr(uArgs > 0u)
 				{
-					Constant = SPIRVConstant(Value ? spv::OpConstantTrue : spv::OpConstantFalse);
-				}
-				else
-				{
-					Constant = SPIRVConstant::Make(_args...);
+					SPIRVConstant Constant = SPIRVConstant::Make(_args...);
+					const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
+					OpCreateVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash));
 				}
 
-				HASSERT(uTypeHash == Constant.GetCompositeType().GetHash(), "Base type and constant type mismatch");
-
-				const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
-
-				OpVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash)); // initializer
+				uVarId = GlobalAssembler.AddOperation(OpCreateVar, &pVarOp);
 			}
 
-			uVarId = GlobalAssembler.AddOperation(OpVar, &pVarOp);
-
+			// correct sturct member variables
 			for (var_decoration<true>* pMember : Members)
 			{
 				pMember->uBaseId = uVarId;
 
 				// fix storage class in OpVar
 				{
-					HASSERT(pVarOp != nullptr, "Invalid variable op pointer");
+					HASSERT(pVarOp != nullptr && pVarOp->GetOpCode() == spv::OpVariable, "Invalid variable op");
 					auto& Operands = pMember->pVarOp->GetOperands();
 					HASSERT(Operands.size() > 0u, "Invalid number of variable operands");
 					Operands.front().uId = (uint32_t)kStorageClass;

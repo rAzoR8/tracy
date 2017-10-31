@@ -26,6 +26,8 @@ namespace Tracy
 		template<class T, class ...Ts>
 		static SPIRVConstant Make(T&& first, Ts&& ..._args);
 
+		static SPIRVConstant Make(const bool _bValue);
+
 		SPIRVConstant(const SPIRVConstant& _Other);
 
 		size_t GetHash(const bool _bParent = true) const;

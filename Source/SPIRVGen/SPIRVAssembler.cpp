@@ -268,6 +268,7 @@ uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperati
 	{
 	case spv::OpVariable:
 	case spv::OpAccessChain:
+	//case spv::OpCompositeConstruct:
 		m_Variables.push_back(_Instr);
 		m_Variables.back().m_uInstrId = m_uVarId;
 
