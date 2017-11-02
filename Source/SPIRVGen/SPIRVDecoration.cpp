@@ -7,7 +7,7 @@ using namespace Tracy;
 
 SPIRVOperation SPIRVDecoration::MakeOperation(const uint32_t _uTargetId) const
 {
-	uint64_t uTargetId = _uTargetId == HUNDEFINED32 ? m_uTargetId : _uTargetId;
+	uint32_t uTargetId = _uTargetId == HUNDEFINED32 ? m_uTargetId : _uTargetId;
 
 	HASSERT(uTargetId != HUNDEFINED32, "Invalid target id");
 	HASSERT(m_kDecoration < spv::DecorationMax, "Invalid decoration");

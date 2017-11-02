@@ -56,7 +56,7 @@ void SPIRVOperation::AddLiterals(const std::vector<uint32_t>& _Literals)
 
 void SPIRVOperation::AddTypes(const std::vector<uint32_t>& _Types)
 {
-	for (const size_t& uType : _Types)
+	for (const uint32_t& uType : _Types)
 	{
 		m_Operands.push_back(SPIRVOperand(kOperandType_Intermediate, uType));
 	}
