@@ -4,11 +4,9 @@
 
 using namespace Tracy;
 
-SPIRVAssembler::SPIRVAssembler() :
-	m_TypeResolver(m_uResultId, m_Definitions)
+SPIRVAssembler::SPIRVAssembler()
 {
 	m_Operations.reserve(4096u);
-	m_Variables.reserve(128u);
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -24,11 +22,7 @@ SPIRVModule SPIRVAssembler::Assemble()
 	m_Operations.clear();
 	m_Constants.clear();
 	m_Types.clear();
-
-	m_uVarId = 0u;
-	m_Variables.clear();
-	m_Decorations.clear();
-
+	m_uInstrId = 0u;
 	//m_pProgram.reset();
 
 	SPIRVModule Module(m_uResultId + 1u);
@@ -63,16 +57,17 @@ uint32_t SPIRVAssembler::GetExtensionId(const std::string& _sExt)
 void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions)
 {
 	m_uResultId = 1u;
-	m_Instructions.clear();
-	m_Definitions.clear();
-	m_TypeResolver.Reset();
-	m_uInstrId = 0u;
 	m_uFunctionLableIndex = 0u;
 	m_pOpEntryPoint = nullptr;
+
+	m_Instructions.clear();
+	m_TypeIds.clear();
+	m_ConstantIds.clear();
 	m_UsedVariables.clear();
+	m_PreambleOpIds.clear();
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
-	AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader)));
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader))));
 	
 	// OpExtension (unused)
 
@@ -80,17 +75,18 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	for(const std::string& sExt : _Extensions)
 	{
 		uint32_t uId = AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString(sExt)));
+		AddPreambleId(uId);
 		m_ExtensionIds[sExt] = uId;
 	}
 
 	//OpMemoryModel
-	AddOperation(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::AddressingModelLogical, (uint32_t)spv::MemoryModelGLSL450)));
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::AddressingModelLogical, (uint32_t)spv::MemoryModelGLSL450))));
 
 	// OpEntryPoint
 	// Op1: Execution model
-	AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)), &m_pOpEntryPoint);
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)), &m_pOpEntryPoint));
 
-	AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode);
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode));
 
 	// add types for entry point function
 	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
@@ -103,6 +99,8 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 			SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
 		}));
 
+	AddPreambleId(uFuncId);
+
 	m_pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
 	m_pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Literal, (uint32_t)_kMode));
 
@@ -114,6 +112,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	//OpFunctionParameter not needed since OpEntryPoint resolves them
 	m_uFunctionLableIndex = AddOperation(SPIRVOperation(spv::OpLabel));
+	AddPreambleId(m_uFunctionLableIndex);
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -136,9 +135,9 @@ spv::StorageClass SPIRVAssembler::GetStorageClass(const SPIRVOperation& _Op) con
 		HASSERT(Operands.size() > 0u, "Invalid number of OpAccessChain operands");
 		const SPIRVOperand& BaseIdOp = Operands.front();
 		HASSERT(BaseIdOp.uId != HUNDEFINED32 && BaseIdOp.kType == kOperandType_Variable, "Invalid OpAccessChain operand base id [variable]");
-		HASSERT(BaseIdOp.uId < m_Variables.size(), "Invalid base id");
+		HASSERT(BaseIdOp.uId < m_Operations.size(), "Invalid base id");
 
-		return GetStorageClass(m_Variables[BaseIdOp.uId]);
+		return GetStorageClass(m_Operations[BaseIdOp.uId]);
 	}
 	default:
 		HFATAL("Unsupported operation for variable");
@@ -147,35 +146,171 @@ spv::StorageClass SPIRVAssembler::GetStorageClass(const SPIRVOperation& _Op) con
 }
 //---------------------------------------------------------------------------------------------------
 
+void SPIRVAssembler::AddPreambleId(const uint32_t& _uId)
+{
+	m_PreambleOpIds.push_back(_uId);
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVAssembler::ResolveType(const SPIRVType& _Type)
+{
+	const size_t uHash = _Type.GetHash();
+
+	auto it = m_TypeIds.find(uHash);
+	if (it != m_TypeIds.end())
+	{
+		// type exists
+		return it->second;
+	}
+
+	const spv::Op kType = _Type.GetType();
+
+	std::vector<size_t> SubTypes;
+	SPIRVOperation OpType(kType);
+
+	for (const SPIRVType& Type : _Type.GetSubTypes())
+	{
+		ResolveType(Type);
+		SubTypes.push_back(Type.GetHash());
+	}
+
+	// create operands
+	switch (kType)
+	{
+	case spv::OpTypeVoid:
+	case spv::OpTypeBool:
+		break; // nothing to do
+	case spv::OpTypeInt:
+		OpType.AddLiteral(_Type.GetDimension()); // bitwidth
+		OpType.AddLiteral(static_cast<uint32_t>(_Type.GetSign())); // sign bit
+		break;
+	case spv::OpTypeFloat:
+		OpType.AddLiteral(_Type.GetDimension()); // bitwidth
+		break;
+	case spv::OpTypeVector:
+		HASSERT(SubTypes.size() == 1u, "Invalid number of vector component types");
+		OpType.AddType(SubTypes.front()); // component type
+		OpType.AddLiteral(_Type.GetDimension()); // component count
+		break;
+	case spv::OpTypeMatrix:
+		HASSERT(SubTypes.size() == 1u, "Invalid number of matrix component types");
+		OpType.AddType(SubTypes.front()); // column type
+		OpType.AddLiteral(_Type.GetDimension()); // column count
+		break;
+	case spv::OpTypeStruct:
+		// If an operand is not yet defined, it must be defined by an OpTypePointer,
+		// where the type pointed to is an OpTypeStruct (fwahlster: not sure if we need that, ignore it for now)
+		OpType.AddTypes(SubTypes);
+		break;
+	case spv::OpTypeArray:
+		HASSERT(SubTypes.size() == 1u, "Invalid number of array component types");
+		HASSERT(_Type.GetDimension() > 0u, "Invalid array length");
+
+		OpType.AddType(SubTypes.front()); // column type
+										  //Length must come from a constant instruction of an integer - type scalar whose value is at least 1.
+		OpType.AddConstant(ResolveConstant(SPIRVConstant::Make(_Type.GetDimension()))); // length
+		break;
+	case spv::OpTypeFunction:
+		HASSERT(SubTypes.size() > 0u, "Invalid number of return type and parameters");
+		OpType.AddTypes(SubTypes);
+		break;
+	case spv::OpTypePointer:
+		// dimension is used as storage class
+		HASSERT(SubTypes.size() == 1u, "Pointer can only have one subtype");
+		OpType.AddLiteral(_Type.GetDimension()); // storage class
+		OpType.AddType(SubTypes.front()); // type
+		break;
+	case spv::OpTypeImage:
+		HASSERT(SubTypes.size() == 1u, "Invalid number of sampled component types");
+		OpType.AddType(SubTypes.front()); // sampled type
+		OpType.AddLiteral(_Type.GetDimension()); // spv::Dim
+		OpType.AddLiteral(_Type.GetTexDepthType());
+		OpType.AddLiteral((uint32_t)_Type.GetArray());
+		OpType.AddLiteral((uint32_t)_Type.GetMultiSampled());
+		OpType.AddLiteral(_Type.GetTexSamplerAccess());
+		OpType.AddLiteral((uint32_t)spv::ImageFormatUnknown); // any format
+															  // If Dim is SubpassData, Sampled must be 2, Image Format must be Unknown, and the Execution Model must be Fragment.
+		break;
+	default:
+		HFATAL("Type %d not implemented", );
+		break;
+	}
+
+	uint32_t uInstrId = AddOperation(std::move(OpType));
+	m_TypeIds.insert({ uHash, uInstrId });
+
+	return uInstrId;
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVAssembler::ResolveConstant(const SPIRVConstant& _Constant)
+{
+	const size_t uHash = _Constant.GetHash();
+
+	auto it = m_ConstantIds.find(uHash);
+	if (it != m_ConstantIds.end())
+	{
+		// constant exists
+		return it->second;
+	}
+
+	// resolve type first to enforce result id ordering
+	const SPIRVType& CompositeType(_Constant.GetCompositeType());
+	size_t uTypeHash = AddType(CompositeType);
+
+	spv::Op kType = _Constant.GetType();
+	SPIRVOperation OpConstant(kType, uTypeHash);
+
+	switch (kType)
+	{
+		// nothing to do here:
+	case spv::OpConstantNull:
+		break;
+		// validate base type to be boolean
+	case spv::OpConstantTrue:
+	case spv::OpConstantFalse:
+	case spv::OpSpecConstantTrue:
+	case spv::OpSpecConstantFalse:
+		HASSERT(CompositeType.GetType() == spv::OpTypeBool, "Invalid constant composite type");
+		break;
+		// copy literals as operands
+	case spv::OpConstant:
+	case spv::OpSpecConstant:
+		OpConstant.AddLiterals(_Constant.GetLiterals());
+		break;
+	case spv::OpConstantComposite:
+	case spv::OpSpecConstantComposite:
+		for (const SPIRVConstant& Component : _Constant.GetComponents())
+		{
+			ResolveConstant(Component);
+			OpConstant.AddConstant(Component.GetHash());
+		}
+		break;
+		//case spv::OpSpecConstantOp:
+		//case spv::OpConstantSampler:
+	default:
+		HFATAL("Constant type not implemented");
+		break;
+	}
+
+	uint32_t uInstrId = AddOperation(std::move(OpConstant));
+	m_ConstantIds.insert({ uHash, uInstrId });
+
+	return uInstrId;
+}
+//---------------------------------------------------------------------------------------------------
 void SPIRVAssembler::Resolve()
 {
 	HASSERT(m_Operations.size() > 3, "Insufficient operations");
 
-	// close function body opend in init
-	AddOperation(SPIRVOperation(spv::OpReturn));
-	AddOperation(SPIRVOperation(spv::OpFunctionEnd));
-
-	size_t i = 0u;
-
-	AddInstruction(Translate(m_Operations[i++], true)); // OpCapability
-	AddInstruction(Translate(m_Operations[i++], true)); // OpExtInstImport  creates the first resutl id
-	AddInstruction(Translate(m_Operations[i++], true)); // OpMemoryModel
-
-	// find input / output vars and assign ids
-	for (SPIRVOperation& Op : m_Variables)
+	// check if op is actually used
+	auto TranslateOp = [this](SPIRVOperation& _Op)
 	{
-		AssignId(Op); // assign ids to be able to resolve op entrypoint
-
-		if (Op.GetOpCode() == spv::OpVariable)
+		if (_Op.GetUsed() && _Op.GetTranslated() == false)
 		{
-			spv::StorageClass kClass = GetStorageClass(Op);
-
-			if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
-			{
-				m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Variable, Op.m_uInstrId));
-			}
+			AddInstruction(Translate(_Op));
 		}
-	}
+	};
 
 	// cleanup unused ops
 	//if (m_bRemoveUnused)
@@ -183,119 +318,111 @@ void SPIRVAssembler::Resolve()
 	//	RemoveUnused(); // removes entries from m_Constants & m_Types
 	//}
 
-	// resolve types & constants to definitions stream
+	// resolve types & constants to operations stream
 	for (const auto& KV : m_Constants)
 	{
-		m_TypeResolver.Resolve(KV.second);
+		ResolveConstant(KV.second);
 	}
 	for (const auto& KV : m_Types)
 	{
-		m_TypeResolver.Resolve(KV.second);
+		ResolveType(KV.second);
 	}
-	
-	// check if op is actually used
-	auto TranslateOp = [this](SPIRVOperation& _Op)
+
+	// close function body opend in init
+	AddOperation(SPIRVOperation(spv::OpReturn));
+	AddOperation(SPIRVOperation(spv::OpFunctionEnd));
+
+	// find input / output vars
+	ForEachOp([this](SPIRVOperation& Op)
 	{
-		if (_Op.GetUsed())
+		spv::StorageClass kClass = GetStorageClass(Op);
+		if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
 		{
-			AddInstruction(Translate(_Op));
+			m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Variable, Op.m_uInstrId));
 		}
-	};
+	}, is_var_op);
+	
+	// assing types
+	ForEachOp([this](SPIRVOperation& Op)
+	{
+		AssignId(Op);
+	}, is_type_op);
+
+	// assing constants
+	ForEachOp([this](SPIRVOperation& Op)
+	{
+		AssignId(Op);
+	}, is_const_op);
+
+	// assing decorates
+	ForEachOp([this](SPIRVOperation& Op)
+	{
+		AssignId(Op);
+	}, is_decorate_op);
 
 	// assign unresolved operation ids
-	for (SPIRVOperation& Op : m_Operations)
+	ForEachOpEx([this](SPIRVOperation& Op)
 	{
-		if (Op.m_uResultId == HUNDEFINED32)
-		{
-			AssignId(Op);
-		}
-	}
+		AssignId(Op);
+	}, [](const SPIRVOperation& Op) {return Op.m_uResultId == HUNDEFINED32; });
 
-	// end of header
-	AddInstruction(Translate(m_Operations[i++])); // OpEntryPoint
-	AddInstruction(Translate(m_Operations[i++])); // OpExecutionMode
+	// translate header:
+	size_t i = 0u;
+	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpCapability
+	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpExtInstImport
+	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpMemoryModel
+	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpEntryPoint
+	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpExecutionMode
 
-	// add decorations
-	for (SPIRVOperation& Op : m_Decorations)
+	// translate types && constants
+	ForEachOp([TranslateOp](SPIRVOperation& Op)
 	{
 		TranslateOp(Op);
-	}
+	}, is_type_or_const_op);
 
-	// add type definitions and constants
-	m_Instructions.insert(m_Instructions.end(), m_Definitions.begin(), m_Definitions.end());
-
-	// add class member variables
-	for (SPIRVOperation& Op : m_Variables)
+	// translate decorates
+	ForEachOp([TranslateOp](SPIRVOperation& Op)
 	{
-		// ignore AccessChain ops
-		if (Op.GetOpCode() == spv::OpVariable)
-		{
-			spv::StorageClass kClass = GetStorageClass(Op);
-			if (kClass != spv::StorageClassFunction)
-			{
-				TranslateOp(Op); // OpVariable, ids already assigned
-			}
-		}
-	}
+		TranslateOp(Op);
+	}, is_decorate_op);
 
-	// translate function preamble
-	for (; i < (m_uFunctionLableIndex+1) && i < m_Operations.size(); ++i)
+	// translate class member variables
+	ForEachOpEx([TranslateOp](SPIRVOperation& Op)
 	{
-		TranslateOp(m_Operations[i]);
+		TranslateOp(Op);
+	}, [this](const SPIRVOperation& Op) {return Op.GetOpCode() == spv::OpVariable && GetStorageClass(Op) != spv::StorageClassFunction; });
+
+	// translate rest of the preamble
+	for (; i < m_uFunctionLableIndex; ++i)
+	{
+		TranslateOp(m_Operations[m_PreambleOpIds[i++]]);
 	}
 
 	// translate function variables, this resolves the problem that variables can not be declared in branch blocks
-	for (SPIRVOperation& Op : m_Variables)
+	ForEachOpEx([TranslateOp](SPIRVOperation& Op)
 	{
-		if (Op.GetOpCode() != spv::OpVariable || 
-			GetStorageClass(Op) == spv::StorageClassFunction)
-		{
-			TranslateOp(Op); // OpVariable
-		}
-	}
+		TranslateOp(Op);
+	}, [this](const SPIRVOperation& Op) {return Op.GetOpCode() == spv::OpVariable && GetStorageClass(Op) == spv::StorageClassFunction; });
 
-	// assemble rest of the program
-	for (; i < m_Operations.size(); ++i)
+	// tranlate rest of the program
+	for (SPIRVOperation& Op : m_Operations)
 	{
-		TranslateOp(m_Operations[i]);
+		TranslateOp(Op);
 	}
 }
 //---------------------------------------------------------------------------------------------------
 
 uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr)
 {
-	switch (_Instr.GetOpCode())
+	m_Operations.push_back(_Instr);
+	m_Operations.back().m_uInstrId = m_uInstrId;
+
+	if (_pOutInstr != nullptr)
 	{
-	case spv::OpVariable:
-	case spv::OpAccessChain:
-	//case spv::OpCompositeConstruct:
-		m_Variables.push_back(_Instr);
-		m_Variables.back().m_uInstrId = m_uVarId;
-
-		if (_pOutInstr != nullptr)
-		{
-			*_pOutInstr = &m_Variables.back();
-		}
-
-		return m_uVarId++;
-
-	case spv::OpDecorate:
-	case spv::OpMemberDecorate:
-
-		m_Decorations.push_back(_Instr);
-		return HUNDEFINED32;
-
-	default:
-		m_Operations.push_back(_Instr);
-		m_Operations.back().m_uInstrId = m_uInstrId;
-
-		if (_pOutInstr != nullptr)
-		{
-			*_pOutInstr = &m_Operations.back();
-		}
-
-		return m_uInstrId++;
+		*_pOutInstr = &m_Operations.back();
 	}
+
+	return m_uInstrId++;
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -345,19 +472,38 @@ void SPIRVAssembler::AddVariableInfo(const var_decoration<true>& _Var)
 }
 
 //---------------------------------------------------------------------------------------------------
-SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op, const bool _bAssigneId)
+SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
 {
-	if (_bAssigneId)
-	{
-		AssignId(_Op);
-	}
+	HASSERT(_Op.m_bTranslated == false, "Operation has already been translated");
 
 	std::vector<uint32_t> Operands;
 	uint32_t uTypeId = SPIRVInstruction::kInvalidId;
 
+	auto GetTypeId = [&](size_t uHash) -> uint32_t
+	{
+		auto it = m_TypeIds.find(uHash);
+		HASSERT(it != m_TypeIds.end(), "Unresolved type %llu", uHash);
+		return it->second;
+	};
+
+	auto GetConstantId = [&](size_t uHash) -> uint32_t
+	{
+		auto it = m_ConstantIds.find(uHash);
+		HASSERT(it != m_ConstantIds.end(), "Unresolved constant %llu", uHash);
+		return it->second;
+	};
+
+	auto ResolveId = [&](uint32_t id) -> uint32_t
+	{
+		HASSERT(id < m_Operations.size(), "Invalid operand Id");
+		uint32_t uResolvedId = m_Operations[id].m_uResultId;
+		HASSERT(uResolvedId != SPIRVInstruction::kInvalidId, "Unresolved id");
+		return uResolvedId;
+	};
+
 	if (_Op.GetResultType() != kUndefinedSizeT)
 	{
-		uTypeId = m_TypeResolver.GetTypeId(_Op.GetResultType());
+		uTypeId = ResolveId(GetTypeId(_Op.GetResultType()));
 	}
 
 	for (const SPIRVOperand& Operand : _Op.GetOperands())
@@ -365,27 +511,15 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op, const bool _bAss
 		switch (Operand.kType)
 		{
 		case kOperandType_Type:
-			Operands.push_back(m_TypeResolver.GetTypeId(Operand.uHash));
+			Operands.push_back(ResolveId(GetTypeId(Operand.uHash)));
 			break;
 		case kOperandType_Constant:
-			Operands.push_back(m_TypeResolver.GetConstantId(Operand.uHash));
+			Operands.push_back(ResolveId(GetConstantId(Operand.uHash)));
 			break;
 		case kOperandType_Intermediate:
-		{
-			HASSERT(Operand.uId < m_Operations.size(), "Invalid intermediate Id");
-			uint32_t uResolvedId = m_Operations[Operand.uId].m_uResultId;
-			HASSERT(uResolvedId != SPIRVInstruction::kInvalidId, "Unresolved id");
-			Operands.push_back(uResolvedId);
-		}
-		break;
 		case kOperandType_Variable:
-		{
-			HASSERT(Operand.uId < m_Variables.size(), "Invalid variable Id");
-			uint32_t uResolvedId = m_Variables[Operand.uId].m_uResultId;
-			HASSERT(uResolvedId != SPIRVInstruction::kInvalidId, "Unresolved id");
-			Operands.push_back(uResolvedId);
-		}
-		break;
+			Operands.push_back(ResolveId(Operand.uId));
+			break;
 		case kOperandType_Literal:
 			Operands.push_back(Operand.uId);
 			if (Operand.uIdExt != SPIRVInstruction::kInvalidId)
@@ -398,7 +532,8 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op, const bool _bAss
 			break;
 		}
 	}
-
+	
+	_Op.m_bTranslated = true;
 	return SPIRVInstruction(_Op.GetOpCode(), uTypeId, _Op.m_uResultId, Operands);
 }
 //---------------------------------------------------------------------------------------------------
@@ -445,89 +580,89 @@ void SPIRVAssembler::AssignId(SPIRVOperation& _Op)
 }
 //---------------------------------------------------------------------------------------------------
 
-void SPIRVAssembler::RemoveUnused()
-{
-	auto findInOperands = [](std::vector<SPIRVOperation>& _Operations, const SPIRVOperand& _Operand) -> bool
-	{
-		for (SPIRVOperation& Op : _Operations)
-		{
-			if (Op.GetUsed())
-			{
-				for (const SPIRVOperand& Operand : Op.GetOperands())
-				{
-					if (Operand == _Operand)
-					{
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
-	};
-
-	// find unused variables
-	for (SPIRVOperation& Var : m_Variables)
-	{
-		Var.m_bUsed = findInOperands(m_Operations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));
-
-		// remove decorations for removed variable => not necessary since unused variables are never loaded and thus dont
-		// create any decorations
-		//if (Var.m_bUsed == false)
-		//{
-		//	SPIRVOperation* pConsumingDecorate = findOp(m_Decorations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));;
-		//	if (pConsumingDecorate != nullptr)
-		//	{
-		//		pConsumingDecorate->m_bUsed = false;
-		//	}
-		//}
-	}
-
-	// remove unused constants
-	for (auto it = m_Constants.begin(); it != m_Constants.end();)
-	{
-		bool bUsed =
-			findInOperands(m_Operations, SPIRVOperand(kOperandType_Constant, it->first)) && 
-			findInOperands(m_Variables, SPIRVOperand(kOperandType_Constant, it->first));
-
-		if (bUsed = false)
-		{
-			it = m_Constants.erase(it);
-		}
-		else
-		{
-			++it;
-		}
-	}
-
-	auto findInResultType = [](std::vector<SPIRVOperation>& _Operations, const size_t& _uHash) -> bool
-	{
-		for (const SPIRVOperation& Op : _Operations)
-		{
-			if (Op.GetUsed() && Op.GetResultType() == _uHash)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	};
-
-	// remove unused types
-	for (auto it = m_Types.begin(); it != m_Types.end();)
-	{
-		bool bUsed =
-			findInResultType(m_Variables, it->first) ||
-			findInResultType(m_Operations, it->first) ||
-			findInOperands(m_Operations, SPIRVOperand(kOperandType_Type, it->first));
-		if (bUsed == false)
-		{
-			it = m_Types.erase(it);
-		}
-		else
-		{
-			++it;
-		}
-	}
-}
+//void SPIRVAssembler::RemoveUnused()
+//{
+//	auto findInOperands = [](std::vector<SPIRVOperation>& _Operations, const SPIRVOperand& _Operand) -> bool
+//	{
+//		for (SPIRVOperation& Op : _Operations)
+//		{
+//			if (Op.GetUsed())
+//			{
+//				for (const SPIRVOperand& Operand : Op.GetOperands())
+//				{
+//					if (Operand == _Operand)
+//					{
+//						return true;
+//					}
+//				}
+//			}
+//		}
+//
+//		return false;
+//	};
+//
+//	// find unused variables
+//	for (SPIRVOperation& Var : m_Variables)
+//	{
+//		Var.m_bUsed = findInOperands(m_Operations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));
+//
+//		// remove decorations for removed variable => not necessary since unused variables are never loaded and thus dont
+//		// create any decorations
+//		//if (Var.m_bUsed == false)
+//		//{
+//		//	SPIRVOperation* pConsumingDecorate = findOp(m_Decorations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));;
+//		//	if (pConsumingDecorate != nullptr)
+//		//	{
+//		//		pConsumingDecorate->m_bUsed = false;
+//		//	}
+//		//}
+//	}
+//
+//	// remove unused constants
+//	for (auto it = m_Constants.begin(); it != m_Constants.end();)
+//	{
+//		bool bUsed =
+//			findInOperands(m_Operations, SPIRVOperand(kOperandType_Constant, it->first)) && 
+//			findInOperands(m_Variables, SPIRVOperand(kOperandType_Constant, it->first));
+//
+//		if (bUsed = false)
+//		{
+//			it = m_Constants.erase(it);
+//		}
+//		else
+//		{
+//			++it;
+//		}
+//	}
+//
+//	auto findInResultType = [](std::vector<SPIRVOperation>& _Operations, const size_t& _uHash) -> bool
+//	{
+//		for (const SPIRVOperation& Op : _Operations)
+//		{
+//			if (Op.GetUsed() && Op.GetResultType() == _uHash)
+//			{
+//				return true;
+//			}
+//		}
+//
+//		return false;
+//	};
+//
+//	// remove unused types
+//	for (auto it = m_Types.begin(); it != m_Types.end();)
+//	{
+//		bool bUsed =
+//			findInResultType(m_Variables, it->first) ||
+//			findInResultType(m_Operations, it->first) ||
+//			findInOperands(m_Operations, SPIRVOperand(kOperandType_Type, it->first));
+//		if (bUsed == false)
+//		{
+//			it = m_Types.erase(it);
+//		}
+//		else
+//		{
+//			++it;
+//		}
+//	}
+//}
 //---------------------------------------------------------------------------------------------------

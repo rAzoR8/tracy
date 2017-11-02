@@ -42,9 +42,6 @@
     <ClInclude Include="SPIRVType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SPIRVTypeResolver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SPIRVVariable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -72,9 +69,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SPIRVType.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SPIRVTypeResolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SPIRVVariable.cpp">

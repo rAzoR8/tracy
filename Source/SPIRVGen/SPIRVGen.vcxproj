@@ -146,7 +146,6 @@
     <ClInclude Include="SPIRVOperatorImpl.h" />
     <ClInclude Include="SPIRVProgram.h" />
     <ClInclude Include="SPIRVType.h" />
-    <ClInclude Include="SPIRVTypeResolver.h" />
     <ClInclude Include="SPIRVVariable.h" />
   </ItemGroup>
   <ItemGroup>
@@ -157,7 +156,6 @@
     <ClCompile Include="SPIRVModule.cpp" />
     <ClCompile Include="SPIRVOperation.cpp" />
     <ClCompile Include="SPIRVType.cpp" />
-    <ClCompile Include="SPIRVTypeResolver.cpp" />
     <ClCompile Include="SPIRVVariable.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

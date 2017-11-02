@@ -24,8 +24,11 @@ namespace Tracy
 		SPIRVOperand(const EOperandType _kType, const uint32_t _uId, const uint32_t _uIdExt = HUNDEFINED32) :
 			kType(_kType), uId(_uId), uIdExt(_uIdExt){};
 
-		static SPIRVOperand Literal(const uint32_t _uLiteral1, const uint32_t _uLiteral2 = HUNDEFINED32){ return SPIRVOperand(kOperandType_Literal, _uLiteral1, _uLiteral2); }
+		static SPIRVOperand Type(const uint64_t _uHash) { return SPIRVOperand(kOperandType_Type, _uHash); }
+		static SPIRVOperand Constant(const uint64_t _uHash) { return SPIRVOperand(kOperandType_Constant, _uHash); }
 		static SPIRVOperand Intermediate(const uint32_t _uId){return SPIRVOperand(kOperandType_Intermediate, _uId);	}
+		static SPIRVOperand Variable(const uint32_t _uId) { return SPIRVOperand(kOperandType_Variable, _uId); }
+		static SPIRVOperand Literal(const uint32_t _uLiteral1, const uint32_t _uLiteral2 = HUNDEFINED32){ return SPIRVOperand(kOperandType_Literal, _uLiteral1, _uLiteral2); }
 
 		EOperandType kType;
 		union
@@ -66,10 +69,20 @@ namespace Tracy
 
 		~SPIRVOperation();
 
+		void AddOperand(const SPIRVOperand& _Operand);
+		void AddType(const uint64_t _uHash);
+		void AddConstant(const uint64_t _uHash);
+		void AddIntermediate(const uint32_t _uId);
+		void AddVariable(const uint32_t _uId);
+		void AddLiteral(const uint32_t _uLiteral1, const uint32_t _uLiteral2 = HUNDEFINED32);
+
+		void AddLiterals(const std::vector<uint32_t>& _Literals);
+		void AddTypes(const std::vector<size_t>& _Types);
+
 		const spv::Op& GetOpCode() const;
 		bool GetUsed() const;
-		void AddOperand(const SPIRVOperand& _Operand);
-		void AddLiterals(const std::vector<uint32_t>& _Literals);
+		bool GetTranslated() const;
+
 		const size_t& GetResultType()  const;
 		const std::vector<SPIRVOperand>& GetOperands() const;
 		std::vector<SPIRVOperand>& GetOperands();
@@ -81,6 +94,7 @@ namespace Tracy
 		std::vector<SPIRVOperand> m_Operands;
 		size_t m_uResultTypeHash = kUndefinedSizeT;
 		bool m_bUsed = true;
+		bool m_bTranslated = false;
 	};
 
 	inline const spv::Op& SPIRVOperation::GetOpCode() const
@@ -93,6 +107,11 @@ namespace Tracy
 		return m_bUsed;
 	}
 
+	inline bool SPIRVOperation::GetTranslated() const
+	{
+		return m_bTranslated;
+	}
+
 	inline const std::vector<SPIRVOperand>& SPIRVOperation::GetOperands() const
 	{
 		return m_Operands;
@@ -103,7 +122,7 @@ namespace Tracy
 		return m_Operands;
 	}
 
-	inline const size_t & Tracy::SPIRVOperation::GetResultType() const
+	inline const size_t& Tracy::SPIRVOperation::GetResultType() const
 	{
 		return m_uResultTypeHash;
 	}

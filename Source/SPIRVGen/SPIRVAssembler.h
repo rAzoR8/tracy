@@ -3,12 +3,18 @@
 
 #include "SPIRVConstant.h"
 #include "SPIRVOperation.h"
-#include "SPIRVTypeResolver.h"
+#include "SPIRVInstruction.h"
 #include "SPIRVModule.h"
 #include "Singleton.h"
 
 namespace Tracy
 {
+	inline bool is_type_op(spv::Op _Op) {return _Op >= spv::OpTypeVoid && _Op <= spv::OpTypeForwardPointer; };
+	inline bool is_const_op (spv::Op _Op) {return _Op >= spv::OpConstantTrue && _Op <= spv::OpSpecConstantOp; };
+	inline bool is_type_or_const_op(spv::Op _Op) { return is_type_op(_Op) || is_const_op(_Op); }	
+	inline bool is_decorate_op (spv::Op _Op) {return _Op >= spv::OpDecorate && _Op <= spv::OpGroupMemberDecorate; };
+	inline bool is_var_op(spv::Op _Op) {return _Op == spv::OpVariable; };
+
 	// forward decls
 	template <bool Assemble>
 	class SPIRVProgram;
@@ -21,6 +27,8 @@ namespace Tracy
 	class SPIRVAssembler : public hlx::Singleton<SPIRVAssembler>
 	{
 	public:
+		using TIdMap = std::unordered_map<size_t, uint32_t>;
+
 		SPIRVAssembler();
 		~SPIRVAssembler();
 
@@ -60,15 +68,26 @@ namespace Tracy
 
 		void Resolve();
 
-		SPIRVInstruction Translate(SPIRVOperation& _Op, const bool _bAssigneId = false);
+		uint32_t ResolveType(const SPIRVType& _Type);
+		uint32_t ResolveConstant(const SPIRVConstant& _Constant);
+
+		SPIRVInstruction Translate(SPIRVOperation& _Op);
 
 		void AddInstruction(const SPIRVInstruction& _Instr);
 
 		void AssignId(SPIRVOperation& _Op);
 
-		void RemoveUnused();
+		//void RemoveUnused();
 
 		spv::StorageClass GetStorageClass(const SPIRVOperation& _Op) const;
+
+		template <class Fn, class Pred>
+		void ForEachOp(const Fn& _fn, const Pred& _Pred);
+
+		template <class Fn, class Pred>
+		void ForEachOpEx(const Fn& _fn, const Pred& _Pred);
+
+		void AddPreambleId(const uint32_t& _uId);
 
 	private:
 		// remove variables, types, constants
@@ -79,7 +98,6 @@ namespace Tracy
 		std::unordered_map<std::string, uint32_t> m_ExtensionIds;
 
 		uint32_t m_uInstrId = 0u; // internal instruction id
-		uint32_t m_uVarId = 0u; // internal variable id
 		uint32_t m_uResultId = 1u; // actual result ids
 
 		uint32_t m_uFunctionLableIndex = 0u;
@@ -87,16 +105,19 @@ namespace Tracy
 		SPIRVOperation* m_pOpEntryPoint = nullptr;
 		SPIRVOperation* m_pOpExeutionMode = nullptr;
 
-		SPIRVTypeResolver m_TypeResolver;
 		std::vector<SPIRVInstruction> m_Instructions;
-		std::vector<SPIRVInstruction> m_Definitions;
 
 		std::unordered_map<size_t, SPIRVType> m_Types; // types that are NOT used with constants
+		// type hash
+		TIdMap m_TypeIds;
+		// constant hash
+		TIdMap m_ConstantIds;
+
 		std::unordered_map<size_t, SPIRVConstant> m_Constants;
 
 		std::vector<SPIRVOperation> m_Operations; // unresolved local instruction stream
-		std::vector<SPIRVOperation> m_Variables; // unresolved local instruction stream
-		std::vector<SPIRVOperation> m_Decorations; // unresolved local instruction stream
+
+		std::vector<uint32_t> m_PreambleOpIds;
 
 		// var id -> VariableInfo
 		std::unordered_map<uint32_t, VariableInfo> m_UsedVariables; // info on loaded / stored variables
@@ -122,7 +143,6 @@ namespace Tracy
 	inline void SPIRVAssembler::RecordInstructions(Ts && ..._args)
 	{
 		HASSERT(m_pProgram != nullptr, "Invalid program (InitializeProgram not called)");
-
 		m_pProgram->Execute<TProg>(std::forward<Ts>(_args)...);
 	}
 
@@ -136,6 +156,30 @@ namespace Tracy
 		InitializeProgram<TProg>(_kModel, _kMode, _Extensions, std::forward<Ts>(_args)...);
 		RecordInstructions<TProg>();
 		return Assemble();
+	}
+
+	template<class Fn, class Pred>
+	inline void SPIRVAssembler::ForEachOp(const Fn& _fn, const Pred& _Pred)
+	{
+		for (SPIRVOperation& Op : m_Operations)
+		{
+			if (_Pred(Op.GetOpCode()))
+			{
+				_fn(Op);
+			}
+		}
+	}
+
+	template<class Fn, class Pred>
+	inline void SPIRVAssembler::ForEachOpEx(const Fn& _fn, const Pred& _Pred)
+	{
+		for (SPIRVOperation& Op : m_Operations)
+		{
+			if (_Pred(Op))
+			{
+				_fn(Op);
+			}
+		}
 	}
 }
 

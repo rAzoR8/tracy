@@ -24,7 +24,7 @@ namespace Tracy
 
 		//var_in<float, 0> InputScale;
 		//var_in<float3_t> InputPos;
-		//var_out<float3_t, 0> OutputColor;
+		var_out<float3_t, 0> OutputColor;
 		// functor
 		inline void operator()()
 		{
@@ -33,7 +33,7 @@ namespace Tracy
 
 			//float4 vtest = float4(v3, 4.f);
 
-
+			OutputColor += v3;
 			//OutputColor = v3;
 
 			//If(t == c)
