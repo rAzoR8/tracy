@@ -413,12 +413,15 @@ namespace Tracy
 	{
 		if constexpr(is_var<T>)
 		{
-			constexpr size_t N = Dimmension<decltype(_First.Value)>;
+			using VarT = decltype(_First.Value);
+			constexpr size_t N = Dimmension<VarT>;
+			uint32_t uTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<VarT>>());
+			_First.Load();
 
 			// extract all components of variable
 			for (uint32_t n = 0u; n < N; ++n)
 			{
-				SPIRVOperation OpExtract(spv::OpCompositeExtract, SPIRVOperand(kOperandType_Intermediate, _First.uVarId)); // var id to extract from
+				SPIRVOperation OpExtract(spv::OpCompositeExtract, uTypeId, SPIRVOperand(kOperandType_Intermediate, _First.uResultId)); // var id to extract from
 				OpExtract.AddLiterals(_First.AccessChain); // can be empty
 				OpExtract.AddLiteral(n); // extraction index
 
@@ -508,7 +511,7 @@ namespace Tracy
 			constexpr bool bHasVar = has_var<Ts...>;
 			if constexpr(bHasVar)
 			{
-				OpCreateVar = SPIRVOperation(spv::OpCompositeConstruct, uPtrTypeId);
+				OpCreateVar = SPIRVOperation(spv::OpCompositeConstruct, uTypeId); // uPtrTypeId
 				ExtractCompnents(OpCreateVar, _args...);
 
 				// composite constructs treated as intermediates as they cant be loaded
@@ -523,7 +526,7 @@ namespace Tracy
 				{
 					SPIRVConstant Constant = SPIRVConstant::Make(_args...);
 					const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
-					OpCreateVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstId));
+					OpCreateVar.AddIntermediate(uConstId);
 				}
 
 				uVarId = GlobalAssembler.AddOperation(OpCreateVar, &pVarOp);

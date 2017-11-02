@@ -153,7 +153,7 @@ namespace Tracy
 			{
 				BranchNode<Assemble>& Node(m_BranchNodes.back());
 				const uint32_t uTrueLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-				Node.pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uTrueLableId));
+				Node.pBranchConditional->AddIntermediate(uTrueLableId);
 			}
 
 			_Func();
@@ -166,13 +166,13 @@ namespace Tracy
 				GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &Node.pThenBranch);
 
 				const uint32_t uFalseLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-				Node.pThenBranch->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFalseLableId));
+				Node.pThenBranch->AddIntermediate(uFalseLableId);
 
 				std::vector<SPIRVOperand>& Operands = Node.pSelectionMerge->GetOperands();
 				HASSERT(Operands.size() == 2u, "Invalid number of operands for selection merge");
 				Operands.front().uId = uFalseLableId; // use false label as merge label
 
-				Node.pBranchConditional->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFalseLableId));
+				Node.pBranchConditional->AddIntermediate(uFalseLableId);
 			}
 		}
 

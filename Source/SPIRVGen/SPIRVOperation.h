@@ -20,7 +20,7 @@ namespace Tracy
 
 
 		static SPIRVOperand Intermediate(const uint32_t _uId){return SPIRVOperand(kOperandType_Intermediate, _uId);	}
-		static SPIRVOperand Literal(const uint32_t _uLiteral19{ return SPIRVOperand(kOperandType_Literal, _uLiteral1); }
+		static SPIRVOperand Literal(const uint32_t _uLiteral1){ return SPIRVOperand(kOperandType_Literal, _uLiteral1); }
 
 		EOperandType kType;		
 		uint32_t uId;
@@ -103,9 +103,9 @@ namespace Tracy
 		return m_Operands;
 	}
 
-	inline const uint32_t& Tracy::SPIRVOperation::GetResultType() const
+	inline const uint32_t& SPIRVOperation::GetResultType() const
 	{
-		return m_uResultTypeHash;
+		return m_uResultTypeId;
 	}
 
 

@@ -97,8 +97,6 @@ namespace Tracy
 		uint32_t m_uInstrId = 0u; // internal instruction id
 		uint32_t m_uResultId = 1u; // actual result ids
 
-		uint32_t m_uFunctionLableIndex = 0u;
-
 		SPIRVOperation* m_pOpEntryPoint = nullptr;
 		SPIRVOperation* m_pOpExeutionMode = nullptr;
 

@@ -31,7 +31,7 @@ namespace Tracy
 			float3 v3 = float3(1.f, 2.f, 3.f);
 			//float4 v4 = float4(1.f, 2.f, 3.f, 4.f);
 
-			//float4 vtest = float4(v3, 4.f);
+			float4 vtest = float4(v3, 4.f);
 
 			OutputColor += v3;
 			//OutputColor = v3;

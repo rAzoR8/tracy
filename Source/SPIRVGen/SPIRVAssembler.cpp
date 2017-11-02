@@ -20,9 +20,9 @@ SPIRVModule SPIRVAssembler::Assemble()
 	Resolve();
 
 	m_Operations.clear();
-	m_Constants.clear();
-	m_Types.clear();
 	m_uInstrId = 0u;
+	m_TypeIds.clear();
+	m_ConstantIds.clear();
 	//m_pProgram.reset();
 
 	SPIRVModule Module(m_uResultId + 1u);
@@ -57,12 +57,9 @@ uint32_t SPIRVAssembler::GetExtensionId(const std::string& _sExt)
 void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions)
 {
 	m_uResultId = 1u;
-	m_uFunctionLableIndex = 0u;
 	m_pOpEntryPoint = nullptr;
 
 	m_Instructions.clear();
-	m_TypeIds.clear();
-	m_ConstantIds.clear();
 	m_UsedVariables.clear();
 	m_PreambleOpIds.clear();
 
@@ -93,7 +90,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	const uint32_t uFuncId = AddOperation(SPIRVOperation(
 		spv::OpFunction,
-		SPIRVType::Void().GetHash(), // result type
+		AddType(SPIRVType::Void()), // result type
 		{
 			SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
 			SPIRVOperand(kOperandType_Intermediate, uFunctionTypeId), // function type
@@ -101,18 +98,17 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	AddPreambleId(uFuncId);
 
-	m_pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
-	m_pOpExeutionMode->AddOperand(SPIRVOperand(kOperandType_Literal, (uint32_t)_kMode));
+	m_pOpExeutionMode->AddIntermediate(uFuncId);
+	m_pOpExeutionMode->AddLiteral((uint32_t)_kMode);
 
 	// Op2: entry point id must be the result id of an OpFunction instruction
-	m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, uFuncId));
+	m_pOpEntryPoint->AddIntermediate(uFuncId);
 	// Op3: Name is a name string for the entry point.A module cannot have two OpEntryPoint
 	// instructions with the same Execution Model and the same Name	string.
 	m_pOpEntryPoint->AddLiterals(MakeLiteralString("main"));
 
 	//OpFunctionParameter not needed since OpEntryPoint resolves them
-	m_uFunctionLableIndex = AddOperation(SPIRVOperation(spv::OpLabel));
-	AddPreambleId(m_uFunctionLableIndex);
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpLabel)));	
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -134,7 +130,7 @@ spv::StorageClass SPIRVAssembler::GetStorageClass(const SPIRVOperation& _Op) con
 	{
 		HASSERT(Operands.size() > 0u, "Invalid number of OpAccessChain operands");
 		const SPIRVOperand& BaseIdOp = Operands.front();
-		HASSERT(BaseIdOp.uId != HUNDEFINED32 && BaseIdOp.kType == kOperandType_Variable, "Invalid OpAccessChain operand base id [variable]");
+		HASSERT(BaseIdOp.uId != HUNDEFINED32 && BaseIdOp.kType == kOperandType_Intermediate, "Invalid OpAccessChain operand base id [variable]");
 		HASSERT(BaseIdOp.uId < m_Operations.size(), "Invalid base id");
 
 		return GetStorageClass(m_Operations[BaseIdOp.uId]);
@@ -324,21 +320,15 @@ void SPIRVAssembler::Resolve()
 		spv::StorageClass kClass = GetStorageClass(Op);
 		if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
 		{
-			m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, Op.m_uInstrId));
+			m_pOpEntryPoint->AddIntermediate(Op.m_uInstrId);
 		}
-	}, is_var_op);
-	
-	// assing types
-	ForEachOp([this](SPIRVOperation& Op)
-	{
-		AssignId(Op);
-	}, is_type_op);
+	}, is_var_op);	
 
-	// assing constants
+	// assing types & constants
 	ForEachOp([this](SPIRVOperation& Op)
 	{
 		AssignId(Op);
-	}, is_const_op);
+	}, is_type_or_const_op);
 
 	// assing decorates
 	ForEachOp([this](SPIRVOperation& Op)
@@ -360,17 +350,17 @@ void SPIRVAssembler::Resolve()
 	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpEntryPoint
 	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpExecutionMode
 
-	// translate types && constants
-	ForEachOp([TranslateOp](SPIRVOperation& Op)
-	{
-		TranslateOp(Op);
-	}, is_type_or_const_op);
-
 	// translate decorates
 	ForEachOp([TranslateOp](SPIRVOperation& Op)
 	{
 		TranslateOp(Op);
 	}, is_decorate_op);
+
+	// translate types && constants
+	ForEachOp([TranslateOp](SPIRVOperation& Op)
+	{
+		TranslateOp(Op);
+	}, is_type_or_const_op);
 
 	// translate class member variables
 	ForEachOpEx([TranslateOp](SPIRVOperation& Op)
@@ -379,9 +369,9 @@ void SPIRVAssembler::Resolve()
 	}, [this](const SPIRVOperation& Op) {return Op.GetOpCode() == spv::OpVariable && GetStorageClass(Op) != spv::StorageClassFunction; });
 
 	// translate rest of the preamble
-	for (; i < m_uFunctionLableIndex; ++i)
+	for (; i < m_PreambleOpIds.size(); ++i)
 	{
-		TranslateOp(m_Operations[m_PreambleOpIds[i++]]);
+		TranslateOp(m_Operations[m_PreambleOpIds[i]]);
 	}
 
 	// translate function variables, this resolves the problem that variables can not be declared in branch blocks
@@ -450,7 +440,7 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
 		return uResolvedId;
 	};
 
-	if (_Op.GetResultType() != kUndefinedSizeT)
+	if (_Op.GetResultType() != HUNDEFINED32)
 	{
 		uTypeId = ResolveId(_Op.GetResultType());
 	}
