@@ -20,7 +20,7 @@ namespace Tracy
 			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kType, var.uTypeHash, // result type
+			SPIRVOperation Op(kType, var.uTypeId, // result type
 			{
 				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
 				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
@@ -47,7 +47,7 @@ namespace Tracy
 			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
 			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
 
-			SPIRVOperation Op(spv::OpExtInst, var.uTypeHash, // result type
+			SPIRVOperation Op(spv::OpExtInst, var.uTypeId, // result type
 			{
 				SPIRVOperand(kOperandType_Intermediate, uExtId),
 				SPIRVOperand(kOperandType_Literal, kType), // instr opcode
@@ -103,13 +103,13 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const var_t<bool, Assemble, C1>& l, const var_t<bool, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 || v2; }, spv::OpLogicalOr);
+		return make_op(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 || v2; }, spv::OpLogicalOr);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const var_t<bool, Assemble, C1>& l, const var_t<bool, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
+		return make_op(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// GLSLstd450 EXTENSION
@@ -213,7 +213,7 @@ namespace Tracy
 		return make_ext_op1(l, [](const T& v1) {return glm::normalize(v1); }, ExtGLSL450, GLSLstd450Normalize);
 	}
 	//---------------------------------------------------------------------------------------------------
-
+	// vector * matrix
 	template <class M, bool Assemble,spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
 		inline var_t<row_type_t<M>, Assemble, spv::StorageClassFunction> mul(
 			const var_t<col_type_t<M>, Assemble, C1>& l,
@@ -222,7 +222,7 @@ namespace Tracy
 		return make_op(l, r, [](const col_type_t<M>& v, const M& m)-> row_type_t<M> {return v * m; }, spv::OpVectorTimesMatrix);
 	}
 	//---------------------------------------------------------------------------------------------------
-
+	// matrix * vector
 	template <class M, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
 		inline var_t<col_type_t<M>, Assemble, spv::StorageClassFunction> mul(
 			const var_t<M, Assemble, C1>& l,
@@ -230,7 +230,7 @@ namespace Tracy
 	{
 		return make_op(l, r, [](const M& m, const row_type_t<M>& v)-> col_type_t<M> {return m * v; }, spv::OpMatrixTimesVector);
 	}
-
+	// matrix * matrix
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble,
 		spv::StorageClass C1, spv::StorageClass C2,

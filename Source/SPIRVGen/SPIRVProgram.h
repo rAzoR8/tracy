@@ -51,27 +51,6 @@ namespace Tracy
 		using float4x4 = var<float4x4_t>;
 		using matrix = var<float4x4_t>;
 
-		//using spvtypes_t = typename std::variant<
-		//	var<bool>,
-		//	var<int32_t>,
-		//	var<int2>,
-		//	var<int3>,
-		//	var<int4>,
-		//	var<uint32_t>,
-		//	var<uint2>,
-		//	var<uint3>,
-		//	var<uint4>,
-		//	var<float>,
-		//	var<float2>,
-		//	var<float3>,
-		//	var<float4>,
-		//	var<float2x2>,
-		//	var<float3x3>,
-		//	var<float3x4>,
-		//	var<float4x3>,
-		//	var<float4x4>
-		//>;
-
 #pragma endregion
 		SPIRVProgram();
 		~SPIRVProgram();

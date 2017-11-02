@@ -34,7 +34,7 @@ namespace Tracy
 		mutable uint32_t uLastStoredId = HUNDEFINED32;
 		mutable uint32_t uBaseId = HUNDEFINED32; // base VarId from parent structure
 		spv::StorageClass kStorageClass = spv::StorageClassMax;
-		mutable size_t uTypeHash = kUndefinedSizeT;
+		mutable uint32_t uTypeId = HUNDEFINED32;
 		uint32_t uMemberOffset = HUNDEFINED32;
 
 		uint32_t uDescriptorSet = HUNDEFINED32; // res input
@@ -236,7 +236,7 @@ namespace Tracy
 			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kType, uTypeHash, // result type
+			SPIRVOperation Op(kType, uTypeId, // result type
 			{
 				SPIRVOperand(kOperandType_Intermediate, uResultId),
 				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
@@ -264,9 +264,9 @@ namespace Tracy
 
 			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
-			HASSERT(uTypeHash != kUndefinedSizeT, "Invalid type");
+			HASSERT(uTypeId != HUNDEFINED32, "Invalid type");
 
-			SPIRVOperation Op(kType, uTypeHash,	SPIRVOperand(kOperandType_Intermediate, uResultId));
+			SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
 			uResultId = GlobalAssembler.AddOperation(Op);
 
 			Store();
@@ -355,7 +355,7 @@ namespace Tracy
 		using VarT = std::conditional_t<std::is_same_v<T, bool>, int32_t, T>;
 
 		_Member.Type = SPIRVType::FromType<VarT>();
-		_Member.uTypeHash = _Member.Type.GetHash();
+		_Member.uTypeId = GlobalAssembler.AddType(_Member.Type);
 		_Type.Member(_Member.Type); // struct type
 
 		// member offset, check for 16byte allignment
@@ -416,23 +416,22 @@ namespace Tracy
 			constexpr size_t N = Dimmension<decltype(_First.Value)>;
 
 			// extract all components of variable
-			for (size_t n = 0u; n < N; ++n)
+			for (uint32_t n = 0u; n < N; ++n)
 			{
-				SPIRVOperation OpExtract(spv::OpCompositeExtract, SPIRVOperand(kOperandType_Variable, _First.uVarId)); // var id to extract from
+				SPIRVOperation OpExtract(spv::OpCompositeExtract, SPIRVOperand(kOperandType_Intermediate, _First.uVarId)); // var id to extract from
 				OpExtract.AddLiterals(_First.AccessChain); // can be empty
-				OpExtract.AddOperand(SPIRVOperand::Literal((uint32_t)n)); // extraction index
+				OpExtract.AddLiteral(n); // extraction index
 
 				uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
-				_Op.AddOperand(SPIRVOperand::Intermediate(uId));
+				_Op.AddIntermediate(uId);
 			}
 		}
 		else
 		{
 			// create component constant
 			SPIRVConstant Constant = SPIRVConstant::Make(_First);
-
-			const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
-			_Op.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash));
+			const size_t uConstId = GlobalAssembler.AddConstant(Constant);
+			_Op.AddIntermediate(uConstId);
 		}
 
 		constexpr size_t uArgs = sizeof...(_Rest);
@@ -483,17 +482,17 @@ namespace Tracy
 				uint32_t uAlignmentBoundary = kAlignmentSize;
 				InitStruct<0, hlx::aggregate_arity<T>, T>(Value, Type, Members, {}, kStorageClass, uMemberOffset, uAlignmentBoundary);
 
-				uTypeHash = Type.GetHash();
-				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBlock).MakeOperation(uTypeHash, kOperandType_Type));
+				uTypeId = GlobalAssembler.AddType(Type);
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBlock).MakeOperation(uTypeId));
 			}
 			else
 			{	
 				Type = SPIRVType::FromType<T>();	
-				uTypeHash = Type.GetHash();
+				uTypeId = GlobalAssembler.AddType(Type);
 			}
 			
 			// pointer type
-			const size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
+			const uint32_t uPtrTypeId = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
 
 			// OpVariable:
 			// Allocate an object in memory, resulting in a pointer to it, which can be used with OpLoad and OpStore.
@@ -509,7 +508,7 @@ namespace Tracy
 			constexpr bool bHasVar = has_var<Ts...>;
 			if constexpr(bHasVar)
 			{
-				OpCreateVar = SPIRVOperation(spv::OpCompositeConstruct, uPtrTypeHash);
+				OpCreateVar = SPIRVOperation(spv::OpCompositeConstruct, uPtrTypeId);
 				ExtractCompnents(OpCreateVar, _args...);
 
 				// composite constructs treated as intermediates as they cant be loaded
@@ -517,14 +516,14 @@ namespace Tracy
 			}
 			else
 			{
-				OpCreateVar = SPIRVOperation(spv::OpVariable, uPtrTypeHash, // result type
+				OpCreateVar = SPIRVOperation(spv::OpVariable, uPtrTypeId, // result type
 					SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
 
 				if constexpr(uArgs > 0u)
 				{
 					SPIRVConstant Constant = SPIRVConstant::Make(_args...);
-					const size_t uConstHash = GlobalAssembler.AddConstant(Constant);
-					OpCreateVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstHash));
+					const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
+					OpCreateVar.AddOperand(SPIRVOperand(kOperandType_Constant, uConstId));
 				}
 
 				uVarId = GlobalAssembler.AddOperation(OpCreateVar, &pVarOp);
@@ -545,7 +544,7 @@ namespace Tracy
 				
 				// Create member offset decoration
 				SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, kDecorationType_Member, pMember->AccessChain.back());
-				GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeHash, kOperandType_Type));
+				GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeId));
 			}
 		}
 	}
@@ -559,7 +558,7 @@ namespace Tracy
 		if constexpr(Assemble)
 		{
 			Type = SPIRVType::FromType<T>();
-			uTypeHash = GlobalAssembler.AddType(Type);
+			uTypeId = GlobalAssembler.AddType(Type);
 		}
 	}
 

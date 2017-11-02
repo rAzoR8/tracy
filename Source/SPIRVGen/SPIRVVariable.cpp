@@ -15,7 +15,7 @@ void var_decoration<true>::MaterializeDecorations() const
 	// instantiate variable decorations
 	for (const SPIRVDecoration& Decoration : Decorations)
 	{
-		GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, kOperandType_Variable));
+		GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId));
 	}
 	Decorations.clear();
 }
@@ -31,7 +31,7 @@ void var_decoration<true>::Store() const
 		// create store
 		GlobalAssembler.AddOperation(SPIRVOperation(spv::OpStore,
 		{
-			SPIRVOperand(kOperandType_Variable, uVarId), // destination
+			SPIRVOperand(kOperandType_Intermediate, uVarId), // destination
 			SPIRVOperand(kOperandType_Intermediate, uResultId) // source
 		}));
 
@@ -44,17 +44,17 @@ void var_decoration<true>::Store() const
 
 uint32_t var_decoration<true>::Load() const
 {
-	HASSERT(uTypeHash != 0u && uTypeHash != kUndefinedSizeT, "Invalid TypeHash");
+	HASSERT(uTypeId != 0u && uTypeId != HUNDEFINED32, "Invalid TypeHash");
 
 	// create access chain for structures and composite types
 	if (uVarId == HUNDEFINED32 && uBaseId != HUNDEFINED32 && AccessChain.empty() == false)
 	{
-		size_t uPtrTypeHash = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
-		SPIRVOperation OpAccessChain(spv::OpAccessChain, uPtrTypeHash, SPIRVOperand(kOperandType_Variable, uBaseId));
+		const uint32_t uPtrTypeId = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
+		SPIRVOperation OpAccessChain(spv::OpAccessChain, uPtrTypeId, SPIRVOperand(kOperandType_Intermediate, uBaseId));
 
 		for (const uint32_t& uMemberIdx : AccessChain)
 		{
-			OpAccessChain.AddOperand(SPIRVOperand(kOperandType_Constant, GlobalAssembler.AddConstant(SPIRVConstant::Make(uMemberIdx))));
+			OpAccessChain.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(uMemberIdx)));
 		}
 
 		uVarId = GlobalAssembler.AddOperation(OpAccessChain);
@@ -74,8 +74,8 @@ uint32_t var_decoration<true>::Load() const
 	// Memory Access must be a Memory Access literal. If not present, it is the same as specifying None.
 	// bsp: None, Volatile, Aligned, Nontemporal
 
-	SPIRVOperation OpLoad(spv::OpLoad, uTypeHash, // result type
-		SPIRVOperand(kOperandType_Variable, uVarId)); // pointer
+	SPIRVOperation OpLoad(spv::OpLoad, uTypeId, // result type
+		SPIRVOperand(kOperandType_Intermediate, uVarId)); // pointer
 
 	uResultId = GlobalAssembler.AddOperation(OpLoad);
 	uLastStoredId = uResultId;
@@ -88,7 +88,7 @@ var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 	uLastStoredId(_Other.uLastStoredId),
 	uBaseId(_Other.uBaseId),
 	kStorageClass(_Other.kStorageClass),
-	uTypeHash(_Other.uTypeHash),
+	uTypeId(_Other.uTypeId),
 	AccessChain(_Other.AccessChain),
 	Type(_Other.Type),
 	Decorations(_Other.Decorations)
@@ -102,7 +102,7 @@ var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
 	uLastStoredId(_Other.uLastStoredId),
 	uBaseId(_Other.uBaseId),
 	kStorageClass(_Other.kStorageClass),
-	uTypeHash(_Other.uTypeHash),
+	uTypeId(_Other.uTypeId),
 	AccessChain(std::move(_Other.AccessChain)),
 	Type(std::move(_Other.Type)),
 	Decorations(std::move(_Other.Decorations))
@@ -110,14 +110,14 @@ var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
 	_Other.uVarId = HUNDEFINED32;
 	_Other.uResultId = HUNDEFINED32;
 	_Other.uLastStoredId = HUNDEFINED32;
-	_Other.uTypeHash = kUndefinedSizeT;
+	_Other.uTypeId = HUNDEFINED32;
 	_Other.uBaseId = HUNDEFINED32;
 }
 //---------------------------------------------------------------------------------------------------
 
 const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const
 {
-	HASSERT(uTypeHash == kUndefinedSizeT || uTypeHash == _Other.uTypeHash, "Type mismatch!");
+	HASSERT(uTypeId != HUNDEFINED32 && uTypeId != _Other.uTypeId, "Type mismatch!");
 
 	uVarId = _Other.uVarId; // might become actual var
 	uResultId = _Other.uResultId;
@@ -128,7 +128,7 @@ const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>
 	_Other.uVarId = HUNDEFINED32;
 	_Other.uResultId = HUNDEFINED32;
 	_Other.uLastStoredId = HUNDEFINED32;
-	_Other.uTypeHash = kUndefinedSizeT;
+	_Other.uTypeId = HUNDEFINED32;
 	_Other.uBaseId = HUNDEFINED32;
 
 	return *this;
@@ -143,7 +143,7 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 
 	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
 	{
-		HASSERT(uTypeHash == _Other.uTypeHash, "Variable type mismatch");
+		HASSERT(uTypeId == _Other.uTypeId, "Variable type mismatch");
 
 		_Other.Load();// load source
 		uResultId = _Other.uResultId; // get result
@@ -151,8 +151,8 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 	}
 	else // intermediate
 	{
-		HASSERT(uTypeHash == HUNDEFINED, "Variable type already assinged");
-		uTypeHash = _Other.uTypeHash;
+		HASSERT(uTypeId == HUNDEFINED32, "Variable type already assinged");
+		uTypeId = _Other.uTypeId;
 		uVarId = _Other.uVarId; // might become actual var
 		uResultId = _Other.uResultId;
 		uLastStoredId = _Other.uLastStoredId;

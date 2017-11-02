@@ -80,7 +80,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	}
 
 	//OpMemoryModel
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpMemoryModel, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::AddressingModelLogical, (uint32_t)spv::MemoryModelGLSL450))));
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpMemoryModel, { SPIRVOperand::Literal(spv::AddressingModelLogical), SPIRVOperand::Literal(spv::MemoryModelGLSL450) })));
 
 	// OpEntryPoint
 	// Op1: Execution model
@@ -89,14 +89,14 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode));
 
 	// add types for entry point function
-	const size_t uFunctionTypeHash = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
+	const uint32_t uFunctionTypeId = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
 
 	const uint32_t uFuncId = AddOperation(SPIRVOperation(
 		spv::OpFunction,
 		SPIRVType::Void().GetHash(), // result type
 		{
 			SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
-			SPIRVOperand(kOperandType_Type, uFunctionTypeHash), // function type
+			SPIRVOperand(kOperandType_Intermediate, uFunctionTypeId), // function type
 		}));
 
 	AddPreambleId(uFuncId);
@@ -152,7 +152,7 @@ void SPIRVAssembler::AddPreambleId(const uint32_t& _uId)
 }
 //---------------------------------------------------------------------------------------------------
 
-uint32_t SPIRVAssembler::ResolveType(const SPIRVType& _Type)
+uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 {
 	const size_t uHash = _Type.GetHash();
 
@@ -165,13 +165,12 @@ uint32_t SPIRVAssembler::ResolveType(const SPIRVType& _Type)
 
 	const spv::Op kType = _Type.GetType();
 
-	std::vector<size_t> SubTypes;
+	std::vector<uint32_t> SubTypes;
 	SPIRVOperation OpType(kType);
 
 	for (const SPIRVType& Type : _Type.GetSubTypes())
 	{
-		ResolveType(Type);
-		SubTypes.push_back(Type.GetHash());
+		SubTypes.push_back(AddType(Type));
 	}
 
 	// create operands
@@ -189,12 +188,12 @@ uint32_t SPIRVAssembler::ResolveType(const SPIRVType& _Type)
 		break;
 	case spv::OpTypeVector:
 		HASSERT(SubTypes.size() == 1u, "Invalid number of vector component types");
-		OpType.AddType(SubTypes.front()); // component type
+		OpType.AddIntermediate(SubTypes.front()); // component type
 		OpType.AddLiteral(_Type.GetDimension()); // component count
 		break;
 	case spv::OpTypeMatrix:
 		HASSERT(SubTypes.size() == 1u, "Invalid number of matrix component types");
-		OpType.AddType(SubTypes.front()); // column type
+		OpType.AddIntermediate(SubTypes.front()); // column type
 		OpType.AddLiteral(_Type.GetDimension()); // column count
 		break;
 	case spv::OpTypeStruct:
@@ -206,9 +205,9 @@ uint32_t SPIRVAssembler::ResolveType(const SPIRVType& _Type)
 		HASSERT(SubTypes.size() == 1u, "Invalid number of array component types");
 		HASSERT(_Type.GetDimension() > 0u, "Invalid array length");
 
-		OpType.AddType(SubTypes.front()); // column type
-										  //Length must come from a constant instruction of an integer - type scalar whose value is at least 1.
-		OpType.AddConstant(ResolveConstant(SPIRVConstant::Make(_Type.GetDimension()))); // length
+		OpType.AddIntermediate(SubTypes.front()); // column type
+		//Length must come from a constant instruction of an integer - type scalar whose value is at least 1.
+		OpType.AddIntermediate(AddConstant(SPIRVConstant::Make(_Type.GetDimension()))); // length
 		break;
 	case spv::OpTypeFunction:
 		HASSERT(SubTypes.size() > 0u, "Invalid number of return type and parameters");
@@ -218,11 +217,11 @@ uint32_t SPIRVAssembler::ResolveType(const SPIRVType& _Type)
 		// dimension is used as storage class
 		HASSERT(SubTypes.size() == 1u, "Pointer can only have one subtype");
 		OpType.AddLiteral(_Type.GetDimension()); // storage class
-		OpType.AddType(SubTypes.front()); // type
+		OpType.AddIntermediate(SubTypes.front()); // type
 		break;
 	case spv::OpTypeImage:
 		HASSERT(SubTypes.size() == 1u, "Invalid number of sampled component types");
-		OpType.AddType(SubTypes.front()); // sampled type
+		OpType.AddIntermediate(SubTypes.front()); // sampled type
 		OpType.AddLiteral(_Type.GetDimension()); // spv::Dim
 		OpType.AddLiteral(_Type.GetTexDepthType());
 		OpType.AddLiteral((uint32_t)_Type.GetArray());
@@ -243,7 +242,7 @@ uint32_t SPIRVAssembler::ResolveType(const SPIRVType& _Type)
 }
 //---------------------------------------------------------------------------------------------------
 
-uint32_t SPIRVAssembler::ResolveConstant(const SPIRVConstant& _Constant)
+uint32_t SPIRVAssembler::AddConstant(const SPIRVConstant& _Constant)
 {
 	const size_t uHash = _Constant.GetHash();
 
@@ -256,10 +255,8 @@ uint32_t SPIRVAssembler::ResolveConstant(const SPIRVConstant& _Constant)
 
 	// resolve type first to enforce result id ordering
 	const SPIRVType& CompositeType(_Constant.GetCompositeType());
-	size_t uTypeHash = AddType(CompositeType);
-
 	spv::Op kType = _Constant.GetType();
-	SPIRVOperation OpConstant(kType, uTypeHash);
+	SPIRVOperation OpConstant(kType, AddType(CompositeType));
 
 	switch (kType)
 	{
@@ -282,8 +279,7 @@ uint32_t SPIRVAssembler::ResolveConstant(const SPIRVConstant& _Constant)
 	case spv::OpSpecConstantComposite:
 		for (const SPIRVConstant& Component : _Constant.GetComponents())
 		{
-			ResolveConstant(Component);
-			OpConstant.AddConstant(Component.GetHash());
+			OpConstant.AddIntermediate(AddConstant(Component));
 		}
 		break;
 		//case spv::OpSpecConstantOp:
@@ -318,16 +314,6 @@ void SPIRVAssembler::Resolve()
 	//	RemoveUnused(); // removes entries from m_Constants & m_Types
 	//}
 
-	// resolve types & constants to operations stream
-	for (const auto& KV : m_Constants)
-	{
-		ResolveConstant(KV.second);
-	}
-	for (const auto& KV : m_Types)
-	{
-		ResolveType(KV.second);
-	}
-
 	// close function body opend in init
 	AddOperation(SPIRVOperation(spv::OpReturn));
 	AddOperation(SPIRVOperation(spv::OpFunctionEnd));
@@ -338,7 +324,7 @@ void SPIRVAssembler::Resolve()
 		spv::StorageClass kClass = GetStorageClass(Op);
 		if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
 		{
-			m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Variable, Op.m_uInstrId));
+			m_pOpEntryPoint->AddOperand(SPIRVOperand(kOperandType_Intermediate, Op.m_uInstrId));
 		}
 	}, is_var_op);
 	
@@ -424,30 +410,7 @@ uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperati
 
 	return m_uInstrId++;
 }
-//---------------------------------------------------------------------------------------------------
 
-size_t SPIRVAssembler::AddConstant(const SPIRVConstant& _Const)
-{
-	const size_t uHash = _Const.GetHash();
-	if (m_Constants.count(uHash) == 0ull)
-	{
-		m_Constants.insert({ uHash, _Const });
-	}
-
-	return uHash;
-}
-//---------------------------------------------------------------------------------------------------
-
-size_t SPIRVAssembler::AddType(const SPIRVType& _Type)
-{
-	const size_t uHash = _Type.GetHash();
-	if (m_Types.count(uHash) == 0ull)
-	{
-		m_Types.insert({ uHash, _Type });
-	}
-
-	return uHash;
-}
 //---------------------------------------------------------------------------------------------------
 
 void SPIRVAssembler::AddVariableInfo(const var_decoration<true>& _Var)
@@ -479,20 +442,6 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
 	std::vector<uint32_t> Operands;
 	uint32_t uTypeId = SPIRVInstruction::kInvalidId;
 
-	auto GetTypeId = [&](size_t uHash) -> uint32_t
-	{
-		auto it = m_TypeIds.find(uHash);
-		HASSERT(it != m_TypeIds.end(), "Unresolved type %llu", uHash);
-		return it->second;
-	};
-
-	auto GetConstantId = [&](size_t uHash) -> uint32_t
-	{
-		auto it = m_ConstantIds.find(uHash);
-		HASSERT(it != m_ConstantIds.end(), "Unresolved constant %llu", uHash);
-		return it->second;
-	};
-
 	auto ResolveId = [&](uint32_t id) -> uint32_t
 	{
 		HASSERT(id < m_Operations.size(), "Invalid operand Id");
@@ -503,29 +452,18 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
 
 	if (_Op.GetResultType() != kUndefinedSizeT)
 	{
-		uTypeId = ResolveId(GetTypeId(_Op.GetResultType()));
+		uTypeId = ResolveId(_Op.GetResultType());
 	}
 
 	for (const SPIRVOperand& Operand : _Op.GetOperands())
 	{
 		switch (Operand.kType)
 		{
-		case kOperandType_Type:
-			Operands.push_back(ResolveId(GetTypeId(Operand.uHash)));
-			break;
-		case kOperandType_Constant:
-			Operands.push_back(ResolveId(GetConstantId(Operand.uHash)));
-			break;
 		case kOperandType_Intermediate:
-		case kOperandType_Variable:
 			Operands.push_back(ResolveId(Operand.uId));
 			break;
 		case kOperandType_Literal:
 			Operands.push_back(Operand.uId);
-			if (Operand.uIdExt != SPIRVInstruction::kInvalidId)
-			{
-				Operands.push_back(Operand.uIdExt);
-			}
 			break;
 		default:
 			HFATAL("Unsupported operand type");
