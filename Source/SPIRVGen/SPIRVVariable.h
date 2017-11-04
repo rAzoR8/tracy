@@ -433,7 +433,7 @@ namespace Tracy
 		{
 			// create component constant
 			SPIRVConstant Constant = SPIRVConstant::Make(_First);
-			const size_t uConstId = GlobalAssembler.AddConstant(Constant);
+			const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
 			_Op.AddIntermediate(uConstId);
 		}
 

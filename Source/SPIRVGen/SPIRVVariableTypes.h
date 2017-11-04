@@ -291,6 +291,11 @@ namespace Tracy
 
 #pragma endregion
 
+	struct sampler_t {};
+
+	template <class T>
+	constexpr bool is_sampler = std::is_same_v<std::decay_t<T>, sampler_t>;
+
 }; // Tracy
 
 #endif // !TRACY_SPIRVVARIABLETYPES_H

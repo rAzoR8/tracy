@@ -80,6 +80,7 @@ namespace Tracy
 		static SPIRVType Short() { return SPIRVType(spv::OpTypeInt, 16u, true); }
 		static SPIRVType UShort() { return SPIRVType(spv::OpTypeInt, 16u, false); }
 		static SPIRVType Float() { return SPIRVType(spv::OpTypeFloat, 32u, true); }
+		static SPIRVType Sampler() { return SPIRVType(spv::OpTypeSampler); }
 		static SPIRVType Struct(const std::vector<SPIRVType>& _MemberTypes = {}) { return SPIRVType(spv::OpTypeStruct, _MemberTypes); }
 		static SPIRVType Function(const SPIRVType& _ReturnType = Void(), const std::vector<SPIRVType>& _ParameterTypes = {});
 		static SPIRVType Pointer(const SPIRVType& _Type, const spv::StorageClass _kClass = spv::StorageClassFunction) { return SPIRVType(spv::OpTypePointer, _Type, (uint32_t)_kClass); }
@@ -92,6 +93,8 @@ namespace Tracy
 			const bool _bMultiSampled = false,
 			const ETexSamplerAccess _kSamplerAccess = kTexSamplerAccess_Sampled)
 		{ return SPIRVType(_SampledType, _kDimension, _bArray, _kDepthType, _bMultiSampled, _kSamplerAccess); }
+
+		static SPIRVType SampledImage(const SPIRVType& _ImageType) { return SPIRVType(spv::OpSampledImage, _ImageType); }
 
 		template <class T, class U = std::decay_t<T>>
 		static SPIRVType Primitive() { return SPIRVType(optype<U>::type, optype<U>::bits, optype<U>::sign); }
@@ -203,6 +206,9 @@ namespace Tracy
 	}
 
 #pragma region FromType
+	template<>
+	inline SPIRVType SPIRVType::FromBaseType<sampler_t>() { return SPIRVType::Sampler(); }
+
 	template<>
 	inline SPIRVType SPIRVType::FromBaseType<bool>() { return SPIRVType::Bool(); }
 

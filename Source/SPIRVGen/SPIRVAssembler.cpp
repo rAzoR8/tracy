@@ -174,6 +174,7 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 	{
 	case spv::OpTypeVoid:
 	case spv::OpTypeBool:
+	case spv::OpTypeSampler:
 		break; // nothing to do
 	case spv::OpTypeInt:
 		OpType.AddLiteral(_Type.GetDimension()); // bitwidth
@@ -224,7 +225,12 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 		OpType.AddLiteral((uint32_t)_Type.GetMultiSampled());
 		OpType.AddLiteral(_Type.GetTexSamplerAccess());
 		OpType.AddLiteral((uint32_t)spv::ImageFormatUnknown); // any format
-															  // If Dim is SubpassData, Sampled must be 2, Image Format must be Unknown, and the Execution Model must be Fragment.
+		// If Dim is SubpassData, Sampled must be 2, Image Format must be Unknown, and the Execution Model must be Fragment.
+		break;
+	case spv::OpTypeSampledImage:
+		HASSERT(SubTypes.size() == 1u, "Invalid number of image types");
+		HASSERT(_Type.GetSubTypes().front().GetType() == spv::OpTypeImage, "Invalid image type");
+		OpType.AddIntermediate(SubTypes.front()); // image type
 		break;
 	default:
 		HFATAL("Type %d not implemented", );
