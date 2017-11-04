@@ -139,6 +139,41 @@ namespace Tracy
 
 		const T* operator->() { return &Value; }
 
+#pragma region sample tex
+		template <
+			spv::StorageClass C1,
+			spv::StorageClass C2,
+			class TexCompT = tex_component_t<T>,
+			class TexCoordT = tex_coord_t<T>,
+			typename = std::enable_if_t<is_texture<T>>>
+		var_t<TexCompT, Assemble, spv::StorageClassFunction> Sample(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords)
+		{
+			auto var = var_t<TexCompT, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+			if constexpr(Assemble)
+			{
+				// Result Type must be a vector of four components of floating - point type or integer type.
+				// Its components must be the same as Sampled Type of the underlying OpTypeImage(unless that underlying	Sampled Type is OpTypeVoid).
+				using ReturnType = vec_type_t<base_type_t<TexCompT>, 4>;
+				const uint32_t uReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
+
+				// create SampledImageType if it did not exist yet
+				const uint32_t uSampledImgType = GlobalAssembler.AddType(SPIRVType::SampledImage(Type));
+
+				const uint32_t uImageId = Load();
+				const uint32_t uSamplerId = _Sampler.Load();
+				// Todo: OpSampledImage uSampledImgType ImgId SamplerId
+
+				const uint32_t uCoordId = _Coords.Load();
+				// Todo: OpImageSampleImplicitLod uReturnTypeId uOpSampledImageId uCoordId
+
+
+			}
+
+			return var;
+		}
+#pragma endregion
+
 		mutable T Value;
 
 	private:
@@ -173,6 +208,14 @@ namespace Tracy
 		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { if (Binding != HUNDEFINED32) { SetBinding(Binding, Set); } if (Location != HUNDEFINED32) { SetLocation(Location); } }
 		template <spv::StorageClass C1>
 		const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
+	};
+
+	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0u, uint32_t Location = HUNDEFINED32>
+	struct var_uniform_constant_t : public var_t<T, Assemble, spv::StorageClassUniformConstant>
+	{
+		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { if (Binding != HUNDEFINED32) { SetBinding(Binding, Set); } if (Location != HUNDEFINED32) { SetLocation(Location); } }
+		template <spv::StorageClass C1>
+		const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -583,7 +626,7 @@ namespace Tracy
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
 	//---------------------------------------------------------------------------------------------------
-
+	// todo: shouldn immutable operations always return function class variables?
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator!() const
 	{

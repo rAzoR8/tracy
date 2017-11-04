@@ -98,6 +98,7 @@ namespace Tracy
 #pragma endregion
 
 #pragma region va_type
+	// create type from typelist
 	template <class ...Ts>
 	struct va_type {};
 
@@ -139,6 +140,51 @@ namespace Tracy
 
 	template <class ...Ts>
 	using va_type_t = typename va_type<typename std::decay_t<Ts>...>::type;
+#pragma endregion
+
+#pragma region vec_type
+	// create vector type from base type and dimension
+	template <class T, size_t Dim>
+	struct vec_type {}; // could also use glm::vec<Dim, T, highpr> but then dim == 1 is not a base type
+
+	template<>
+	struct vec_type<float, 1> { typedef float type; };
+
+	template<>
+	struct vec_type<float, 2> { typedef float2_t type; };
+
+	template<>
+	struct vec_type<float, 3> { typedef float3_t type; };
+
+	template<>
+	struct vec_type<float, 4> { typedef float4_t type; };
+
+	template<>
+	struct vec_type<int32_t, 1> { typedef int32_t type; };
+
+	template<>
+	struct vec_type<int32_t, 2> { typedef int2_t type; };
+
+	template<>
+	struct vec_type<int32_t, 3> { typedef int3_t type; };
+
+	template<>
+	struct vec_type<int32_t, 4> { typedef int4_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 1> { typedef uint32_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 2> { typedef uint2_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 3> { typedef uint3_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 4> { typedef uint4_t type; };
+
+	template <class T, size_t Dim>
+	using vec_type_t = typename vec_type<T, Dim>::type;
 #pragma endregion
 
 #pragma region base_type
@@ -257,7 +303,8 @@ namespace Tracy
 		ETexSamplerAccess _SAccess = kTexSamplerAccess_Runtime>
 	struct tex_t
 	{
-		typedef T TexComponentType;
+		typedef T TexComponentType; // result type of sample
+		typedef vec_type_t<float, _Dim + 1 + _Array> TexCoordType; // UV coord vector type
 		static constexpr spv::Dim Dim = _Dim; // 1 2 3
 		static constexpr bool Array = _Array; // is array
 		static constexpr ETexDepthType DepthType = _DType;
@@ -284,10 +331,15 @@ namespace Tracy
 	using tex3d_t = tex_t<T, spv::Dim3D>;
 
 	template <class T = float4_t>
-	using tex4d_t = tex_t<T, spv::DimCube>;
+	using tex_cube_t = tex_t<T, spv::DimCube>;
 
-	template <class TexT>
-	using tex_component_t = typename TexT::ComponentType;
+	// TODO: array types
+
+	template <class TexT> // TexT = tex_t variant
+	using tex_component_t = typename TexT::TexComponentType;
+
+	template <class TexT> // TexT = tex_t variant
+	using tex_coord_t = typename TexT::TexCoordType;
 
 #pragma endregion
 

@@ -94,7 +94,7 @@ namespace Tracy
 			const ETexSamplerAccess _kSamplerAccess = kTexSamplerAccess_Sampled)
 		{ return SPIRVType(_SampledType, _kDimension, _bArray, _kDepthType, _bMultiSampled, _kSamplerAccess); }
 
-		static SPIRVType SampledImage(const SPIRVType& _ImageType) { return SPIRVType(spv::OpSampledImage, _ImageType); }
+		static SPIRVType SampledImage(const SPIRVType& _ImageType) { return SPIRVType(spv::OpTypeSampledImage, _ImageType); }
 
 		template <class T, class U = std::decay_t<T>>
 		static SPIRVType Primitive() { return SPIRVType(optype<U>::type, optype<U>::bits, optype<U>::sign); }
