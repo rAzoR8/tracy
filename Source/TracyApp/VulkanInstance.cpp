@@ -60,7 +60,7 @@ void VulkanInstance::Init(const uint32_t _uClientWidth, const uint32_t _uClientH
 		// first device should be dedicated one after init
 		// could also be called from the application, maaybe makes more sense
 		THandle BaseWindowHandle = MakeWindow(m_Devices.begin()->first, _uClientWidth, _uClientHeight, _hWnd, _hInstance);
-		HASSERT(BaseWindowHandle != kInvalidHandle, "Failed to create default window.");
+		HASSERT(BaseWindowHandle != kUndefinedSizeT, "Failed to create default window.");
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ const VulkanWindow& Tracy::VulkanInstance::GetWindow(const THandle _hWindow) con
 #if defined(_WIN32) || defined(WIN32)
 const THandle Tracy::VulkanInstance::MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uClientWidth, const uint32_t _uClientHeight, HWND _hWnd, HINSTANCE _hInstance)
 {
-	THandle ResultHandle = kInvalidHandle;
+	THandle ResultHandle = kUndefinedSizeT;
 
 	const auto& DeviceIt = m_Devices.find(_hPresentDeviceHandle);
 	if (DeviceIt != m_Devices.end())

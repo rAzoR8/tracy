@@ -25,8 +25,8 @@ Tracy::VulkanWindow::VulkanWindow(VulkanWindow&& _Other) :
 	m_Swapchain(nullptr),
 	m_uWidth(0u),
 	m_uHeight(0u),
-	m_hThis(kInvalidHandle),
-	m_hPresentDevice(kInvalidHandle)
+	m_hThis(kUndefinedSizeT),
+	m_hPresentDevice(kUndefinedSizeT)
 {
 	m_Surface = std::move(_Other.m_Surface);
 	m_Swapchain = std::move(_Other.m_Swapchain);
@@ -90,7 +90,7 @@ const bool Tracy::VulkanWindow::Init(const VulkanDevice& _Device)
 	// Get Physical device and store the handle of the device
 	const vk::PhysicalDevice& DeviceHandle = _Device.GetPhysicalHandle();
 	m_hPresentDevice = _Device.GetHandle();
-	HASSERT(m_hPresentDevice != kInvalidHandle, "Invalid present device handle");
+	HASSERT(m_hPresentDevice != kUndefinedSizeT, "Invalid present device handle");
 
 	// Query the surface to retrieve system support info
 	ReloadSurfaceInfo();

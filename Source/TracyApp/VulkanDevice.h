@@ -70,7 +70,7 @@ namespace Tracy
 
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
-		THandle m_Handle = kInvalidHandle;
+		THandle m_Handle = kUndefinedSizeT;
 		vk::PhysicalDeviceProperties m_Properties;
 		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		uint64_t m_uTotalMemory;

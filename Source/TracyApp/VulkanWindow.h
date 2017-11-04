@@ -46,8 +46,8 @@ namespace Tracy
 		uint32_t m_uWidth;
 		uint32_t m_uHeight;
 
-		THandle m_hThis = kInvalidHandle;
-		THandle m_hPresentDevice = kInvalidHandle;
+		THandle m_hThis = kUndefinedSizeT;
+		THandle m_hPresentDevice = kUndefinedSizeT;
 	};
 
 	inline const THandle VulkanWindow::GetHandle() const
