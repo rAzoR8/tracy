@@ -63,6 +63,13 @@ namespace Tracy
 
 		void AddVariableInfo(const var_decoration<true>& _Var);
 
+		void UseDefaultBindingSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultBinding = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u);
+
+		const uint32_t& GetDefaultSet() const;
+		const uint32_t GetCurrentBinding();
+		const uint32_t GetCurrentInputLocation();
+		const uint32_t GetCurrentOutputLocation();
+
 	private:
 		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions);
 
@@ -102,6 +109,11 @@ namespace Tracy
 
 		std::vector<SPIRVInstruction> m_Instructions;
 
+		uint32_t m_uDefaultSet = HUNDEFINED32;
+		uint32_t m_uCurrentBinding = HUNDEFINED32;
+		uint32_t m_uCurrentInputLocation = HUNDEFINED32;
+		uint32_t m_uCurrentOutputLocation = HUNDEFINED32;
+
 		// type instruction id
 		TIdMap m_TypeIds;
 		// constant instruction id
@@ -114,6 +126,37 @@ namespace Tracy
 		// var id -> VariableInfo
 		std::unordered_map<uint32_t, VariableInfo> m_UsedVariables; // info on loaded / stored variables
 	};
+
+	inline void SPIRVAssembler::UseDefaultBindingSetLocation(const uint32_t _uDefaultSet, const uint32_t _uDefaultBinding, const uint32_t _uDefaulInputLocation, const uint32_t _uDefaultOutputLocation)
+	{
+		m_uDefaultSet = _uDefaultSet;
+		m_uCurrentBinding = _uDefaultBinding;
+		m_uCurrentInputLocation = _uDefaulInputLocation;
+		m_uCurrentOutputLocation = _uDefaultOutputLocation;
+	}
+
+	inline const uint32_t& SPIRVAssembler::GetDefaultSet() const
+	{
+		return m_uDefaultSet;
+	}
+
+	inline const uint32_t SPIRVAssembler::GetCurrentBinding()
+	{
+		// TODO: assert if to high
+		return m_uCurrentBinding++;
+	}
+
+	inline const uint32_t SPIRVAssembler::GetCurrentInputLocation()
+	{
+		// TODO: assert if to high
+		return m_uCurrentInputLocation++;
+	}
+
+	inline const uint32_t SPIRVAssembler::GetCurrentOutputLocation()
+	{
+		// TODO: assert if to high
+		return m_uCurrentOutputLocation++;
+	}
 
 #ifndef GlobalAssembler
 #define GlobalAssembler (*SPIRVAssembler::Instance())

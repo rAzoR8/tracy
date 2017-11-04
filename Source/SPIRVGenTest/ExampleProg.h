@@ -24,7 +24,7 @@ namespace Tracy
 
 		//var_in<float, 0> InputScale;
 		//var_in<float3_t> InputPos;
-		var_out<float3_t, 0> OutputColor;
+		var_out<float3_t> OutputColor;
 
 		SamplerState Sampler;
 		Texture2DEx<float3_t> InputImg;

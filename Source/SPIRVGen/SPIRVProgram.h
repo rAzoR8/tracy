@@ -23,10 +23,10 @@ namespace Tracy
 		template <class T, uint32_t Location = HUNDEFINED32>
 		using var_out = var_out_t<T, Assemble, Location>;
 
-		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0, uint32_t Location = HUNDEFINED32>
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using var_uniform = var_uniform_t<T, Assemble, Binding, Set, Location>;
 
-		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0, uint32_t Location = HUNDEFINED32>
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using var_uniform_constant = var_uniform_constant_t<T, Assemble, Binding, Set, Location>;
 
 		using s32 = var<int32_t>;
@@ -64,16 +64,16 @@ namespace Tracy
 		using TextureCube = var_uniform_constant<tex_cube_t<float4_t>>;
 
 		// generic texture types
-		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0, uint32_t Location = HUNDEFINED32>
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using Texture1DEx = var_uniform_constant<tex1d_t<T>, Binding, Set, Location>;
 
-		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0, uint32_t Location = HUNDEFINED32>
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using Texture2DEx = var_uniform_constant<tex2d_t<T>, Binding, Set, Location>;
 
-		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0, uint32_t Location = HUNDEFINED32>
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using Texture3DEx = var_uniform_constant<tex3d_t<T>, Binding, Set, Location>;
 
-		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = 0, uint32_t Location = HUNDEFINED32>
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using TextureCubeEx = var_uniform_constant<tex_cube_t<T>, Binding, Set, Location>;
 
 		// TODO: array types

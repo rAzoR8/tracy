@@ -190,3 +190,8 @@ void var_decoration<true>::SetLocation(const uint32_t _uLocation)
 	uLocation = _uLocation;
 }
 //---------------------------------------------------------------------------------------------------
+void var_decoration<true>::SetIdentifier(const uint32_t _uIdentifier)
+{
+	uIdentifier = _uIdentifier;
+}
+//---------------------------------------------------------------------------------------------------
