@@ -1,13 +1,13 @@
 #include "VulkanDevice.h"
 
-#include "VulkanInitializer.h"
 #include "Logger.h"
 
 using namespace Tracy;
 
-VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
+VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle) :
 	m_PhysicalDevice(_PhysDevice),
 	m_Device(nullptr),
+	m_Handle(_uHandle),
 	m_Properties(_PhysDevice.getProperties()),
 	m_MemoryProperties(_PhysDevice.getMemoryProperties()),
 	m_uTotalMemory(0u)
@@ -31,7 +31,7 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 
 VulkanDevice::~VulkanDevice()
 {
-	if (m_Device != vk::Device())
+	if (m_Device)
 	{
 		m_Device.destroy();
 	}

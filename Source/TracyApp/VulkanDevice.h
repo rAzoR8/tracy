@@ -1,7 +1,8 @@
-#ifndef VULKANDEVICE_H
-#define VULKANDEVICE_H
+#ifndef TRACY_VULKANDEVICE_H
+#define TRACY_VULKANDEVICE_H
 
 #include "VulkanAPI.h"
+#include "StandardDefines.h"
 #include <unordered_map>
 
 namespace Tracy
@@ -10,33 +11,36 @@ namespace Tracy
 
 	class VulkanDevice 
 	{
-		friend class VulkanInitializer;
+		friend class VulkanInstance;
 
 	public:
-		VulkanDevice(const vk::PhysicalDevice& _PhysDevice);
+		explicit VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle);
 		~VulkanDevice();
 
 		const vk::PhysicalDeviceProperties& GetProperties() const;
 		const vk::PhysicalDeviceMemoryProperties& GetMemoryProperties() const;
 		const uint64_t GetTotalMemory() const;
 		const uint32_t GetQueueIndex(const vk::QueueFlagBits _QueueType) const;
-		/*const std::vector<vk::SurfaceFormatKHR> GetSurfaceFormats(vk::SurfaceKHR& _Surface);
-		const std::vector<vk::PresentModeKHR> GetSurfacePresentModes(vk::SurfaceKHR& _Surface);
-		const vk::SurfaceCapabilitiesKHR GetSurfaceCapabilities(vk::SurfaceKHR& _Surface);*/
 		
 		const vk::PhysicalDevice& GetPhysicalHandle() const;
 		const vk::Device& GetLogicalHandle() const;
+		const THandle& GetHandle() const;
 
 		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType=vk::QueueFlagBits::eGraphics) const
 		{
 			// Check if given queue is supported by the implementation
 			const auto& QueueIndexPair = m_Queues.find(_QueueType);
-			if (QueueIndexPair != m_Queues.cend() || QueueIndexPair->second.uFamilyIndex == kInvalidQueueIndex)
+			if (QueueIndexPair != m_Queues.end() || QueueIndexPair->second.uFamilyIndex == kInvalidQueueIndex)
 			{
-				return false;
+				return m_PhysicalDevice.getSurfaceSupportKHR(QueueIndexPair->second.uFamilyIndex, _Surface);
 			}
 
-			return m_PhysicalDevice.getSurfaceSupportKHR(QueueIndexPair->second.uFamilyIndex, _Surface);
+			return false;
+		}
+
+		explicit operator bool() const
+		{
+			return m_Device && m_PhysicalDevice;
 		}
 
 	private:
@@ -58,11 +62,6 @@ namespace Tracy
 			uint32_t uFamilyIndex;
 			vk::Queue Handle;
 
-			/*Queue(const uint32_t _uFamilyIndex, const vk::Queue _QueueHandle) :
-				uFamilyIndex(_uFamilyIndex),
-				Handle(_QueueHandle)
-			{}*/
-
 			Queue() :
 				uFamilyIndex(kInvalidQueueIndex),
 				Handle(nullptr)
@@ -71,6 +70,7 @@ namespace Tracy
 
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
+		THandle m_Handle = kInvalidHandle;
 		vk::PhysicalDeviceProperties m_Properties;
 		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		uint64_t m_uTotalMemory;
@@ -100,21 +100,6 @@ namespace Tracy
 		return queuePair->second.uFamilyIndex;
 	}
 
-	/*inline const std::vector<vk::SurfaceFormatKHR> VulkanDevice::GetSurfaceFormats(vk::SurfaceKHR& _Surface)
-	{
-		return m_PhysicalDevice.getSurfaceFormatsKHR(_Surface);
-	}
-
-	inline const std::vector<vk::PresentModeKHR> VulkanDevice::GetSurfacePresentModes(vk::SurfaceKHR& _Surface)
-	{
-		return m_PhysicalDevice.getSurfacePresentModesKHR(_Surface);
-	}
-
-	inline const vk::SurfaceCapabilitiesKHR VulkanDevice::GetSurfaceCapabilities(vk::SurfaceKHR& _Surface)
-	{
-		return m_PhysicalDevice.getSurfaceCapabilitiesKHR(_Surface);
-	}*/
-
 	inline const vk::PhysicalDevice& VulkanDevice::GetPhysicalHandle() const
 	{
 		return m_PhysicalDevice;
@@ -123,6 +108,11 @@ namespace Tracy
 	inline const vk::Device& VulkanDevice::GetLogicalHandle() const
 	{
 		return m_Device;
+	}
+
+	inline const THandle& VulkanDevice::GetHandle() const
+	{
+		return m_Handle;
 	}
 
 	inline bool operator<(const VulkanDevice& lDev, const VulkanDevice& rDev)
