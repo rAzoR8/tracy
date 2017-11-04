@@ -18,7 +18,7 @@ VulkanInstance::~VulkanInstance()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanInstance::Init(const uint32_t _uClientWidth, const uint32_t _uClientHeight, HWND _hWnd, HINSTANCE _hInstance)
+void VulkanInstance::Init(const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance)
 {
 	vk::ApplicationInfo AppInfo{};
 	AppInfo.apiVersion = VK_API_VERSION_1_0;
@@ -59,17 +59,17 @@ void VulkanInstance::Init(const uint32_t _uClientWidth, const uint32_t _uClientH
 		// TODO : It should come from a config file
 		// first device should be dedicated one after init
 		// could also be called from the application, maaybe makes more sense
-		THandle BaseWindowHandle = MakeWindow(m_Devices.begin()->first, _uClientWidth, _uClientHeight, _hWnd, _hInstance);
+		THandle BaseWindowHandle = MakeWindow(m_Devices.begin()->first, _uWidth, _uHeight, _hWnd, _hInstance);
 		HASSERT(BaseWindowHandle != kUndefinedSizeT, "Failed to create default window.");
 	}
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanInstance::OnChangeDisplaySettings(const uint32_t _uClientWidth, const uint32_t _uClientHeight)
+void VulkanInstance::OnChangeDisplaySettings(const uint32_t _uWidth, const uint32_t _uHeight)
 {
 	for (auto& Window : m_Windows)
 	{
-		Window.second.OnResize(_uClientWidth, _uClientHeight);
+		Window.second.OnResize(_uWidth, _uHeight);
 	}
 }
 
@@ -93,7 +93,7 @@ const VulkanWindow& Tracy::VulkanInstance::GetWindow(const THandle _hWindow) con
 
 //---------------------------------------------------------------------------------------------------
 #if defined(_WIN32) || defined(WIN32)
-const THandle Tracy::VulkanInstance::MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uClientWidth, const uint32_t _uClientHeight, HWND _hWnd, HINSTANCE _hInstance)
+const THandle Tracy::VulkanInstance::MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance)
 {
 	THandle ResultHandle = kUndefinedSizeT;
 
@@ -101,7 +101,7 @@ const THandle Tracy::VulkanInstance::MakeWindow(const THandle _hPresentDeviceHan
 	if (DeviceIt != m_Devices.end())
 	{
 		VulkanWindow Window(m_Instance, m_LastWindowHandle, _hWnd, _hInstance);
-		if (Window.Init(DeviceIt->second))
+		if (Window.Init(DeviceIt->second, _uWidth, _uHeight))
 		{
 			const auto Res = m_Windows.try_emplace(m_LastWindowHandle, std::move(Window));
 			HASSERT(Res.second == true, "Failed to add presentable window");
@@ -125,11 +125,24 @@ void Tracy::VulkanInstance::Destroy(vk::SurfaceKHR& _Surface) const
 //---------------------------------------------------------------------------------------------------
 void Tracy::VulkanInstance::Destroy(vk::SwapchainKHR& _Swapchain, const THandle _hDevice) const
 {
-	const VulkanDevice& Device = GetDevice(_hDevice);
 	if (_Swapchain)
 	{
+		const VulkanDevice& Device = GetDevice(_hDevice);
+		
 		Device.m_Device.destroySwapchainKHR(_Swapchain);
 		_Swapchain = nullptr;
 	}
+}
+
+void Tracy::VulkanInstance::Destroy(vk::ImageView& _View, const THandle _hDevice) const
+{
+	if (_View)
+	{
+		const VulkanDevice& Device = GetDevice(_hDevice);
+		
+		Device.m_Device.destroyImageView(_View);
+		_View = nullptr;
+	}
+
 }
 #endif

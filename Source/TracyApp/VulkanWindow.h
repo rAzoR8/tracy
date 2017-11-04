@@ -27,24 +27,25 @@ namespace Tracy
 		const THandle GetHandle() const;
 
 		// Validate present capabilities of a device and gather needed data
-		const bool Init(const VulkanDevice& _Device);
+		const bool Init(const VulkanDevice& _Device, const uint32_t _uWidth, const uint32_t _uHeight);
 
-		const bool OnResize(const uint32_t _uClientWidth, const uint32_t _uClientHeight);
+		const bool OnResize(const uint32_t _uWidth, const uint32_t _uHeight);
 
 	private:
 		void ReloadSurfaceInfo();
-		void CreateSwapchain();
+		void CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight);
 
 	private:
 		vk::SwapchainKHR m_Swapchain = nullptr;
+		std::vector<vk::ImageView> m_Backbuffer;
 		
 		vk::SurfaceKHR m_Surface = nullptr;
 		vk::SurfaceCapabilitiesKHR m_Capabilities;
 		std::vector<vk::SurfaceFormatKHR> m_Formats;
 		std::vector<vk::PresentModeKHR> m_PresentModes;
 
-		uint32_t m_uWidth;
-		uint32_t m_uHeight;
+		uint32_t m_uWidth = 640u;
+		uint32_t m_uHeight = 480u;
 
 		THandle m_hThis = kUndefinedSizeT;
 		THandle m_hPresentDevice = kUndefinedSizeT;
