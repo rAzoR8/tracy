@@ -137,7 +137,14 @@ namespace Tracy
 
 		const var_t& operator!() const;
 
-		const T* operator->() { return &Value; }
+		const T* operator->() { return &Value; }		
+
+		//template <
+		//	spv::StorageClass C1,
+		//	spv::StorageClass C2,
+		//	size_t Dim,
+		//	class TexCoordT = vec_type_t<float, Dim>>
+		//	void CreateTextureSampleInstruction(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords);
 
 #pragma region sample tex
 		template <
@@ -152,9 +159,10 @@ namespace Tracy
 
 			if constexpr(Assemble)
 			{
-				// Result Type must be a vector of four components of floating - point type or integer type.
+				// Result Type must be a vector of four components of floating point type or integer type.
 				// Its components must be the same as Sampled Type of the underlying OpTypeImage(unless that underlying	Sampled Type is OpTypeVoid).
-				using ReturnType = vec_type_t<base_type_t<TexCompT>, 4>;
+				using BaseRetType = base_type_t<TexCompT>;
+				using ReturnType = vec_type_t<BaseRetType, 4>;
 				const uint32_t uReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
 
 				// create SampledImageType if it did not exist yet
@@ -162,12 +170,44 @@ namespace Tracy
 
 				const uint32_t uImageId = Load();
 				const uint32_t uSamplerId = _Sampler.Load();
-				// Todo: OpSampledImage uSampledImgType ImgId SamplerId
+
+				// OpSampledImage uSampledImgType ImgId SamplerId
+				SPIRVOperation OpSampledImage(spv::OpSampledImage, uSampledImgType);
+				OpSampledImage.AddIntermediate(uImageId);
+				OpSampledImage.AddIntermediate(uSamplerId);
+
+				const uint32_t uOpSampledImageId = GlobalAssembler.AddOperation(OpSampledImage);
 
 				const uint32_t uCoordId = _Coords.Load();
-				// Todo: OpImageSampleImplicitLod uReturnTypeId uOpSampledImageId uCoordId
+				// OpImageSampleImplicitLod uReturnTypeId uOpSampledImageId uCoordId
+				SPIRVOperation OpSampleImageImplicitLod(spv::OpImageSampleImplicitLod, uReturnTypeId);
+				OpSampleImageImplicitLod.AddIntermediate(uOpSampledImageId);
+				OpSampleImageImplicitLod.AddIntermediate(uCoordId);
 
+				const uint32_t uSampleResultId = GlobalAssembler.AddOperation(OpSampleImageImplicitLod);
+				if constexpr(std::is_same_v<TexCompT, ReturnType> == false)
+				{
+					const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<TexCompT>());
+					const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<BaseRetType>());
 
+					SPIRVOperation OpConstruct(spv::OpCompositeConstruct, uRealReturnTypeId);
+
+					for (uint32_t n = 0u; n < Dimmension<TexCompT>; ++n)
+					{
+						SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uSampleResultId)); // var id to extract from
+						OpExtract.AddLiteral(n); // extraction index
+
+						uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
+						OpConstruct.AddIntermediate(uId);
+					}
+
+					// composite constructs treated as intermediates as they cant be loaded
+					var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+				}
+				else
+				{
+					var.uResultId = uSampleResultId;
+				}
 			}
 
 			return var;

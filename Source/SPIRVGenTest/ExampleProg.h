@@ -27,7 +27,7 @@ namespace Tracy
 		var_out<float3_t, 0> OutputColor;
 
 		SamplerState Sampler;
-		Texture2D InputImg;
+		Texture2DEx<float3_t> InputImg;
 
 		// functor
 		inline void operator()()
@@ -36,9 +36,8 @@ namespace Tracy
 			//float4 v4 = float4(1.f, 2.f, 3.f, 4.f);
 
 			float4 vtest = float4(v3, 4.f);
-			auto te = InputImg.Sample(Sampler, float2(0.5f, 0.5f));
 
-			OutputColor += v3;
+			OutputColor += InputImg.Sample(Sampler, float2(0.5f, 0.5f));
 			//OutputColor = v3;
 
 			//If(t == c)
