@@ -30,7 +30,7 @@ namespace Tracy
 
 #pragma region col_type
 	template <class MatrixT>
-	struct col_type {};
+	struct col_type { typedef std::false_type type; };
 
 	template<>
 	struct col_type<float2x2_t> { typedef float2_t type; };
@@ -53,7 +53,7 @@ namespace Tracy
 
 #pragma region row_type
 	template <class MatrixT>
-	struct row_type {};
+	struct row_type { typedef std::false_type type; };
 
 	template<>
 	struct row_type<float2x2_t> { typedef float2_t type; };
@@ -76,7 +76,7 @@ namespace Tracy
 
 #pragma region mat_type
 	template <class Row, class Col>
-	struct mat_type {};
+	struct mat_type { typedef std::false_type type; };
 
 	template <>
 	struct mat_type<float2_t, float2_t> { typedef float2x2_t type; };
@@ -100,7 +100,7 @@ namespace Tracy
 #pragma region va_type
 	// create type from typelist
 	template <class ...Ts>
-	struct va_type {};
+	struct va_type { typedef std::false_type type; };
 
 	template <>
 	struct va_type<bool> { typedef bool type; };
@@ -145,7 +145,7 @@ namespace Tracy
 #pragma region vec_type
 	// create vector type from base type and dimension
 	template <class T, size_t Dim>
-	struct vec_type {}; // could also use glm::vec<Dim, T, highpr> but then dim == 1 is not a base type
+	struct vec_type { typedef std::false_type type; }; // could also use glm::vec<Dim, T, highpr> but then dim == 1 is not a base type
 
 	template<>
 	struct vec_type<float, 1> { typedef float type; };
@@ -189,7 +189,7 @@ namespace Tracy
 
 #pragma region base_type
 	template <class VecT>
-	struct base_type {};
+	struct base_type { typedef std::false_type type; };
 
 	template <>
 	struct base_type<bool> { typedef bool type; };
@@ -347,6 +347,22 @@ namespace Tracy
 
 	template <class T>
 	constexpr bool is_sampler = std::is_same_v<std::decay_t<T>, sampler_t>;
+
+	template<class T, uint32_t Index>
+	constexpr bool is_valid_index()
+	{
+		if constexpr(is_vector<T> || is_matrix<T>)
+		{
+			return Index < Dimmension<T>;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	template <class T>
+	constexpr bool is_valid_type = !std::is_same_v<std::false_type, T>;
 
 }; // Tracy
 

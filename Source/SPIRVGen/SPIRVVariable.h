@@ -111,7 +111,7 @@ namespace Tracy
 	struct var_t : public var_decoration<Assemble>
 	{
 		typedef TSPVVarTag SPVVarTag;
-
+		
 		// generates OpVar
 		template <class... Ts>
 		var_t(const Ts& ... _args);
@@ -143,14 +143,17 @@ namespace Tracy
 
 		const var_t<T, Assemble, spv::StorageClassFunction>& operator!() const;
 
-		const T* operator->() { return &Value; }		
+		const T* operator->() { return &Value; }
 
-		//template <
-		//	spv::StorageClass C1,
-		//	spv::StorageClass C2,
-		//	size_t Dim,
-		//	class TexCoordT = vec_type_t<float, Dim>>
-		//	void CreateTextureSampleInstruction(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords);
+		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> X() { return ExtractComponent<0>(); }
+		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Y() { return ExtractComponent<1>(); }
+		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Z() { return ExtractComponent<2>(); }
+		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> W() { return ExtractComponent<3>(); }
+
+		__declspec(property(get = X /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> x;
+		__declspec(property(get = Y /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> y;
+		__declspec(property(get = Z /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> z;
+		__declspec(property(get = W /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> w;
 
 #pragma region sample tex
 		template <
@@ -183,8 +186,8 @@ namespace Tracy
 				OpSampledImage.AddIntermediate(uSamplerId);
 
 				const uint32_t uOpSampledImageId = GlobalAssembler.AddOperation(OpSampledImage);
-
 				const uint32_t uCoordId = _Coords.Load();
+
 				// OpImageSampleImplicitLod uReturnTypeId uOpSampledImageId uCoordId
 				SPIRVOperation OpSampleImageImplicitLod(spv::OpImageSampleImplicitLod, uReturnTypeId);
 				OpSampleImageImplicitLod.AddIntermediate(uOpSampledImageId);
@@ -221,6 +224,29 @@ namespace Tracy
 #pragma endregion
 
 		mutable T Value;
+
+	private:
+#pragma region ExtractComponent
+			template <uint32_t Index, typename = std::enable_if_t<is_valid_type<base_type_t<T>>>>
+			var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> ExtractComponent()
+			{
+				var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> var(TIntermediate(), is_valid_index<T, Index>() ? Value[Index] : base_type_t<T>());
+
+				if constexpr(Assemble)
+				{
+					static_assert(is_valid_index<T, Index>(), "Incompatible type for component extraction (index)");
+
+					Load();
+					const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<T>>());
+					SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
+					OpExtract.AddLiteral(Index); // extraction index
+
+					var.uResultId = GlobalAssembler.AddOperation(OpExtract);
+				}
+
+				return var;
+			}
+#pragma endregion
 
 	private:
 		// two operands (self + other) mutBLE
@@ -450,7 +476,7 @@ namespace Tracy
 		_Member.uTypeId = GlobalAssembler.AddType(_Member.Type);
 		_Type.Member(_Member.Type); // struct type
 
-									// member offset, check for 16byte allignment
+		// member offset, check for 16byte allignment
 		if (_uCurOffset + sizeof(VarT) <= _uCurBoundary)
 		{
 			_Member.uMemberOffset = _uCurOffset;

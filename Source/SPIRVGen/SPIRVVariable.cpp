@@ -44,7 +44,7 @@ void var_decoration<true>::Store() const
 
 uint32_t var_decoration<true>::Load() const
 {
-	HASSERT(uTypeId != 0u && uTypeId != HUNDEFINED32, "Invalid TypeHash");
+	HASSERT(uTypeId != HUNDEFINED32, "Invalid TypeId");
 
 	// create access chain for structures and composite types
 	if (uVarId == HUNDEFINED32 && uBaseId != HUNDEFINED32 && AccessChain.empty() == false)

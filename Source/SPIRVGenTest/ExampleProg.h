@@ -33,27 +33,9 @@ namespace Tracy
 		inline void operator()()
 		{
 			float3 v3 = float3(1.f, 2.f, 3.f);
-			//float4 v4 = float4(1.f, 2.f, 3.f, 4.f);
-
 			float4 vtest = float4(v3, 4.f);
 
-			OutputColor += InputImg.Sample(Sampler, float2(0.5f, 0.5f));
-			//OutputColor = v3;
-
-			//If(t == c)
-			//{
-			//	OutputColor = t + c * InputScale;
-			//} Else{
-			//	OutputColor = normalize(t - c);
-
-			//	c += t * OutputColor * sqrt(f32(4.f));
-
-			//	var<bool> b = (c == t);
-
-			//	If(b) {
-			//		OutputColor *= OutputColor;
-			//	});
-			//});
+			OutputColor += InputImg.Sample(Sampler, float2(0.5f, 0.5f)) * vtest.x;
 		};
 	private:
 
