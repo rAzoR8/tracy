@@ -1,7 +1,6 @@
 #ifndef TRACY_SPIRVTYPE_H
 #define TRACY_SPIRVTYPE_H
 
-#include <vulkan\spirv.hpp>
 #include <vector>
 #include <stdint.h>
 #include "SPIRVVariableTypes.h"

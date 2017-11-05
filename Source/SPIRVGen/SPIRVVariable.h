@@ -1,7 +1,6 @@
 #ifndef TRACY_SPIRVVARIABLE_H
 #define TRACY_SPIRVVARIABLE_H
 
-#include <vulkan\GLSL.std.450.h>
 #include "GetStructMember.h"
 #include "SPIRVDecoration.h"
 #include "SPIRVType.h"
@@ -101,6 +100,10 @@ namespace Tracy
 	template<class T>
 	constexpr bool is_var = has_var_tag<T>::value;
 
+	// check if any parameter has the variable tag
+	template <class ...Ts>
+	constexpr bool has_var = std::disjunction_v<has_var_tag<Ts>...>;
+
 	struct TIntermediate {};
 	//---------------------------------------------------------------------------------------------------
 
@@ -138,7 +141,7 @@ namespace Tracy
 		template <class U, spv::StorageClass C1>
 		const var_t& operator/=(const var_t<U, Assemble, C1>& _Other) const;
 
-		const var_t& operator!() const;
+		const var_t<T, Assemble, spv::StorageClassFunction>& operator!() const;
 
 		const T* operator->() { return &Value; }		
 
@@ -220,62 +223,15 @@ namespace Tracy
 		mutable T Value;
 
 	private:
-		// two operands (self + other)
+		// two operands (self + other) mutBLE
 		template <class U, class OpFunc, spv::StorageClass C1, class ...Ops>
 		const var_t<T, Assemble, Class>& make_op2(const var_t<U, Assemble, C1>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const;
 
-		// one operand (self)
+		// one operand (self) immutable
 		template <class OpFunc, class ...Ops>
-		const var_t<T, Assemble, Class>& make_op1( const OpFunc& _OpFunc, const Ops ..._Ops) const;
+		const var_t<T, Assemble, spv::StorageClassFunction>& make_op1( const OpFunc& _OpFunc, const Ops ..._Ops) const;
 	};
 
-	template <class VarT>
-	void LocationHelper(VarT& _Var, const uint32_t _uLocation, const bool _bInput)
-	{
-		uint32_t uLocation = _uLocation != HUNDEFINED32 ? _uLocation : (_bInput ? GlobalAssembler.GetCurrentInputLocation() : GlobalAssembler.GetCurrentOutputLocation());
-		if (uLocation != HUNDEFINED32) _Var.SetLocation(uLocation);
-	}
-
-	template <class VarT>
-	void BindingSetLocationHelper(VarT& _Var, const uint32_t _uBinding, const uint32_t _uSet, const uint32_t _uLocation)
-	{
-		LocationHelper(_Var, _uLocation, true); // TODO: add option for output uniforms
-		uint32_t uBinding = _uBinding != HUNDEFINED32 ? _uBinding : GlobalAssembler.GetCurrentBinding();
-		uint32_t uSet = _uSet != HUNDEFINED32 ? _uSet : GlobalAssembler.GetDefaultSet();
-		if (uBinding != HUNDEFINED32 && uSet != HUNDEFINED32) _Var.SetBinding(uBinding, uSet);
-	}
-
-	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
-	struct var_in_t : public var_t<T, Assemble, spv::StorageClassInput>
-	{
-		var_in_t() : var_t<T, Assemble, spv::StorageClassInput>() { LocationHelper(*this, Location, true); }
-		template <spv::StorageClass C1>
-		const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
-	};
-
-	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
-	struct var_out_t : public var_t<T, Assemble, spv::StorageClassOutput>
-	{
-		var_out_t() : var_t<T, Assemble, spv::StorageClassOutput>()	{LocationHelper(*this, Location, false);}
-		template <spv::StorageClass C1>
-		const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const {var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
-	};
-
-	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
-	struct var_uniform_t : public var_t<T, Assemble, spv::StorageClassUniform>
-	{
-		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
-		template <spv::StorageClass C1>
-		const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
-	};
-
-	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
-	struct var_uniform_constant_t : public var_t<T, Assemble, spv::StorageClassUniformConstant>
-	{
-		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
-		template <spv::StorageClass C1>
-		const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
-	};
 
 	//---------------------------------------------------------------------------------------------------
 	// HELPER FUNCTIONS
@@ -325,6 +281,7 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// make operation with mutable operation with two operands (self + other)
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class U, class OpFunc, spv::StorageClass C1, class ...Ops>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::make_op2(const var_t<U, Assemble, C1>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const
@@ -353,15 +310,15 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// make immutable operation (returns intermediate var) with one operand (self)
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class OpFunc, class ...Ops>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::make_op1(const OpFunc& _OpFunc, const Ops ..._Ops) const
+	inline const var_t<T, Assemble, spv::StorageClassFunction>& var_t<T, Assemble, Class>::make_op1(const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
-		_OpFunc(Value);
+		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate(), _OpFunc(Value));
 
 		if constexpr(Assemble)
 		{
-			HASSERT(pAssembler != nullptr, "Invalid program assembler");
 			Load();
 
 			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
@@ -369,17 +326,22 @@ namespace Tracy
 			HASSERT(uTypeId != HUNDEFINED32, "Invalid type");
 
 			SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
-			uResultId = GlobalAssembler.AddOperation(Op);
-
-			Store();
+			var.uResultId = GlobalAssembler.AddOperation(Op);
 		}
 
-		return *this;
+		return var;
 	}
+	//---------------------------------------------------------------------------------------------------
 
 #pragma endregion
 
+	//---------------------------------------------------------------------------------------------------
+	// CONSTRUCTORS
+	//---------------------------------------------------------------------------------------------------
+
 #pragma region constructors
+	//---------------------------------------------------------------------------------------------------
+	// move constructor
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<spv::StorageClass C1>
 	inline var_t<T, Assemble, Class>::var_t(var_t<T, Assemble, C1>&& _Other) :
@@ -387,7 +349,8 @@ namespace Tracy
 		var_decoration<Assemble>(std::forward<var_t<T, Assemble, C1>>(_Other))
 	{
 	}
-
+	//---------------------------------------------------------------------------------------------------
+	// copy constructor
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<spv::StorageClass C1>
 	inline var_t<T, Assemble, Class>::var_t(const var_t<T, Assemble, C1>& _Other) :
@@ -395,7 +358,8 @@ namespace Tracy
 		Value(_Other.Value)
 	{
 	}
-
+	//---------------------------------------------------------------------------------------------------
+	// assign operator
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<spv::StorageClass C1>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(const var_t<T, Assemble, C1>& _Other) const
@@ -404,7 +368,8 @@ namespace Tracy
 		Value = _Other.Value;
 		return *this;
 	}
-
+	//---------------------------------------------------------------------------------------------------
+	// move operator
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<spv::StorageClass C1>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(var_t<T, Assemble, C1>&& _Other) const
@@ -413,37 +378,62 @@ namespace Tracy
 		var_decoration<Assemble>::operator=(std::forward<var_t<T, Assemble, C1>>(_Other));
 		return *this;
 	}
-#pragma endregion
-
 	//---------------------------------------------------------------------------------------------------
-	// OPERATIONS
-	//---------------------------------------------------------------------------------------------------
-
-
-#pragma region Operations
-
-	//---------------------------------------------------------------------------------------------------
-
-	template<typename T, bool Assemble, spv::StorageClass Class>
-	template<spv::StorageClass C1>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator+=(const var_t<T, Assemble, C1>& _Other) const
+	// set, binding & location helper
+	template <class VarT>
+	void LocationHelper(VarT& _Var, const uint32_t _uLocation, const bool _bInput)
 	{
-		return make_op2(_Other, [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
-	}
-	//---------------------------------------------------------------------------------------------------
-
-	template<typename T, bool Assemble, spv::StorageClass Class>
-	template<spv::StorageClass C1>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const var_t<T, Assemble, C1>& _Other) const
-	{
-		return make_op2(_Other, [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
+		uint32_t uLocation = _uLocation != HUNDEFINED32 ? _uLocation : (_bInput ? GlobalAssembler.GetCurrentInputLocation() : GlobalAssembler.GetCurrentOutputLocation());
+		if (uLocation != HUNDEFINED32) _Var.SetLocation(uLocation);
 	}
 
+	template <class VarT>
+	void BindingSetLocationHelper(VarT& _Var, const uint32_t _uBinding, const uint32_t _uSet, const uint32_t _uLocation)
+	{
+		LocationHelper(_Var, _uLocation, true); // TODO: add option for output uniforms
+		uint32_t uBinding = _uBinding != HUNDEFINED32 ? _uBinding : GlobalAssembler.GetCurrentBinding();
+		uint32_t uSet = _uSet != HUNDEFINED32 ? _uSet : GlobalAssembler.GetDefaultSet();
+		if (uBinding != HUNDEFINED32 && uSet != HUNDEFINED32) _Var.SetBinding(uBinding, uSet);
+	}
 	//---------------------------------------------------------------------------------------------------
+	// input variable constructor
+	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
+	struct var_in_t : public var_t<T, Assemble, spv::StorageClassInput>
+	{
+		var_in_t() : var_t<T, Assemble, spv::StorageClassInput>() { LocationHelper(*this, Location, true); }
+		template <spv::StorageClass C1>
+		const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
+	};
+	//---------------------------------------------------------------------------------------------------
+	// output variable constructor
+	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
+	struct var_out_t : public var_t<T, Assemble, spv::StorageClassOutput>
+	{
+		var_out_t() : var_t<T, Assemble, spv::StorageClassOutput>() { LocationHelper(*this, Location, false); }
+		template <spv::StorageClass C1>
+		const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
+	};
+	//---------------------------------------------------------------------------------------------------
+	// uniform variable constructor
+	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
+	struct var_uniform_t : public var_t<T, Assemble, spv::StorageClassUniform>
+	{
+		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
+		template <spv::StorageClass C1>
+		const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
+	};
+	//---------------------------------------------------------------------------------------------------
+	// uniform constant variable constructor
+	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
+	struct var_uniform_constant_t : public var_t<T, Assemble, spv::StorageClassUniformConstant>
+	{
+		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
+		template <spv::StorageClass C1>
+		const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
+	};
 
-	//template <class T>
-	//void InitVar(T& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, uint32_t& _uCurOffset, uint32_t& _uCurBoundary) {	}
-
+	//---------------------------------------------------------------------------------------------------
+	// re-initialize struct member variable
 	template <class T, spv::StorageClass Class>
 	void InitVar(var_t<T, true, Class>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, const spv::StorageClass _kStorageClass, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)
 	{
@@ -460,7 +450,7 @@ namespace Tracy
 		_Member.uTypeId = GlobalAssembler.AddType(_Member.Type);
 		_Type.Member(_Member.Type); // struct type
 
-		// member offset, check for 16byte allignment
+									// member offset, check for 16byte allignment
 		if (_uCurOffset + sizeof(VarT) <= _uCurBoundary)
 		{
 			_Member.uMemberOffset = _uCurOffset;
@@ -474,7 +464,7 @@ namespace Tracy
 		_uCurOffset += sizeof(VarT);
 	}
 	//---------------------------------------------------------------------------------------------------
-
+	// recursively initialize all struct members
 	template <size_t n, size_t N, class T>
 	void InitStruct(
 		T& _Struct,
@@ -510,6 +500,8 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// extract all components from any T that is of var_t<> type and pass the index to _Op as an argument
+	// non var_t<> type arguments are converted to spirv constants and passed to _Op
 	template <class T, class ...Ts>
 	void ExtractCompnents(SPIRVOperation& _Op, const T& _First, const Ts& ..._Rest)
 	{
@@ -545,13 +537,9 @@ namespace Tracy
 			ExtractCompnents(_Op, _Rest...);
 		}
 	}
-	//---------------------------------------------------------------------------------------------------
-	// check if any parameter has the variable tag
-	template <class ...Ts>
-	constexpr bool has_var = std::disjunction_v<has_var_tag<Ts>...>;
 
 	//---------------------------------------------------------------------------------------------------
-	// get value base on type
+	// get value of var_t<> based on type
 	template<class T>
 	auto get_arg_value(const T& var)
 	{
@@ -566,10 +554,10 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	// the all mighty variable constructor
+	// the all mighty variable default constructor
 	template<typename T, bool Assemble, spv::StorageClass C1>
 	template<class ...Ts>
-	inline var_t<T, Assemble, C1>::var_t(const Ts& ..._args) : 
+	inline var_t<T, Assemble, C1>::var_t(const Ts& ..._args) :
 		var_decoration<Assemble>(C1),
 		Value(get_arg_value(_args)...)
 	{
@@ -591,11 +579,11 @@ namespace Tracy
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBlock).MakeOperation(uTypeId));
 			}
 			else
-			{	
-				Type = SPIRVType::FromType<T>();	
+			{
+				Type = SPIRVType::FromType<T>();
 				uTypeId = GlobalAssembler.AddType(Type);
 			}
-			
+
 			// pointer type
 			const uint32_t uPtrTypeId = GlobalAssembler.AddType(SPIRVType::Pointer(Type, kStorageClass));
 
@@ -646,7 +634,7 @@ namespace Tracy
 					HASSERT(Operands.size() > 0u, "Invalid number of variable operands");
 					Operands.front().uId = (uint32_t)kStorageClass;
 				}
-				
+
 				// Create member offset decoration
 				SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, kDecorationType_Member, pMember->AccessChain.back());
 				GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeId));
@@ -654,6 +642,8 @@ namespace Tracy
 		}
 	}
 
+	//---------------------------------------------------------------------------------------------------
+	// Intermediate varaibel constructor
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class ...Ts>
 	inline var_t<T, Assemble, Class>::var_t(TIntermediate, const Ts& ..._args) :
@@ -666,8 +656,31 @@ namespace Tracy
 			uTypeId = GlobalAssembler.AddType(Type);
 		}
 	}
+#pragma endregion
 
 	//---------------------------------------------------------------------------------------------------
+	// OPERATIONS
+	//---------------------------------------------------------------------------------------------------
+#pragma region Operations
+
+	//---------------------------------------------------------------------------------------------------
+	// mutable add
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator+=(const var_t<T, Assemble, C1>& _Other) const
+	{
+		return make_op2(_Other, [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// mutable sub
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const var_t<T, Assemble, C1>& _Other) const
+	{
+		return make_op2(_Other, [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// mutable mul
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class U, spv::StorageClass C1>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator*=(const var_t<U, Assemble, C1>& _Other) const
@@ -676,7 +689,7 @@ namespace Tracy
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
 	}
 	//---------------------------------------------------------------------------------------------------
-
+	// mutable div
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class U, spv::StorageClass C1>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const var_t<U, Assemble, C1>& _Other) const
@@ -685,15 +698,15 @@ namespace Tracy
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// todo: shouldn immutable operations always return function class variables?
+	// negation
 	template<typename T, bool Assemble, spv::StorageClass Class>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator!() const
+	inline const var_t<T, Assemble, spv::StorageClassFunction>& var_t<T, Assemble, Class>::operator!() const
 	{
 		return make_op1([](T& _Value) {_Value = !_Value; }, spv::OpFNegate, spv::OpSNegate, spv::OpNop, spv::OpLogicalNot);
 	}
 	//---------------------------------------------------------------------------------------------------
 #pragma endregion
-
+	
 } // !Tracy
 
 #endif // !TRACY_SPIRVVARIABLE_H

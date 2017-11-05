@@ -3,7 +3,6 @@
 
 #include "SPIRVVariable.h"
 #include "SPIRVAssembler.h"
-#include <functional>
 
 namespace Tracy
 {

@@ -7,20 +7,6 @@
 
 namespace Tracy
 {
-
-//template<class... Members>
-///*constexpr*/ auto Offsets(Members ...args)
-//{
-//	std::array<size_t, sizeof ...(args)> sizes = { (sizeof(args))...}; //{ ((const char*)&args - (const char*)&_Struct)...};
-//
-//	for (size_t i = 1u; i < sizeof ...(args); ++i)
-//	{
-//		sizes[i] += sizes[i - 1u];
-//	}
-//
-//	return sizes;
-//}
-
 	class SPIRVInstruction
 	{
 	public:
@@ -41,8 +27,6 @@ namespace Tracy
 	private:
 		spv::Op m_kOperation;
 
-		// The Result <id> of an OpTypeXXX instruction becomes a type<id> for future use where type <id>s
-		// are needed(therefore, OpTypeXXX instructions do not have a type<id>, like most other instructions do).
 		uint32_t m_uTypeId = kInvalidId;
 		uint32_t m_uResultId = kInvalidId;
 		std::vector<uint32_t> m_Operands;
