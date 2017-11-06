@@ -34,8 +34,10 @@ namespace Tracy
 		{
 			float3 v3 = float3(1.f, 2.f, 3.f);
 			float4 vtest = float4(v3, 4.f);
+			float2 v2 = float2(1.f, 2.f);
+			OutputColor += InputImg.Sample(Sampler, float2(0.5f, 0.5f));
 
-			OutputColor += InputImg.Sample(Sampler, float2(0.5f, 0.5f)) * vtest.x;
+			auto x = v2.yy;
 		};
 	private:
 
