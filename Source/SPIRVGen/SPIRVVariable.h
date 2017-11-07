@@ -155,7 +155,8 @@ namespace Tracy
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XX() { return ExtractComponent<2, 0, 0>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XY() { return ExtractComponent<2, 0, 1>(); }
 
-		template <spv::StorageClass C1> void XY(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { return InsertComponent<2, 0, 1>(_var); }
+		template <spv::StorageClass C1> void XX(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { InsertComponent<2, 0, 0>(_var); }
+		template <spv::StorageClass C1> void XY(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { InsertComponent<2, 0, 1>(_var); }
 
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> YY() { return ExtractComponent<2, 1, 1>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> ZZ() { return ExtractComponent<2, 2, 2>(); }
@@ -166,7 +167,7 @@ namespace Tracy
 		__declspec(property(get = Z /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> z;
 		__declspec(property(get = W /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> w;
 
-		__declspec(property(get = XX /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xx;
+		__declspec(property(get = XX , put = XX)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xx;
 		__declspec(property(get = XY , put = XY)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xy;
 
 		__declspec(property(get = YY /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> yy;
@@ -244,7 +245,7 @@ namespace Tracy
 
 		mutable T Value;
 
-	private:
+	//private:
 		template <size_t Dim, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3>
 		static constexpr bool Monotonic = !((Dim >= 1 && v0 != 0) || (Dim >= 2 && v1 != 1) || (Dim >= 3 && v2 != 2) || (Dim >= 4 && v3 != 3));
 
@@ -257,17 +258,67 @@ namespace Tracy
 			uint32_t v2 = HUNDEFINED32,
 			uint32_t v3 = HUNDEFINED32,
 			spv::StorageClass C1,
-			typename = std::enable_if_t<Monotonic<Dim, v0, v1, v2, v3>>>
+			typename = std::enable_if_t<is_vector<T> && Dim == Dimmension<T> && Monotonic<Dim, v0, v1, v2, v3>>>
 			void InsertComponent(const var_t<T, Assemble, C1>& _Var)
 		{
 			operator=(_Var);
 		}
 
+		// swizzle / shuffle
+		template <
+			size_t Dim,
+			uint32_t v0,
+			uint32_t v1 = HUNDEFINED32,
+			uint32_t v2 = HUNDEFINED32,
+			uint32_t v3 = HUNDEFINED32,
+			spv::StorageClass C1,
+			typename = std::enable_if_t<is_vector<T>>>
+			void InsertComponent(const var_t<vec_type_t<base_type_t<T>, Dim>, Assemble, C1>& _Var)
+		{
+			if constexpr(Assemble)
+			{
+				// vector 1 (this) + vector 2
+				// xyzw xy
+				// 0123 45
+				// vector1.xz = vector2.xy
+				// 4153
+
+				constexpr uint32_t N = Dimmension<T>;
+				const std::array<uint32_t, 4> Indices = {v0, v1, v2, v3};
+				std::vector<uint32_t> Target(N);
+		
+				uint32_t n = N;
+				for (uint32_t i = 0; i < N; ++i)
+				{
+					const uint32_t& j = Indices[i];
+					if (j < Dim)
+					{
+						Target[j] = n++; // take from concated vector 2
+					}
+					else // copy from vector 1
+					{
+						Target[i] = i;
+					}
+				}
+				HASSERT(n == Dim+N, "Index missmatch");
+
+				Load();
+				_Var.Load();
+
+				SPIRVOperation OpVectorShuffle(spv::OpVectorShuffle, uTypeId);
+				OpVectorShuffle.AddIntermediate(uResultId); // vector 1
+				OpVectorShuffle.AddIntermediate(_Var.uResultId); // vector 2
+				OpVectorShuffle.AddLiterals(Target);
+				
+				uResultId = GlobalAssembler.AddOperation(OpVectorShuffle);
+
+				Store();
+			}
+		}
+
 #pragma endregion
 
 #pragma region ExtractComponent
-		
-
 		// identity
 		template <
 			size_t Dim,

@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 
 			// setter
 			out << "template <spv::StorageClass C1> void "
-				<< ups[x] << "(const var_t<vec_type_t<base_type_t<T>, 1>, Assemble, C1>& _var) { return InsertComponent<1, "
+				<< ups[x] << "(const var_t<vec_type_t<base_type_t<T>, 1>, Assemble, C1>& _var) { InsertComponent<1, "
 				<< x << ">(_var); } " << std::endl;
 
 			// property
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
 				// setter
 				out << "template <spv::StorageClass C1> void "
-					<< ups[x] << ups[y] << "(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { return InsertComponent<2, "
+					<< ups[x] << ups[y] << "(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { InsertComponent<2, "
 					<< x << ", " << y << ">(_var); } " << std::endl;
 
 				// property
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
 					// setter
 					out << "template <spv::StorageClass C1> void "
-						<< ups[x] << ups[y] << ups[z] << "(const var_t<vec_type_t<base_type_t<T>, 3>, Assemble, C1>& _var) { return InseretComponent<3, "
+						<< ups[x] << ups[y] << ups[z] << "(const var_t<vec_type_t<base_type_t<T>, 3>, Assemble, C1>& _var) { InseretComponent<3, "
 						<< x << ", " << y << ", " << z << ">(_var); } " << std::endl;
 
 					// property
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 
 						// setter
 						out << "template <spv::StorageClass C1> void "
-							<< ups[x] << ups[y] << ups[z] << ups[w] << "(const var_t<vec_type_t<base_type_t<T>, 4>, Assemble, C1>& _var) { return InsertComponent<4, "
+							<< ups[x] << ups[y] << ups[z] << ups[w] << "(const var_t<vec_type_t<base_type_t<T>, 4>, Assemble, C1>& _var) { InsertComponent<4, "
 							<< x << ", " << y << ", " << z << ", " << w << ">(_var); } " << std::endl;
 
 						// property
@@ -102,9 +102,9 @@ int main(int argc, char* argv[])
 
 	out.close();
 
-	//system("spirv-dis test.spv");
-	//system("spirv-val test.spv");
-	//system("pause");
+	system("spirv-dis test.spv");
+	system("spirv-val test.spv");
+	system("pause");
 
 	return 0;
 }
