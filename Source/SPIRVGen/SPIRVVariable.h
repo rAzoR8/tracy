@@ -17,14 +17,14 @@ namespace Tracy
 		var_decoration(const spv::StorageClass _kStorageClass) {};
 		void Decorate(const SPIRVDecoration& _Decoration) {};
 		void Store() const {};
-		uint32_t Load() const {return HUNDEFINED32};
+		uint32_t Load() const { return HUNDEFINED32 };
 		var_decoration(const var_decoration& _Other) {}
 		var_decoration(var_decoration&& _Other) {}
 		const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
 		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet = 0u) {}
 		void SetLocation(const uint32_t _uLocation) {}
 		void SetIdentifier(const uint32_t _uIdentifier) {}
-		void MaterializeDecorations() const{};
+		void MaterializeDecorations() const {};
 	};
 
 	template <>
@@ -112,11 +112,11 @@ namespace Tracy
 	struct var_t : public var_decoration<Assemble>
 	{
 		typedef TSPVVarTag SPVVarTag;
-		
+
 		// generates OpVar
 		template <class... Ts>
 		var_t(const Ts& ... _args);
-		
+
 		// does not generate OpVar
 		template <class... Ts>
 		var_t(TIntermediate, const Ts& ... _args);
@@ -153,6 +153,7 @@ namespace Tracy
 		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> W() { return ExtractComponent<1, 3>(); }
 
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XX() { return ExtractComponent<2, 0, 0>(); }
+		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XY() { return ExtractComponent<2, 0, 1>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> YY() { return ExtractComponent<2, 1, 1>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> ZZ() { return ExtractComponent<2, 2, 2>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> WW() { return ExtractComponent<2, 3, 3>(); }
@@ -163,6 +164,8 @@ namespace Tracy
 		__declspec(property(get = W /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> w;
 
 		__declspec(property(get = XX /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xx;
+		__declspec(property(get = XY /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xy;
+
 		__declspec(property(get = YY /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> yy;
 		__declspec(property(get = ZZ /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> zz;
 		__declspec(property(get = WW /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> ww;
@@ -175,7 +178,7 @@ namespace Tracy
 			class TexCompT = tex_component_t<T>,
 			class TexCoordT = tex_coord_t<T>,
 			typename = std::enable_if_t<is_texture<T>>>
-		var_t<TexCompT, Assemble, spv::StorageClassFunction> Sample(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords)
+			var_t<TexCompT, Assemble, spv::StorageClassFunction> Sample(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords)
 		{
 			auto var = var_t<TexCompT, Assemble, spv::StorageClassFunction>(TIntermediate());
 
@@ -239,91 +242,112 @@ namespace Tracy
 		mutable T Value;
 
 	private:
-#pragma region ExtractComponent
-			template <size_t Dim, uint32_t v0,
-				uint32_t v1 = HUNDEFINED32,
-				uint32_t v2 = HUNDEFINED32,
-				uint32_t v3 = HUNDEFINED32,
-				class VecT = vec_type_t<base_type_t<T>, Dim>,
-				typename = std::enable_if_t<is_valid_type<base_type_t<T>>>>
-			var_t<VecT, Assemble, spv::StorageClassFunction> ExtractComponent()
-			{
-				auto var = var_t<VecT, Assemble, spv::StorageClassFunction>(TIntermediate());
 
-				std::array<uint32_t, 4> Indices = { v0, v1, v2, v3 };
+#pragma region ExtractComponent
+		template <size_t Dim, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3>
+		static constexpr bool Monotonic = !((Dim >= 1 && v0 != 0) || (Dim >= 2 && v1 != 1) || (Dim >= 3 && v2 != 2) || (Dim >= 4 && v3 != 3));
+
+		// identity
+		template <
+			size_t Dim,
+			uint32_t v0,
+			uint32_t v1 = HUNDEFINED32,
+			uint32_t v2 = HUNDEFINED32,
+			uint32_t v3 = HUNDEFINED32,
+			class VecT = vec_type_t<base_type_t<T>, Dim>,
+			typename = std::enable_if_t<std::is_same_v<T, VecT> && Monotonic<Dim, v0, v1, v2, v3>>>
+			var_t<T, Assemble, spv::StorageClassFunction>& ExtractComponent()
+		{
+			return *this;
+		}
+
+		// swizzle / shuffle
+		template <
+			size_t Dim,
+			uint32_t v0,
+			uint32_t v1 = HUNDEFINED32,
+			uint32_t v2 = HUNDEFINED32,
+			uint32_t v3 = HUNDEFINED32,
+			class VecT = vec_type_t<base_type_t<T>, Dim>,
+			typename = std::enable_if_t<is_valid_type<base_type_t<T>> && !Monotonic<Dim, v0, v1, v2, v3>>>
+			var_t<VecT, Assemble, spv::StorageClassFunction> ExtractComponent()
+		{
+			auto var = var_t<VecT, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+			std::array<uint32_t, 4> Indices = { v0, v1, v2, v3 };
+
+			if constexpr(Dim > 1)
+			{
+				if constexpr(is_valid_index<T, v0>())
+				{
+					var.Value[0] = Value[v0];
+				}
+				if constexpr(is_valid_index<T, v1>())
+				{
+					var.Value[1] = Value[v1];
+				}
+				if constexpr(is_valid_index<T, v2>())
+				{
+					var.Value[2] = Value[v2];
+				}
+				if constexpr(is_valid_index<T, v3>())
+				{
+					var.Value[3] = Value[v3];
+				}
+			}
+			else
+			{
+				var.Value = Value[v0];
+			}
+
+			if constexpr(Assemble)
+			{
+				Load();
+				const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<T>>());
+
+				SPIRVOperation Op;
 
 				if constexpr(Dim > 1)
 				{
-					if constexpr(is_valid_index<T, v0>())
+					if constexpr(std::is_same_v<VecT, T>)// VectorShuffle
 					{
-						var.Value[0] = Value[v0];
+						Op = SPIRVOperation(spv::OpVectorShuffle, var.uTypeId);
+						Op.AddIntermediate(uResultId); // comp1
+						Op.AddIntermediate(uResultId); // comp2
+						for (const uint32_t& i : Indices)
+						{
+							if (i < 4u)
+							{
+								Op.AddLiteral(i); // extraction index
+							}
+						}
 					}
-					if constexpr(is_valid_index<T, v1>())
+					else // extract and construct
 					{
-						var.Value[1] = Value[v1];
-					}
-					if constexpr(is_valid_index<T, v2>())
-					{
-						var.Value[2] = Value[v2];
-					}
-					if constexpr(is_valid_index<T, v3>())
-					{
-						var.Value[3] = Value[v3];
+						Op = SPIRVOperation(spv::OpCompositeConstruct, var.uTypeId);
+						for (const uint32_t& i : Indices)
+						{
+							if (i < 4u)
+							{
+								SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
+								OpExtract.AddLiterals(AccessChain);
+								OpExtract.AddLiteral(i); // extraction index
+								Op.AddIntermediate(GlobalAssembler.AddOperation(OpExtract));
+							}
+						}
 					}
 				}
 				else
 				{
-					var.Value = Value[v0];
+					Op = SPIRVOperation(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
+					Op.AddLiteral(v0); // extraction index
 				}
 
-				if constexpr(Assemble)
-				{
-					Load();
-					const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<T>>());
-
-					SPIRVOperation Op;
-
-					if constexpr(Dim > 1)
-					{						
-						if constexpr(std::is_same_v<VecT, T>)// VectorShuffle
-						{
-							Op = SPIRVOperation(spv::OpVectorShuffle, var.uTypeId);
-							Op.AddIntermediate(uResultId); // comp1
-							Op.AddIntermediate(uResultId); // comp2
-							for (const uint32_t& i : Indices)
-							{
-								if (i < 4u)
-								{
-									Op.AddLiteral(i); // extraction index
-								}
-							}
-						}
-						else // extract and construct
-						{
-							Op = SPIRVOperation(spv::OpCompositeConstruct, var.uTypeId);
-							for (const uint32_t& i : Indices)
-							{
-								if (i < 4u)
-								{
-									SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
-									OpExtract.AddLiterals(AccessChain);
-									OpExtract.AddLiteral(i); // extraction index
-									Op.AddIntermediate(GlobalAssembler.AddOperation(OpExtract));
-								}
-							}
-						}
-					}
-					else
-					{
-						Op = SPIRVOperation(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
-						Op.AddLiteral(v0); // extraction index
-					}
-
-					var.uResultId = GlobalAssembler.AddOperation(Op);
-				}
-
-				return var;
+				var.uResultId = GlobalAssembler.AddOperation(Op);
 			}
+
+			return var;
+		}
 #pragma endregion
 
 	private:
@@ -333,7 +357,7 @@ namespace Tracy
 
 		// one operand (self) immutable
 		template <class OpFunc, class ...Ops>
-		const var_t<T, Assemble, spv::StorageClassFunction>& make_op1( const OpFunc& _OpFunc, const Ops ..._Ops) const;
+		const var_t<T, Assemble, spv::StorageClassFunction>& make_op1(const OpFunc& _OpFunc, const Ops ..._Ops) const;
 	};
 
 
@@ -810,7 +834,7 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 #pragma endregion
-	
+
 } // !Tracy
 
 #endif // !TRACY_SPIRVVARIABLE_H
