@@ -147,6 +147,7 @@
     <ClInclude Include="SPIRVProgram.h" />
     <ClInclude Include="SPIRVType.h" />
     <ClInclude Include="SPIRVVariable.h" />
+    <ClInclude Include="SPIRVVectorComponentAccess.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SPIRVAssembler.cpp" />

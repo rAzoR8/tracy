@@ -15,10 +15,13 @@ int main(int argc, char* argv[])
 
 	char lows[2][4] = { {'x', 'y', 'z', 'w'},{ 'r', 'g', 'b', 'a' } };
 
-	std::ofstream out("swizzle.txt");
+	std::ofstream out("SPIRVVectorComponentAccess.h");
 
 	if (out.is_open())
 	{
+		out << "#ifndef TRACY_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
+		out << "#define TRACY_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
+
 		for (uint32_t x = 0; x < 4; ++x)
 		{
 			// getter
@@ -66,7 +69,7 @@ int main(int argc, char* argv[])
 
 					// setter
 					out << "template <spv::StorageClass C1> void "
-						<< ups[x] << ups[y] << ups[z] << "(const var_t<vec_type_t<base_type_t<T>, 3>, Assemble, C1>& _var) { InseretComponent<3, "
+						<< ups[x] << ups[y] << ups[z] << "(const var_t<vec_type_t<base_type_t<T>, 3>, Assemble, C1>& _var) { InsertComponent<3, "
 						<< x << ", " << y << ", " << z << ">(_var); } " << std::endl;
 
 					// property
@@ -98,6 +101,8 @@ int main(int argc, char* argv[])
 				}
 			}
 		}
+
+		out << "#endif // !TRACY_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
 	}
 
 	out.close();

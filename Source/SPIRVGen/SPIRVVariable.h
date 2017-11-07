@@ -146,34 +146,7 @@ namespace Tracy
 
 		const T* operator->() { return &Value; }
 
-#pragma region component access
-		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> X() { return ExtractComponent<1, 0>(); }
-		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Y() { return ExtractComponent<1, 1>(); }
-		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Z() { return ExtractComponent<1, 2>(); }
-		var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> W() { return ExtractComponent<1, 3>(); }
-
-		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XX() { return ExtractComponent<2, 0, 0>(); }
-		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XY() { return ExtractComponent<2, 0, 1>(); }
-
-		template <spv::StorageClass C1> void XX(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { InsertComponent<2, 0, 0>(_var); }
-		template <spv::StorageClass C1> void XY(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { InsertComponent<2, 0, 1>(_var); }
-
-		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> YY() { return ExtractComponent<2, 1, 1>(); }
-		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> ZZ() { return ExtractComponent<2, 2, 2>(); }
-		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> WW() { return ExtractComponent<2, 3, 3>(); }
-
-		__declspec(property(get = X /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> x;
-		__declspec(property(get = Y /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> y;
-		__declspec(property(get = Z /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> z;
-		__declspec(property(get = W /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> w;
-
-		__declspec(property(get = XX , put = XX)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xx;
-		__declspec(property(get = XY , put = XY)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xy;
-
-		__declspec(property(get = YY /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> yy;
-		__declspec(property(get = ZZ /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> zz;
-		__declspec(property(get = WW /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> ww;
-#pragma endregion
+#include "SPIRVVectorComponentAccess.h"
 
 #pragma region sample tex
 		template <
@@ -291,13 +264,10 @@ namespace Tracy
 				for (uint32_t i = 0; i < N; ++i)
 				{
 					const uint32_t& j = Indices[i];
+					Target[i] = i;// copy from vector 1
 					if (j < Dim)
 					{
 						Target[j] = n++; // take from concated vector 2
-					}
-					else // copy from vector 1
-					{
-						Target[i] = i;
 					}
 				}
 				HASSERT(n == Dim+N, "Index missmatch");
