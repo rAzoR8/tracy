@@ -154,6 +154,9 @@ namespace Tracy
 
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XX() { return ExtractComponent<2, 0, 0>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> XY() { return ExtractComponent<2, 0, 1>(); }
+
+		template <spv::StorageClass C1> void XY(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { return InsertComponent<2, 0, 1>(_var); }
+
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> YY() { return ExtractComponent<2, 1, 1>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> ZZ() { return ExtractComponent<2, 2, 2>(); }
 		var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> WW() { return ExtractComponent<2, 3, 3>(); }
@@ -164,7 +167,7 @@ namespace Tracy
 		__declspec(property(get = W /*, put = putprop*/)) var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> w;
 
 		__declspec(property(get = XX /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xx;
-		__declspec(property(get = XY /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xy;
+		__declspec(property(get = XY , put = XY)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> xy;
 
 		__declspec(property(get = YY /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> yy;
 		__declspec(property(get = ZZ /*, put = putprop*/)) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> zz;

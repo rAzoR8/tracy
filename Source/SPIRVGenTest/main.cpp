@@ -5,11 +5,11 @@ using namespace Tracy;
 
 int main(int argc, char* argv[])
 {
-	//using TProg = ExampleProg<true>;
-	//// instruct assembler to use 0 as default set and bindings/locations are incremented from 0 (or start index)
-	//GlobalAssembler.UseDefaultBindingSetLocation();
-	//SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
-	//code.Save("test.spv");
+	using TProg = ExampleProg<true>;
+	// instruct assembler to use 0 as default set and bindings/locations are incremented from 0 (or start index)
+	GlobalAssembler.UseDefaultBindingSetLocation();
+	SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
+	code.Save("test.spv");
 
 	char ups[4] = { 'X', 'Y', 'Z', 'W' };
 
@@ -31,9 +31,10 @@ int main(int argc, char* argv[])
 				<< ups[x] << "(const var_t<vec_type_t<base_type_t<T>, 1>, Assemble, C1>& _var) { return InsertComponent<1, "
 				<< x << ">(_var); } " << std::endl;
 
+			// property
 			for (uint32_t l = 0; l < 2; ++l)
 			{
-				out << "__declspec(property(get = " << ups[x] << ", set = " << ups[x] <<
+				out << "__declspec(property(get = " << ups[x] << ", put = " << ups[x] <<
 					")) var_t<vec_type_t<base_type_t<T>, 1>, Assemble, spv::StorageClassFunction> " << lows[l][x] << ";" << std::endl;
 			}			
 
@@ -49,6 +50,13 @@ int main(int argc, char* argv[])
 					<< ups[x] << ups[y] << "(const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>& _var) { return InsertComponent<2, "
 					<< x << ", " << y << ">(_var); } " << std::endl;
 
+				// property
+				for (uint32_t l = 0; l < 2; ++l)
+				{
+					out << "__declspec(property(get = " << ups[x] << ups[y] << ", put = " << ups[x] << ups[y] <<
+						")) var_t<vec_type_t<base_type_t<T>, 2>, Assemble, spv::StorageClassFunction> " << lows[l][x] << lows[l][y] << ";" << std::endl;
+				}
+
 				for (uint32_t z = 0; z < 4; ++z)
 				{
 					// getter
@@ -61,6 +69,13 @@ int main(int argc, char* argv[])
 						<< ups[x] << ups[y] << ups[z] << "(const var_t<vec_type_t<base_type_t<T>, 3>, Assemble, C1>& _var) { return InseretComponent<3, "
 						<< x << ", " << y << ", " << z << ">(_var); } " << std::endl;
 
+					// property
+					for (uint32_t l = 0; l < 2; ++l)
+					{
+						out << "__declspec(property(get = " << ups[x] << ups[y] << ups[z] << ", put = " << ups[x] << ups[y] << ups[z] <<
+							")) var_t<vec_type_t<base_type_t<T>, 3>, Assemble, spv::StorageClassFunction> " << lows[l][x] << lows[l][y] << lows[l][z] << ";" << std::endl;
+					}
+
 					for (uint32_t w = 0; w < 4; ++w)
 					{
 						// getter
@@ -72,6 +87,13 @@ int main(int argc, char* argv[])
 						out << "template <spv::StorageClass C1> void "
 							<< ups[x] << ups[y] << ups[z] << ups[w] << "(const var_t<vec_type_t<base_type_t<T>, 4>, Assemble, C1>& _var) { return InsertComponent<4, "
 							<< x << ", " << y << ", " << z << ", " << w << ">(_var); } " << std::endl;
+
+						// property
+						for (uint32_t l = 0; l < 2; ++l)
+						{
+							out << "__declspec(property(get = " << ups[x] << ups[y] << ups[z] << ups[w] << ", put = " << ups[x] << ups[y] << ups[z] << ups[w] <<
+								")) var_t<vec_type_t<base_type_t<T>, 4>, Assemble, spv::StorageClassFunction> " << lows[l][x] << lows[l][y] << lows[l][z] << lows[l][w] << ";" << std::endl;
+						}
 					}
 				}
 			}
