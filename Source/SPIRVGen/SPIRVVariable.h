@@ -242,10 +242,28 @@ namespace Tracy
 		mutable T Value;
 
 	private:
-
-#pragma region ExtractComponent
 		template <size_t Dim, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3>
 		static constexpr bool Monotonic = !((Dim >= 1 && v0 != 0) || (Dim >= 2 && v1 != 1) || (Dim >= 3 && v2 != 2) || (Dim >= 4 && v3 != 3));
+
+#pragma region InsertComponent
+		// identity
+		template <
+			size_t Dim,
+			uint32_t v0,
+			uint32_t v1 = HUNDEFINED32,
+			uint32_t v2 = HUNDEFINED32,
+			uint32_t v3 = HUNDEFINED32,
+			spv::StorageClass C1,
+			typename = std::enable_if_t<Monotonic<Dim, v0, v1, v2, v3>>>
+			void InsertComponent(const var_t<T, Assemble, C1>& _Var)
+		{
+			operator=(_Var);
+		}
+
+#pragma endregion
+
+#pragma region ExtractComponent
+		
 
 		// identity
 		template <
