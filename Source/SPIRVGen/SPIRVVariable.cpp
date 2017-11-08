@@ -117,7 +117,7 @@ var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
 
 const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const
 {
-	HASSERT(uTypeId != HUNDEFINED32 && uTypeId != _Other.uTypeId, "Type mismatch!");
+	HASSERT(uTypeId != HUNDEFINED32 && uTypeId == _Other.uTypeId, "Type mismatch!");
 
 	uVarId = _Other.uVarId; // might become actual var
 	uResultId = _Other.uResultId;

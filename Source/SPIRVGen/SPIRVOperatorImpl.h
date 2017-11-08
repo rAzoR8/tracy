@@ -62,54 +62,162 @@ namespace Tracy
 	// OPERATOR IMPLEMENTATIONS
 	//---------------------------------------------------------------------------------------------------
 
+	// ADD
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator+(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 + v2; }, spv::OpFAdd, spv::OpIAdd);
 	}
+	// add with constant left
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator+(const T& l, const var_t<T, Assemble, C1>& r)
+	{
+		return make_op(var_t<T, Assemble, spv::StorageClassFunction>(l), r, [](const T& v1, const T& v2)-> T {return v1 + v2; }, spv::OpFAdd, spv::OpIAdd);
+	}
+	// add with constant right
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator+(const var_t<T, Assemble, C1>& l, const T& r)
+	{
+		return make_op(l, var_t<T, Assemble, spv::StorageClassFunction>(r), [](const T& v1, const T& v2)-> T {return v1 + v2; }, spv::OpFAdd, spv::OpIAdd);
+	}
 	//---------------------------------------------------------------------------------------------------
+	// SUB
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator-(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 - v2; }, spv::OpFSub, spv::OpISub);
 	}
+	// sub with constant left
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator-(const T& l, const var_t<T, Assemble, C1>& r)
+	{
+		return make_op(var_t<T, Assemble, spv::StorageClassFunction>(l), r, [](const T& v1, const T& v2)-> T {return v1 - v2; }, spv::OpFSub, spv::OpISub);
+	}
+	// sub with constant right
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator-(const var_t<T, Assemble, C1>& l, const T& r)
+	{
+		return make_op(l, var_t<T, Assemble, spv::StorageClassFunction>(r), [](const T& v1, const T& v2)-> T {return v1 - v2; }, spv::OpFSub, spv::OpISub);
+	}
 	//---------------------------------------------------------------------------------------------------
 	// enable if U and V are vector types is_vector>
+	// MUL
 	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class T = longer_type_t<U,V>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const U& v1, const V& v2)-> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);
 	}
+	// mul with constant left
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const U& l, const var_t<V, Assemble, C1>& r)
+	{
+		return make_op(var_t<U, Assemble, spv::StorageClassFunction>(l), r, [](const U& v1, const V& v2)-> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);
+	}
+	// mul with constant right
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const V& r)
+	{
+		return make_op(l, var_t<V, Assemble, spv::StorageClassFunction>(r), [](const U& v1, const V& v2)-> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);
+	}
 	//---------------------------------------------------------------------------------------------------
+	// DIV
 	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class T = longer_type_t<U, V>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator/(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
+	// div with constant left
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator/(const U& l, const var_t<V, Assemble, C1>& r)
+	{
+		return make_op(var_t<U, Assemble, spv::StorageClassFunction>(l), r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
+	}
+	// div with constant right
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator/(const var_t<U, Assemble, C1>& l, const V& r)
+	{
+		return make_op(l, var_t<V, Assemble, spv::StorageClassFunction>(r), [](const U& v1, const V& v2)-> T {return v1 / v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
+	}
+
 	//---------------------------------------------------------------------------------------------------
+	// EQUAL
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 == v2; }, spv::OpLogicalEqual);
 	}
+	// equal with constant left
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const T& l, const var_t<T, Assemble, C1>& r)
+	{
+		return make_op(var_t<T, Assemble, spv::StorageClassFunction>(l), r, [](const T& v1, const T& v2)-> bool {return v1 == v2; }, spv::OpLogicalEqual);
+	}
+	// equal with constant right
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& l, const T& r)
+	{
+		return make_op(l, var_t<T, Assemble, spv::StorageClassFunction>(r), [](const T& v1, const T& v2)-> bool {return v1 == v2; }, spv::OpLogicalEqual);
+	}
 	//---------------------------------------------------------------------------------------------------
+	// UNEQUAL
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 != v2; }, spv::OpLogicalNotEqual);
 	}
+	// unequal with constant left
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const T& l, const var_t<T, Assemble, C1>& r)
+	{
+		return make_op(var_t<T, Assemble, spv::StorageClassFunction>(l), r, [](const T& v1, const T& v2)-> bool {return v1 != v2; }, spv::OpLogicalNotEqual);
+	}
+	// unequal with constant right
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& l, const T& r)
+	{
+		return make_op(l, var_t<T, Assemble, spv::StorageClassFunction>(r), [](const T& v1, const T& v2)-> bool {return v1 != v2; }, spv::OpLogicalNotEqual);
+	}
+
 	//---------------------------------------------------------------------------------------------------
+	// LOGICAL OR
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const var_t<bool, Assemble, C1>& l, const var_t<bool, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 || v2; }, spv::OpLogicalOr);
 	}
+	// logical or with constant left
+	template <bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const bool& l, const var_t<bool, Assemble, C1>& r)
+	{
+		return make_op(var_t<bool, Assemble, spv::StorageClassFunction>(l), r, [](const bool& v1, const bool& v2)-> bool {return v1 || v2; }, spv::OpLogicalOr);
+	}
+	// logical or with constant right
+	template <bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const var_t<bool, Assemble, C1>& l, const bool& r)
+	{
+		return make_op(l, var_t<bool, Assemble, spv::StorageClassFunction>(r), [](const bool& v1, const bool& v2)-> bool {return v1 || v2; }, spv::OpLogicalOr);
+	}
+
 	//---------------------------------------------------------------------------------------------------
+	// LOGICAL AND
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const var_t<bool, Assemble, C1>& l, const var_t<bool, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
 	}
+	// logical and with constant left
+	template <bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const bool& l, const var_t<bool, Assemble, C1>& r)
+	{
+		return make_op(var_t<bool, Assemble, spv::StorageClassFunction>(l), r, [](const bool& v1, const bool& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
+	}
+	// logical and with constant right
+	template <bool Assemble, spv::StorageClass C1>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const var_t<bool, Assemble, C1>& l, const bool& r)
+	{
+		return make_op(l, var_t<bool, Assemble, spv::StorageClassFunction>(r), [](const bool& v1, const bool& v2)-> bool {return v1 && v2; }, spv::OpLogicalAnd);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// GLSLstd450 EXTENSION
 	//---------------------------------------------------------------------------------------------------

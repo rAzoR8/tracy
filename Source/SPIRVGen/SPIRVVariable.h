@@ -126,6 +126,9 @@ namespace Tracy
 		template <spv::StorageClass C1>
 		var_t(const var_t<T, Assemble, C1>& _Other);
 
+		// direct constant assin
+		const var_t& operator=(const T& _Other) const;
+
 		template <spv::StorageClass C1>
 		const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
 		template <spv::StorageClass C1>
@@ -218,7 +221,7 @@ namespace Tracy
 
 		mutable T Value;
 
-	//private:
+	private:
 		template <size_t Dim, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3>
 		static constexpr bool Monotonic = !((Dim >= 1 && v0 != 0) || (Dim >= 2 && v1 != 1) || (Dim >= 3 && v2 != 2) || (Dim >= 4 && v3 != 3));
 
@@ -393,7 +396,7 @@ namespace Tracy
 #pragma endregion
 
 	private:
-		// two operands (self + other) mutBLE
+		// two operands (self + other) mutible
 		template <class U, class OpFunc, spv::StorageClass C1, class ...Ops>
 		const var_t<T, Assemble, Class>& make_op2(const var_t<U, Assemble, C1>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const;
 
@@ -527,6 +530,15 @@ namespace Tracy
 		var_decoration<Assemble>(_Other),
 		Value(_Other.Value)
 	{
+	}
+	//---------------------------------------------------------------------------------------------------
+	// constant assign operator
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(const T& _Other) const
+	{
+		var_decoration<Assemble>::operator=(var_t<T, Assemble, spv::StorageClassFunction>(_Other));
+		Value = _Other;
+		return *this;
 	}
 	//---------------------------------------------------------------------------------------------------
 	// assign operator
@@ -867,6 +879,7 @@ namespace Tracy
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
+
 	//---------------------------------------------------------------------------------------------------
 	// negation
 	template<typename T, bool Assemble, spv::StorageClass Class>
