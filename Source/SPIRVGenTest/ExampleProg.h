@@ -40,7 +40,7 @@ namespace Tracy
 			//v2 = v3.xy * 0.5f;
 			//OutputColor = float3_t( 1.f, 2.f, 3.f );
 
-			//OutputColor.x = 1.f;
+			OutputColor.x = 1.f;
 		};
 	private:
 

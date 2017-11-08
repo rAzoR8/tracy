@@ -18,6 +18,7 @@ void GenerateSwizzleHeader()
 		std::string sExtract;
 		std::string sExtractType;
 		std::string sInsert;
+		std::string sInsertConst;
 		std::string sInsertValue;
 		std::string sFuncName;
 
@@ -26,9 +27,13 @@ void GenerateSwizzleHeader()
 			out << sExtractType << " "
 				<< sFuncName << "() { return " << sExtract << "(); } " << std::endl;
 
-			// setter
+			// setter var
 			out << "template <spv::StorageClass C1> void "
 				<< sFuncName << "(" + sInsertValue + " _var) { " + sInsert + "(_var);}" << std::endl;
+
+			// setter const
+			out << "void "
+				<< sFuncName << "(const " + sInsertConst + "& _var) { " + sInsert + "(var_t<"+ sInsertConst +", Assemble, spv::StorageClassFunction>(_var));}" << std::endl;
 		};
 
 		for (uint32_t x = 0; x < 4; ++x)
@@ -36,6 +41,7 @@ void GenerateSwizzleHeader()
 			sTplArgs = "1, " + std::to_string(x);
 			sExtract =	"ExtractComponent<" + sTplArgs + ">";
 			sInsert =	"InsertComponent<" + sTplArgs + ">";
+			sInsertConst = "vec_type_t<base_type_t<T>, 1>";
 			sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 1>, Assemble, C1>&";
 			sFuncName = ups[x];
 			sExtractType = "TExtractType<" + sTplArgs + ">";
@@ -54,6 +60,7 @@ void GenerateSwizzleHeader()
 				sTplArgs = "2, " + std::to_string(x) + ", " + std::to_string(y);
 				sExtract = "ExtractComponent<" + sTplArgs + ">";
 				sInsert = "InsertComponent<" + sTplArgs + ">";
+				sInsertConst = "vec_type_t<base_type_t<T>, 2>";
 				sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>&";
 				sFuncName = ups[x] + ups[y];
 				sExtractType = "TExtractType<" + sTplArgs + ">";
@@ -72,6 +79,7 @@ void GenerateSwizzleHeader()
 					sTplArgs = "3, " + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z);
 					sExtract = "ExtractComponent<" + sTplArgs + ">";
 					sInsert = "InsertComponent<" + sTplArgs + ">";
+					sInsertConst = "vec_type_t<base_type_t<T>, 3>";
 					sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 3>, Assemble, C1>&";
 					sFuncName = ups[x] + ups[y] + ups[z];
 					sExtractType = "TExtractType<" + sTplArgs + ">";
@@ -90,6 +98,7 @@ void GenerateSwizzleHeader()
 						sTplArgs = "3, " + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ", " + std::to_string(w);
 						sExtract = "ExtractComponent<" + sTplArgs + ">";
 						sInsert = "InsertComponent<" + sTplArgs + ">";
+						sInsertConst = "vec_type_t<base_type_t<T>, 4>";
 						sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 4>, Assemble, C1>&";
 						sFuncName = ups[x] + ups[y] + ups[z] + ups[w];
 						sExtractType = "TExtractType<" + sTplArgs + ">";
