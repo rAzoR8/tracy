@@ -6,7 +6,7 @@ using namespace Tracy;
 
 int main(int argc, char* argv[])
 {
-	GenerateSwizzleHeader();
+	//GenerateSwizzleHeader();
 
 	using TProg = ExampleProg<true>;
 	// instruct assembler to use 0 as default set and bindings/locations are incremented from 0 (or start index)
