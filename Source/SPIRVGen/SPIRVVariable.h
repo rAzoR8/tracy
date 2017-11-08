@@ -235,9 +235,9 @@ namespace Tracy
 			uint32_t v3 = HUNDEFINED32,
 			spv::StorageClass C1,
 			typename = std::enable_if_t<is_vector<T> && Dim == Dimmension<T> && Monotonic<Dim, v0, v1, v2, v3>>>
-			void InsertComponent(const var_t<T, Assemble, C1>& _Var)
+			const var_t& InsertComponent(const var_t<T, Assemble, C1>& _Var) const
 		{
-			operator=(_Var);
+			return operator=(_Var);
 		}
 
 		// swizzle / shuffle
@@ -249,7 +249,7 @@ namespace Tracy
 			uint32_t v3 = HUNDEFINED32,
 			spv::StorageClass C1,
 			typename = std::enable_if_t<is_vector<T>>>
-			void InsertComponent(const var_t<vec_type_t<base_type_t<T>, Dim>, Assemble, C1>& _Var)
+			const var_t& InsertComponent(const var_t<vec_type_t<base_type_t<T>, Dim>, Assemble, C1>& _Var) const
 		{
 			if constexpr(Assemble)
 			{
@@ -287,6 +287,8 @@ namespace Tracy
 
 				Store();
 			}
+
+			return *this;
 		}
 
 #pragma endregion
@@ -301,7 +303,7 @@ namespace Tracy
 			uint32_t v3 = HUNDEFINED32,
 			class VecT = vec_type_t<base_type_t<T>, Dim>,
 			typename = std::enable_if_t<std::is_same_v<T, VecT> && Monotonic<Dim, v0, v1, v2, v3>>>
-			var_t<T, Assemble, spv::StorageClassFunction>& ExtractComponent()
+			const var_t<T, Assemble, spv::StorageClassFunction>& ExtractComponent() const
 		{
 			return *this;
 		}

@@ -7,7 +7,7 @@ void GenerateSwizzleHeader()
 	char ups[4] = { 'X', 'Y', 'Z', 'W' };
 	char lows[2][4] = { { 'x', 'y', 'z', 'w' },{ 'r', 'g', 'b', 'a' } };
 
-	std::ofstream out("SPIRVVectorComponentAccess.h");
+	std::ofstream out("..\\SPIRVGen\\SPIRVVectorComponentAccess.h");
 
 	if (out.is_open())
 	{
