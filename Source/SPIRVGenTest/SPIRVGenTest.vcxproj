@@ -120,6 +120,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ExampleProg.h" />
+    <ClInclude Include="GenerateSwizzleHeader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

@@ -1,10 +1,13 @@
 #include "ExampleProg.h"
 #include "SPIRVModule.h"
+#include "GenerateSwizzleHeader.h"
 
 using namespace Tracy;
 
 int main(int argc, char* argv[])
 {
+	GenerateSwizzleHeader();
+
 	using TProg = ExampleProg<true>;
 	// instruct assembler to use 0 as default set and bindings/locations are incremented from 0 (or start index)
 	GlobalAssembler.UseDefaultBindingSetLocation();
