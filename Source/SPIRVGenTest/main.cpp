@@ -1,6 +1,6 @@
 #include "ExampleProg.h"
 #include "SPIRVModule.h"
-#include "GenerateSwizzleHeader.h"
+//#include "GenerateSwizzleHeader.h"
 
 using namespace Tracy;
 
