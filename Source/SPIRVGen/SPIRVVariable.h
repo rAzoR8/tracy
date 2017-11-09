@@ -130,6 +130,7 @@ namespace Tracy
 
 		// direct constant assin
 		const var_t& operator=(const T& _Other) const;
+		const var_t& operator=(T&& _Other) const;
 
 		template <spv::StorageClass C1>
 		const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
@@ -563,6 +564,15 @@ namespace Tracy
 	{
 		var_decoration<Assemble>::operator=(var_t<T, Assemble, spv::StorageClassFunction>(_Other));
 		Value = _Other;
+		return *this;
+	}
+	//---------------------------------------------------------------------------------------------------
+	// constant move operator
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(T && _Other) const
+	{
+		var_decoration<Assemble>::operator=(var_t<T, Assemble, spv::StorageClassFunction>(std::forward<T>(_Other)));
+		Value = std::move(_Other);
 		return *this;
 	}
 	//---------------------------------------------------------------------------------------------------

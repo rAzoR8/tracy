@@ -32,11 +32,12 @@ namespace Tracy
 		// functor
 		inline void operator()()
 		{
-			float3 v3 = float3(1.f, 2.f, 3.f);
+			float3 v3 = float3_t(1.f, 2.f, 3.f);
 			float4 vtest = float4(v3, 4.f);
 			float2 v2 = float2(1.f, 2.f);
 			OutputColor += InputImg.Sample(Sampler, float2(0.5f, 0.5f));
 
+			f32 f = 1.f;
 			//v2 = v3.xy * 0.5f;
 			//OutputColor = float3_t( 1.f, 2.f, 3.f );
 
