@@ -148,7 +148,13 @@ namespace Tracy
 		template <class U, spv::StorageClass C1>
 		const var_t& operator/=(const var_t<U, Assemble, C1>& _Other) const;
 
-		const var_t<T, Assemble, spv::StorageClassFunction>& operator!() const;
+		var_t<T, Assemble, spv::StorageClassFunction> operator!() const;
+
+		const var_t& operator++() const; // mutable
+		var_t<T, Assemble, spv::StorageClassFunction> operator++(int) const; // immutable
+
+		const var_t& operator--() const; // mutable
+		var_t<T, Assemble, spv::StorageClassFunction> operator--(int) const; // immutable
 
 		const T* operator->() { return &Value; }
 
@@ -428,9 +434,12 @@ namespace Tracy
 
 		// one operand (self) immutable
 		template <class OpFunc, class ...Ops>
-		const var_t<T, Assemble, spv::StorageClassFunction>& make_op1(const OpFunc& _OpFunc, const Ops ..._Ops) const;
-	};
+		var_t<T, Assemble, spv::StorageClassFunction> make_op1_immutable(const OpFunc& _OpFunc, const Ops ..._Ops) const;
 
+		// one operand (self) mutable
+		template <class OpFunc, class ...Ops>
+		const var_t<T, Assemble, spv::StorageClassFunction>& make_op1_mutable(const OpFunc& _OpFunc, const Ops ..._Ops) const;
+	};
 
 	//---------------------------------------------------------------------------------------------------
 	// HELPER FUNCTIONS
@@ -512,7 +521,7 @@ namespace Tracy
 	// make immutable operation (returns intermediate var) with one operand (self)
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class OpFunc, class ...Ops>
-	inline const var_t<T, Assemble, spv::StorageClassFunction>& var_t<T, Assemble, Class>::make_op1(const OpFunc& _OpFunc, const Ops ..._Ops) const
+	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::make_op1_immutable(const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
 		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate(), _OpFunc(Value));
 
@@ -529,6 +538,29 @@ namespace Tracy
 		}
 
 		return var;
+	}
+	//---------------------------------------------------------------------------------------------------
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<class OpFunc, class ...Ops>
+	inline const var_t<T, Assemble, spv::StorageClassFunction>& var_t<T, Assemble, Class>::make_op1_mutable(const OpFunc& _OpFunc, const Ops ..._Ops) const
+	{
+		_OpFunc(Value);
+
+		if constexpr(Assemble)
+		{
+			Load();
+
+			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
+			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+
+			SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
+
+			uResultId = GlobalAssembler.AddOperation(Op);
+
+			Store();
+		}
+
+		return *this;
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -918,9 +950,42 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// negation
 	template<typename T, bool Assemble, spv::StorageClass Class>
-	inline const var_t<T, Assemble, spv::StorageClassFunction>& var_t<T, Assemble, Class>::operator!() const
+	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::operator!() const
 	{
-		return make_op1([](T& _Value) {_Value = !_Value; }, spv::OpFNegate, spv::OpSNegate, spv::OpNop, spv::OpLogicalNot);
+		return make_op1_immutable([](T& _Value) -> T { return !_Value; }, spv::OpFNegate, spv::OpSNegate, spv::OpNop, spv::OpLogicalNot);
+	}
+
+	// increment mutable
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator++() const
+	{
+		static_assert(hlx::is_of_type<T, float, double, int32_t, uint32_t>(), "Incompatible variable type");
+		return make_op2(var_t<T, Assemble, spv::StorageClassFunction>((T)1), [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
+	}
+
+	// increment immutable
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::operator++(int) const
+	{
+		var_t<T, Assemble, spv::StorageClassFunction> PreEval(*this);
+		++(*this); // call mutable increment
+		return PreEval;
+	}
+
+	// decrement mutable
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator--() const
+	{
+		static_assert(hlx::is_of_type<T, float, double, int32_t, uint32_t>(), "Incompatible variable type");
+		return make_op2(var_t<T, Assemble, spv::StorageClassFunction>((T)1), [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
+	}
+	//decrement immutable
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::operator--(int) const
+	{
+		var_t<T, Assemble, spv::StorageClassFunction> PreEval(*this);
+		--(*this); // call mutable decrement
+		return PreEval;
 	}
 	//---------------------------------------------------------------------------------------------------
 #pragma endregion
