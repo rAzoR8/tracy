@@ -141,23 +141,20 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 	if (this == &_Other)
 		return *this;
 
+	HASSERT(uTypeId == _Other.uTypeId, "Variable type mismatch");
+
 	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
 	{
-		HASSERT(uTypeId == _Other.uTypeId, "Variable type mismatch");
-
 		_Other.Load();// load source
 		uResultId = _Other.uResultId; // get result
 		Store(); // store result
 	}
 	else // intermediate
 	{
-		HASSERT(uTypeId == HUNDEFINED32, "Variable type already assinged");
-		uTypeId = _Other.uTypeId;
 		uVarId = _Other.uVarId; // might become actual var
 		uResultId = _Other.uResultId;
 		uLastStoredId = _Other.uLastStoredId;
 		uBaseId = _Other.uBaseId;
-		//kStorageClass = _Other.kStorageClass;
 	}
 
 	return *this;
