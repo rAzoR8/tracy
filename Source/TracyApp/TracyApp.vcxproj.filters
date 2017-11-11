@@ -31,6 +31,18 @@
     <Filter Include="Display">
       <UniqueIdentifier>{4205237b-f428-429c-8b94-21ca5e8be754}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Platform">
+      <UniqueIdentifier>{ebd3278a-55a5-4a6c-88d5-d18879ef8e97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display\Vulkan">
+      <UniqueIdentifier>{102a91d1-3d0a-4c10-b951-c71a52cec612}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display\Vulkan\Resources">
+      <UniqueIdentifier>{a7a2ed37-ed43-4ea8-b108-0b0b86a923d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display\DX12">
+      <UniqueIdentifier>{c9fa0171-3983-4f0c-9e9f-f26966520344}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -49,10 +61,16 @@
       <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="VulkanDevice.cpp">
-      <Filter>Display</Filter>
+      <Filter>Display\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanInitializer.cpp">
-      <Filter>Display</Filter>
+    <ClCompile Include="VulkanInstance.cpp">
+      <Filter>Display\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanWindow.cpp">
+      <Filter>Display\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12Instance.cpp">
+      <Filter>Display\DX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -70,14 +88,41 @@
     <ClInclude Include="GeneratedFiles\ui_TracyApp.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanInitializer.h">
+    <ClInclude Include="IApplication.h">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Win32Application.h">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="IGraphicsInstance.h">
       <Filter>Display</Filter>
     </ClInclude>
     <ClInclude Include="VulkanAPI.h">
-      <Filter>Display</Filter>
+      <Filter>Display\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="VulkanDevice.h">
-      <Filter>Display</Filter>
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanWindow.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanInstance.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanTextureManager.h">
+      <Filter>Display\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanTexture.h">
+      <Filter>Display\Vulkan\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12Instance.h">
+      <Filter>Display\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12Device.h">
+      <Filter>Display\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12API.h">
+      <Filter>Display\DX12</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
