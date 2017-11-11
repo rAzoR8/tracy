@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
     <Keyword>Qt4VSv1.0</Keyword>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -70,6 +71,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DX12Instance.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_TracyApp.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -113,12 +115,17 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DX12API.h" />
+    <ClInclude Include="DX12Device.h" />
+    <ClInclude Include="DX12Instance.h" />
     <ClInclude Include="GeneratedFiles\ui_TracyApp.h" />
     <ClInclude Include="IApplication.h" />
     <ClInclude Include="IGraphicsInstance.h" />
     <ClInclude Include="VulkanAPI.h" />
     <ClInclude Include="VulkanDevice.h" />
     <ClInclude Include="VulkanInstance.h" />
+    <ClInclude Include="VulkanTexture.h" />
+    <ClInclude Include="VulkanTextureManager.h" />
     <ClInclude Include="VulkanWindow.h" />
     <ClInclude Include="Win32Application.h" />
   </ItemGroup>

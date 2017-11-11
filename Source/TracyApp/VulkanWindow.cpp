@@ -307,7 +307,7 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	// Get Swapchain images
 	//
-	std::vector<vk::Image> SwapchainImages = Device.getSwapchainImagesKHR(m_Swapchain);
+	std::vector<vk::Image>&& SwapchainImages = Device.getSwapchainImagesKHR(m_Swapchain);
 	m_Backbuffer.reserve(SwapchainImages.size());
 
 	uint32_t uBaseMipLevel = 0u;
