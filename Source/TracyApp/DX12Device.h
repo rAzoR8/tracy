@@ -11,10 +11,10 @@ namespace Tracy
 
 	private:
 		// Adapter: https://msdn.microsoft.com/en-us/library/windows/desktop/bb174523(v=vs.85).aspx
-		ComPtr<IDXGIAdapter1> m_adapter;
+		ComPtr<IDXGIAdapter1> m_Adapter;
 
 		// Device: https://msdn.microsoft.com/en-us/library/windows/desktop/dn788650(v=vs.85).aspx
-		ComPtr<ID3D12Device2> m_device;
+		ComPtr<ID3D12Device2> m_Device;
 	};
 }
 
