@@ -1,6 +1,8 @@
 #ifndef TRACY_VULKANDEVICE_H
 #define TRACY_VULKANDEVICE_H
 
+#include "../IDevice.h"
+
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
 #include <unordered_map>
@@ -9,7 +11,7 @@ namespace Tracy
 {
 	constexpr uint32_t kInvalidQueueIndex = UINT32_MAX;
 
-	class VulkanDevice 
+	class VulkanDevice : public IDevice
 	{
 		friend class VulkanInstance;
 
@@ -22,8 +24,8 @@ namespace Tracy
 		const uint64_t GetTotalMemory() const;
 		const uint32_t GetQueueIndex(const vk::QueueFlagBits _QueueType) const;
 		
-		const vk::PhysicalDevice& GetPhysicalHandle() const;
-		const vk::Device& GetLogicalHandle() const;
+		const vk::PhysicalDevice& GetAdapter() const;
+		const vk::Device& GetDevice() const;
 		const THandle& GetHandle() const;
 
 		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType=vk::QueueFlagBits::eGraphics) const
@@ -70,10 +72,8 @@ namespace Tracy
 
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
-		THandle m_Handle = kUndefinedSizeT;
 		vk::PhysicalDeviceProperties m_Properties;
 		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
-		uint64_t m_uTotalMemory;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
 	};
 	//---------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ namespace Tracy
 
 	inline const uint64_t VulkanDevice::GetTotalMemory() const
 	{
-		return m_uTotalMemory;
+		return m_Info.uTotalMemory;
 	}
 
 	inline const uint32_t VulkanDevice::GetQueueIndex(const vk::QueueFlagBits _QueueType) const
@@ -100,19 +100,19 @@ namespace Tracy
 		return queuePair->second.uFamilyIndex;
 	}
 
-	inline const vk::PhysicalDevice& VulkanDevice::GetPhysicalHandle() const
+	inline const vk::PhysicalDevice& VulkanDevice::GetAdapter() const
 	{
 		return m_PhysicalDevice;
 	}
 
-	inline const vk::Device& VulkanDevice::GetLogicalHandle() const
+	inline const vk::Device& VulkanDevice::GetDevice() const
 	{
 		return m_Device;
 	}
 
 	inline const THandle& VulkanDevice::GetHandle() const
 	{
-		return m_Handle;
+		return m_Info.hHandle;
 	}
 
 	inline bool operator<(const VulkanDevice& lDev, const VulkanDevice& rDev)

@@ -1,8 +1,11 @@
 #ifndef TRACY_WIN32APPLICATION_H
 #define TRACY_WIN32APPLICATION_H
 
-#include "IApplication.h"
-#include "VulkanInstance.h"
+#include "../IApplication.h"
+
+#include "../../Display/Vulkan/VulkanInstance.h"
+#include "../../Display/DX12/DX12Instance.h"
+
 #include "Logger.h"
 
 namespace Tracy
@@ -72,7 +75,7 @@ namespace Tracy
 		}
 
 		// Init API
-		VulkanInstance::GetInstance().Init(_uWidth, _uHeight, m_hWnd, m_hInstance);
+		const std::vector<DeviceInfo> Devices = VulkanInstance::GetInstance().Init(/*_uWidth, _uHeight, m_hWnd, m_hInstance*/);
 
 		ShowWindow(m_hWnd, false);
 

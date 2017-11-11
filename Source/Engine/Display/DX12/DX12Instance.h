@@ -1,7 +1,7 @@
 #ifndef TRACY_DX12INSTANCE_H
 #define TRACY_DX12INSTANCE_H
 
-#include "IGraphicsInstance.h"
+#include "../IGraphicsInstance.h"
 
 namespace Tracy
 {
@@ -22,7 +22,8 @@ namespace Tracy
 		~DX12Instance();
 
 		// Virtual Functions
-		void Init(const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance) final;
+		const std::vector<DeviceInfo> Init(/*const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance*/) final;
+		const THandle MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance) final;
 		void OnChangeDisplaySettings(const uint32_t _uWidth, const uint32_t _uHeight) final;
 
 	private:

@@ -18,7 +18,7 @@ VulkanInstance::~VulkanInstance()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanInstance::Init(const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance)
+const std::vector<DeviceInfo> VulkanInstance::Init(/*const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance*/)
 {
 	vk::ApplicationInfo AppInfo{};
 	AppInfo.apiVersion = VK_API_VERSION_1_0;
@@ -43,7 +43,9 @@ void VulkanInstance::Init(const uint32_t _uWidth, const uint32_t _uHeight, HWND 
 	CreateInfo.enabledExtensionCount = static_cast<uint32_t>(Extensions.size());
 
 	m_Instance = vk::createInstance(CreateInfo);
+	HASSERT(m_Instance != vk::Instance(), "Failed to create Vulkan instance");
 
+	std::vector<DeviceInfo> DInfo;
 	if (m_Instance)
 	{
 		// enumerate devices
@@ -51,17 +53,20 @@ void VulkanInstance::Init(const uint32_t _uWidth, const uint32_t _uHeight, HWND 
 		{
 			const auto Res = m_Devices.try_emplace(m_LastDeviceHandle, Device, m_LastDeviceHandle);
 			HASSERT(Res.second == true, "Failed to add device");
+			DInfo.push_back(Res.first->second.GetInfo());
 			m_LastDeviceHandle++;
 		}
 		HASSERT(m_Devices.size() > 0u, "Failed to create logical devices");
+
 
 		// create default window.
 		// TODO : It should come from a config file
 		// first device should be dedicated one after init
 		// could also be called from the application, maaybe makes more sense
-		THandle BaseWindowHandle = MakeWindow(m_Devices.begin()->first, _uWidth, _uHeight, _hWnd, _hInstance);
-		HASSERT(BaseWindowHandle != kUndefinedSizeT, "Failed to create default window.");
+		/*THandle BaseWindowHandle = MakeWindow(m_Devices.begin()->first, _uWidth, _uHeight, _hWnd, _hInstance);
+		HASSERT(BaseWindowHandle != kUndefinedSizeT, "Failed to create default window.");*/
 	}
+	return DInfo;
 }
 //---------------------------------------------------------------------------------------------------
 

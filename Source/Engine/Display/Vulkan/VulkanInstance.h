@@ -1,7 +1,7 @@
 #ifndef TRACY_VULKANININSTANCE_H
 #define TRACY_VULKANININSTANCE_H
 
-#include "IGraphicsInstance.h"
+#include "../IGraphicsInstance.h"
 #include "VulkanDevice.h"
 #include "VulkanWindow.h"
 #include <vector>
@@ -24,9 +24,9 @@ namespace Tracy
 
 		~VulkanInstance();
 
-#if defined(_WIN32) || defined(WIN32)
-		void Init(const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance) final;
-#endif
+//#if defined(_WIN32) || defined(WIN32)
+		const std::vector<DeviceInfo> Init(/*const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance*/) final;
+//#endif
 		void OnChangeDisplaySettings(const uint32_t _uWidth, const uint32_t _uHeight) final;
 
 		// Can skip return check, assert if invalid handle
@@ -34,7 +34,7 @@ namespace Tracy
 		const VulkanWindow& GetWindow(const THandle _hWindow) const;
 
 #if defined(_WIN32) || defined(WIN32)
-		const THandle MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance);
+		const THandle MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance) final;
 #endif
 
 		void Destroy(vk::SurfaceKHR& _Surface) const;

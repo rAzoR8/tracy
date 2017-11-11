@@ -7,21 +7,25 @@ using namespace Tracy;
 VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle) :
 	m_PhysicalDevice(_PhysDevice),
 	m_Device(nullptr),
-	m_Handle(_uHandle),
 	m_Properties(_PhysDevice.getProperties()),
-	m_MemoryProperties(_PhysDevice.getMemoryProperties()),
-	m_uTotalMemory(0u)
+	m_MemoryProperties(_PhysDevice.getMemoryProperties())
 {
+	m_Info.hHandle = _uHandle;
+	HASSERT(m_Info.hHandle != kUndefinedSizeT, "Device constructor has invalid handle.");
+
 	// Get total device memory
 	for (const vk::MemoryHeap& heap : m_MemoryProperties.memoryHeaps)
 	{
 		if (heap.flags == vk::MemoryHeapFlagBits::eDeviceLocal)
 		{
-			m_uTotalMemory = heap.size;
+			m_Info.uTotalMemory = heap.size;
 			break;
 		}
 	}
-	HASSERTD(m_uTotalMemory > 0, "Device memory available is %d", m_uTotalMemory);
+	HASSERTD(m_Info.uTotalMemory > 0u, "Device memory available is %d", m_Info.uTotalMemory);
+
+	m_Info.VendorID = ToVendorID(m_Properties.vendorID);
+	HASSERT(m_Info.VendorID != kVendorID_Unknown, "Unknown PCI vendor.");
 
 	// Create Logical Device
 	Create();
@@ -89,7 +93,7 @@ void VulkanDevice::Create()
 				// Check whether this queue is in a new family or in the same one as another (Nvidia vs. AMD convention)
 				if (uFamily != uCurrFamily)
 				{
-					uCurrFamily = uFamily;
+					uCurrFamily = static_cast<uint32_t>(uFamily);
 					bNewFamily = true;
 				}
 			}
@@ -103,7 +107,7 @@ void VulkanDevice::Create()
 			{
 				if (queueProps[uFamily].queueFlags & flag)
 				{
-					uQueueFamily = uFamily;
+					uQueueFamily = static_cast<uint32_t>(uFamily);
 					break;
 				}
 			}

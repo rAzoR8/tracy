@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Display">
+      <UniqueIdentifier>{a2da06c9-9161-4f18-9106-82ca174d08ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform">
+      <UniqueIdentifier>{b68b3389-0be0-40fe-86fd-5dac7e55a721}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display\DX12">
+      <UniqueIdentifier>{043e1504-f539-4b50-9cb3-6a6381d7a32f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display\Vulkan">
+      <UniqueIdentifier>{796011bc-ac13-4f44-bf0e-21b7fb1e3a17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform\Win32">
+      <UniqueIdentifier>{dbf2e6f9-f616-4431-83e2-90f5151c1a0b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Display\IGraphicsInstance.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\DX12\DX12API.h">
+      <Filter>Display\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\DX12\DX12Device.h">
+      <Filter>Display\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\DX12\DX12Instance.h">
+      <Filter>Display\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanAPI.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanDevice.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanInstance.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanTexture.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanTextureManager.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanWindow.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\IApplication.h">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\Win32Application.h">
+      <Filter>Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine.hpp" />
+    <ClInclude Include="Display\DeviceInfo.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\IDevice.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Display\DX12\DX12Device.cpp">
+      <Filter>Display\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\DX12\DX12Instance.cpp">
+      <Filter>Display\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanDevice.cpp">
+      <Filter>Display\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanInstance.cpp">
+      <Filter>Display\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanWindow.cpp">
+      <Filter>Display\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\IDevice.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

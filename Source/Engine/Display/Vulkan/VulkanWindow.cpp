@@ -93,7 +93,7 @@ const bool Tracy::VulkanWindow::Init(const VulkanDevice& _Device, const uint32_t
 	}
 
 	// Get Physical device and store the handle of the device
-	const vk::PhysicalDevice& DeviceHandle = _Device.GetPhysicalHandle();
+	const vk::PhysicalDevice& DeviceHandle = _Device.GetAdapter();
 	m_hPresentDevice = _Device.GetHandle();
 	HASSERT(m_hPresentDevice != kUndefinedSizeT, "Invalid present device handle");
 
@@ -115,7 +115,7 @@ const bool Tracy::VulkanWindow::OnResize(const uint32_t _uWidth, const uint32_t 
 //---------------------------------------------------------------------------------------------------
 void Tracy::VulkanWindow::ReloadSurfaceInfo()
 {
-	const vk::PhysicalDevice& DeviceHandle = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetPhysicalHandle();
+	const vk::PhysicalDevice& DeviceHandle = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetAdapter();
 
 	// Fetch all useful data
 	vk::Result res = DeviceHandle.getSurfaceCapabilitiesKHR(m_Surface, &m_Capabilities);
@@ -279,7 +279,7 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	SwapchainDesc.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage;
 	// Enable blit to backbuffer if supported, can be nice for postfx
-	const vk::FormatProperties& FormatProps = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetPhysicalHandle().getFormatProperties(SwapchainDesc.imageFormat);
+	const vk::FormatProperties& FormatProps = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetAdapter().getFormatProperties(SwapchainDesc.imageFormat);
 	if (FormatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitDst)
 	{
 		SwapchainDesc.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
@@ -288,7 +288,7 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	// Create Swapchain
 	//
-	const vk::Device& Device = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetLogicalHandle();
+	const vk::Device& Device = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetDevice();
 	vk::Result Res = Device.createSwapchainKHR(&SwapchainDesc, nullptr, &m_Swapchain);
 	HASSERT(Res == vk::Result::eSuccess, "Failed to create swapchain");
 
