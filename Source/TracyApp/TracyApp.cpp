@@ -1,5 +1,5 @@
 #include "TracyApp.h"
-#include "VulkanInitializer.h"
+#include "VulkanInstance.h"
 
 TracyApp::TracyApp(QWidget *parent)
 	: QMainWindow(parent)
@@ -7,5 +7,10 @@ TracyApp::TracyApp(QWidget *parent)
 	ui.setupUi(this);
 
 	using namespace Tracy;
-	VulkanInitializer::Instance();
+	
+	VulkanInstance::GetInstance().Init(
+		this->width(),
+		this->height(),
+		reinterpret_cast<HWND>(this->winId()), 
+		GetModuleHandle(NULL));
 }

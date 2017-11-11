@@ -1,13 +1,13 @@
 #include "VulkanDevice.h"
 
-#include "VulkanInitializer.h"
 #include "Logger.h"
 
 using namespace Tracy;
 
-VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
+VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle) :
 	m_PhysicalDevice(_PhysDevice),
 	m_Device(nullptr),
+	m_Handle(_uHandle),
 	m_Properties(_PhysDevice.getProperties()),
 	m_MemoryProperties(_PhysDevice.getMemoryProperties()),
 	m_uTotalMemory(0u)
@@ -31,7 +31,7 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice) :
 
 VulkanDevice::~VulkanDevice()
 {
-	if (m_Device != vk::Device())
+	if (m_Device)
 	{
 		m_Device.destroy();
 	}
@@ -160,13 +160,14 @@ void VulkanDevice::Create()
 	// Fetch a pointer to the actual queue for submit
 	{
 		// For each queue type we want, fetch a pointer to the device queue
-		for (size_t uQueueIndex = 0, uEnd = queueFlags.size(); uQueueIndex < uEnd; ++uQueueIndex)
+		for (size_t uQueueFlagIndex = 0, uEnd = queueFlags.size(); uQueueFlagIndex < uEnd; ++uQueueFlagIndex)
 		{
 			// Create an item in the queue map, used for later to ease submit
-			auto queuePair = m_Queues.emplace(queueFlags[uQueueIndex], vk::Queue());
+			auto queuePair = m_Queues.emplace(queueFlags[uQueueFlagIndex], Queue());
 			
 			// Assign the queue
-			queuePair.first->second = m_Device.getQueue(QueueOffset[uQueueIndex].uFamilyIndex, QueueOffset[uQueueIndex].uOffset);
+			queuePair.first->second.uFamilyIndex = QueueOffset[uQueueFlagIndex].uOffset;
+			queuePair.first->second.Handle = m_Device.getQueue(QueueOffset[uQueueFlagIndex].uFamilyIndex, QueueOffset[uQueueFlagIndex].uOffset);
 		}
 	}
 }
