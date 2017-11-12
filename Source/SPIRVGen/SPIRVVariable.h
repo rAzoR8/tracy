@@ -15,16 +15,17 @@ namespace Tracy
 	struct var_decoration
 	{
 		var_decoration(const spv::StorageClass _kStorageClass) {};
-		void Decorate(const SPIRVDecoration& _Decoration) {};
-		void Store() const {};
-		uint32_t Load() const { return HUNDEFINED32 };
 		var_decoration(const var_decoration& _Other) {}
 		var_decoration(var_decoration&& _Other) {}
-		const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
-		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet = 0u) {}
-		void SetLocation(const uint32_t _uLocation) {}
-		void SetIdentifier(const uint32_t _uIdentifier) {}
-		void MaterializeDecorations() const {};
+		inline const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
+
+		//inline void Store() const {};
+		//inline uint32_t Load() const { return HUNDEFINED32 };
+		//inline void Decorate(const SPIRVDecoration& _Decoration) {};
+		//inline void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet) {}
+		//inline void SetLocation(const uint32_t _uLocation) {}
+		//inline void SetIdentifier(const uint32_t _uIdentifier) {}
+		//inline void MaterializeDecorations() const {};
 	};
 
 	template <>
@@ -52,7 +53,7 @@ namespace Tracy
 
 		void Decorate(const SPIRVDecoration& _Decoration);
 		void MaterializeDecorations() const;
-		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet = 0u);
+		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet);
 		void SetLocation(const uint32_t _uLocation);
 		void SetIdentifier(const uint32_t _uIdentifier);
 
@@ -278,10 +279,32 @@ namespace Tracy
 			uint32_t v2 = HUNDEFINED32,
 			uint32_t v3 = HUNDEFINED32,
 			spv::StorageClass C1,
+			class VecT = vec_type_t<base_type_t<T>, Dim>,
 			typename = std::enable_if_t<is_vector<T>>>
-			const var_t& InsertComponent(const var_t<vec_type_t<base_type_t<T>, Dim>, Assemble, C1>& _Var) const
+			const var_t& InsertComponent(const var_t<VecT, Assemble, C1>& _Var) const
 		{
-			if constexpr(Assemble)
+			if constexpr(Assemble == false)
+			{
+				if constexpr(Dim > 1)
+				{
+					if constexpr(is_valid_index<T, v0>() && is_valid_index<VecT, 0>()) Value[v0] = _Var.Value[0];
+					if constexpr(is_valid_index<T, v1>() && is_valid_index<VecT, 1>()) Value[v1] = _Var.Value[1];
+					if constexpr(is_valid_index<T, v2>() && is_valid_index<VecT, 2>()) Value[v2] = _Var.Value[2];
+					if constexpr(is_valid_index<T, v3>() && is_valid_index<VecT, 3>()) Value[v3] = _Var.Value[3];
+				}
+				else
+				{
+					if constexpr(Dimmension<T> > 1 && is_valid_index<T, v0>())
+					{
+						Value[v0] = _Var.Value;
+					}
+					else
+					{
+						Value = _Var.Value;
+					}
+				}
+			}
+			else
 			{
 				// vector 1 (this) + vector 2
 				// xyzw xy
@@ -351,37 +374,26 @@ namespace Tracy
 		{
 			auto var = var_t<VecT, Assemble, spv::StorageClassFunction>(TIntermediate());
 
-			std::array<uint32_t, 4> Indices = { v0, v1, v2, v3 };
-
-			if constexpr(Dim > 1)
+			if constexpr(Assemble == false)
 			{
-				if constexpr(is_valid_index<T, v0>())
+				if constexpr(Dim > 1)
 				{
-					var.Value[0] = Value[v0];
+					if constexpr(is_valid_index<T, v0>()) var.Value[0] = Value[v0];
+					if constexpr(is_valid_index<T, v1>()) var.Value[1] = Value[v1];
+					if constexpr(is_valid_index<T, v2>()) var.Value[2] = Value[v2];
+					if constexpr(is_valid_index<T, v3>()) var.Value[3] = Value[v3];
 				}
-				if constexpr(is_valid_index<T, v1>())
+				else
 				{
-					var.Value[1] = Value[v1];
-				}
-				if constexpr(is_valid_index<T, v2>())
-				{
-					var.Value[2] = Value[v2];
-				}
-				if constexpr(is_valid_index<T, v3>())
-				{
-					var.Value[3] = Value[v3];
+					var.Value = Value[v0];
 				}
 			}
-			else
-			{
-				var.Value = Value[v0];
-			}
-
-			if constexpr(Assemble)
+			else // Assemble
 			{
 				Load();
-				const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<T>>());
 
+				const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<T>>());
+				std::array<uint32_t, 4> Indices = { v0, v1, v2, v3 };
 				SPIRVOperation Op;
 
 				if constexpr(Dim > 1)
@@ -494,9 +506,11 @@ namespace Tracy
 	template<class U, class OpFunc, spv::StorageClass C1, class ...Ops>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::make_op2(const var_t<U, Assemble, C1>& _Other, const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
-		_OpFunc(Value, _Other.Value);
-
-		if constexpr(Assemble)
+		if constexpr(Assemble == false)
+		{
+			_OpFunc(Value, _Other.Value);
+		}
+		else // Assemble
 		{
 			LoadVariables(*this, _Other);
 
@@ -523,9 +537,13 @@ namespace Tracy
 	template<class OpFunc, class ...Ops>
 	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::make_op1_immutable(const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
-		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate(), _OpFunc(Value));
+		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate());
 
-		if constexpr(Assemble)
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc(Value);
+		}
+		else // Assemble
 		{
 			Load();
 
@@ -544,9 +562,11 @@ namespace Tracy
 	template<class OpFunc, class ...Ops>
 	inline const var_t<T, Assemble, spv::StorageClassFunction>& var_t<T, Assemble, Class>::make_op1_mutable(const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
-		_OpFunc(Value);
-
-		if constexpr(Assemble)
+		if constexpr(Assemble == false)
+		{
+			_OpFunc(Value);
+		}
+		else // Assemble
 		{
 			Load();
 
@@ -629,20 +649,26 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 	// set, binding & location helper
-	template <class VarT>
-	void LocationHelper(VarT& _Var, const uint32_t _uLocation, const bool _bInput)
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	void LocationHelper(var_t<T, Assemble, Class>& _Var, const uint32_t _uLocation, const bool _bInput)
 	{
-		uint32_t uLocation = _uLocation != HUNDEFINED32 ? _uLocation : (_bInput ? GlobalAssembler.GetCurrentInputLocation() : GlobalAssembler.GetCurrentOutputLocation());
-		if (uLocation != HUNDEFINED32) _Var.SetLocation(uLocation);
+		if constexpr(Assemble)
+		{
+			uint32_t uLocation = _uLocation != HUNDEFINED32 ? _uLocation : (_bInput ? GlobalAssembler.GetCurrentInputLocation() : GlobalAssembler.GetCurrentOutputLocation());
+			if (uLocation != HUNDEFINED32) _Var.SetLocation(uLocation);
+		}
 	}
 
-	template <class VarT>
-	void BindingSetLocationHelper(VarT& _Var, const uint32_t _uBinding, const uint32_t _uSet, const uint32_t _uLocation)
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	void BindingSetLocationHelper(var_t<T, Assemble, Class>& _Var, const uint32_t _uBinding, const uint32_t _uSet, const uint32_t _uLocation)
 	{
-		LocationHelper(_Var, _uLocation, true); // TODO: add option for output uniforms
-		uint32_t uBinding = _uBinding != HUNDEFINED32 ? _uBinding : GlobalAssembler.GetCurrentBinding();
-		uint32_t uSet = _uSet != HUNDEFINED32 ? _uSet : GlobalAssembler.GetDefaultSet();
-		if (uBinding != HUNDEFINED32 && uSet != HUNDEFINED32) _Var.SetBinding(uBinding, uSet);
+		if constexpr(Assemble)
+		{
+			LocationHelper(_Var, _uLocation, true); // TODO: add option for output uniforms
+			uint32_t uBinding = _uBinding != HUNDEFINED32 ? _uBinding : GlobalAssembler.GetCurrentBinding();
+			uint32_t uSet = _uSet != HUNDEFINED32 ? _uSet : GlobalAssembler.GetDefaultSet();
+			if (uBinding != HUNDEFINED32 && uSet != HUNDEFINED32) _Var.SetBinding(uBinding, uSet);
+		}
 	}
 	//---------------------------------------------------------------------------------------------------
 	// input variable constructor

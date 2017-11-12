@@ -169,13 +169,19 @@ namespace Tracy
 		const std::vector<std::string>& _Extensions,
 		Ts && ..._args)
 	{
-		m_pProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
+		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;
+		static_assert(bAssemble, "Invalid program type (Assemble = false)");
 
-		Init(_kModel, _kMode, _Extensions);
+		if constexpr(bAssemble)
+		{
+			m_pProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
+
+			Init(_kModel, _kMode, _Extensions);
+		}
 	}
 
 	template<class TProg, class ...Ts>
-	inline void SPIRVAssembler::RecordInstructions(Ts && ..._args)
+	inline void SPIRVAssembler::RecordInstructions(Ts&& ..._args)
 	{
 		HASSERT(m_pProgram != nullptr, "Invalid program (InitializeProgram not called)");
 		m_pProgram->Execute<TProg>(std::forward<Ts>(_args)...);

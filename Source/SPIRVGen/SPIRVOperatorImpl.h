@@ -10,9 +10,13 @@ namespace Tracy
 	template <class U, class V, class OpFunc, bool Assemble, spv::StorageClass C1, spv::StorageClass C2,  class T = std::invoke_result_t<OpFunc, const U&, const V&>, class ...Ops >
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_op(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r, const OpFunc& _OpFunc, const Ops ..._Ops)
 	{
-		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate(), _OpFunc(l.Value, r.Value));
-
-		if constexpr(Assemble)
+		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate());
+		
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc(l.Value, r.Value);		
+		}
+		else // Assemble
 		{
 			LoadVariables(l, r);
 
@@ -34,9 +38,13 @@ namespace Tracy
 	template <class U, class OpFunc, bool Assemble, spv::StorageClass C1, class T = std::invoke_result_t<OpFunc, const U&>, class ...Ops >
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_ext_op1(const var_t<U, Assemble, C1>& l, const OpFunc& _OpFunc, const std::string& _sExt, const Ops ..._Ops)
 	{
-		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate(), _OpFunc(l.Value));
+		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate());
 
-		if constexpr(Assemble)
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc(l.Value);
+		}
+		else
 		{
 			l.Load();
 
