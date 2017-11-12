@@ -326,7 +326,7 @@ namespace Tracy
 						Target[j] = n++; // take from concated vector 2
 					}
 				}
-				HASSERT(n == Dim+N, "Index missmatch");
+				//HASSERT(n == Dim+N, "Index missmatch");
 
 				Load();
 				_Var.Load();
@@ -514,7 +514,7 @@ namespace Tracy
 		{
 			LoadVariables(*this, _Other);
 
-			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
+			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<U>>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
 			SPIRVOperation Op(kType, uTypeId, // result type
@@ -537,7 +537,7 @@ namespace Tracy
 	template<class OpFunc, class ...Ops>
 	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::make_op1_immutable(const OpFunc& _OpFunc, const Ops ..._Ops) const
 	{
-		var_t<T, Assemble, spv::StorageClassFunction> var(TIntermediate());
+		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
 
 		if constexpr(Assemble == false)
 		{

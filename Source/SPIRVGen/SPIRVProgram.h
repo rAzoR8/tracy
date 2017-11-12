@@ -90,8 +90,8 @@ namespace Tracy
 
 	protected:
 		// maybe put counter at the end of the function and make it a variadic tpl argument to be able to have multiple variables
-		template <class VarT, class CondFunc, class IncFunc, class LoopBody>
-		void ForImpl(const var<VarT>& _Counter, const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody) {};
+		template </*class VarT, */class CondFunc, class IncFunc, class LoopBody>
+		void ForImpl(/*const var<VarT>& _Counter, */const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody);
 
 		// u32 i = 0u;
 		// ForImpl(i, [=]() -> bool {i < x;},  [=](){++i;}, [=]() {somevar += i*i + 3;});
@@ -100,6 +100,11 @@ namespace Tracy
 
 		template <class LambdaFunc, spv::StorageClass Class>
 		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble, Class>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
+
+#pragma region _for
+#ifndef For
+#define For(_var, _cond, _inc) _var; ForImpl([=](){return _cond;}, [=](){_inc;}, [=]()
+#endif
 
 #pragma region if_else
 		// renamed If and Else functions so that the macros are not part of the name
@@ -155,6 +160,30 @@ namespace Tracy
 		m_BranchNodes.clear();
 
 		((TProg*)this)->operator()(std::forward<Ts>(_args)...);
+	}
+
+	template<bool Assemble>
+	template<class CondFunc, class IncFunc, class LoopBody>
+	inline void SPIRVProgram<Assemble>::ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody)
+	{
+		if constexpr(Assemble == false)
+		{
+			for (; _CondFunc(); _IncFunc())
+			{
+				_LoopBody();
+			}
+		}
+		else
+		{
+			// label
+			// loopmerge
+			// label
+			// loopbody
+			// label
+			// incfunc
+			// condfunc
+			// label
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------

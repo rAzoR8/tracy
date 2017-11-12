@@ -37,13 +37,14 @@ namespace Tracy
 			float2 v2 = float2(1.f, 2.f);
 			OutputColor += InputImg.Sample(Sampler, float2(0.5f, 0.5f));
 
-			u32 u = 1u;
-			auto u2 = u++;
-			u2 = u--;
-			//v2 = v3.xy * 0.5f;
-			//OutputColor = float3_t( 1.f, 2.f, 3.f );
-			OutputColor.Value = {};
-			OutputColor.yz = float2_t(1.f, 2.f);
+			u32 u = 3u;
+			For(u32 i = 0, i < 3u, ++i)
+			{
+				u += i;
+			});
+
+			//u32 i = 4u;
+			//auto b = i < 3u;	
 		};
 	private:
 
