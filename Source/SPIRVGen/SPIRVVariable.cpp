@@ -42,7 +42,7 @@ void var_decoration<true>::Store() const
 }
 //---------------------------------------------------------------------------------------------------
 
-uint32_t var_decoration<true>::Load() const
+uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
 {
 	HASSERT(uTypeId != HUNDEFINED32, "Invalid TypeId");
 
@@ -60,7 +60,7 @@ uint32_t var_decoration<true>::Load() const
 		uVarId = GlobalAssembler.AddOperation(OpAccessChain);
 	}
 
-	if (uResultId != HUNDEFINED32)
+	if (uResultId != HUNDEFINED32 && _bForceLoad == false && GlobalAssembler.GetForceNextLoads() == false)
 		return uResultId;
 
 	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");

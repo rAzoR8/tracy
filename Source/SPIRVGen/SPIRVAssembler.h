@@ -62,8 +62,10 @@ namespace Tracy
 		uint32_t AddType(const SPIRVType& _Type);
 
 		void AddVariableInfo(const var_decoration<true>& _Var);
-
 		void UseDefaultBindingSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultBinding = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u);
+
+		void ForceNextLoads(const bool _bForce = true);
+		bool GetForceNextLoads() const;
 
 		const uint32_t& GetDefaultSet() const;
 		const uint32_t GetCurrentBinding();
@@ -114,6 +116,8 @@ namespace Tracy
 		uint32_t m_uCurrentInputLocation = HUNDEFINED32;
 		uint32_t m_uCurrentOutputLocation = HUNDEFINED32;
 
+		bool m_bForceNextLoads = false;
+
 		// type instruction id
 		TIdMap m_TypeIds;
 		// constant instruction id
@@ -126,6 +130,7 @@ namespace Tracy
 		// var id -> VariableInfo
 		std::unordered_map<uint32_t, VariableInfo> m_UsedVariables; // info on loaded / stored variables
 	};
+	//---------------------------------------------------------------------------------------------------
 
 	inline void SPIRVAssembler::UseDefaultBindingSetLocation(const uint32_t _uDefaultSet, const uint32_t _uDefaultBinding, const uint32_t _uDefaulInputLocation, const uint32_t _uDefaultOutputLocation)
 	{
@@ -133,6 +138,17 @@ namespace Tracy
 		m_uCurrentBinding = _uDefaultBinding;
 		m_uCurrentInputLocation = _uDefaulInputLocation;
 		m_uCurrentOutputLocation = _uDefaultOutputLocation;
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce)
+	{
+		m_bForceNextLoads = _bForce;
+	}
+
+	inline bool SPIRVAssembler::GetForceNextLoads() const
+	{
+		return m_bForceNextLoads;
 	}
 
 	inline const uint32_t& SPIRVAssembler::GetDefaultSet() const

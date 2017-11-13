@@ -364,6 +364,12 @@ namespace Tracy
 	template <class T>
 	constexpr bool is_valid_type = !std::is_same_v<std::false_type, T>;
 
+	template <class T>
+	constexpr bool is_base_integral_type = hlx::is_of_type<T, int32_t, uint32_t, float>();
+
+	template <class U, class V>
+	constexpr bool is_convertible = is_base_integral_type<U> && is_base_integral_type<V>;
+
 }; // Tracy
 
 #endif // !TRACY_SPIRVVARIABLETYPES_H
