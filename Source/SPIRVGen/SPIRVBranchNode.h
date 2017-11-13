@@ -29,7 +29,7 @@ namespace Tracy
 	template <bool Assemble>
 	class BranchNode : public BranchNodeBase<Assemble>
 	{
-		template <bool T>
+		template <bool _Assemble>
 		friend class SPIRVProgram;
 	public:
 		template <class LambdaFunc>
@@ -49,12 +49,12 @@ namespace Tracy
 			
 			// end of then block
 			SPIRVOperation* pElseBranch = nullptr;
-			SPIRVAssembler::Instance()->AddOperation(SPIRVOperation(spv::OpBranch), &pElseBranch);
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pElseBranch);
 
 			// selection merge
 			std::vector<SPIRVOperand>& SelectionOperands = pSelectionMerge->GetOperands();
 			HASSERT(SelectionOperands.size() == 2u, "Invalid number of operands for selection merge");
-			const uint32_t uMergeId = SPIRVAssembler::Instance()->AddOperation(SPIRVOperation(spv::OpLabel));
+			const uint32_t uMergeId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 			SelectionOperands.front().uId = uMergeId;
 
 			// then branch update

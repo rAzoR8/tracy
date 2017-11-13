@@ -90,8 +90,8 @@ namespace Tracy
 
 	protected:
 		// maybe put counter at the end of the function and make it a variadic tpl argument to be able to have multiple variables
-		template </*class VarT, */class CondFunc, class IncFunc, class LoopBody>
-		void ForImpl(/*const var<VarT>& _Counter, */const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody);
+		template <class CondFunc, class IncFunc, class LoopBody>
+		void ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
 
 		// u32 i = 0u;
 		// ForImpl(i, [=]() -> bool {i < x;},  [=](){++i;}, [=]() {somevar += i*i + 3;});
@@ -162,9 +162,9 @@ namespace Tracy
 		((TProg*)this)->operator()(std::forward<Ts>(_args)...);
 	}
 
-	template<bool Assemble>
+	template<bool Assemble> // CondFunc needs to return a var_t<bool>
 	template<class CondFunc, class IncFunc, class LoopBody>
-	inline void SPIRVProgram<Assemble>::ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody)
+	inline void SPIRVProgram<Assemble>::ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl)
 	{
 		if constexpr(Assemble == false)
 		{
@@ -175,14 +175,69 @@ namespace Tracy
 		}
 		else
 		{
-			// label
+			// branch %merge
+			// label %merge
 			// loopmerge
-			// label
-			// loopbody
-			// label
-			// incfunc
-			// condfunc
-			// label
+			// branch %cond
+			// label %cond
+			// Condition Code
+			// branch_conditional
+			// label %loopbody
+			// LoopBody code
+			// branch %increment
+			// label %increment
+			// Increment Code
+			// branch %exit
+			// label %exit
+
+			// merge branch label
+			SPIRVOperation* pOpBranch = nullptr;
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch); // close previous block
+			const uint32_t uLoopMergeId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uLoopMergeId);
+
+			// loop merge
+			SPIRVOperation* pOpLoopMerge = nullptr;			
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLoopMerge), &pOpLoopMerge);
+
+			// condition branch label
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
+			const uint32_t uConditionLabelId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uConditionLabelId);
+
+			GlobalAssembler.ForceNextLoads();
+
+			// tranlate condition var
+			const auto& CondVar = _CondFunc();
+
+			// branch conditional %cond %loopbody %exit
+			SPIRVOperation* pOpBranchCond = nullptr;
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranchConditional), &pOpBranchCond);
+			const uint32_t uLoopBodyId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranchCond->AddIntermediate(CondVar.uResultId);
+			pOpBranchCond->AddIntermediate(uLoopBodyId);
+
+			_LoopBody();
+
+			// inrement branch label
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
+			const uint32_t uIncrementId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uIncrementId);
+			
+			_IncFunc();
+
+			// exit branch label
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
+			const uint32_t uExitId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uLoopMergeId);
+
+			pOpLoopMerge->AddIntermediate(uExitId);
+			pOpLoopMerge->AddIntermediate(uIncrementId);
+			pOpLoopMerge->AddLiteral((uint32_t)_kLoopControl);
+
+			pOpBranchCond->AddIntermediate(uExitId); // structured merge
+
+			GlobalAssembler.ForceNextLoads(false);
 		}
 	}
 
