@@ -262,6 +262,9 @@ namespace Tracy
 	constexpr size_t Dimmension = sizeof(T) / sizeof(base_type_t<T>);
 
 	template <class T>
+	constexpr bool is_scalar = std::is_same_v<T, base_type_t<T>>;
+
+	template <class T>
 	constexpr bool is_vector =
 		hlx::is_of_type<T,
 		int2_t, int3_t, int4_t,

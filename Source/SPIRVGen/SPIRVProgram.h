@@ -23,6 +23,9 @@ namespace Tracy
 		template <class T, uint32_t Location = HUNDEFINED32>
 		using var_out = var_out_t<T, Assemble, Location>;
 
+		template <class T, uint32_t Location = HUNDEFINED32>
+		using RenderTarget = var_out_t<T, Assemble, Location>;
+
 		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using var_uniform = var_uniform_t<T, Assemble, Binding, Set, Location>;
 
@@ -93,17 +96,12 @@ namespace Tracy
 		template <class CondFunc, class IncFunc, class LoopBody>
 		void ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
 
-		// u32 i = 0u;
-		// ForImpl(i, [=]() -> bool {i < x;},  [=](){++i;}, [=]() {somevar += i*i + 3;});
-
-		//for (; _CondFunc(); _IncFunc()) { _LoopBody(); }
-
 		template <class LambdaFunc, spv::StorageClass Class>
 		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble, Class>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
 #pragma region _for
 #ifndef For
-#define For(_var, _cond, _inc) _var; ForImpl([=](){return _cond;}, [=](){_inc;}, [=]()
+#define For(_var, _cond, _inc) _var; ForImpl([&](){return _cond;}, [&](){_inc;}, [&]()
 #endif
 
 #pragma region if_else

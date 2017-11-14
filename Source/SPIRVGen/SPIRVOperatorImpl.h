@@ -113,19 +113,24 @@ namespace Tracy
 	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class T = longer_type_t<U,V>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const U& v1, const V& v2)-> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);
+		if constexpr(is_vector<U> && is_scalar<V>)
+			return make_op(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, spv::OpVectorTimesScalar);
+		else if constexpr(is_vector<V> && is_scalar<U>)
+			return make_op(r, l, [](const V& v1, const U& v2) -> T {return v1 * v2; }, spv::OpVectorTimesScalar);
+		else
+			return make_op(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);		
 	}
 	// mul with constant left
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>, class BaseType = base_type_t<V>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const U& l, const var_t<V, Assemble, C1>& r)
 	{
-		return make_op(var_t<U, Assemble, spv::StorageClassFunction>(l), r, [](const U& v1, const V& v2)-> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);
+		return var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)l) *  r;
 	}
 	// mul with constant right
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>, class BaseType = base_type_t<U>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const V& r)
 	{
-		return make_op(l, var_t<V, Assemble, spv::StorageClassFunction>(r), [](const U& v1, const V& v2)-> T {return v1 * v2; }, spv::OpFMul, spv::OpIMul);
+		return l * var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)r);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// DIV

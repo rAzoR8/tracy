@@ -116,6 +116,8 @@ namespace Tracy
 
 		mutable T Value;
 
+		using BaseType = base_type_t<T>;
+
 		// generates OpVar
 		template <class... Ts>
 		var_t(const Ts& ... _args);
@@ -143,8 +145,19 @@ namespace Tracy
 		template <spv::StorageClass C1>
 		const var_t& operator-=(const var_t<T, Assemble, C1>& _Other) const;
 
+		template <class U>
+		const var_t& operator+=(const U& _Other) const;
+		template <class U>
+		const var_t& operator-=(const U& _Other) const;
+
 		template <class U, spv::StorageClass C1>
 		const var_t& operator*=(const var_t<U, Assemble, C1>& _Other) const;
+
+		template <class U>
+		const var_t& operator*=(const U& _Other) const;
+
+		template <class U>
+		const var_t& operator/=(const U& _Other) const;
 
 		template <class U, spv::StorageClass C1>
 		const var_t& operator/=(const var_t<U, Assemble, C1>& _Other) const;
@@ -946,6 +959,15 @@ namespace Tracy
 	{
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
 	}
+
+	// add with constant
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<typename U>
+	inline const var_t<T, Assemble, Class> & var_t<T, Assemble, Class>::operator+=(const U& _Other) const
+	{
+		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// mutable sub
 	template<typename T, bool Assemble, spv::StorageClass Class>
@@ -954,6 +976,14 @@ namespace Tracy
 	{
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
 	}
+	// sub with constant
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<typename U>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const U& _Other) const
+	{
+		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 *= v2; }, spv::OpFSub, spv::OpISub);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// mutable mul
 	template<typename T, bool Assemble, spv::StorageClass Class>
@@ -963,6 +993,14 @@ namespace Tracy
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
 	}
+	// mutable mul with constant
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<class U>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator*=(const U& _Other) const
+	{
+		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// mutable div
 	template<typename T, bool Assemble, spv::StorageClass Class>
@@ -971,6 +1009,14 @@ namespace Tracy
 	{
 		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
+	}
+
+	// mutable div with constant
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	template<class U>
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const U& _Other) const
+	{
+		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
 
 	//---------------------------------------------------------------------------------------------------
