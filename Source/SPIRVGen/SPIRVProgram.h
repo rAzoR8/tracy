@@ -23,9 +23,6 @@ namespace Tracy
 		template <class T, uint32_t Location = HUNDEFINED32>
 		using var_out = var_out_t<T, Assemble, Location>;
 
-		template <class T, uint32_t Location = HUNDEFINED32>
-		using RenderTarget = var_out_t<T, Assemble, Location>;
-
 		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using var_uniform = var_uniform_t<T, Assemble, Binding, Set, Location>;
 
@@ -81,6 +78,11 @@ namespace Tracy
 
 		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using TextureCubeEx = var_uniform_constant<tex_cube_t<T>, Binding, Set, Location>;
+
+		template <class T, uint32_t Location = HUNDEFINED32>
+		using RenderTargetEx = var_out_t<T, Assemble, Location>;
+
+		using RenderTarget = var_out_t<float4_t, Assemble>;
 
 		// TODO: array types
 

@@ -23,23 +23,23 @@ namespace Tracy
 		};
 
 		cbuffer<B> BufferBlock;
-		RenderTarget<float3_t> OutputColor;
+		RenderTarget OutputColor;
 		SamplerState Sampler;
 		Texture2DEx<float3_t> InputImg;
 
-		// functor
 		inline void operator()()
 		{
-			float2 offset = BufferBlock->Offset;
-
 			float3x4 m34;
 			float3 v3;
 			v3 /= 2.f;
-			auto res = m34 * v3;
 
+			auto res = m34 * v3; // instead of using mul
+
+			float2 offset = BufferBlock->Offset;
 			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)
 			{
-				OutputColor = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
+				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
+				OutputColor.a = 1.f / i;
 				offset *= 0.5f;
 			});
 		};
