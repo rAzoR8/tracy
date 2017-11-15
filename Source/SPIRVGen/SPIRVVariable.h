@@ -979,7 +979,7 @@ namespace Tracy
 	template<typename U>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const U& _Other) const
 	{
-		return operator-=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other);
+		return operator-=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));
 	}
 
 	//---------------------------------------------------------------------------------------------------

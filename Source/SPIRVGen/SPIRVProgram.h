@@ -92,17 +92,22 @@ namespace Tracy
 		void Execute(Ts&& ..._args);
 
 	protected:
-		// maybe put counter at the end of the function and make it a variadic tpl argument to be able to have multiple variables
 		template <class CondFunc, class IncFunc, class LoopBody>
 		void ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
+
+		template <class CondFunc, class LoopBody>
+		void WhileImpl(const CondFunc& _CondFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
 
 		template <class LambdaFunc, spv::StorageClass Class>
 		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble, Class>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
-#pragma region _for
+#ifndef While
+#define While(_cond) WhileImpl([&](){return _cond;}, [&]()
+#endif // !While
+		
 #ifndef For
 #define For(_var, _cond, _inc) _var; ForImpl([&](){return _cond;}, [&](){_inc;}, [&]()
-#endif
+#endif // !While
 
 #pragma region if_else
 		// renamed If and Else functions so that the macros are not part of the name
@@ -150,6 +155,7 @@ namespace Tracy
 	SPIRVProgram<Assemble>::~SPIRVProgram()
 	{
 	}
+	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
 	template <class TProg, class... Ts>
@@ -159,6 +165,70 @@ namespace Tracy
 
 		((TProg*)this)->operator()(std::forward<Ts>(_args)...);
 	}
+	//---------------------------------------------------------------------------------------------------
+
+	template<bool Assemble> // CondFunc needs to return a var_t<bool>
+	template <class CondFunc, class LoopBody>
+	inline void SPIRVProgram<Assemble>::WhileImpl(const CondFunc& _CondFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl)
+	{
+		if constexpr(Assemble == false)
+		{
+			while (_CondFunc().Value)
+			{
+				_LoopBody();
+			}
+		}
+		else
+		{
+			// merge branch label
+			SPIRVOperation* pOpBranch = nullptr;
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch); // close previous block
+			const uint32_t uLoopMergeId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uLoopMergeId);
+
+			// loop merge
+			SPIRVOperation* pOpLoopMerge = nullptr;
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLoopMerge), &pOpLoopMerge);
+
+			// condition branch label
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
+			const uint32_t uConditionLabelId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uConditionLabelId);
+
+			GlobalAssembler.ForceNextLoads();
+
+			// tranlate condition var
+			const auto& CondVar = _CondFunc();
+
+			// branch conditional %cond %loopbody %exit
+			SPIRVOperation* pOpBranchCond = nullptr;
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranchConditional), &pOpBranchCond);
+			const uint32_t uLoopBodyId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranchCond->AddIntermediate(CondVar.uResultId);
+			pOpBranchCond->AddIntermediate(uLoopBodyId);
+
+			_LoopBody();
+
+			// close block
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
+			const uint32_t uBlockExit = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uBlockExit);
+
+			// exit branch label
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
+			const uint32_t uExitId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
+			pOpBranch->AddIntermediate(uLoopMergeId);
+
+			pOpLoopMerge->AddIntermediate(uExitId); // merge block
+			pOpLoopMerge->AddIntermediate(uBlockExit); // continue
+			pOpLoopMerge->AddLiteral((uint32_t)_kLoopControl);
+
+			pOpBranchCond->AddIntermediate(uExitId); // structured merge
+
+			GlobalAssembler.ForceNextLoads(false);
+		}
+	}
+	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble> // CondFunc needs to return a var_t<bool>
 	template<class CondFunc, class IncFunc, class LoopBody>
@@ -166,7 +236,7 @@ namespace Tracy
 	{
 		if constexpr(Assemble == false)
 		{
-			for (; _CondFunc(); _IncFunc())
+			for (; _CondFunc().Value; _IncFunc())
 			{
 				_LoopBody();
 			}
