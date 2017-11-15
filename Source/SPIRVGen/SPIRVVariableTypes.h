@@ -277,6 +277,9 @@ namespace Tracy
 	template <class T>
 	constexpr bool is_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float3x4_t, float4x3_t, float4x4_t>();
 
+	template <class T>
+	constexpr bool is_square_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float4x4_t>();
+
 #pragma region texture_types
 
 	enum ETexDepthType : uint32_t

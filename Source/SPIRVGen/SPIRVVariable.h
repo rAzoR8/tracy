@@ -979,7 +979,7 @@ namespace Tracy
 	template<typename U>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const U& _Other) const
 	{
-		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 *= v2; }, spv::OpFSub, spv::OpISub);
+		return operator-=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -988,15 +988,20 @@ namespace Tracy
 	template<class U, spv::StorageClass C1>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator*=(const var_t<U, Assemble, C1>& _Other) const
 	{
-		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
-		return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
+		// square matrix mul
+		if constexpr(is_square_matrix<T> && std::is_same_v<T, U>)
+			return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpMatrixTimesMatrix);
+		if constexpr(is_vector<T> && is_scalar<U>)
+			return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpVectorTimesScalar);
+		else
+			return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
 	}
 	// mutable mul with constant
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class U>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator*=(const U& _Other) const
 	{
-		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
+		return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -1014,7 +1019,7 @@ namespace Tracy
 	template<class U>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const U& _Other) const
 	{
-		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
+		return operator/=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));
 	}
 
 	//---------------------------------------------------------------------------------------------------
