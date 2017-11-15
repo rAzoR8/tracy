@@ -12,20 +12,28 @@ namespace Tracy
 	constexpr uint32_t kAlignmentSize = 16u;
 
 	template <bool Assemble>
-	struct var_decoration
+	struct var_decoration {};
+
+	template <>
+	struct var_decoration<false>
 	{
-		var_decoration(const spv::StorageClass _kStorageClass) {};
+		template <class... Ts>
+		var_decoration(Ts&& ... _args) {} // consume arguments
 		var_decoration(const var_decoration& _Other) {}
 		var_decoration(var_decoration&& _Other) {}
 		inline const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
-
-		//inline void Store() const {};
-		//inline uint32_t Load() const { return HUNDEFINED32 };
-		//inline void Decorate(const SPIRVDecoration& _Decoration) {};
-		//inline void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet) {}
-		//inline void SetLocation(const uint32_t _uLocation) {}
-		//inline void SetIdentifier(const uint32_t _uIdentifier) {}
-		//inline void MaterializeDecorations() const {};
+		inline const var_decoration& operator=(const var_decoration& _Other) const { return *this; }
+		template <class T>
+		inline const var_decoration& operator=(T&& _Other) const { return *this; }
+		template <class T>
+		inline const var_decoration& operator=(const T& _Other) const { return *this; }
+		inline void Store() const {};
+		inline uint32_t Load() const { return HUNDEFINED32; };
+		inline void Decorate(const SPIRVDecoration& _Decoration) {};
+		inline void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet) {}
+		inline void SetLocation(const uint32_t _uLocation) {}
+		inline void SetIdentifier(const uint32_t _uIdentifier) {}
+		inline void MaterializeDecorations() const {};
 	};
 
 	template <>
@@ -69,12 +77,6 @@ namespace Tracy
 		const var_decoration& operator=(var_decoration&& _Other) const;
 	};
 
-	template <>
-	struct var_decoration<false>
-	{
-		template <class... Ts>
-		var_decoration(Ts&& ... _args) {} // consume arguments
-	};
 	//---------------------------------------------------------------------------------------------------
 
 	struct TSPVStructTag {};

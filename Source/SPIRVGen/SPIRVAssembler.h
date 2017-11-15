@@ -99,7 +99,8 @@ namespace Tracy
 		// remove variables, types, constants
 		bool m_bRemoveUnused = true;
 
-		std::unique_ptr<SPIRVProgram<true>> m_pProgram = nullptr;
+		std::unique_ptr<SPIRVProgram<true>> m_pAssembleProgram = nullptr;
+		std::unique_ptr<SPIRVProgram<false>> m_pExecuteProgram = nullptr;
 
 		std::unordered_map<std::string, uint32_t> m_ExtensionIds;
 
@@ -186,21 +187,36 @@ namespace Tracy
 		Ts && ..._args)
 	{
 		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;
-		static_assert(bAssemble, "Invalid program type (Assemble = false)");
+		constexpr bool bExecute = std::is_base_of_v<SPIRVProgram<false>, TProg>;
+
+		//static_assert(bAssemble, "Invalid program type (Assemble = false)");
 
 		if constexpr(bAssemble)
 		{
-			m_pProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
-
+			m_pAssembleProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
 			Init(_kModel, _kMode, _Extensions);
+		}
+		else if constexpr(bExecute)
+		{
+			m_pExecuteProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
 		}
 	}
 
 	template<class TProg, class ...Ts>
 	inline void SPIRVAssembler::RecordInstructions(Ts&& ..._args)
 	{
-		HASSERT(m_pProgram != nullptr, "Invalid program (InitializeProgram not called)");
-		m_pProgram->Execute<TProg>(std::forward<Ts>(_args)...);
+		HASSERT(m_pAssembleProgram != nullptr || m_pExecuteProgram != nullptr, "Invalid program (InitializeProgram not called)");
+		
+		if (m_pAssembleProgram)
+		{
+			m_pAssembleProgram->Execute<TProg>(std::forward<Ts>(_args)...);
+			m_pAssembleProgram.reset();
+		}
+		else if (m_pExecuteProgram)
+		{
+			m_pExecuteProgram->Execute<TProg>(std::forward<Ts>(_args)...);
+			m_pExecuteProgram.reset();
+		}
 	}
 
 	template<class TProg, class ...Ts>
@@ -212,7 +228,13 @@ namespace Tracy
 	{
 		InitializeProgram<TProg>(_kModel, _kMode, _Extensions, std::forward<Ts>(_args)...);
 		RecordInstructions<TProg>();
-		return Assemble();
+
+		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;
+
+		if constexpr(bAssemble)
+			return Assemble();
+		else
+			return SPIRVModule(0);
 	}
 
 	template<class Fn, class Pred>

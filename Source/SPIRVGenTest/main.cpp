@@ -8,15 +8,20 @@ int main(int argc, char* argv[])
 {
 	//GenerateSwizzleHeader();
 
-	using TProg = ExampleProg<true>;
+	constexpr bool bAssemble = true;
+	using TProg = ExampleProg<bAssemble>;
 	// instruct assembler to use 0 as default set and bindings/locations are incremented from 0 (or start index)
 	GlobalAssembler.UseDefaultBindingSetLocation();
 	SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
-	code.Save("test.spv");
 
-	system("spirv-dis test.spv");
-	system("spirv-val test.spv");
-	system("pause");
+	if constexpr(bAssemble)
+	{
+		code.Save("test.spv");
+
+		system("spirv-dis test.spv");
+		system("spirv-val test.spv");
+		system("pause");
+	}
 
 	return 0;
 }

@@ -37,12 +37,10 @@ namespace Tracy
 			v3 /= 2.f;
 			auto res = m34 * v3;
 
-			u32 i = 0;
-			While(i < BufferBlock->SampleCount)
+			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)
 			{
-				//offset = offset * 0.5f;
-				//OutputColor = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
-				++i;
+				OutputColor = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
+				offset *= 0.5f;
 			});
 		};
 	private:
