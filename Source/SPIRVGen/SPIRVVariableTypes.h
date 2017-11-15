@@ -9,6 +9,9 @@
 
 namespace Tracy
 {
+	template <bool Cond, class U, class V>
+	using cond_t = std::conditional_t<Cond, U, V>;
+
 	using float2_t = glm::vec2;
 	using float3_t = glm::vec3;
 	using float4_t = glm::vec4;
@@ -372,6 +375,33 @@ namespace Tracy
 
 	template <class U, class V>
 	constexpr bool is_convertible = is_base_integral_type<U> && is_base_integral_type<V>;
+
+	template <class U, class V>
+	using longer_type_t = cond_t<Dimmension<U> >= Dimmension<V>, U, V>;
+
+#pragma region mul result tpye
+	// result type of a multiplication
+	template <class M/*, class V*/> // M times V
+	using matxvec_t = col_type_t<M>;
+
+	template <class M/*, class V*/> // M times V
+	using vecxmat_t = row_type_t<M>;
+
+	template <class M, class N> // M times N
+	using matxmat_t = mat_type_t<row_type_t<N>, col_type_t<M>>;
+
+	template <class L, class R, class ElseT> // L * R
+	using cond_mm_t = cond_t<is_matrix<L> && is_matrix<R>, matxmat_t<L, R>, ElseT>;
+
+	template <class L, class R, class ElseT> // L * R
+	using cond_mv_t = cond_t<is_matrix<L> && is_vector<R>, matxvec_t<L>, ElseT>;
+
+	template <class L, class R, class ElseT> // L * R
+	using conc_vm_t = cond_t<is_vector<L> && is_matrix<R>, vecxmat_t<R>, ElseT>;
+
+	template <class L, class R> // L * R
+	using mul_result_t = cond_mm_t<L, R, cond_mv_t<L, R, conc_vm_t<L, R, longer_type_t<L, R>>>>;
+#pragma endregion
 
 }; // Tracy
 

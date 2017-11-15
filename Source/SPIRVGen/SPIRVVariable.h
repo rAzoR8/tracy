@@ -439,8 +439,9 @@ namespace Tracy
 						}
 					}
 				}
-				else
+				else // Dim == 1
 				{
+					// TODO: use AccessChain instead?
 					Op = SPIRVOperation(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
 					Op.AddLiteral(v0); // extraction index
 				}
@@ -470,9 +471,6 @@ namespace Tracy
 	// HELPER FUNCTIONS
 	//---------------------------------------------------------------------------------------------------
 #pragma region helper_functions
-	template <class U, class V>
-	using longer_type_t = typename std::conditional<sizeof(U) >= sizeof(V), U, V>::type;
-
 	//---------------------------------------------------------------------------------------------------
 	template <class T>
 	inline uint32_t OpTypeDecider(const uint32_t _kOp)

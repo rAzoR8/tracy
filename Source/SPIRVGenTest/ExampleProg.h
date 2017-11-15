@@ -32,6 +32,11 @@ namespace Tracy
 		{
 			float2 offset = BufferBlock->Offset;
 
+			float3x4 m34;
+			float3 v3;
+
+			auto res = m34 * v3;
+
 			For(u32 i = 0, i < BufferBlock->SampleCount, ++i)
 			{
 				offset = offset * 0.5f;
