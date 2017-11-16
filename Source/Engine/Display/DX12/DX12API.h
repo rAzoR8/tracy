@@ -7,8 +7,8 @@
 #define WIN32_LEAN_AND_MEAN
 #endif // !WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <wrl.h>
-using namespace Microsoft::WRL;
+//#include <wrl.h>
+//using namespace Microsoft::WRL;
 
 // D3D12
 #include <d3d12.h>

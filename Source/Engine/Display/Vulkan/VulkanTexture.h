@@ -27,6 +27,7 @@ namespace Tracy
 
 		std::unordered_map<THandle, vk::ImageView> m_SRV;
 		std::unordered_map<THandle, vk::ImageView> m_RTV;
+		std::unordered_map<THandle, vk::ImageView> m_DSV;
 
 		THandle m_hHandle;
 	};
@@ -45,8 +46,11 @@ namespace Tracy
 			info.extent = vk::Extent3D(_uWidth, _uHeight, 1u);
 			info.format = _kFormat;
 			info.imageType = vk::ImageType::e2D;
-			info.initialLayout = vk::ImageLayout::eUndefined;
-			info.tiling = vk::ImageTiling::eOptimal;
+			info.mipLevels = 1u;
+			info.arrayLayers = 1u;
+			info.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
+
+			
 		}
 
 

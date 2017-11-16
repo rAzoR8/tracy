@@ -50,10 +50,6 @@ namespace Tracy
 		std::unordered_map<THandle, VulkanDevice> m_Devices;
 		// Collection of presentable windows
 		std::unordered_map<THandle, VulkanWindow> m_Windows;
-
-		// Used to initialize devices and windows
-		THandle m_LastDeviceHandle = 0u;
-		THandle m_LastWindowHandle = 0u;
 	};
 }; // Tracy
 #endif // !VULKANINITIALIZER_H

@@ -18,6 +18,11 @@ namespace Tracy
 #endif
 
 		virtual void OnChangeDisplaySettings(const uint32_t _uWidth, const uint32_t _uHeight) = 0;
+
+	protected:
+		// Used to initialize devices and windows
+		THandle m_LastDeviceHandle = 0u;
+		THandle m_LastWindowHandle = 0u;
 	};
 }
 

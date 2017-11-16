@@ -35,7 +35,10 @@ namespace Tracy
 	private:
 		VulkanTextureManager();
 
-		bool Create(vk::Image& _Texture, const vk::ImageCreateInfo& _Info);
+		bool Create(vk::Image& _Texture, const vk::ImageCreateInfo& _Info)
+		{
+			VulkanInstance::GetInstance().GetDevice(0u).GetDevice().createImage(&_Info, nullptr, &_Texture);
+		}
 
 	private:
 		std::unordered_map<THandle, VulkanTexture> m_Textures;
