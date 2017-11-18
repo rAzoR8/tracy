@@ -31,7 +31,17 @@ namespace Tracy
 		{
 			float3x4 m34;
 			float3 v3;
-			v3 /= 2.f; 
+
+			auto sp = SpecConst<float>(2.f);
+
+			auto fmul = f32(2.f); //SpecConst<float>(2.f);
+
+			sp -= 1.f;
+
+			fmul += sp;
+			fmul -= 0.5f;
+
+			v3 *= 0.5f;
 
 			auto res = m34 * v3; // instead of using mul
 
@@ -40,7 +50,7 @@ namespace Tracy
 			{
 				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
 				//OutputColor.a = 1.f / i;
-				offset *= 0.5f;
+				//offset *= 0.5f;
 			});
 		};
 	private:

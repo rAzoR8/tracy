@@ -21,6 +21,7 @@ namespace Tracy
 		uint32_t uBinding = HUNDEFINED32;
 		uint32_t uLocation = HUNDEFINED32;
 		uint32_t uIdentifier = HUNDEFINED32;
+		uint32_t uSpecConstId = HUNDEFINED32;
 	};
 
 	class SPIRVModule

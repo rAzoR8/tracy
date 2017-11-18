@@ -428,6 +428,7 @@ void SPIRVAssembler::AddVariableInfo(const var_decoration<true>& _Var)
 	Var.uDescriptorSet = _Var.uDescriptorSet;
 	Var.uLocation = _Var.uLocation;
 	Var.uIdentifier = _Var.uIdentifier;
+	Var.uSpecConstId = _Var.uSpecConstId;
 	//Var.Decorations.insert(Var.Decorations.end(), _Var.Decorations.begin(), _Var.Decorations.end());
 }
 

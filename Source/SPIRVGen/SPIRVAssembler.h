@@ -63,6 +63,7 @@ namespace Tracy
 
 		void AddVariableInfo(const var_decoration<true>& _Var);
 		void UseDefaultBindingSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultBinding = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u);
+		void UseDefaultSpecConstId(const uint32_t _uStartId = 0u);
 
 		void ForceNextLoads(const bool _bForce = true);
 		bool GetForceNextLoads() const;
@@ -71,6 +72,7 @@ namespace Tracy
 		const uint32_t GetCurrentBinding();
 		const uint32_t GetCurrentInputLocation();
 		const uint32_t GetCurrentOutputLocation();
+		const uint32_t GetCurrentSpecConstId();
 
 	private:
 		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions);
@@ -116,6 +118,7 @@ namespace Tracy
 		uint32_t m_uCurrentBinding = HUNDEFINED32;
 		uint32_t m_uCurrentInputLocation = HUNDEFINED32;
 		uint32_t m_uCurrentOutputLocation = HUNDEFINED32;
+		uint32_t m_uCurrentSpecConstId = HUNDEFINED32;
 
 		bool m_bForceNextLoads = false;
 
@@ -140,7 +143,10 @@ namespace Tracy
 		m_uCurrentInputLocation = _uDefaulInputLocation;
 		m_uCurrentOutputLocation = _uDefaultOutputLocation;
 	}
-	//---------------------------------------------------------------------------------------------------
+	inline void SPIRVAssembler::UseDefaultSpecConstId(const uint32_t _uStartId)
+	{
+		m_uCurrentSpecConstId = _uStartId;
+	}
 
 	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce)
 	{
@@ -173,6 +179,11 @@ namespace Tracy
 	{
 		// TODO: assert if to high
 		return m_uCurrentOutputLocation++;
+	}
+
+	inline const uint32_t SPIRVAssembler::GetCurrentSpecConstId()
+	{
+		return m_uCurrentSpecConstId++;
 	}
 
 #ifndef GlobalAssembler

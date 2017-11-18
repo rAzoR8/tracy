@@ -57,6 +57,9 @@ namespace Tracy
 		using float4x4 = var<float4x4_t>;
 		using matrix = var<float4x4_t>;
 
+		template <class T, uint32_t SpecId = HUNDEFINED32>
+		using SpecConst = var_spec_const_t<T, Assemble, SpecId>;
+
 		using SamplerState = var_uniform_constant<sampler_t>;
 		// TODO: SamplerComparisonState
 

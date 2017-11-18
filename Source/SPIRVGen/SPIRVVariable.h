@@ -51,6 +51,7 @@ namespace Tracy
 		uint32_t uBinding = HUNDEFINED32; // local to res input
 		uint32_t uLocation = HUNDEFINED32; // res output
 		uint32_t uIdentifier = HUNDEFINED32; // user can set this id to identify the variable stored in the module
+		uint32_t uSpecConstId = HUNDEFINED32; // used in vulkan api to set data for specialization
 
 		// for structs
 		std::vector<uint32_t> AccessChain;
@@ -124,7 +125,7 @@ namespace Tracy
 		template <class... Ts>
 		var_t(const Ts& ... _args);
 
-		// does not generate OpVar
+		// does not generate OpVar, uResultId needs to be assigned
 		template <class... Ts>
 		var_t(TIntermediate, const Ts& ... _args);
 
@@ -147,23 +148,25 @@ namespace Tracy
 		template <spv::StorageClass C1>
 		const var_t& operator-=(const var_t<T, Assemble, C1>& _Other) const;
 
-		template <class U>
-		const var_t& operator+=(const U& _Other) const;
-		template <class U>
-		const var_t& operator-=(const U& _Other) const;
+		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
+		const var_t& operator+=(const U& _Other) const { return operator+=(var_t<T, Assemble, spv::StorageClassFunction>((BaseType)_Other)); }
+		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
+		const var_t& operator-=(const U& _Other) const { return operator-=(var_t<T, Assemble, spv::StorageClassFunction>((BaseType)_Other)); }
 
 		template <class U, spv::StorageClass C1>
 		const var_t& operator*=(const var_t<U, Assemble, C1>& _Other) const;
 
-		template <class U>
-		const var_t& operator*=(const U& _Other) const;
-
-		template <class U>
-		const var_t& operator/=(const U& _Other) const;
-
+		// mutable mul with constant
+		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
+		const var_t& operator*=(const U& _Other) const { return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));	}
+	
 		template <class U, spv::StorageClass C1>
 		const var_t& operator/=(const var_t<U, Assemble, C1>& _Other) const;
-
+		
+		// mutable div with constant
+		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
+		const var_t& operator/=(const U& _Other) const { return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)1 / (BaseType)_Other)); }
+		
 		var_t<T, Assemble, spv::StorageClassFunction> operator!() const;
 
 		const var_t& operator++() const; // mutable
@@ -319,7 +322,7 @@ namespace Tracy
 					}
 				}
 			}
-			else
+			else if (uSpecConstId == HUNDEFINED32)
 			{
 				// vector 1 (this) + vector 2
 				// xyzw xy
@@ -523,7 +526,7 @@ namespace Tracy
 		{
 			_OpFunc(Value, _Other.Value);
 		}
-		else // Assemble
+		else if(uSpecConstId == HUNDEFINED32) // Assemble
 		{
 			LoadVariables(*this, _Other);
 
@@ -579,7 +582,7 @@ namespace Tracy
 		{
 			_OpFunc(Value);
 		}
-		else // Assemble
+		else if(uSpecConstId == HUNDEFINED32) // Assemble
 		{
 			Load();
 
@@ -683,6 +686,7 @@ namespace Tracy
 			if (uBinding != HUNDEFINED32 && uSet != HUNDEFINED32) _Var.SetBinding(uBinding, uSet);
 		}
 	}
+
 	//---------------------------------------------------------------------------------------------------
 	// input variable constructor
 	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
@@ -718,6 +722,34 @@ namespace Tracy
 		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
 		template <spv::StorageClass C1>
 		const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	// Specialization constant constructor
+	template <typename T, bool Assemble, uint32_t SpecId = HUNDEFINED32>
+	struct var_spec_const_t : public var_t<T, Assemble, spv::StorageClassMax>
+	{
+		template <class ...Ts>
+		var_spec_const_t(const Ts&... _args) : var_t<T, Assemble, spv::StorageClassMax>(TIntermediate(), _args...)
+		{
+			if constexpr(Assemble)
+			{
+				constexpr size_t uArgs = sizeof...(_args);
+				static_assert(uArgs > 0, "Speialization constant needs default values");
+
+				if constexpr(uArgs > 0)
+				{
+					SPIRVConstant Constant = SPIRVConstant::Make<true>(_args...);
+					uResultId = GlobalAssembler.AddConstant(Constant);
+
+					uSpecConstId = (SpecId != HUNDEFINED32) ? SpecId : GlobalAssembler.GetCurrentSpecConstId();
+					HASSERT(uSpecConstId != HUNDEFINED32, "Unspecified specialization constant id");
+
+					GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationSpecId, uSpecConstId).MakeOperation(uResultId));
+				}
+			}
+		}
+		// todo: delete assignment/copy operators/constructors
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -931,7 +963,7 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	// Intermediate varaibel constructor
+	// Intermediate variable constructor
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class ...Ts>
 	inline var_t<T, Assemble, Class>::var_t(TIntermediate, const Ts& ..._args) :
@@ -944,6 +976,7 @@ namespace Tracy
 			uTypeId = GlobalAssembler.AddType(Type);
 		}
 	}
+
 #pragma endregion
 
 	//---------------------------------------------------------------------------------------------------
@@ -960,14 +993,6 @@ namespace Tracy
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
 	}
 
-	// add with constant
-	template<typename T, bool Assemble, spv::StorageClass Class>
-	template<typename U>
-	inline const var_t<T, Assemble, Class> & var_t<T, Assemble, Class>::operator+=(const U& _Other) const
-	{
-		return make_op2(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other), [](T& v1, const BaseType& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
-	}
-
 	//---------------------------------------------------------------------------------------------------
 	// mutable sub
 	template<typename T, bool Assemble, spv::StorageClass Class>
@@ -975,13 +1000,6 @@ namespace Tracy
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const var_t<T, Assemble, C1>& _Other) const
 	{
 		return make_op2(_Other, [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
-	}
-	// sub with constant
-	template<typename T, bool Assemble, spv::StorageClass Class>
-	template<typename U>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator-=(const U& _Other) const
-	{
-		return operator-=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -998,13 +1016,7 @@ namespace Tracy
 		else
 			return make_op2(_Other, [](T& v1, const U& v2) { v1 *= v2; }, spv::OpFMul, spv::OpIMul);
 	}
-	// mutable mul with constant
-	template<typename T, bool Assemble, spv::StorageClass Class>
-	template<class U>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator*=(const U& _Other) const
-	{
-		return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));
-	}
+
 
 	//---------------------------------------------------------------------------------------------------
 	// mutable div
@@ -1014,14 +1026,6 @@ namespace Tracy
 	{
 		static_assert(std::is_same_v<T, U>, "Unsupported result type");
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
-	}
-
-	// mutable div with constant
-	template<typename T, bool Assemble, spv::StorageClass Class>
-	template<class U>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const U& _Other) const
-	{
-		return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)1 / (BaseType)_Other));
 	}
 
 	//---------------------------------------------------------------------------------------------------
