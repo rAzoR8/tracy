@@ -23,10 +23,8 @@ namespace Tracy
 		~SPIRVConstant();
 		
 		// composite & scalar constructor
-		template<class T, class ...Ts>
+		template<bool Spec, class T, class ...Ts>
 		static SPIRVConstant Make(T&& first, Ts&& ..._args);
-
-		static SPIRVConstant Make(const bool _bValue);
 
 		SPIRVConstant(const SPIRVConstant& _Other);
 
@@ -114,28 +112,37 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	template<class T, class ...Ts>
+	template<bool Spec, class T, class ...Ts>
 	inline SPIRVConstant SPIRVConstant::Make(T&& first, Ts && ..._args)
 	{
-		static_assert(std::is_arithmetic<std::decay_t<T>>::value, "Invalid composite type!");
-		static_assert(hlx::is_same_type<T, Ts...>(), "Composite types mismatch!");
 		constexpr size_t uSize = sizeof ...(_args)+1u;
+		constexpr bool bIsBool = std::is_same_v<T, bool> && uSize == 1u;
 
-		if constexpr (1u == uSize)
+		static_assert(std::is_arithmetic<std::decay_t<T>>::value || bIsBool, "Invalid composite type!");
+		static_assert(hlx::is_same_type<T, Ts...>() || bIsBool, "Composite types mismatch!");
+
+		if constexpr(bIsBool)
+		{
+			if constexpr(Spec)
+				return SPIRVConstant(first ? spv::OpSpecConstantTrue : spv::OpSpecConstantFalse);
+			else
+				return SPIRVConstant(first ? spv::OpConstantTrue : spv::OpConstantFalse);
+		}
+		else if constexpr (1u == uSize)
 		{
 			return SPIRVConstant(
-				spv::OpConstant,
+				Spec ? spv::OpSpecConstant : spv::OpConstant,
 				SPIRVType::Primitive<T>(),
 				MakeLiterals(std::forward<T>(first)));
 		}
 		else if constexpr(uSize < 5u) // 2-4
 		{
 			return SPIRVConstant(
-				spv::OpConstantComposite,
+				Spec ? spv::OpSpecConstantComposite : spv::OpConstantComposite,
 				SPIRVType::Vec<T, uSize>(),
 				{
-					Make(std::forward<T>(first)),
-					Make(std::forward<Ts>(_args))...
+					Make<Spec>(std::forward<T>(first)),
+					Make<Spec>(std::forward<Ts>(_args))...
 				});
 		}
 		else if constexpr (uSize >= 5u)// matrix
@@ -166,8 +173,8 @@ namespace Tracy
 				spv::OpConstantComposite,
 				SPIRVType::Mat<T>(uRow, uCol),
 				{
-					Make(std::forward<T>(first)),
-					Make(std::forward<Ts>(_args))...
+					Make<Spec>(std::forward<T>(first)),
+					Make<Spec>(std::forward<Ts>(_args))...
 				});
 		}
 

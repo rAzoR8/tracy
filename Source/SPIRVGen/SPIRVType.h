@@ -111,17 +111,18 @@ namespace Tracy
 			return SPIRVType(spv::OpTypeVector, Primitive<T>(), Dim);
 		}
 
+		// for matrices the subtype must be the column type
 		template <class T = float, uint32_t row = 4, uint32_t col = 4>
 		static SPIRVType Mat()
 		{
 			static_assert(col > 1 && col < 5, "Invalid dimension [2,4]");
-			return SPIRVType(spv::OpTypeMatrix, Vec<T, row>(), col);
+			return SPIRVType(spv::OpTypeMatrix, Vec<T, col>(), row);
 		}
 
 		template <class T>
 		static SPIRVType Mat(const uint32_t row, const uint32_t col)
 		{
-			return SPIRVType(spv::OpTypeMatrix, Vec<T>(row), col);
+			return SPIRVType(spv::OpTypeMatrix, Vec<T>(col), row);
 		}
 
 		template<class T, typename = std::enable_if_t<is_texture<T>> >
@@ -248,7 +249,7 @@ namespace Tracy
 	inline SPIRVType SPIRVType::FromBaseType<float4_t>() { return SPIRVType::Vec<float, 4>(); }
 
 	template<>
-	inline SPIRVType SPIRVType::FromBaseType<float4x4_t>() { return SPIRVType::Mat<float>(); }
+	inline SPIRVType SPIRVType::FromBaseType<float4x4_t>() { return SPIRVType::Mat<float, 4, 4>(); }
 
 	template<>
 	inline SPIRVType SPIRVType::FromBaseType<float2x2_t>() { return SPIRVType::Mat<float, 2, 2>(); }

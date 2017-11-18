@@ -527,7 +527,7 @@ namespace Tracy
 		{
 			LoadVariables(*this, _Other);
 
-			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<U>>(_Ops...);
+			spv::Op kType = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
 			SPIRVOperation Op(kType, uTypeId, // result type
@@ -560,7 +560,7 @@ namespace Tracy
 		{
 			Load();
 
-			spv::Op kType = OpTypeDecider<base_type_t<T>>(_Ops...);
+			spv::Op kType = OpTypeDecider<BaseType>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 			HASSERT(uTypeId != HUNDEFINED32, "Invalid type");
 
@@ -583,7 +583,7 @@ namespace Tracy
 		{
 			Load();
 
-			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
+			spv::Op kType = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
 			SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
@@ -814,7 +814,7 @@ namespace Tracy
 		else
 		{
 			// create component constant
-			SPIRVConstant Constant = SPIRVConstant::Make(_First);
+			SPIRVConstant Constant = SPIRVConstant::Make<false>(_First);
 			const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
 			_Op.AddIntermediate(uConstId);
 		}
@@ -902,7 +902,7 @@ namespace Tracy
 
 				if constexpr(uArgs > 0u)
 				{
-					SPIRVConstant Constant = SPIRVConstant::Make(_args...);
+					SPIRVConstant Constant = SPIRVConstant::Make<false>(_args...);
 					const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
 					OpCreateVar.AddIntermediate(uConstId);
 				}
@@ -1012,7 +1012,7 @@ namespace Tracy
 	template<class U, spv::StorageClass C1>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const var_t<U, Assemble, C1>& _Other) const
 	{
-		static_assert(std::is_same_v<T, longer_type_t<T, U>>, "Unsupported result type");
+		static_assert(std::is_same_v<T, U>, "Unsupported result type");
 		return make_op2(_Other, [](T& v1, const U& v2) { v1 /= v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
 
@@ -1021,7 +1021,7 @@ namespace Tracy
 	template<class U>
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator/=(const U& _Other) const
 	{
-		return operator/=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));
+		return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)1 / (BaseType)_Other));
 	}
 
 	//---------------------------------------------------------------------------------------------------

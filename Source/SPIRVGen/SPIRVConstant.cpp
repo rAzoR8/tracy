@@ -42,12 +42,6 @@ SPIRVConstant::SPIRVConstant(
 SPIRVConstant::~SPIRVConstant()
 {
 }
-//---------------------------------------------------------------------------------------------------
-
-SPIRVConstant SPIRVConstant::Make(const bool _bValue)
-{
-	return SPIRVConstant(_bValue ? spv::OpConstantTrue : spv::OpConstantFalse);
-}
 
 //---------------------------------------------------------------------------------------------------
 SPIRVConstant::SPIRVConstant(const SPIRVConstant& _Other) :

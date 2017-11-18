@@ -31,7 +31,7 @@ namespace Tracy
 		{
 			float3x4 m34;
 			float3 v3;
-			v3 /= 2.f;
+			v3 /= 2.f; 
 
 			auto res = m34 * v3; // instead of using mul
 
@@ -39,7 +39,7 @@ namespace Tracy
 			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)
 			{
 				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
-				OutputColor.a = 1.f / i;
+				//OutputColor.a = 1.f / i;
 				offset *= 0.5f;
 			});
 		};

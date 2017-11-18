@@ -191,7 +191,7 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 	case spv::OpTypeMatrix:
 		HASSERT(SubTypes.size() == 1u, "Invalid number of matrix component types");
 		OpType.AddIntermediate(SubTypes.front()); // column type
-		OpType.AddLiteral(_Type.GetDimension()); // column count
+		OpType.AddLiteral(_Type.GetDimension()); // column count (row type)
 		break;
 	case spv::OpTypeStruct:
 		// If an operand is not yet defined, it must be defined by an OpTypePointer,
@@ -204,7 +204,7 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 
 		OpType.AddIntermediate(SubTypes.front()); // column type
 		//Length must come from a constant instruction of an integer - type scalar whose value is at least 1.
-		OpType.AddIntermediate(AddConstant(SPIRVConstant::Make(_Type.GetDimension()))); // length
+		OpType.AddIntermediate(AddConstant(SPIRVConstant::Make<false>(_Type.GetDimension()))); // length
 		break;
 	case spv::OpTypeFunction:
 		HASSERT(SubTypes.size() > 0u, "Invalid number of return type and parameters");

@@ -26,8 +26,8 @@ namespace Tracy
 
 	using float2x2_t = glm::mat2x2;
 	using float3x3_t = glm::mat3x3;
-	using float3x4_t = glm::mat3x4; // transpose ?
-	using float4x3_t = glm::mat4x3; // transpose ?
+	using float3x4_t = glm::mat3x4; // transposed wrt to open gl
+	using float4x3_t = glm::mat4x3; // transposed wrt to open gl
 	using float4x4_t = glm::mat4x4;
 	using matrix_t = glm::mat4x4;
 
@@ -289,19 +289,29 @@ namespace Tracy
 		kTexDepthType_Unspecified
 	};
 
-	// Sampled	indicates whether or not this image will be accessed in combination with a sampler, and must be one of the
-	//following values :
+	// Sampled	indicates whether or not this image will be accessed in combination with a sampler, and must be one of the following values :
 	//	0 indicates this is only known at run time, not at compile time
 	//	1 indicates will be used with sampler
 	//	2 indicates will be used without a sampler (a storage image)
 	enum ETexSamplerAccess : uint32_t
 	{
 		kTexSamplerAccess_Runtime = 0, 
-		kTexSamplerAccess_Sampled,
-		kTexSamplerAccess_Loaded,
+		kTexSamplerAccess_Sampled = 1,
+		kTexSamplerAccess_Storage = 2
 	};
 
-	// Image Format is the Image Format, which can be Unknown, depending on the client API
+	constexpr uint32_t SPVDimToRealDim(const spv::Dim _Dim)
+	{
+		if (_Dim <= spv::Dim3D)
+			return _Dim + 1u;
+
+		if (_Dim == spv::DimSubpassData)
+			return 2u;
+
+		return 0u;
+	}
+
+	// Image Format can be Unknown, depending on the client API
 	// we omit the format, since it should be coming from the api anyway
 	template <
 		class T,
@@ -313,7 +323,7 @@ namespace Tracy
 	struct tex_t
 	{
 		typedef T TexComponentType; // result type of sample
-		typedef vec_type_t<float, _Dim + 1 + _Array> TexCoordType; // UV coord vector type
+		typedef vec_type_t<float, SPVDimToRealDim(_Dim) + _Array> TexCoordType; // UV coord vector type
 		static constexpr spv::Dim Dim = _Dim; // 1 2 3
 		static constexpr bool Array = _Array; // is array
 		static constexpr ETexDepthType DepthType = _DType;
@@ -341,6 +351,12 @@ namespace Tracy
 
 	template <class T = float4_t>
 	using tex_cube_t = tex_t<T, spv::DimCube>;
+
+	template <class T = float4_t>
+	using tex_color_storage_t = tex_t<T, spv::Dim2D, false, kTexDepthType_NonDepth, false, kTexSamplerAccess_Storage>;
+
+	template <class T = float>
+	using tex_depth_storage_t = tex_t<T, spv::Dim2D, false, kTexDepthType_Depth, false, kTexSamplerAccess_Storage>;
 
 	// TODO: array types
 
