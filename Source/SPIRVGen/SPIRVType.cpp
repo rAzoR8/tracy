@@ -72,3 +72,34 @@ size_t SPIRVType::GetHash() const
 	return uHash;
 }
 //---------------------------------------------------------------------------------------------------
+uint32_t SPIRVType::GetSize() const
+{
+	uint32_t uSize = 0u;
+
+	switch (m_kBaseType)
+	{
+	case spv::OpTypeBool: // not sure about the bool, in uniformes its implicitly converted to int
+	case spv::OpTypeInt:
+	case spv::OpTypeFloat:
+		uSize += 4u;
+		break;
+	case spv::OpTypeVector:
+	case spv::OpTypeMatrix:
+	case spv::OpTypeArray:
+
+		HASSERT(m_SubTypes.size() == 1u, "Invalid number of sub types");
+		uSize += m_SubTypes.front().GetSize() * m_uDimension;
+		break;
+	case spv::OpTypeStruct:
+		for (const SPIRVType& SubType : m_SubTypes)
+		{
+			uSize += SubType.GetSize();
+		}
+		break;
+	default:
+		break;
+	}
+
+	return uSize;
+}
+//---------------------------------------------------------------------------------------------------

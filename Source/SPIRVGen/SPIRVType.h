@@ -62,6 +62,8 @@ namespace Tracy
 		SPIRVType& Member(const SPIRVType& _SubType);
 
 		size_t GetHash() const;
+		uint32_t GetSize() const; // works for primitives only
+
 		const std::vector<SPIRVType>& GetSubTypes() const;
 		const spv::Op& GetType() const;
 		const uint32_t& GetDimension() const;
