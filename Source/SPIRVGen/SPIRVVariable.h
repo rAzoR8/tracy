@@ -758,6 +758,22 @@ namespace Tracy
 	};
 
 	//---------------------------------------------------------------------------------------------------
+	// subpass constructor
+	template <typename T, bool Assemble, bool Depth = false, uint32_t InputAttachmentIndex = HUNDEFINED32, class SubT = cond_t<Depth, tex_depth_subpass_t<T>, tex_color_subpass_t<T>>>
+	struct var_subpass_t : public var_t<SubT, Assemble, spv::StorageClassUniformConstant>
+	{
+		var_subpass_t() : var_t<SubT, Assemble, spv::StorageClassUniformConstant>()
+		{
+			if constexpr(Assemble)
+			{
+				uInputAttachmentIndex = (InputAttachmentIndex != HUNDEFINED32) ? InputAttachmentIndex : GlobalAssembler.GetCurrentInputAttchmentIndex();
+				//Decorate(SPIRVDecoration(spv::DecorationInputAttachmentIndex, uInputAttachmentIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationInputAttachmentIndex, uInputAttachmentIndex).MakeOperation(uVarId));
+			}
+		}
+	};
+
+	//---------------------------------------------------------------------------------------------------
 	// re-initialize struct member variable
 	template <class T, spv::StorageClass Class>
 	void InitVar(var_t<T, true, Class>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, const spv::StorageClass _kStorageClass, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)

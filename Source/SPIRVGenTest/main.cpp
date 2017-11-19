@@ -13,6 +13,7 @@ int main(int argc, char* argv[])
 	// instruct assembler to use 0 as default set and bindings/locations are incremented from 0 (or start index)
 	GlobalAssembler.UseDefaultBindingSetLocation();
 	GlobalAssembler.UseDefaultSpecConstId();
+	GlobalAssembler.UseDefaultInputAttachmentIndex();
 	SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
 
 	if constexpr(bAssemble)

@@ -87,6 +87,15 @@ namespace Tracy
 
 		using RenderTarget = var_out_t<float4_t, Assemble>;
 
+		template <class T, uint32_t InputAttachmentIndex = HUNDEFINED32>
+		using SubPassColorEx = var_subpass_t<T, Assemble, false, InputAttachmentIndex>;
+
+		template <class T, uint32_t InputAttachmentIndex = HUNDEFINED32>
+		using SubPassDepthEx = var_subpass_t<T, Assemble, true, InputAttachmentIndex>;
+
+		using SubPassColor = var_subpass_t<float4_t, Assemble, false>;
+		using SubPassDepth = var_subpass_t<float, Assemble, true>;
+
 		// TODO: array types
 
 #pragma endregion

@@ -72,7 +72,8 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader))));
-	
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityInputAttachment))));
+
 	// OpExtension (unused)
 
 	// OpExtInstImport
@@ -357,7 +358,8 @@ void SPIRVAssembler::Resolve()
 
 	// translate header:
 	size_t i = 0u;
-	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpCapability
+	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpCapability Shader
+	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpCapability InputAttachment
 	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpExtInstImport
 	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpMemoryModel
 	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpEntryPoint

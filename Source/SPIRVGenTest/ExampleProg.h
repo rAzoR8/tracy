@@ -26,6 +26,7 @@ namespace Tracy
 		RenderTarget OutputColor;
 		SamplerState Sampler;
 		Texture2DEx<float3_t> InputImg;
+		SubPassColor SubPass;
 
 		inline void operator()()
 		{
