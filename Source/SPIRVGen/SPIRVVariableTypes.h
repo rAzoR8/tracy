@@ -428,6 +428,23 @@ namespace Tracy
 	using mul_result_t = cond_mm_t<L, R, cond_mv_t<L, R, conc_vm_t<L, R, longer_type_t<L, R>>>>;
 #pragma endregion
 
+	// convert U to V
+	template <class U, class V, typename = std::enable_if_t<Dimmension<U> == Dimmension<V>>>
+	constexpr spv::Op GetConvertOp()
+	{
+		if constexpr(std::is_same_v<base_type_t<U>, float> && std::is_same_v<base_type_t<V>, int32_t>)
+			return spv::OpConvertFToS;
+		else if constexpr(std::is_same_v<base_type_t<U>, float> && std::is_same_v<base_type_t<V>, uint32_t>)
+			return spv::OpConvertFToU;
+		else if constexpr(std::is_same_v<base_type_t<U>, int32_t> && std::is_same_v<base_type_t<V>, float>)
+			return spv::OpConvertSToF;
+		else if constexpr(std::is_same_v<base_type_t<U>, uint32_t> && std::is_same_v<base_type_t<V>, float>)
+			return spv::OpConvertUToF;
+		else
+			return spv::OpNop;
+	}
+
+
 }; // Tracy
 
 #endif // !TRACY_SPIRVVARIABLETYPES_H

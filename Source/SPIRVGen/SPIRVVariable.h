@@ -137,9 +137,32 @@ namespace Tracy
 		template <spv::StorageClass C1>
 		var_t(const var_t<T, Assemble, C1>& _Other);
 
-		// direct constant assin
+		// direct constant assign
 		const var_t& operator=(const T& _Other) const;
 		const var_t& operator=(T&& _Other) const;
+
+#pragma region conversion_assignment
+		template <class U, spv::StorageClass C1, typename = std::enable_if_t<std::is_same_v<U, T> == false && is_convertible<U, BaseType> && Dimmension<U> == Dimmension<T>>>
+		const var_t& operator=(const var_t<U, Assemble, C1>& _Other) const
+		{
+			if constexpr(Assemble == false)
+			{
+				Value = (T)_Other.Value; // std memcopy?
+			}
+			else // Assemble
+			{
+				_Other.Load();
+
+				spv::Op kType = GetConvertOp<U, T>();
+				HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
+				SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
+				uResultId = GlobalAssembler.AddOperation(Op);
+				Store();
+			}
+
+			return *this;
+		}
+#pragma endregion
 
 		template <spv::StorageClass C1>
 		const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
@@ -771,6 +794,14 @@ namespace Tracy
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationInputAttachmentIndex, uInputAttachmentIndex).MakeOperation(uVarId));
 			}
 		}
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	// push constant constructor
+	template <typename T, bool Assemble>
+	struct var_push_const_t : public var_t<T, Assemble, spv::StorageClassPushConstant>
+	{
+		var_push_const_t() : var_t<T, Assemble, spv::StorageClassPushConstant>() {}
 	};
 
 	//---------------------------------------------------------------------------------------------------

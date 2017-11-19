@@ -96,6 +96,9 @@ namespace Tracy
 		using SubPassColor = var_subpass_t<float4_t, Assemble, false>;
 		using SubPassDepth = var_subpass_t<float, Assemble, true>;
 
+		template <class T>
+		using PushConstant = var_push_const_t<T, Assemble>;
+
 		// TODO: array types
 
 #pragma endregion

@@ -20,9 +20,11 @@ void var_decoration<true>::MaterializeDecorations() const
 	Decorations.clear();
 }
 //---------------------------------------------------------------------------------------------------
-
+// TODO: pass bool if this is a assignment store
 void var_decoration<true>::Store() const
 {
+	// TODO: check with Assembler if assignment stores are enabled
+
 	// store the lastest intermediate result
 	if (uVarId != HUNDEFINED32 &&
 		uResultId != HUNDEFINED32 &&
@@ -95,6 +97,7 @@ var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 	Type(_Other.Type),
 	Decorations(_Other.Decorations)
 {
+	// TODO: copy descriptorset and others?
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -145,15 +148,15 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 
 	HASSERT(uTypeId == _Other.uTypeId, "Variable type mismatch");
 
+	_Other.Load();// load source
 	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
 	{
-		_Other.Load();// load source
 		uResultId = _Other.uResultId; // get result
 		Store(); // store result
 	}
 	else // intermediate
 	{
-		uVarId = _Other.uVarId; // might become actual var
+		//uVarId = _Other.uVarId; // might become actual var
 		uResultId = _Other.uResultId;
 		uLastStoredId = _Other.uLastStoredId;
 		uBaseId = _Other.uBaseId;

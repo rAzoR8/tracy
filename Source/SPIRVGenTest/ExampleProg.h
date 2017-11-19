@@ -22,11 +22,18 @@ namespace Tracy
 			u32 SampleCount;
 		};
 
+		struct PushBlock
+		{
+			SPVStruct
+			float4 stuff;
+		};
+
 		cbuffer<B> BufferBlock;
 		RenderTarget OutputColor;
 		SamplerState Sampler;
 		Texture2DEx<float3_t> InputImg;
 		SubPassColor SubPass;
+		PushConstant<PushBlock> Push;
 
 		inline void operator()()
 		{
@@ -35,22 +42,19 @@ namespace Tracy
 
 			auto sp = SpecConst<float>(2.f);
 
-			auto fmul = f32(2.f); //SpecConst<float>(2.f);
+			auto res = m34 * v3 * sp; // instead of using mul
 
-			sp -= 1.f;
-
-			fmul += sp;
-			fmul -= 0.5f;
-
-			v3 *= 0.5f;
-
-			auto res = m34 * v3; // instead of using mul
+			auto k = 0.5f * v3;
 
 			float2 offset = BufferBlock->Offset;
 			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)
 			{
 				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
-				//OutputColor.a = 1.f / i;
+				//OutputColor.a = s;
+				//auto kdk = 1.f / i;
+				//f32 ff;
+				//ff = kdk;
+				//i = i / 3u;
 				//offset *= 0.5f;
 			});
 		};

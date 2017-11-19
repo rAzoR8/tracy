@@ -124,14 +124,14 @@ namespace Tracy
 	}
 
 	// mul with constant left
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>, class BaseType = base_type_t<V>>
-	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const U& l, const var_t<V, Assemble, C1>& r)
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<V>, typename = std::enable_if_t<is_convertible<U, BaseType>>>
+	inline var_t<V, Assemble, spv::StorageClassFunction> operator*(const U& l, const var_t<V, Assemble, C1>& r)
 	{
 		return var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)l) *  r;
 	}
 	// mul with constant right
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>, class BaseType = base_type_t<U>>
-	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const V& r)
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<U>, typename = std::enable_if_t<is_convertible<V, BaseType>>>
+	inline var_t<U, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const V& r)
 	{
 		return l * var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)r);
 	}
@@ -144,16 +144,16 @@ namespace Tracy
 		return make_op(l, r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
 	}
 	// div with constant left
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
-	inline var_t<T, Assemble, spv::StorageClassFunction> operator/(const U& l, const var_t<V, Assemble, C1>& r)
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<V>, typename = std::enable_if_t<is_convertible<U, BaseType>>>
+	inline var_t<V, Assemble, spv::StorageClassFunction> operator/(const U& l, const var_t<V, Assemble, C1>& r)
 	{
-		return var_t<U, Assemble, spv::StorageClassFunction>(l) / r;
+		return var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)l) / r;
 	}
 	// div with constant right
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class T = longer_type_t<U, V>>
-	inline var_t<T, Assemble, spv::StorageClassFunction> operator/(const var_t<U, Assemble, C1>& l, const V& r)
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<U>, typename = std::enable_if_t<is_convertible<V, BaseType>>>
+	inline var_t<U, Assemble, spv::StorageClassFunction> operator/(const var_t<U, Assemble, C1>& l, const V& r)
 	{
-		return l / var_t<V, Assemble, spv::StorageClassFunction>(r);
+		return l * var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)1 / (BaseType)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
