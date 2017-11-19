@@ -28,17 +28,7 @@ namespace Tracy
 		const vk::Device& GetDevice() const;
 		const THandle& GetHandle() const;
 
-		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType=vk::QueueFlagBits::eGraphics) const
-		{
-			// Check if given queue is supported by the implementation
-			const auto& QueueIndexPair = m_Queues.find(_QueueType);
-			if (QueueIndexPair != m_Queues.end() || QueueIndexPair->second.uFamilyIndex == kInvalidQueueIndex)
-			{
-				return m_PhysicalDevice.getSurfaceSupportKHR(QueueIndexPair->second.uFamilyIndex, _Surface);
-			}
-
-			return false;
-		}
+		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType = vk::QueueFlagBits::eGraphics) const;
 
 		explicit operator bool() const
 		{
@@ -48,6 +38,10 @@ namespace Tracy
 	private:
 		void Create();
 
+		uint32_t GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties);
+		bool GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType);
+
+	private:
 		struct QueueOffset
 		{
 			uint32_t uFamilyIndex;
@@ -76,23 +70,26 @@ namespace Tracy
 		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
 	};
-	//---------------------------------------------------------------------------------------------------
 
+	//---------------------------------------------------------------------------------------------------
 	inline const vk::PhysicalDeviceProperties& Tracy::VulkanDevice::GetProperties() const
 	{
 		return m_Properties;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline const vk::PhysicalDeviceMemoryProperties& VulkanDevice::GetMemoryProperties() const
 	{
 		return m_MemoryProperties;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline const uint64_t VulkanDevice::GetTotalMemory() const
 	{
 		return m_Info.uTotalMemory;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline const uint32_t VulkanDevice::GetQueueIndex(const vk::QueueFlagBits _QueueType) const
 	{
 		auto queuePair = m_Queues.find(_QueueType);
@@ -100,21 +97,25 @@ namespace Tracy
 		return queuePair->second.uFamilyIndex;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline const vk::PhysicalDevice& VulkanDevice::GetAdapter() const
 	{
 		return m_PhysicalDevice;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline const vk::Device& VulkanDevice::GetDevice() const
 	{
 		return m_Device;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline const THandle& VulkanDevice::GetHandle() const
 	{
 		return m_Info.hHandle;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline bool operator<(const VulkanDevice& lDev, const VulkanDevice& rDev)
 	{
 		if (lDev.GetProperties().deviceType == rDev.GetProperties().deviceType)
@@ -128,5 +129,4 @@ namespace Tracy
 		}
 	}
 } // Tracy
-
 #endif // !VULKANDEVICE_H

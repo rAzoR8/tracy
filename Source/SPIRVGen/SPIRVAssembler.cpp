@@ -26,6 +26,9 @@ SPIRVModule SPIRVAssembler::Assemble()
 	//m_pProgram.reset();
 
 	SPIRVModule Module(m_uResultId + 1u);
+	Module.SetExecutionMode(m_kMode);
+	Module.SetExecutionModel(m_kModel);
+	Module.SetExtensions(m_Extensions);
 
 	// copy accumulated variable info
 	for (auto&[id, var] : m_UsedVariables)
@@ -56,6 +59,10 @@ uint32_t SPIRVAssembler::GetExtensionId(const std::string& _sExt)
 
 void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions)
 {
+	m_kMode = _kMode;
+	m_kModel = _kModel;
+	m_Extensions = _Extensions;
+
 	m_uResultId = 1u;
 	m_pOpEntryPoint = nullptr;
 
@@ -429,6 +436,9 @@ void SPIRVAssembler::AddVariableInfo(const var_decoration<true>& _Var)
 	Var.uLocation = _Var.uLocation;
 	Var.uIdentifier = _Var.uIdentifier;
 	Var.uSpecConstId = _Var.uSpecConstId;
+	Var.bTexSampled = _Var.m_bTexSampled;
+	Var.bTexStored = _Var.m_bTexStored;
+	Var.uInputAttachmentIndex = _Var.uInputAttachmentIndex;
 	//Var.Decorations.insert(Var.Decorations.end(), _Var.Decorations.begin(), _Var.Decorations.end());
 }
 

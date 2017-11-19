@@ -14,11 +14,11 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 	HASSERT(m_Info.hHandle != kUndefinedSizeT, "Device constructor has invalid handle.");
 
 	// Get total device memory
-	for (const vk::MemoryHeap& heap : m_MemoryProperties.memoryHeaps)
+	for (const vk::MemoryHeap& Heap : m_MemoryProperties.memoryHeaps)
 	{
-		if (heap.flags == vk::MemoryHeapFlagBits::eDeviceLocal)
+		if (Heap.flags == vk::MemoryHeapFlagBits::eDeviceLocal)
 		{
-			m_Info.uTotalMemory = heap.size;
+			m_Info.uTotalMemory = Heap.size;
 			break;
 		}
 	}
@@ -40,7 +40,6 @@ VulkanDevice::~VulkanDevice()
 		m_Device.destroy();
 	}
 }
-
 //---------------------------------------------------------------------------------------------------
 
 void VulkanDevice::Create()
@@ -174,5 +173,50 @@ void VulkanDevice::Create()
 			queuePair.first->second.Handle = m_Device.getQueue(QueueOffset[uQueueFlagIndex].uFamilyIndex, QueueOffset[uQueueFlagIndex].uOffset);
 		}
 	}
+}
+
+//---------------------------------------------------------------------------------------------------
+uint32_t Tracy::VulkanDevice::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties)
+{
+	uint32_t uMemoryType = UINT32_MAX;
+
+	HASSERT(GetMemoryTypeIndex(_RequestedType, _RequestedProperties, uMemoryType), "Requested memory type %d is not available", _RequestedType);
+
+	return uMemoryType;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool Tracy::VulkanDevice::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType)
+{
+	uint32_t Type = _RequestedType;
+
+	for (uint32_t uMemoryIndex = 0u; uMemoryIndex < m_MemoryProperties.memoryTypeCount; ++uMemoryIndex)
+	{
+		const uint32_t uMemoryTypeBits = (1u << uMemoryIndex);
+		const bool bIsRequestedMemoryType = _RequestedType & uMemoryTypeBits;
+
+		const bool bHasRequestedProperty = (m_MemoryProperties.memoryTypes[uMemoryIndex].propertyFlags & _RequestedProperties) == _RequestedProperties;
+
+		if (bIsRequestedMemoryType && bHasRequestedProperty)
+		{
+			_OutMemoryType = uMemoryIndex;
+			return true;
+		}
+	}
+
+	return false;
+}
+//---------------------------------------------------------------------------------------------------
+
+const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType) const
+{
+	// Check if given queue is supported by the implementation
+	const auto& QueueIndexPair = m_Queues.find(_QueueType);
+	if (QueueIndexPair != m_Queues.end() || QueueIndexPair->second.uFamilyIndex == kInvalidQueueIndex)
+	{
+		return m_PhysicalDevice.getSurfaceSupportKHR(QueueIndexPair->second.uFamilyIndex, _Surface);
+	}
+
+	return false;
 }
 //---------------------------------------------------------------------------------------------------

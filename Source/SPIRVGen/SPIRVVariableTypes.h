@@ -319,7 +319,7 @@ namespace Tracy
 		bool _Array = false,
 		ETexDepthType _DType = kTexDepthType_NonDepth,
 		bool _MultiSampled = false,
-		ETexSamplerAccess _SAccess = kTexSamplerAccess_Runtime>
+		ETexSamplerAccess _SAccess = kTexSamplerAccess_Sampled>
 	struct tex_t
 	{
 		typedef T TexComponentType; // result type of sample
@@ -351,6 +351,12 @@ namespace Tracy
 
 	template <class T = float4_t>
 	using tex_cube_t = tex_t<T, spv::DimCube>;
+
+	template <class T = float4_t>
+	using tex_color_subpass_t = tex_t<T, spv::DimSubpassData, false, kTexDepthType_NonDepth>;
+
+	template <class T = float4_t>
+	using tex_depth_subpass_t = tex_t<T, spv::DimSubpassData, false, kTexDepthType_Depth>;
 
 	template <class T = float4_t>
 	using tex_color_storage_t = tex_t<T, spv::Dim2D, false, kTexDepthType_NonDepth, false, kTexSamplerAccess_Storage>;

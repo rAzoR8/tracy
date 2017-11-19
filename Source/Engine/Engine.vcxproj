@@ -96,9 +96,12 @@
     <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
+    <ClInclude Include="Display\Vulkan\SPIRVInterop.h" />
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
     <ClInclude Include="Display\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Display\Vulkan\VulkanInstance.h" />
+    <ClInclude Include="Display\Vulkan\VulkanMemoryManager.h" />
+    <ClInclude Include="Display\Vulkan\VulkanResourceManager.h" />
     <ClInclude Include="Display\Vulkan\VulkanTexture.h" />
     <ClInclude Include="Display\Vulkan\VulkanTextureManager.h" />
     <ClInclude Include="Display\Vulkan\VulkanWindow.h" />

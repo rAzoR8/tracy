@@ -104,6 +104,7 @@ namespace Tracy
 		std::unique_ptr<SPIRVProgram<true>> m_pAssembleProgram = nullptr;
 		std::unique_ptr<SPIRVProgram<false>> m_pExecuteProgram = nullptr;
 
+		std::vector<std::string> m_Extensions;
 		std::unordered_map<std::string, uint32_t> m_ExtensionIds;
 
 		uint32_t m_uInstrId = 0u; // internal instruction id
@@ -111,6 +112,9 @@ namespace Tracy
 
 		SPIRVOperation* m_pOpEntryPoint = nullptr;
 		SPIRVOperation* m_pOpExeutionMode = nullptr;
+
+		spv::ExecutionModel m_kModel = spv::ExecutionModelMax;
+		spv::ExecutionMode m_kMode = spv::ExecutionModeMax;
 
 		std::vector<SPIRVInstruction> m_Instructions;
 
