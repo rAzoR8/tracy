@@ -51,9 +51,7 @@ namespace Tracy
 			{
 				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
 				//OutputColor.a = s;
-				//auto kdk = 1.f / i;
-				//f32 ff;
-				//ff = kdk;
+				//auto kdk =  i;
 				//i = i / 3u;
 				//offset *= 0.5f;
 			});

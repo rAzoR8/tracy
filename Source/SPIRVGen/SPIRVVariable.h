@@ -142,30 +142,36 @@ namespace Tracy
 		const var_t& operator=(T&& _Other) const;
 
 #pragma region conversion_assignment
-		template <class U, spv::StorageClass C1, typename = std::enable_if_t<std::is_same_v<U, T> == false && is_convertible<U, BaseType> && Dimmension<U> == Dimmension<T>>>
+		template <class U, spv::StorageClass C1>
 		const var_t& operator=(const var_t<U, Assemble, C1>& _Other) const
 		{
-			if constexpr(Assemble == false)
+			constexpr bool bConvertible = is_convertible<U, BaseType> && Dimmension<U> == Dimmension<T>;
+			if constexpr(std::is_same_v<U, T>)
+			{
+				var_decoration<Assemble>::operator=(_Other);
+				Value = _Other.Value;
+			}
+			else if constexpr(bConvertible)
 			{
 				Value = (T)_Other.Value; // std memcopy?
-			}
-			else // Assemble
-			{
-				_Other.Load();
 
-				spv::Op kType = GetConvertOp<U, T>();
-				HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
-				SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
-				uResultId = GlobalAssembler.AddOperation(Op);
-				Store();
-			}
+				if constexpr(Assemble)
+				{
+					_Other.Load();
 
+					spv::Op kType = GetConvertOp<U, T>();
+					HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
+					SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
+					uResultId = GlobalAssembler.AddOperation(Op);
+					Store();
+				}
+			}
 			return *this;
 		}
 #pragma endregion
 
-		template <spv::StorageClass C1>
-		const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
+		//template <spv::StorageClass C1>
+		//const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
 		template <spv::StorageClass C1>
 		const var_t& operator=(var_t<T, Assemble, C1>&& _Other) const;
 
@@ -673,14 +679,14 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 	// assign operator
-	template<typename T, bool Assemble, spv::StorageClass Class>
-	template<spv::StorageClass C1>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(const var_t<T, Assemble, C1>& _Other) const
-	{
-		var_decoration<Assemble>::operator=(_Other);
-		Value = _Other.Value;
-		return *this;
-	}
+	//template<typename T, bool Assemble, spv::StorageClass Class>
+	//template<spv::StorageClass C1>
+	//inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(const var_t<T, Assemble, C1>& _Other) const
+	//{
+	//	var_decoration<Assemble>::operator=(_Other);
+	//	Value = _Other.Value;
+	//	return *this;
+	//}
 	//---------------------------------------------------------------------------------------------------
 	// move operator
 	template<typename T, bool Assemble, spv::StorageClass Class>
