@@ -1,6 +1,7 @@
 #include "ExampleProg.h"
 #include "SPIRVModule.h"
 //#include "GenerateSwizzleHeader.h"
+//#include "../Engine/Display/Vulkan/SPIRVInterop.h"
 
 using namespace Tracy;
 
@@ -15,6 +16,15 @@ int main(int argc, char* argv[])
 	GlobalAssembler.UseDefaultSpecConstId();
 	GlobalAssembler.UseDefaultInputAttachmentIndex();
 	SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
+
+	//SpecConstFactory Specs;
+	//for (const auto& var : code.GetVariables())
+	//{
+	//	if (var.uSpecConstId != HUNDEFINED32)
+	//	{
+	//		
+	//	}
+	//}
 
 	if constexpr(bAssemble)
 	{

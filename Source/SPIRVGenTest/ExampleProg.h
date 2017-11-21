@@ -28,7 +28,7 @@ namespace Tracy
 			float4 stuff;
 		};
 
-		cbuffer<B> BufferBlock;
+		CBuffer<B> BufferBlock;
 		RenderTarget OutputColor;
 		SamplerState Sampler;
 		Texture2DEx<float3_t> InputImg;
@@ -43,7 +43,6 @@ namespace Tracy
 			auto sp = SpecConst<float>(2.f);
 
 			auto res = m34 * v3 * sp; // instead of using mul
-
 			auto k = length(v3.xyz);
 
 			float2 offset = BufferBlock->Offset;

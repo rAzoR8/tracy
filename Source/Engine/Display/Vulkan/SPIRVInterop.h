@@ -4,6 +4,7 @@
 #include "VulkanAPI.h"
 #include "../../SPIRVGen/SPIRVModule.h"
 #include "Logger.h"
+#include "ByteStream.h"
 
 namespace Tracy
 {
@@ -58,6 +59,65 @@ namespace Tracy
 			break;
 		}
 	}
+
+	struct SpecConstFactory
+	{
+		SpecConstFactory() : m_Stream(m_Data) {}
+
+		template <class T>
+		void SetConstant(const T& _Value, const VariableInfo& _Var)
+		{
+			HASSERT(_Var.uSpecConstId != HUNDEFINED32, "Variable is not a specialization constant");
+			HASSERT(_Var.Type.GetSize() != sizeof(T), "Variable size mismatch");
+
+			vk::SpecializationMapEntry Entry{};
+			Entry.constantID = _Var.uSpecConstId;
+			Entry.offset = static_cast<uint32_t>(m_Stream.get_offset());
+			Entry.size = static_cast<uint32_t>(sizeof(T));
+
+			m_Entries.push_back(std::move(Entry));
+			m_Stream.put(_Value);
+		}
+
+		template <class T>
+		void UpdateConstant(const T& _Value, const VariableInfo& _Var)
+		{
+			HASSERT(_Var.uSpecConstId != HUNDEFINED32, "Variable is not a specialization constant");
+			HASSERT(_Var.Type.GetSize() != sizeof(T), "Variable size mismatch");
+
+			for (const vk::SpecializationMapEntry& Entry : m_Entries)
+			{
+				if (Entry.constantID == _Var.uSpecConstId)
+				{
+					HASSERT(sizeof(T) == Entry.size, "Entry size mismatch");					
+					m_Stream.replace(Entry.offset, _Value);
+
+					return;
+				}
+			}
+		}
+
+		vk::SpecializationInfo GetInfo() const
+		{
+			vk::SpecializationInfo Info{};
+			Info.dataSize = static_cast<uint32_t>(m_Data.size());
+			Info.mapEntryCount = static_cast<uint32_t>(m_Entries.size());
+			Info.pData = m_Data.data();
+			Info.pMapEntries = m_Entries.data();
+
+			return Info;
+		}
+
+		void Reset()
+		{
+			m_Entries.clear();
+			m_Stream.clear();
+		}
+	private:
+		std::vector<vk::SpecializationMapEntry> m_Entries;
+		hlx::bytes m_Data;
+		hlx::bytestream m_Stream;
+	};
 }
 
 #endif // !TRACY_SPIRVINTEROP_H
