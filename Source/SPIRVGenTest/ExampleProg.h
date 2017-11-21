@@ -44,12 +44,13 @@ namespace Tracy
 
 			auto res = m34 * v3 * sp; // instead of using mul
 
-			auto k = 0.5f * v3;
+			auto k = length(v3.xyz);
 
 			float2 offset = BufferBlock->Offset;
 			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)
 			{
 				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
+				OutputColor.a = length(OutputColor.rgb);
 				//OutputColor.a = s;
 				//auto kdk =  i;
 				//i = i / 3u;

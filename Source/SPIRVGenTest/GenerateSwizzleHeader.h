@@ -2,6 +2,8 @@
 #define TRACY_GENERATESWIZZLEHEADER_H
 
 #include <fstream>
+#include <string>
+
 void GenerateSwizzleHeader()
 {
 	std::string ups[4] = { "X", "Y", "Z", "W" };
@@ -44,7 +46,7 @@ void GenerateSwizzleHeader()
 			sInsertConst = "vec_type_t<base_type_t<T>, 1>";
 			sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 1>, Assemble, C1>&";
 			sFuncName = ups[x];
-			sExtractType = "TExtractType<" + sTplArgs + ">";
+			sExtractType = "TExtractType<1>";
 
 			GetSet();
 	
@@ -63,7 +65,7 @@ void GenerateSwizzleHeader()
 				sInsertConst = "vec_type_t<base_type_t<T>, 2>";
 				sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 2>, Assemble, C1>&";
 				sFuncName = ups[x] + ups[y];
-				sExtractType = "TExtractType<" + sTplArgs + ">";
+				sExtractType = "TExtractType<2>";
 
 				GetSet();
 
@@ -82,7 +84,7 @@ void GenerateSwizzleHeader()
 					sInsertConst = "vec_type_t<base_type_t<T>, 3>";
 					sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 3>, Assemble, C1>&";
 					sFuncName = ups[x] + ups[y] + ups[z];
-					sExtractType = "TExtractType<" + sTplArgs + ">";
+					sExtractType = "TExtractType<3>";
 
 					GetSet();
 
@@ -101,7 +103,7 @@ void GenerateSwizzleHeader()
 						sInsertConst = "vec_type_t<base_type_t<T>, 4>";
 						sInsertValue = "const var_t<vec_type_t<base_type_t<T>, 4>, Assemble, C1>&";
 						sFuncName = ups[x] + ups[y] + ups[z] + ups[w];
-						sExtractType = "TExtractType<" + sTplArgs + ">";
+						sExtractType = "TExtractType<4>";
 
 						GetSet();
 

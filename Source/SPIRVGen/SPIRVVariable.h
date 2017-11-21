@@ -213,24 +213,8 @@ namespace Tracy
 		template <size_t Dim, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3>
 		static constexpr bool Monotonic = !((Dim >= 1 && v0 != 0) || (Dim >= 2 && v1 != 1) || (Dim >= 3 && v2 != 2) || (Dim >= 4 && v3 != 3));
 
-		template <
-			size_t Dim,
-			uint32_t v0,
-			uint32_t v1 = HUNDEFINED32,
-			uint32_t v2 = HUNDEFINED32,
-			uint32_t v3 = HUNDEFINED32,
-			class VecT = vec_type_t<base_type_t<T>, Dim> >
-			static constexpr bool IdentityExtract = std::is_same_v<T, VecT> && Monotonic<Dim, v0, v1, v2, v3>;
-
-		using TFuncVarType = var_t<T, Assemble, spv::StorageClassFunction>;
-
-		template <
-			size_t Dim,
-			uint32_t v0,
-			uint32_t v1 = HUNDEFINED32,
-			uint32_t v2 = HUNDEFINED32,
-			uint32_t v3 = HUNDEFINED32>
-			using TExtractType = std::conditional_t<IdentityExtract<Dim, v0, v1, v2, v3>, const TFuncVarType&, TFuncVarType>;
+		template <size_t Dim>
+		using TExtractType = var_t<vec_type_t<BaseType, Dim>, Assemble, spv::StorageClassFunction>;
 
 #include "SPIRVVectorComponentAccess.h"
 #pragma endregion
@@ -331,7 +315,7 @@ namespace Tracy
 			uint32_t v2 = HUNDEFINED32,
 			uint32_t v3 = HUNDEFINED32,
 			spv::StorageClass C1,
-			class VecT = vec_type_t<base_type_t<T>, Dim>,
+			class VecT = vec_type_t<BaseType, Dim>,
 			typename = std::enable_if_t<is_vector<T>>>
 			const var_t& InsertComponent(const var_t<VecT, Assemble, C1>& _Var) const
 		{
@@ -399,20 +383,6 @@ namespace Tracy
 #pragma endregion
 
 #pragma region ExtractComponent		
-		// identity
-		template <
-			size_t Dim,
-			uint32_t v0,
-			uint32_t v1 = HUNDEFINED32,
-			uint32_t v2 = HUNDEFINED32,
-			uint32_t v3 = HUNDEFINED32,
-			class VecT = vec_type_t<base_type_t<T>, Dim>,
-			typename = std::enable_if_t<std::is_same_v<T, VecT> && Monotonic<Dim, v0, v1, v2, v3>>>
-			const var_t<T, Assemble, spv::StorageClassFunction>& ExtractComponent() const
-		{
-			return *this;
-		}
-
 		// swizzle / shuffle
 		template <
 			size_t Dim,
@@ -420,8 +390,7 @@ namespace Tracy
 			uint32_t v1 = HUNDEFINED32,
 			uint32_t v2 = HUNDEFINED32,
 			uint32_t v3 = HUNDEFINED32,
-			class VecT = vec_type_t<base_type_t<T>, Dim>,
-			typename = std::enable_if_t<is_valid_type<base_type_t<T>> && !Monotonic<Dim, v0, v1, v2, v3>>>
+			class VecT = vec_type_t<BaseType, Dim>> // not a struct
 			var_t<VecT, Assemble, spv::StorageClassFunction> ExtractComponent()
 		{
 			auto var = var_t<VecT, Assemble, spv::StorageClassFunction>(TIntermediate());
@@ -443,6 +412,13 @@ namespace Tracy
 			else // Assemble
 			{
 				Load();
+
+				// identity
+				if constexpr(std::is_same_v<VecT, T> && Monotonic<Dim, v0, v1, v2, v3>)
+				{
+					var.uResultId = uResultId;
+					return var;
+				}
 
 				const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<T>>());
 				std::array<uint32_t, 4> Indices = { v0, v1, v2, v3 };

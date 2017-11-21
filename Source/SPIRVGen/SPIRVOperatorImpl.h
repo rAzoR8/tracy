@@ -3,6 +3,7 @@
 
 #include "SPIRVVariable.h"
 #include "SPIRVAssembler.h"
+#include <vulkan\GLSL.std.450.h>
 
 namespace Tracy
 {
@@ -415,6 +416,12 @@ namespace Tracy
 	inline var_t<T, Assemble, Class> normalize(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::normalize(v1); }, ExtGLSL450, GLSLstd450Normalize);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble, spv::StorageClass Class>
+	inline var_t<base_type_t<T>, Assemble, Class> length(const var_t<T, Assemble, Class>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::length(v1); }, ExtGLSL450, GLSLstd450Length);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// vector * matrix
