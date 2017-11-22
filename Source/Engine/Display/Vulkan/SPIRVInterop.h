@@ -20,12 +20,15 @@ namespace Tracy
 			_Binding.descriptorType = vk::DescriptorType::eSampler;
 			break;
 		case spv::OpTypeImage:
-			if (_InputVar.Type.GetDimension() == spv::DimSubpassData)
+			switch (_InputVar.Type.GetDimension())
 			{
+			case spv::DimSubpassData:
 				_Binding.descriptorType = vk::DescriptorType::eInputAttachment;
-			}
-			else
-			{
+				break;
+			case spv::DimBuffer:
+				// TODO: texel buffers
+				break;
+			default: // dim1d 2d 3d etc
 				switch (_InputVar.Type.GetTexSamplerAccess())
 				{
 				case kTexSamplerAccess_Runtime:
@@ -37,7 +40,8 @@ namespace Tracy
 				case kTexSamplerAccess_Storage:
 					_Binding.descriptorType = vk::DescriptorType::eStorageImage;
 					break;
-				}			
+				}
+				break;
 			}
 			break;
 		case spv::OpTypeSampledImage:
@@ -65,7 +69,33 @@ namespace Tracy
 		SpecConstFactory() : m_Stream(m_Data) {}
 
 		template <class T>
-		void SetConstant(const T& _Value, const VariableInfo& _Var)
+		struct Constant
+		{
+			friend class SpecConstFactory;
+
+			Constant& operator=(const T& _Value)
+			{
+				if (_Value != Value)
+				{
+					Parent.SetChangedFlag();
+					Value = _Value;
+				}
+			}
+
+			const T& operator T() { return Value; }
+		private:
+
+			Constant(SpecConstFactory& _Parent) : Value(_Value), Parent(_Parent) {}
+		private:
+			T& Value;
+			SpecConstFactory& Parent;
+		};
+
+		template <class T>
+		friend struct Constant;
+
+		template <class T>
+		Constant<T> SetConstant(const T& _Value, const VariableInfo& _Var)
 		{
 			HASSERT(_Var.uSpecConstId != HUNDEFINED32, "Variable is not a specialization constant");
 			HASSERT(_Var.Type.GetSize() != sizeof(T), "Variable size mismatch");
@@ -76,25 +106,11 @@ namespace Tracy
 			Entry.size = static_cast<uint32_t>(sizeof(T));
 
 			m_Entries.push_back(std::move(Entry));
-			m_Stream.put(_Value);
-		}
+			m_Stream << _Value;
 
-		template <class T>
-		void UpdateConstant(const T& _Value, const VariableInfo& _Var)
-		{
-			HASSERT(_Var.uSpecConstId != HUNDEFINED32, "Variable is not a specialization constant");
-			HASSERT(_Var.Type.GetSize() != sizeof(T), "Variable size mismatch");
+			m_bChanged = true;
 
-			for (const vk::SpecializationMapEntry& Entry : m_Entries)
-			{
-				if (Entry.constantID == _Var.uSpecConstId)
-				{
-					HASSERT(sizeof(T) == Entry.size, "Entry size mismatch");					
-					m_Stream.replace(Entry.offset, _Value);
-
-					return;
-				}
-			}
+			return Constant<T>(*this, *reinterpret_cast<T*>(m_Stream.get_data(Entry.offset)));
 		}
 
 		vk::SpecializationInfo GetInfo() const
@@ -108,12 +124,20 @@ namespace Tracy
 			return Info;
 		}
 
+		// Make sure to destruct all Constant<T> instances before calling this
 		void Reset()
 		{
 			m_Entries.clear();
 			m_Stream.clear();
+			m_bChanged = false;
 		}
+
+		const bool HasChanged() const { m_bChanged; }
+
 	private:
+		void SetChangedFlag() { m_bChanged = true; }
+	private:
+		bool m_bChanged = false;
 		std::vector<vk::SpecializationMapEntry> m_Entries;
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
@@ -149,13 +173,21 @@ namespace Tracy
 		};
 
 		template <class T>
-		friend class Constant;
+		friend struct Constant;
 
 		template <class T>
-		Constant<T> AddConstant(const T& _Value)
+		Constant<T> AddConstant(const T& _Value, const vk::ShaderStageFlags _kStages)
 		{
 			const uint32_t uOffset = static_cast<uint32_t>(m_Stream.get_offset());
 			SetChangedFlag(uOffset, (uint32_t)sizeof(T));
+
+			// here we create a range for each variable T since T can be a struct too
+
+			vk::PushConstantRange Range{};
+			Range.offset = uOffset;
+			Range.stageFlags = _kStages;
+			Range.size = (uint32_t)sizeof(T);
+			m_Ranges.push_back(std::move(Range));
 
 			m_Stream <<_Value;			
 			return Constant<T>(*this, *reinterpret_cast<T*>(m_Stream.get_data(uOffset)), uOffset);
@@ -165,17 +197,30 @@ namespace Tracy
 		void ResetChangedFlag() { uStartOffset = HUNDEFINED32; uEndOffset = 0u; }
 		const bool HasChanged() const { return  uStartOffset != HUNDEFINED32 &&(uEndOffset-uStartOffset) > 0; }
 
+		const std::vector<vk::PushConstantRange>& GetRanges() const { return m_Ranges; }
+		const void* GetValues() const { return m_Data.data(); }
+
+		// Make sure to destruct all Constant<T> instances before calling this
+		void Reset()
+		{
+			ResetChangedFlag();
+			m_Ranges.clear();
+			m_Stream.clear();
+		}
+
 	private:
 		void SetChangedFlag(const uint32_t _uOffset, const uint32_t _uSize)
 		{
 			uStartOffset = std::min(uStartOffset, _uOffset);
 			uEndOffset = std::max(uEndOffset, _uOffset + _uSize);
 		}
+
 	private:
 		// range
 		uint32_t uStartOffset = HUNDEFINED32;
 		uint32_t uEndOffset = 0u;
 
+		std::vector<vk::PushConstantRange> m_Ranges;
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
 	};
