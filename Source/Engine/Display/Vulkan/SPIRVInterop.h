@@ -118,6 +118,67 @@ namespace Tracy
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
 	};
+
+	struct PushConstantFactory
+	{
+		PushConstantFactory() : m_Stream(m_Data){}
+
+		template <class T>
+		struct Constant
+		{
+			friend class PushConstantFactory;
+
+			Constant& operator=(const T& _Value)
+			{
+				if (_Value != Value)
+				{
+					Parent.SetChangedFlag(uOffset, (uint32_t)sizeof(T));
+					Value = _Value;
+				}
+			}
+
+			const T& operator T() { return Value; }
+		private:
+
+			Constant(PushConstantFactory& _Parent, T& _Value , const uint32_t _uOffset) :
+				Value(_Value), Parent(_Parent), uOffset(_uOffset) {}
+		private:
+			const uint32_t uOffset;
+			T& Value;
+			PushConstantFactory& Parent;
+		};
+
+		template <class T>
+		friend class Constant;
+
+		template <class T>
+		Constant<T> AddConstant(const T& _Value)
+		{
+			const uint32_t uOffset = static_cast<uint32_t>(m_Stream.get_offset());
+			SetChangedFlag(uOffset, (uint32_t)sizeof(T));
+
+			m_Stream <<_Value;			
+			return Constant<T>(*this, *reinterpret_cast<T*>(m_Stream.get_data(uOffset)), uOffset);
+		}
+
+		// to be called after vulkan uploaded the push constants
+		void ResetChangedFlag() { uStartOffset = HUNDEFINED32; uEndOffset = 0u; }
+		const bool HasChanged() const { return  uStartOffset != HUNDEFINED32 &&(uEndOffset-uStartOffset) > 0; }
+
+	private:
+		void SetChangedFlag(const uint32_t _uOffset, const uint32_t _uSize)
+		{
+			uStartOffset = std::min(uStartOffset, _uOffset);
+			uEndOffset = std::max(uEndOffset, _uOffset + _uSize);
+		}
+	private:
+		// range
+		uint32_t uStartOffset = HUNDEFINED32;
+		uint32_t uEndOffset = 0u;
+
+		hlx::bytes m_Data;
+		hlx::bytestream m_Stream;
+	};
 }
 
 #endif // !TRACY_SPIRVINTEROP_H
