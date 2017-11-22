@@ -209,6 +209,18 @@ namespace Tracy
 
 		const T* operator->() { return &Value; }
 
+#pragma region ArrayAccess
+
+		var_t<uint32_t, Assemble, spv::StorageClassFunction> Size() const
+		{
+			static_assert(is_array<T>, "Unsupported type (array expected)");
+			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(T::Size);
+		}
+
+		// TODO operator[]
+
+#pragma endregion
+
 #pragma region VectorAccess
 		template <size_t Dim, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3>
 		static constexpr bool Monotonic = !((Dim >= 1 && v0 != 0) || (Dim >= 2 && v1 != 1) || (Dim >= 3 && v2 != 2) || (Dim >= 4 && v3 != 3));

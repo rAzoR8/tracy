@@ -29,6 +29,9 @@ namespace Tracy
 		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using CBuffer = var_uniform_t<T, Assemble, Binding, Set, Location>;
 
+		template <class T, uint32_t Size, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
+		using Array = var_uniform_t<array_t<T, Size>, Assemble, Binding, Set, Location>;
+
 		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using var_uniform_constant = var_uniform_constant_t<T, Assemble, Binding, Set, Location>;
 

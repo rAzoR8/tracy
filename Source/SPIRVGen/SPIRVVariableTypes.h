@@ -444,6 +444,26 @@ namespace Tracy
 			return spv::OpNop;
 	}
 
+	struct TSPVArrayTag {};
+	template <class T, uint32_t _Size>
+	struct array_t : public std::array<T, _Size>
+	{
+		typedef TSPVArrayTag SPVArrayTag;
+		typedef T ElementType;
+		static constexpr uint32_t Size = _Size;
+	};
+
+	template<class, class = std::void_t<> >
+	struct is_array_impl : std::false_type { };
+
+	template<class T>
+	struct is_array_impl<T, std::void_t<typename T::SPVArrayTag>> : std::true_type { };
+
+	template<class T>
+	constexpr bool is_array = is_array_impl<T>::value;
+
+	template<class T>
+	using array_element_t = typename T::ElementType;
 
 }; // Tracy
 

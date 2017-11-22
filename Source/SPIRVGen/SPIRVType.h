@@ -82,6 +82,7 @@ namespace Tracy
 		static SPIRVType UShort() { return SPIRVType(spv::OpTypeInt, 16u, false); }
 		static SPIRVType Float() { return SPIRVType(spv::OpTypeFloat, 32u, true); }
 		static SPIRVType Sampler() { return SPIRVType(spv::OpTypeSampler); }
+		static SPIRVType Array(const SPIRVType _Type, const uint32_t _uDimension) { return SPIRVType(spv::OpTypeArray, _Type, _uDimension); }
 		static SPIRVType Struct(const std::vector<SPIRVType>& _MemberTypes = {}) { return SPIRVType(spv::OpTypeStruct, _MemberTypes); }
 		static SPIRVType Function(const SPIRVType& _ReturnType = Void(), const std::vector<SPIRVType>& _ParameterTypes = {});
 		static SPIRVType Pointer(const SPIRVType& _Type, const spv::StorageClass _kClass = spv::StorageClassFunction) { return SPIRVType(spv::OpTypePointer, _Type, (uint32_t)_kClass); }
@@ -130,6 +131,9 @@ namespace Tracy
 		template<class T, typename = std::enable_if_t<is_texture<T>> >
 		static SPIRVType FromImageType() { return SPIRVType::Image(FromBaseType<base_type_t<T::TexComponentType>>(), T::Dim, T::Array, T::DepthType, T::MultiSampled, T::SamplerAccess); }
 
+		template<class T, typename = std::enable_if_t<is_array<T>>>
+		static SPIRVType FromArrayType() { return SPIRVType::Array(FromBaseType<T::ElementType>(), T::Size); }
+
 		template <class T>
 		static SPIRVType FromBaseType() {static_assert(false, "Unsupported type");}
 
@@ -139,6 +143,10 @@ namespace Tracy
 			if constexpr(is_texture<T>)
 			{
 				return FromImageType<T>();
+			}
+			else if constexpr(is_array<T>)
+			{
+				return FromArrayType<T>();
 			}
 			else
 			{

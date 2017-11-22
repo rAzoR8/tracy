@@ -34,9 +34,12 @@ namespace Tracy
 		Texture2DEx<float3_t> InputImg;
 		SubPassColor SubPass;
 		PushConstant<PushBlock> Push;
+		Array<float3_t, 4> TestArray;
 
 		inline void operator()()
 		{
+			u32 size = TestArray.Size();
+
 			float3x4 m34;
 			float3 v3;
 
