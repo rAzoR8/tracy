@@ -40,6 +40,12 @@ namespace Tracy
 		template <class T, uint32_t Size, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using Array = var_uniform_t<array_t<T, Size>, Assemble, Binding, Set, Location>;
 
+		template <class T, uint32_t Location = HUNDEFINED32>
+		using VertexInput = var_in_t<T, Assemble, Location, false>;
+
+		template <class T, uint32_t Location = HUNDEFINED32>
+		using InstanceInput = var_in_t<T, Assemble, Location, true>;
+
 		using s32 = var<int32_t>;
 		using s64 = var<int64_t>;
 		using int2 = var<int2_t>;

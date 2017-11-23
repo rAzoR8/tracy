@@ -55,6 +55,7 @@ namespace Tracy
 		uint32_t uInputAttachmentIndex = HUNDEFINED32; // subpass output index
 		bool m_bTexSampled = false; // indicates that the var texture has been sampled in the code
 		bool m_bTexStored = false; // indicates that the var texture has been stored in the code
+		bool m_bInstanceData = false; // only valid for StorageClassInput in vertex stage
 
 		// for structs
 		std::vector<uint32_t> AccessChain;
@@ -705,10 +706,10 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// input variable constructor
-	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
+	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32, bool InstanceData = false>
 	struct var_in_t : public var_t<T, Assemble, spv::StorageClassInput>
 	{
-		var_in_t() : var_t<T, Assemble, spv::StorageClassInput>() { LocationHelper(*this, Location, true); }
+		var_in_t() : var_t<T, Assemble, spv::StorageClassInput>() { LocationHelper(*this, Location, true); bInstanceData = InstanceData; }
 		template <spv::StorageClass C1>
 		const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
 	};

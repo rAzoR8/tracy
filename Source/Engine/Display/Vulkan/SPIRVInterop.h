@@ -8,6 +8,8 @@
 
 namespace Tracy
 {
+	//---------------------------------------------------------------------------------------------------
+
 	// Element of a descriptor set (input)
 	inline void CreateDescriptorSetLayoutBinding(vk::DescriptorSetLayoutBinding& _Binding, const VariableInfo& _InputVar)
 	{
@@ -63,6 +65,7 @@ namespace Tracy
 			break;
 		}
 	}
+	//---------------------------------------------------------------------------------------------------
 
 	struct SpecConstFactory
 	{
@@ -142,6 +145,7 @@ namespace Tracy
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
 	};
+	//---------------------------------------------------------------------------------------------------
 
 	struct PushConstantFactory
 	{
@@ -224,9 +228,10 @@ namespace Tracy
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
 	};
+	//---------------------------------------------------------------------------------------------------
 
 	template <class Selector, class Element>
-	Element Select(const Selector _kSelector, const std::initializer_list<Selector>& _Selectors, const std::initializer_list<Element>& _Elements)
+	inline Element Select(const Selector _kSelector, const std::initializer_list<Selector>& _Selectors, const std::initializer_list<Element>& _Elements)
 	{
 		for (auto sit = _Selectors.begin(), auto eit = _Elements.begin(); sit != _Selectors.end(); ++sit, ++eit)
 		{
@@ -236,10 +241,11 @@ namespace Tracy
 
 		return {};
 	}
+	//---------------------------------------------------------------------------------------------------
 
 	// converts variable type (vertex shader input) to vk format, images etc not supported
 	// not all types are supported (e.g. unorm, snorm, scaled, compressed etc)
-	vk::Format TypeToFormat(const SPIRVType& _Type)
+	inline vk::Format TypeToFormat(const SPIRVType& _Type)
 	{
 		const spv::Op kType = _Type.GetType();
 		const spv::Op kSubType = _Type.GetSubTypes().empty() ? spv::OpNop : _Type.GetSubTypes().front().GetType();
@@ -274,32 +280,63 @@ namespace Tracy
 		return vk::Format::eUndefined;
 	}
 
-	std::vector<vk::VertexInputAttributeDescription> GetVertexLayout(const std::vector<VariableInfo>& _Vars)
+	//---------------------------------------------------------------------------------------------------
+
+	struct VertexLayoutFactory
 	{
-		std::vector<vk::VertexInputAttributeDescription> Layout;
-
-		uint32_t uOffset = 0u;
-		for (const VariableInfo& Var : _Vars)
+		// valid as long as VertexLayoutFactory is valid and GetVertexLayout() has not been called again
+		vk::PipelineVertexInputStateCreateInfo GetVertexLayout(const std::vector<VariableInfo>& _Vars)
 		{
-			if (Var.kStorageClass == spv::StorageClassInput)
+			m_Attributes.resize(0);
+			m_Bindings.resize(0); // clean data
+		
+			for (const VariableInfo& Var : _Vars)
 			{
-				vk::VertexInputAttributeDescription Attrib{};
-				Attrib.binding = Var.uBinding;
-				Attrib.location = Var.uLocation;
-				Attrib.format = TypeToFormat(Var.Type);
-				Attrib.offset = uOffset;
-				uOffset += Var.Type.GetSize();
-				HASSERT(Attrib.format != vk::Format::eUndefined, "Unknown vertex attribute format");
-
-				if (Attrib.format != vk::Format::eUndefined)
+				if (Var.kStorageClass == spv::StorageClassInput)
 				{
-					Layout.push_back(std::move(Attrib));
+					HASSERT(Var.uBinding < 16u, "Invalid binding (to high)");
+
+					auto it = std::find_if(m_Bindings.begin(), m_Bindings.end(), [&](const vk::VertexInputBindingDescription& _Binding) {return _Binding.binding == Var.uBinding; });
+					if (it == m_Bindings.end())
+					{
+						it = m_Bindings.insert(m_Bindings.end(), {});
+					}
+
+					vk::VertexInputBindingDescription& Binding = *it;
+					Binding.binding = Var.uBinding;
+					// variables with the same binding should be forced to have the same inputrate
+					Binding.inputRate = Var.bInstanceData ? vk::VertexInputRate::eInstance : vk::VertexInputRate::eVertex;
+
+					vk::VertexInputAttributeDescription Attrib{};
+					Attrib.binding = Var.uBinding;
+					Attrib.location = Var.uLocation;
+					Attrib.format = TypeToFormat(Var.Type);
+					Attrib.offset = Binding.stride;
+
+					Binding.stride += Var.Type.GetSize();
+
+					HASSERT(Attrib.format != vk::Format::eUndefined, "Unknown vertex attribute format");
+
+					m_Attributes.push_back(std::move(Attrib));
 				}
 			}
+
+			vk::PipelineVertexInputStateCreateInfo Layout{};
+			Layout.pNext = nullptr;
+			Layout.vertexAttributeDescriptionCount = static_cast<uint32_t>(m_Attributes.size());
+			Layout.vertexBindingDescriptionCount = static_cast<uint32_t>(m_Bindings.size());
+			Layout.pVertexAttributeDescriptions = m_Attributes.data();
+			Layout.pVertexBindingDescriptions = m_Bindings.data();
+
+			return Layout;
 		}
 
-		return Layout;
-	}
+	private:
+		std::vector<vk::VertexInputAttributeDescription> m_Attributes;
+		std::vector<vk::VertexInputBindingDescription> m_Bindings; // buffer slots
+	};
+	//---------------------------------------------------------------------------------------------------
+
 }
 
 #endif // !TRACY_SPIRVINTEROP_H

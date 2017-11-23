@@ -25,6 +25,7 @@ namespace Tracy
 		uint32_t uInputAttachmentIndex = HUNDEFINED32;
 		bool bTexSampled = false;
 		bool bTexStored = false;
+		bool bInstanceData = false;
 	};
 
 	class SPIRVModule

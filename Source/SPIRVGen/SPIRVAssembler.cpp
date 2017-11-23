@@ -441,6 +441,7 @@ void SPIRVAssembler::AddVariableInfo(const var_decoration<true>& _Var)
 	Var.bTexSampled = _Var.m_bTexSampled;
 	Var.bTexStored = _Var.m_bTexStored;
 	Var.uInputAttachmentIndex = _Var.uInputAttachmentIndex;
+	Var.bInstanceData = _Var.m_bInstanceData;
 	//Var.Decorations.insert(Var.Decorations.end(), _Var.Decorations.begin(), _Var.Decorations.end());
 }
 
