@@ -86,7 +86,6 @@ uint32_t SPIRVType::GetSize() const
 	case spv::OpTypeVector:
 	case spv::OpTypeMatrix:
 	case spv::OpTypeArray:
-
 		HASSERT(m_SubTypes.size() == 1u, "Invalid number of sub types");
 		uSize += m_SubTypes.front().GetSize() * m_uDimension;
 		break;

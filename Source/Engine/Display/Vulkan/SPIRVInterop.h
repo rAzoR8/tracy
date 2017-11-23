@@ -237,7 +237,8 @@ namespace Tracy
 		return {};
 	}
 
-	// not all types are supported (e.g. unorm, snorm, scaled, compressed etc etc etc)
+	// converts variable type (vertex shader input) to vk format, images etc not supported
+	// not all types are supported (e.g. unorm, snorm, scaled, compressed etc)
 	vk::Format TypeToFormat(const SPIRVType& _Type)
 	{
 		const spv::Op kType = _Type.GetType();
@@ -271,6 +272,33 @@ namespace Tracy
 		}
 
 		return vk::Format::eUndefined;
+	}
+
+	std::vector<vk::VertexInputAttributeDescription> GetVertexLayout(const std::vector<VariableInfo>& _Vars)
+	{
+		std::vector<vk::VertexInputAttributeDescription> Layout;
+
+		uint32_t uOffset = 0u;
+		for (const VariableInfo& Var : _Vars)
+		{
+			if (Var.kStorageClass == spv::StorageClassInput)
+			{
+				vk::VertexInputAttributeDescription Attrib{};
+				Attrib.binding = Var.uBinding;
+				Attrib.location = Var.uLocation;
+				Attrib.format = TypeToFormat(Var.Type);
+				Attrib.offset = uOffset;
+				uOffset += Var.Type.GetSize();
+				HASSERT(Attrib.format != vk::Format::eUndefined, "Unknown vertex attribute format");
+
+				if (Attrib.format != vk::Format::eUndefined)
+				{
+					Layout.push_back(std::move(Attrib));
+				}
+			}
+		}
+
+		return Layout;
 	}
 }
 
