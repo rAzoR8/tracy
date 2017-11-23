@@ -224,6 +224,54 @@ namespace Tracy
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
 	};
+
+	template <class Selector, class Element>
+	Element Select(const Selector _kSelector, const std::initializer_list<Selector>& _Selectors, const std::initializer_list<Element>& _Elements)
+	{
+		for (auto sit = _Selectors.begin(), auto eit = _Elements.begin(); sit != _Selectors.end(); ++sit, ++eit)
+		{
+			if (*sit == _kSelector)
+				return *eit;
+		}
+
+		return {};
+	}
+
+	// not all types are supported (e.g. unorm, snorm, scaled, compressed etc etc etc)
+	vk::Format TypeToFormat(const SPIRVType& _Type)
+	{
+		const spv::Op kType = _Type.GetType();
+		const spv::Op kSubType = _Type.GetSubTypes().empty() ? spv::OpNop : _Type.GetSubTypes().front().GetType();
+		const uint32_t uDim = _Type.GetDimension();
+
+		switch (kType)
+		{
+		case spv::OpTypeInt:
+			if (_Type.GetSign()) // signed
+				return Select(uDim, {8u, 16u, 32u}, { vk::Format::eR8Sint, vk::Format::eR16Sint, vk::Format::eR32Sint }); // bitdepth
+			else
+				return Select(uDim, { 8u, 16u, 32u }, { vk::Format::eR8Uint, vk::Format::eR16Uint, vk::Format::eR32Uint }); // bitdepth
+		case spv::OpTypeFloat:
+			return Select(uDim, { 16u, 32u }, { vk::Format::eR16Sfloat, vk::Format::eR32Sfloat }); // bitdepth
+		case spv::OpTypeVector:
+			HASSERT(kSubType != spv::OpNop, "Invalid subtype");
+			switch (kSubType) // 32 bit format assumed
+			{
+			case spv::OpTypeInt:
+				if (_Type.GetSign()) // signed
+					return Select(uDim, { 2u, 3u, 4u }, { vk::Format::eR32G32Sint, vk::Format::eR32G32B32Sint, vk::Format::eR32G32B32A32Sint});
+				else
+					return Select(uDim, { 2u, 3u, 4u }, { vk::Format::eR32G32Uint, vk::Format::eR32G32B32Uint, vk::Format::eR32G32B32A32Uint});
+			case spv::OpTypeFloat:
+				return Select(uDim, { 2u, 3u, 4u }, { vk::Format::eR32G32Sfloat, vk::Format::eR32G32B32Sfloat, vk::Format::eR32G32B32A32Sfloat});
+			default: break;
+			}			
+			break;
+		default: break;
+		}
+
+		return vk::Format::eUndefined;
+	}
 }
 
 #endif // !TRACY_SPIRVINTEROP_H
