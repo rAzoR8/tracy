@@ -71,6 +71,8 @@ namespace Tracy
 	{
 		SpecConstFactory() : m_Stream(m_Data) {}
 
+		// TODO: compute hash over stream and entries to avoid recompiling the same shader
+
 		template <class T>
 		struct Constant
 		{
@@ -335,6 +337,58 @@ namespace Tracy
 		std::vector<vk::VertexInputAttributeDescription> m_Attributes;
 		std::vector<vk::VertexInputBindingDescription> m_Bindings; // buffer slots
 	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	vk::ShaderModuleCreateInfo GetShaderModuleInfo(const SPIRVModule& _Module)
+	{
+		vk::ShaderModuleCreateInfo Info{};
+		Info.codeSize = static_cast<uint32_t>(_Module.GetCode().size());
+		Info.pCode = _Module.GetCode().data();
+		return Info;
+	}
+
+	vk::ShaderModule CreateShaderModule(vk::Device _hDevice, const SPIRVModule& _Module, vk::AllocationCallbacks* _pAllocCallbacks = nullptr)
+	{
+		vk::ShaderModuleCreateInfo Info(GetShaderModuleInfo(_Module));
+		vk::ShaderModule vkModule{};
+		vk::Result kResult = vk::Result::eSuccess;
+		if ((kResult = _hDevice.createShaderModule(&Info, _pAllocCallbacks, &vkModule)) != vk::Result::eSuccess)
+		{
+			HERROR("Failed to create shader module %s [%s]", _Module.GetEntryPoint().c_str(), vk::to_string(kResult).c_str());
+		}
+
+		return vkModule;
+	}
+
+	inline vk::ShaderStageFlagBits GetShaderStage(const SPIRVModule& _Module)
+	{
+		switch (_Module.GetExectionModel())
+		{
+		case spv::ExecutionModelVertex: return vk::ShaderStageFlagBits::eVertex;
+		case spv::ExecutionModelTessellationControl: return vk::ShaderStageFlagBits::eTessellationControl;
+		case spv::ExecutionModelTessellationEvaluation: return vk::ShaderStageFlagBits::eTessellationEvaluation;
+		case spv::ExecutionModelGeometry: return vk::ShaderStageFlagBits::eGeometry;
+		case spv::ExecutionModelFragment: return vk::ShaderStageFlagBits::eFragment;
+		case spv::ExecutionModelGLCompute: return vk::ShaderStageFlagBits::eCompute;
+		case spv::ExecutionModelKernel: return vk::ShaderStageFlagBits::eCompute;
+		default:
+			return vk::ShaderStageFlagBits::eAll;
+		}
+	}
+
+	inline vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::Device _hDevice, const SPIRVModule& _Module, const vk::SpecializationInfo* _pSpecInfo = nullptr, vk::AllocationCallbacks* _pAllocCallbacks = nullptr) const
+	{
+		vk::PipelineShaderStageCreateInfo ShaderStage{};
+
+		ShaderStage.stage = GetShaderStage(_Module);
+		ShaderStage.module = CreateShaderModule(_hDevice, _Module, _pAllocCallbacks);
+		ShaderStage.pName = _Module.GetEntryPoint().c_str();
+		ShaderStage.pSpecializationInfo = _pSpecInfo;
+
+		return ShaderStage;
+	}
+
 	//---------------------------------------------------------------------------------------------------
 
 }

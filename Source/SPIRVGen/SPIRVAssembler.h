@@ -38,6 +38,7 @@ namespace Tracy
 		void InitializeProgram(
 			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
 			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+			const std::string& _sEntryPoint = "main",
 			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 			Ts&& ..._args);
 
@@ -77,7 +78,7 @@ namespace Tracy
 		const uint32_t GetCurrentInputAttchmentIndex();
 
 	private:
-		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions);
+		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::string& _sEntryPoint, const std::vector<std::string>& _Extensions);
 
 		void Resolve();
 
@@ -115,6 +116,7 @@ namespace Tracy
 		SPIRVOperation* m_pOpEntryPoint = nullptr;
 		SPIRVOperation* m_pOpExeutionMode = nullptr;
 
+		std::string m_sEntryPoint;
 		spv::ExecutionModel m_kModel = spv::ExecutionModelMax;
 		spv::ExecutionMode m_kMode = spv::ExecutionModeMax;
 
@@ -211,6 +213,7 @@ namespace Tracy
 	inline void SPIRVAssembler::InitializeProgram(
 		const spv::ExecutionModel _kModel,
 		const spv::ExecutionMode _kMode,
+		const std::string& _sEntryPoint,
 		const std::vector<std::string>& _Extensions,
 		Ts && ..._args)
 	{
@@ -222,7 +225,7 @@ namespace Tracy
 		if constexpr(bAssemble)
 		{
 			m_pAssembleProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
-			Init(_kModel, _kMode, _Extensions);
+			Init(_kModel, _kMode, _sEntryPoint, _Extensions);
 		}
 		else if constexpr(bExecute)
 		{

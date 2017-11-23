@@ -26,6 +26,7 @@ SPIRVModule SPIRVAssembler::Assemble()
 	//m_pProgram.reset();
 
 	SPIRVModule Module(m_uResultId + 1u);
+	Module.SetEntryPoint(m_sEntryPoint);
 	Module.SetExecutionMode(m_kMode);
 	Module.SetExecutionModel(m_kModel);
 	Module.SetExtensions(m_Extensions);
@@ -57,11 +58,12 @@ uint32_t SPIRVAssembler::GetExtensionId(const std::string& _sExt)
 }
 //---------------------------------------------------------------------------------------------------
 
-void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::vector<std::string>& _Extensions)
+void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::string& _sEntryPoint, const std::vector<std::string>& _Extensions)
 {
 	m_kMode = _kMode;
 	m_kModel = _kModel;
 	m_Extensions = _Extensions;
+	m_sEntryPoint = _sEntryPoint;
 
 	m_uResultId = 1u;
 	m_pOpEntryPoint = nullptr;
@@ -113,7 +115,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	m_pOpEntryPoint->AddIntermediate(uFuncId);
 	// Op3: Name is a name string for the entry point.A module cannot have two OpEntryPoint
 	// instructions with the same Execution Model and the same Name	string.
-	m_pOpEntryPoint->AddLiterals(MakeLiteralString("main"));
+	m_pOpEntryPoint->AddLiterals(MakeLiteralString(m_sEntryPoint));
 
 	//OpFunctionParameter not needed since OpEntryPoint resolves them
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpLabel)));	

@@ -46,6 +46,9 @@ namespace Tracy
 		void AddVariable(const VariableInfo& _VarInfo);
 		const std::vector<VariableInfo>& GetVariables() const;
 
+		void SetEntryPoint(const std::string& _sEntryPoint);
+		const std::string& GetEntryPoint() const;
+
 		void SetExtensions(const std::vector<std::string>& _Extensions);
 		const std::vector<std::string>& GetExtensions() const;
 
@@ -64,6 +67,7 @@ namespace Tracy
 		std::vector<uint32_t> m_InstructionStream;
 		std::vector<VariableInfo> m_Variables; // no function class variables (in out uniform etc)
 
+		std::string m_sEntryPoint;
 		spv::ExecutionModel m_kModel = spv::ExecutionModelMax;
 		spv::ExecutionMode m_kMode = spv::ExecutionModeMax;
 		std::vector<std::string> m_Extensions;
@@ -82,6 +86,14 @@ namespace Tracy
 	inline const std::vector<VariableInfo>& SPIRVModule::GetVariables() const
 	{
 		return m_Variables;
+	}
+	inline void SPIRVModule::SetEntryPoint(const std::string& _sEntryPoint)
+	{
+		m_sEntryPoint = _sEntryPoint;
+	}
+	inline const std::string& SPIRVModule::GetEntryPoint() const
+	{
+		return m_sEntryPoint;
 	}
 	inline void SPIRVModule::SetExtensions(const std::vector<std::string>& _Extensions)
 	{
