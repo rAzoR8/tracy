@@ -444,6 +444,7 @@ namespace Tracy
 			return spv::OpNop;
 	}
 
+#pragma region array traits
 	struct TSPVArrayTag {};
 	template <class T, uint32_t _Size>
 	struct array_t : public std::array<T, _Size>
@@ -464,6 +465,42 @@ namespace Tracy
 
 	template<class T>
 	using array_element_t = typename T::ElementType;
+
+#pragma endregion
+
+#pragma region variable traits
+	struct TSPVStructTag {};
+	struct TSPVVarTag {};
+
+#ifndef SPVStruct
+#define SPVStruct typedef Tracy::TSPVStructTag SPVStructTag;
+#endif
+
+	template< class, class = std::void_t<> >
+	struct has_struct_tag : std::false_type { };
+
+	template< class T >
+	struct has_struct_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
+
+	template<class T>
+	constexpr bool is_struct = has_struct_tag<T>::value;
+
+	template< class, class = std::void_t<> >
+	struct has_var_tag : std::false_type { };
+
+	template< class T >
+	struct has_var_tag<T, std::void_t<typename T::SPVVarTag>> : std::true_type { };
+
+	template<class T>
+	constexpr bool is_var = has_var_tag<T>::value;
+
+	template<class T>
+	using var_value_t = typename T::ValueType;
+
+	// check if any parameter has the variable tag
+	template <class ...Ts>
+	constexpr bool has_var = std::disjunction_v<has_var_tag<Ts>...>;
+#pragma endregion
 
 }; // Tracy
 

@@ -38,7 +38,14 @@ namespace Tracy
 
 		inline void operator()()
 		{
-			u32 size = TestArray.Size();
+			u32 size = TestArray.Length();
+			f32 sum = 0.f;
+
+			For(u32 e = 0u, e < size, ++e)
+			{
+				auto elem = TestArray[e];
+				sum += length(elem);
+			});
 
 			float3x4 m34;
 			float3 v3;

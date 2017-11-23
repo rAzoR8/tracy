@@ -83,42 +83,13 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	struct TSPVStructTag {};
-	struct TSPVVarTag {};
-
-#ifndef SPVStruct
-#define SPVStruct typedef Tracy::TSPVStructTag SPVStructTag;
-#endif
-
-	template< class, class = std::void_t<> >
-	struct has_struct_tag : std::false_type { };
-
-	template< class T >
-	struct has_struct_tag<T, std::void_t<typename T::SPVStructTag>> : std::true_type { };
-
-	template<class T>
-	constexpr bool is_struct = has_struct_tag<T>::value;
-
-	template< class, class = std::void_t<> >
-	struct has_var_tag : std::false_type { };
-
-	template< class T >
-	struct has_var_tag<T, std::void_t<typename T::SPVVarTag>> : std::true_type { };
-
-	template<class T>
-	constexpr bool is_var = has_var_tag<T>::value;
-
-	// check if any parameter has the variable tag
-	template <class ...Ts>
-	constexpr bool has_var = std::disjunction_v<has_var_tag<Ts>...>;
-
 	struct TIntermediate {};
-	//---------------------------------------------------------------------------------------------------
 
 	template <typename T, bool Assemble, spv::StorageClass Class>
 	struct var_t : public var_decoration<Assemble>
 	{
 		typedef TSPVVarTag SPVVarTag;
+		typedef T ValueType;
 
 		mutable T Value;
 
@@ -210,14 +181,37 @@ namespace Tracy
 		const T* operator->() { return &Value; }
 
 #pragma region ArrayAccess
-
-		var_t<uint32_t, Assemble, spv::StorageClassFunction> Size() const
+		var_t<uint32_t, Assemble, spv::StorageClassFunction> Length() const
 		{
 			static_assert(is_array<T>, "Unsupported type (array expected)");
 			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(T::Size);
 		}
 
-		// TODO operator[]
+		template <spv::StorageClass C1, class U = T, typename = std::enable_if_t<is_array<U>>>
+		var_t<array_element_t<U>, Assemble, Class> operator[](const var_t<uint32_t, Assemble, C1>& _Index)
+		{
+			static_assert(is_array<U>, "Unsupported type (array expected)");
+			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate(), Value[_Index.Value]);
+
+			if constexpr(Assemble)
+			{
+				const uint32_t uIndexId = _Index.Load();
+
+				const uint32_t uPtrTypeId = GlobalAssembler.AddType(SPIRVType::Pointer(var.Type, kStorageClass));
+				SPIRVOperation OpAccessChain(spv::OpAccessChain, uPtrTypeId, SPIRVOperand(kOperandType_Intermediate, uBaseId != HUNDEFINED32 ? uBaseId : uVarId));
+
+				for (const uint32_t& uMemberIdx : AccessChain)
+				{
+					OpAccessChain.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make<false>(uMemberIdx)));
+				}
+
+				OpAccessChain.AddIntermediate(uIndexId);
+
+				var.uVarId = GlobalAssembler.AddOperation(OpAccessChain);
+			}
+
+			return var;
+		}
 
 #pragma endregion
 

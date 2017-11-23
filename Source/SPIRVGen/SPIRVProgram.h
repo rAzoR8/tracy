@@ -14,6 +14,11 @@ namespace Tracy
 	public:
 
 #pragma region type_defs
+
+		// extract underlying variable type
+		//template <class T>
+		//using underlying_var_t = cond_t<is_var<T>, var_value_t<T>, T>;
+
 		template <class T>
 		using var = var_t<T, Assemble, spv::StorageClassFunction>;
 
@@ -27,13 +32,13 @@ namespace Tracy
 		using var_uniform = var_uniform_t<T, Assemble, Binding, Set, Location>;
 
 		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
+		using var_uniform_constant = var_uniform_constant_t<T, Assemble, Binding, Set, Location>;
+
+		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using CBuffer = var_uniform_t<T, Assemble, Binding, Set, Location>;
 
 		template <class T, uint32_t Size, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 		using Array = var_uniform_t<array_t<T, Size>, Assemble, Binding, Set, Location>;
-
-		template <class T, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
-		using var_uniform_constant = var_uniform_constant_t<T, Assemble, Binding, Set, Location>;
 
 		using s32 = var<int32_t>;
 		using s64 = var<int64_t>;

@@ -238,7 +238,7 @@ namespace Tracy
 		if (m_pAssembleProgram)
 		{
 			m_pAssembleProgram->Execute<TProg>(std::forward<Ts>(_args)...);
-			m_pAssembleProgram.reset();
+			m_pAssembleProgram.reset(); // destroy prog here to record variable destructors
 		}
 		else if (m_pExecuteProgram)
 		{
