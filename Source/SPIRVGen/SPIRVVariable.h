@@ -50,12 +50,13 @@ namespace Tracy
 		uint32_t uDescriptorSet = HUNDEFINED32; // res input
 		uint32_t uBinding = HUNDEFINED32; // local to res input
 		uint32_t uLocation = HUNDEFINED32; // res output
-		uint32_t uIdentifier = HUNDEFINED32; // user can set this id to identify the variable stored in the module
 		uint32_t uSpecConstId = HUNDEFINED32; // used in vulkan api to set data for specialization
 		uint32_t uInputAttachmentIndex = HUNDEFINED32; // subpass output index
 		bool m_bTexSampled = false; // indicates that the var texture has been sampled in the code
 		bool m_bTexStored = false; // indicates that the var texture has been stored in the code
 		bool m_bInstanceData = false; // only valid for StorageClassInput in vertex stage
+
+		std::string sName; // user can set this to identify the variable stored in the module
 
 		// for structs
 		std::vector<uint32_t> AccessChain;
@@ -68,7 +69,7 @@ namespace Tracy
 		void MaterializeDecorations() const;
 		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet);
 		void SetLocation(const uint32_t _uLocation);
-		void SetIdentifier(const uint32_t _uIdentifier);
+		void SetName(const std::string& _sName);
 
 		void Store() const;
 		uint32_t Load(const bool _bForceLoad = false) const;

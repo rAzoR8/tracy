@@ -78,3 +78,16 @@ void SPIRVModule::Put(const SPIRVInstruction& _Instr)
 	}
 }
 //---------------------------------------------------------------------------------------------------
+bool SPIRVModule::GetVariableByName(const std::string& _sName, VariableInfo & _OutVar)
+{
+	for (const VariableInfo& Var : m_Variables)
+	{
+		if (Var.sName == _sName)
+		{
+			_OutVar = Var;
+			return true;
+		}
+	}
+
+	return false;
+}

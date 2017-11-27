@@ -20,12 +20,12 @@ namespace Tracy
 		uint32_t uDescriptorSet = HUNDEFINED32; 
 		uint32_t uBinding = HUNDEFINED32;
 		uint32_t uLocation = HUNDEFINED32;
-		uint32_t uIdentifier = HUNDEFINED32;
 		uint32_t uSpecConstId = HUNDEFINED32;
 		uint32_t uInputAttachmentIndex = HUNDEFINED32;
 		bool bTexSampled = false;
 		bool bTexStored = false;
 		bool bInstanceData = false;
+		std::string sName;
 	};
 
 	class SPIRVModule
@@ -57,6 +57,8 @@ namespace Tracy
 
 		const spv::ExecutionMode& GetExectionMode() const;
 		const spv::ExecutionModel& GetExectionModel() const;
+
+		bool GetVariableByName(const std::string& _sName, VariableInfo& _OutVar);
 
 	private:
 		void Put(const uint32_t& _uWord);

@@ -17,14 +17,14 @@ int main(int argc, char* argv[])
 	GlobalAssembler.UseDefaultSpecConstId();
 	GlobalAssembler.UseDefaultInputAttachmentIndex();
 
-	SPIRVModule code = AssembleInline([]()
+	SPIRVModule code;/* = AssembleInline([]()
 	{
 		var_out_t<float3_t> OutputColor;
 		var_uniform_t<float3_t> InputColor;
 		var_uniform_t<float> Scale;
 
 		OutputColor = InputColor * Scale;
-	}); 
+	}); */
 
 	_spv_begin
 		RenderTarget OutColor;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 		});
 
 		OutColor.rgb = InputImg.Sample(Sampler, float2(0.5f, 0.5f)).rgb;
-		sum.Load(true);
+		//		sum.Load(true);
 		OutColor.a = sum;
 	_spv_end
 

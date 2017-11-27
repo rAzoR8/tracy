@@ -192,8 +192,8 @@ void var_decoration<true>::SetLocation(const uint32_t _uLocation)
 	uLocation = _uLocation;
 }
 //---------------------------------------------------------------------------------------------------
-void var_decoration<true>::SetIdentifier(const uint32_t _uIdentifier)
+void var_decoration<true>::SetName(const std::string& _sName)
 {
-	uIdentifier = _uIdentifier;
+	sName = _sName;
 }
 //---------------------------------------------------------------------------------------------------
