@@ -26,6 +26,27 @@ int main(int argc, char* argv[])
 		OutputColor = InputColor * Scale;
 	}); 
 
+	_spv_begin
+		RenderTarget OutColor;
+		SamplerState Sampler;
+		Texture2D InputImg;
+		Array<float3_t, 4> TestArray;
+
+		auto size = TestArray.Length();
+		f32 sum = 0.f;
+
+		For(u32 e = 0u, e < size, ++e)
+		{
+			sum += length(TestArray[e]);
+		});
+
+		OutColor.rgb = InputImg.Sample(Sampler, float2(0.5f, 0.5f)).rgb;
+		sum.Load(true);
+		OutColor.a = sum;
+	_spv_end
+
+	code = _spv_code;
+
 	if constexpr(bAssemble)
 	{
 		code.Save("test.spv");

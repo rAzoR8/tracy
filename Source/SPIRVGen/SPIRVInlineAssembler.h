@@ -16,6 +16,18 @@ namespace Tracy
 		const TLambdaFunc& Func;
 	};
 
+#ifndef _spv_begin
+#define _spv_begin class _inl_spv : public SPIRVProgram<true> { public: inline void operator()() {
+#endif // !_spv_begin
+#ifndef _spv_end
+#define _spv_end }};
+#endif // !_spv_end
+
+#ifndef _spv_code
+#define _spv_code GlobalAssembler.AssembleSimple<_inl_spv>();
+#endif // !_spv_code
+
+
 	template <class TLambdaFunc, class ...Ts>
 	SPIRVModule AssembleInline(
 		const TLambdaFunc& _Func,
