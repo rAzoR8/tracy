@@ -52,6 +52,7 @@ namespace Tracy
 		SPIRVModule AssembleSimple(
 			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
 			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+			const std::string& _sEntryPoint = "main",
 			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 			Ts&& ..._args);
 
@@ -78,6 +79,7 @@ namespace Tracy
 		const uint32_t GetCurrentInputAttchmentIndex();
 
 	private:
+		// TODO: add support for compute mode settings (LocalSizeId etc)
 		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::string& _sEntryPoint, const std::vector<std::string>& _Extensions);
 
 		void Resolve();
@@ -254,10 +256,11 @@ namespace Tracy
 	inline SPIRVModule SPIRVAssembler::AssembleSimple(
 		const spv::ExecutionModel _kModel,
 		const spv::ExecutionMode _kMode,
+		const std::string& _sEntryPoint,
 		const std::vector<std::string>& _Extensions,
 		Ts&& ..._args)
 	{
-		InitializeProgram<TProg>(_kModel, _kMode, _Extensions, std::forward<Ts>(_args)...);
+		InitializeProgram<TProg>(_kModel, _kMode, _sEntryPoint,_Extensions, std::forward<Ts>(_args)...);
 		RecordInstructions<TProg>();
 
 		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;

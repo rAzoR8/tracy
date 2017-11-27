@@ -86,7 +86,7 @@ namespace Tracy
 
 	struct TIntermediate {};
 
-	template <typename T, bool Assemble, spv::StorageClass Class>
+	template <typename T, bool Assemble = true, spv::StorageClass Class = spv::StorageClassFunction>
 	struct var_t : public var_decoration<Assemble>
 	{
 		typedef TSPVVarTag SPVVarTag;
@@ -706,7 +706,7 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// input variable constructor
-	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32, bool InstanceData = false>
+	template <typename T, bool Assemble = true, uint32_t Location = HUNDEFINED32, bool InstanceData = false>
 	struct var_in_t : public var_t<T, Assemble, spv::StorageClassInput>
 	{
 		var_in_t() : var_t<T, Assemble, spv::StorageClassInput>() { LocationHelper(*this, Location, true); bInstanceData = InstanceData; }
@@ -715,7 +715,7 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 	// output variable constructor
-	template <typename T, bool Assemble, uint32_t Location = HUNDEFINED32>
+	template <typename T, bool Assemble = true, uint32_t Location = HUNDEFINED32>
 	struct var_out_t : public var_t<T, Assemble, spv::StorageClassOutput>
 	{
 		var_out_t() : var_t<T, Assemble, spv::StorageClassOutput>() { LocationHelper(*this, Location, false); }
@@ -724,7 +724,7 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 	// uniform variable constructor
-	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
+	template <typename T, bool Assemble = true, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 	struct var_uniform_t : public var_t<T, Assemble, spv::StorageClassUniform>
 	{
 		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
@@ -733,7 +733,7 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 	// uniform constant variable constructor
-	template <typename T, bool Assemble, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
+	template <typename T, bool Assemble = true, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 	struct var_uniform_constant_t : public var_t<T, Assemble, spv::StorageClassUniformConstant>
 	{
 		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
@@ -743,7 +743,7 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// Specialization constant constructor
-	template <typename T, bool Assemble, uint32_t SpecId = HUNDEFINED32>
+	template <typename T, bool Assemble = true, uint32_t SpecId = HUNDEFINED32>
 	struct var_spec_const_t : public var_t<T, Assemble, spv::StorageClassMax>
 	{
 		template <class ...Ts>
@@ -771,7 +771,7 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// subpass constructor
-	template <typename T, bool Assemble, bool Depth = false, uint32_t InputAttachmentIndex = HUNDEFINED32, class SubT = cond_t<Depth, tex_depth_subpass_t<T>, tex_color_subpass_t<T>>>
+	template <typename T, bool Assemble = true, bool Depth = false, uint32_t InputAttachmentIndex = HUNDEFINED32, class SubT = cond_t<Depth, tex_depth_subpass_t<T>, tex_color_subpass_t<T>>>
 	struct var_subpass_t : public var_t<SubT, Assemble, spv::StorageClassUniformConstant>
 	{
 		var_subpass_t() : var_t<SubT, Assemble, spv::StorageClassUniformConstant>()
@@ -787,7 +787,7 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// push constant constructor
-	template <typename T, bool Assemble>
+	template <typename T, bool Assemble = true>
 	struct var_push_const_t : public var_t<T, Assemble, spv::StorageClassPushConstant>
 	{
 		var_push_const_t() : var_t<T, Assemble, spv::StorageClassPushConstant>() {}
