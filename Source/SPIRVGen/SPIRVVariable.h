@@ -52,8 +52,8 @@ namespace Tracy
 		uint32_t uLocation = HUNDEFINED32; // res output
 		uint32_t uSpecConstId = HUNDEFINED32; // used in vulkan api to set data for specialization
 		uint32_t uInputAttachmentIndex = HUNDEFINED32; // subpass output index
-		bool m_bTexSampled = false; // indicates that the var texture has been sampled in the code
-		bool m_bTexStored = false; // indicates that the var texture has been stored in the code
+		mutable bool m_bTexSampled = false; // indicates that the var texture has been sampled in the code
+		mutable bool m_bTexStored = false; // indicates that the var texture has been stored in the code
 		bool m_bInstanceData = false; // only valid for StorageClassInput in vertex stage
 
 		std::string sName; // user can set this to identify the variable stored in the module
@@ -180,7 +180,7 @@ namespace Tracy
 		const var_t& operator--() const; // mutable
 		var_t<T, Assemble, spv::StorageClassFunction> operator--(int) const; // immutable
 
-		const T* operator->() { return &Value; }
+		const T* operator->() const { return &Value; }
 
 #pragma region ArrayAccess
 		var_t<uint32_t, Assemble, spv::StorageClassFunction> Length() const
@@ -190,7 +190,7 @@ namespace Tracy
 		}
 
 		template <spv::StorageClass C1, class U = T, typename = std::enable_if_t<is_array<U>>>
-		var_t<array_element_t<U>, Assemble, Class> operator[](const var_t<uint32_t, Assemble, C1>& _Index)
+		var_t<array_element_t<U>, Assemble, Class> operator[](const var_t<uint32_t, Assemble, C1>& _Index) const
 		{
 			static_assert(is_array<U>, "Unsupported type (array expected)");
 			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate(), Value[_Index.Value]);
@@ -234,7 +234,7 @@ namespace Tracy
 			class TexCompT = tex_component_t<T>,
 			class TexCoordT = tex_coord_t<T>,
 			typename = std::enable_if_t<is_texture<T>>>
-			var_t<TexCompT, Assemble, spv::StorageClassFunction> Sample(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords)
+			var_t<TexCompT, Assemble, spv::StorageClassFunction> Sample(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords) const
 		{
 			auto var = var_t<TexCompT, Assemble, spv::StorageClassFunction>(TIntermediate());
 
@@ -399,7 +399,7 @@ namespace Tracy
 			uint32_t v2 = HUNDEFINED32,
 			uint32_t v3 = HUNDEFINED32,
 			class VecT = vec_type_t<BaseType, Dim>> // not a struct
-			var_t<VecT, Assemble, spv::StorageClassFunction> ExtractComponent()
+			var_t<VecT, Assemble, spv::StorageClassFunction> ExtractComponent() const
 		{
 			auto var = var_t<VecT, Assemble, spv::StorageClassFunction>(TIntermediate());
 

@@ -17,35 +17,26 @@ int main(int argc, char* argv[])
 	GlobalAssembler.UseDefaultSpecConstId();
 	GlobalAssembler.UseDefaultInputAttachmentIndex();
 
-	SPIRVModule code;/* = AssembleInline([]()
-	{
-		var_out_t<float3_t> OutputColor;
-		var_uniform_t<float3_t> InputColor;
-		var_uniform_t<float> Scale;
-
-		OutputColor = InputColor * Scale;
-	}); */
-
 	_spv_begin
 		RenderTarget OutColor;
 		SamplerState Sampler;
 		Texture2D InputImg;
 		Array<float3_t, 4> TestArray;
 
-		auto size = TestArray.Length();
+		u32 size = TestArray.Length();
 		f32 sum = 0.f;
 
 		For(u32 e = 0u, e < size, ++e)
 		{
-			sum += length(TestArray[e]);
+			auto elem = TestArray[e];
+			sum += length(elem);
 		});
 
 		OutColor.rgb = InputImg.Sample(Sampler, float2(0.5f, 0.5f)).rgb;
-		//		sum.Load(true);
 		OutColor.a = sum;
 	_spv_end
 
-	code = _spv_code;
+	SPIRVModule code = _spv_code;
 
 	if constexpr(bAssemble)
 	{

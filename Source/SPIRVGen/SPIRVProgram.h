@@ -133,11 +133,11 @@ namespace Tracy
 		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble, Class>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
 
 #ifndef While
-#define While(_cond) WhileImpl([&](){return _cond;}, [&]()
+#define While(_cond) WhileImpl([=](){return _cond;}, [=]()
 #endif // !While
 		
 #ifndef For
-#define For(_var, _cond, _inc) _var; ForImpl([&](){return _cond;}, [&](){_inc;}, [&]()
+#define For(_var, _cond, _inc) _var; ForImpl([=](){return _cond;}, [=](){_inc;}, [=]()
 #endif // !While
 
 #pragma region if_else
