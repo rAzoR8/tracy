@@ -16,7 +16,7 @@ namespace Tracy
 		struct B
 		{
 			SPVStruct
-			float2 UVCoord;
+			float2 UVCoord = "UVCoords";
 			float2 Offset;
 
 			u32 SampleCount;
@@ -48,27 +48,23 @@ namespace Tracy
 			});
 
 			float3x4 m34;
-			float3 v3;
+			float3 v3;// = { 1.f, 2.f, 3.f };
 
 			auto sp = SpecConst<float>(2.f);
 
 			auto res = m34 * v3 * sp; // instead of using mul
-			auto k = length(v3.xyz);
+			auto k = length(res.xyz);
 
 			float2 offset = BufferBlock->Offset;
 			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)
 			{
 				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
 				OutputColor.a = length(OutputColor.rgb);
-				//OutputColor.a = s;
-				//auto kdk =  i;
-				//i = i / 3u;
-				//offset *= 0.5f;
 			});
 		};
 	private:
-
 	};
+
 }; // !Tracy
 
 #endif // !TRACY_EXAMPLEPROG_H

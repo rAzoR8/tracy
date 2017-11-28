@@ -43,9 +43,11 @@ namespace Tracy
 		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
 		mutable uint32_t uLastStoredId = HUNDEFINED32;
 		mutable uint32_t uBaseId = HUNDEFINED32; // base VarId from parent structure
+		mutable uint32_t uBaseTypeId = HUNDEFINED32; // type of base parent sturcture
 		spv::StorageClass kStorageClass = spv::StorageClassMax;
 		mutable uint32_t uTypeId = HUNDEFINED32;
 		uint32_t uMemberOffset = HUNDEFINED32;
+		uint32_t uMemberIndex = HUNDEFINED32; // relative to the parent sturcture
 
 		uint32_t uDescriptorSet = HUNDEFINED32; // res input
 		uint32_t uBinding = HUNDEFINED32; // local to res input
@@ -55,6 +57,7 @@ namespace Tracy
 		mutable bool m_bTexSampled = false; // indicates that the var texture has been sampled in the code
 		mutable bool m_bTexStored = false; // indicates that the var texture has been stored in the code
 		bool m_bInstanceData = false; // only valid for StorageClassInput in vertex stage
+		mutable bool m_bMaterializedName = false;
 
 		std::string sName; // user can set this to identify the variable stored in the module
 
@@ -77,7 +80,7 @@ namespace Tracy
 		var_decoration(const spv::StorageClass _kStorageClass) : kStorageClass(_kStorageClass) {};
 		var_decoration(const var_decoration<true>& _Other);
 		var_decoration(var_decoration<true>&& _Other);
-		~var_decoration();
+		virtual ~var_decoration();
 
 		const var_decoration& operator=(const var_decoration& _Other) const;
 		const var_decoration& operator=(var_decoration&& _Other) const;
@@ -104,6 +107,9 @@ namespace Tracy
 		// does not generate OpVar, uResultId needs to be assigned
 		template <class... Ts>
 		var_t(TIntermediate, const Ts& ... _args);
+
+		// calls SetName
+		var_t(const char* _sName);
 
 		template <spv::StorageClass C1>
 		var_t(var_t<T, Assemble, C1>&& _Other);
@@ -298,7 +304,10 @@ namespace Tracy
 
 #pragma endregion
 
-	private:		
+	private:
+
+		template <class... Ts>
+		void InitVar(const Ts& ..._args);
 
 #pragma region InsertComponent
 		// identity
@@ -643,6 +652,17 @@ namespace Tracy
 		Value(_Other.Value)
 	{
 	}
+
+	//---------------------------------------------------------------------------------------------------
+	// name constructor
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, Class>::var_t(const char* _sName) : 
+		var_decoration<Assemble>(Class)
+	{
+		SetName(_sName);
+		InitVar();
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// constant assign operator
 	template<typename T, bool Assemble, spv::StorageClass Class>
@@ -844,6 +864,7 @@ namespace Tracy
 
 			if constexpr(has_struct_tag<MemberType>::value)
 			{
+				member.uMemberIndex = static_cast<uint32_t>(n);
 				_AccessChain.push_back(n);
 				SPIRVType NestedType(spv::OpTypeStruct);
 				InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain, _kStorageClass, _uCurOffset, _uCurBoundary);
@@ -851,6 +872,7 @@ namespace Tracy
 			}
 			else if constexpr(has_var_tag<MemberType>::value)
 			{
+				member.uMemberIndex = static_cast<uint32_t>(n);
 				std::vector<uint32_t> FinalChain(_AccessChain);
 				FinalChain.push_back(n);
 				InitVar(member, _Type, FinalChain, _kStorageClass, _uCurOffset, _uCurBoundary);
@@ -915,16 +937,15 @@ namespace Tracy
 		}
 	}
 
+	template <class T, class ...Ts>
+	const T& get_first_arg(const T& _first, const Ts& ..._args) { return _first; }
+
 	//---------------------------------------------------------------------------------------------------
-	// the all mighty variable default constructor
-	template<typename T, bool Assemble, spv::StorageClass C1>
+	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class ...Ts>
-	inline var_t<T, Assemble, C1>::var_t(const Ts& ..._args) :
-		var_decoration<Assemble>(C1),
-		Value(get_arg_value(_args)...)
+	inline void var_t<T, Assemble, Class>::InitVar(const Ts & ..._args)
 	{
 		constexpr size_t uArgs = sizeof...(_args);
-
 		if constexpr(Assemble)
 		{
 			std::vector<var_decoration<true>*> Members;
@@ -988,6 +1009,7 @@ namespace Tracy
 			for (var_decoration<true>* pMember : Members)
 			{
 				pMember->uBaseId = uVarId;
+				pMember->uBaseTypeId = uTypeId;
 
 				// fix storage class in OpVar
 				{
@@ -1002,6 +1024,17 @@ namespace Tracy
 				GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeId));
 			}
 		}
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// the all mighty variable default constructor
+	template<typename T, bool Assemble, spv::StorageClass C1>
+	template<class ...Ts>
+	inline var_t<T, Assemble, C1>::var_t(const Ts& ..._args) :
+		var_decoration<Assemble>(C1),
+		Value(get_arg_value(_args)...)
+	{
+		InitVar(_args...);
 	}
 
 	//---------------------------------------------------------------------------------------------------

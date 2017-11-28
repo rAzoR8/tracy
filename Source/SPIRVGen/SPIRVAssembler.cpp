@@ -367,6 +367,12 @@ void SPIRVAssembler::Resolve()
 	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpEntryPoint
 	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpExecutionMode
 
+	// translate names
+	ForEachOp([TranslateOp](SPIRVOperation& Op)
+	{
+		TranslateOp(Op);
+	}, is_name_op);
+
 	// translate decorates
 	ForEachOp([TranslateOp](SPIRVOperation& Op)
 	{

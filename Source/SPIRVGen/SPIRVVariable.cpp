@@ -18,6 +18,29 @@ void var_decoration<true>::MaterializeDecorations() const
 		GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId));
 	}
 	Decorations.clear();
+
+	// instantiate variable name
+
+	if (sName.empty() == false && m_bMaterializedName == false)
+	{
+		if (uMemberIndex == HUNDEFINED32)
+		{
+			SPIRVOperation OpName(spv::OpName);
+			OpName.AddLiteral(uVarId);
+			OpName.AddLiterals(MakeLiteralString(sName));
+			GlobalAssembler.AddOperation(OpName);
+		}
+		else
+		{
+			SPIRVOperation OpName(spv::OpMemberName);
+			OpName.AddIntermediate(uBaseTypeId);
+			OpName.AddLiteral(uMemberIndex);
+			OpName.AddLiterals(MakeLiteralString(sName));
+			GlobalAssembler.AddOperation(OpName);
+		}
+
+		m_bMaterializedName = true;
+	}
 }
 //---------------------------------------------------------------------------------------------------
 // TODO: pass bool if this is a assignment store

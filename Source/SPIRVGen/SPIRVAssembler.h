@@ -14,6 +14,7 @@ namespace Tracy
 	inline bool is_type_or_const_op(spv::Op _Op) { return is_type_op(_Op) || is_const_op(_Op); }	
 	inline bool is_decorate_op (spv::Op _Op) {return _Op >= spv::OpDecorate && _Op <= spv::OpGroupMemberDecorate; };
 	inline bool is_var_op(spv::Op _Op) {return _Op == spv::OpVariable; };
+	inline bool is_name_op(spv::Op _Op) { return _Op == spv::OpName || _Op == spv::OpMemberName; };
 
 	// forward decls
 	template <bool Assemble>

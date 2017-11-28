@@ -71,7 +71,7 @@ namespace Tracy
 			char elem[sizeof(uint32_t)];
 		};
 
-		std::vector<uint32_t> Literals(_sString.size() / sizeof(uint32_t), 0u);
+		std::vector<uint32_t> Literals((uint32_t)std::ceil(_sString.size() / (float)sizeof(uint32_t)), 0u);
 
 		uint32_t i = 0u;
 		for (const char& c : _sString)
