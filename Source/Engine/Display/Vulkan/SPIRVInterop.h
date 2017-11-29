@@ -83,17 +83,17 @@ namespace Tracy
 			break;
 		}
 	}
+
 	//---------------------------------------------------------------------------------------------------
 	// TODO: add override shaderstage flag to be able to change allowed stages ignoring the Module stage 
-	inline vk::DescriptorSetLayout CreateDescriptorSetLayout(const SPIRVModule& _Module, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators)
+	inline vk::DescriptorSetLayout CreateDescriptorSetLayout(const std::vector<VariableInfo>& _SetVars, const vk::ShaderStageFlags _kStageFlags, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators)
 	{
 		vk::DescriptorSetLayoutCreateInfo Info{};
 		std::vector<vk::DescriptorSetLayoutBinding> Bindings;
-		vk::ShaderStageFlags kStageFlags = GetShaderStage(_Module);
-
+		
 		// todo: use hash of variables and stage flags to avoid creating an existing layouts
 
-		for (const VariableInfo& Var : _Module.GetVariables())
+		for (const VariableInfo& Var : _SetVars)
 		{
 			switch (Var.kStorageClass)
 			{
@@ -107,14 +107,37 @@ namespace Tracy
 
 			Bindings.emplace_back();
 			vk::DescriptorSetLayoutBinding& Binding = Bindings.back();
-			Binding.stageFlags = kStageFlags;
+			Binding.stageFlags = _kStageFlags;
 			CreateDescriptorSetLayoutBinding(Binding, Var);
 		}
 
 		Info.bindingCount = static_cast<uint32_t>(Bindings.size());
 		Info.pBindings = Bindings.data();
-
+		
 		return _hDevice.createDescriptorSetLayout(Info, _pAllocators);
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	constexpr size_t uMaxDescriptorSets = 16u; // Per layout
+	inline std::vector<vk::DescriptorSetLayout> CreateDescriptorSetLayouts(const SPIRVModule& _Module, const vk::ShaderStageFlags _kStageFlags, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators = nullptr)
+	{
+		using TVarSet = std::vector<VariableInfo>;
+		std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
+
+		for (const VariableInfo& Var : _Module.GetVariables())
+		{
+			HASSERT(Var.uDescriptorSet < uMaxDescriptorSets, "Invalid descriptor set index");
+			DescriptorSets[Var.uDescriptorSet].push_back(Var);
+		}
+
+		std::vector<vk::DescriptorSetLayout> Layouts;
+		for (const TVarSet& Set : DescriptorSets)
+		{
+			if (Set.empty() == false)
+			{
+				Layouts.push_back(CreateDescriptorSetLayout(Set, _kStageFlags, _hDevice, _pAllocators));
+			}
+		}
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -254,7 +277,8 @@ namespace Tracy
 		void ResetChangedFlag() { uStartOffset = HUNDEFINED32; uEndOffset = 0u; }
 		const bool HasChanged() const { return  uStartOffset != HUNDEFINED32 &&(uEndOffset-uStartOffset) > 0; }
 
-		const std::vector<vk::PushConstantRange>& GetRanges() const { return m_Ranges; }
+		const uint32_t GetRangeCount() const { return static_cast<uint32_t>(m_Ranges.size()); }
+		const vk::PushConstantRange* GetRanges() const { return m_Ranges.data(); }
 		const void* GetValues() const { return m_Data.data(); }
 
 		// Make sure to destruct all Constant<T> instances before calling this
@@ -281,6 +305,22 @@ namespace Tracy
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
 	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	inline vk::PipelineLayout CreatePipelineLayout(const SPIRVModule& _Module, const vk::ShaderStageFlags _kStageFlags, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators = nullptr, const PushConstantFactory* _pPushConstants = nullptr)
+	{
+		vk::PipelineLayoutCreateInfo Info{};
+
+		Info.pPushConstantRanges = _pPushConstants != nullptr ? _pPushConstants->GetRanges() : nullptr;
+		Info.pushConstantRangeCount = _pPushConstants != nullptr ? _pPushConstants->GetRangeCount() : 0u;
+		std::vector<vk::DescriptorSetLayout> Layouts(CreateDescriptorSetLayouts(_Module, _kStageFlags, _hDevice, _pAllocators));
+
+		Info.pSetLayouts = Layouts.data();
+		Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
+
+		return _hDevice.createPipelineLayout(Info, _pAllocators);
+	}
 	//---------------------------------------------------------------------------------------------------
 
 	template <class Selector, class Element>
