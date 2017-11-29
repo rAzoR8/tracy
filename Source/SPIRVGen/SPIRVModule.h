@@ -26,6 +26,9 @@ namespace Tracy
 		bool bTexStored = false;
 		bool bInstanceData = false;
 		std::string sName;
+
+		size_t uHash = 0u;
+		size_t ComputeHash() const;
 	};
 
 	class SPIRVModule
@@ -60,6 +63,8 @@ namespace Tracy
 
 		bool GetVariableByName(const std::string& _sName, VariableInfo& _OutVar);
 
+		const size_t& GetHash() const;
+
 	private:
 		void Put(const uint32_t& _uWord);
 		void Put(const SPIRVInstruction& _Instr);
@@ -69,13 +74,17 @@ namespace Tracy
 		std::vector<uint32_t> m_InstructionStream;
 		std::vector<VariableInfo> m_Variables; // no function class variables (in out uniform etc)
 
+		size_t m_uHash = kUndefinedSizeT;
+
 		std::string m_sEntryPoint;
 		spv::ExecutionModel m_kModel = spv::ExecutionModelMax;
 		spv::ExecutionMode m_kMode = spv::ExecutionModeMax;
 		std::vector<std::string> m_Extensions;
 	};
 
-	inline const std::vector<uint32_t>& Tracy::SPIRVModule::GetCode() const
+	inline const size_t& SPIRVModule::GetHash() const { return m_uHash; }
+
+	inline const std::vector<uint32_t>& SPIRVModule::GetCode() const
 	{
 		return m_InstructionStream;
 	}

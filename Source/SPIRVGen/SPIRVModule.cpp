@@ -1,5 +1,6 @@
 #include "SPIRVModule.h"
 #include "SPIRVInstruction.h"
+#include "HashUtils.h"
 #include <fstream>
 
 using namespace Tracy;
@@ -23,6 +24,9 @@ SPIRVModule::~SPIRVModule()
 //---------------------------------------------------------------------------------------------------
 void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 {
+	m_InstructionStream.resize(0);
+	m_uHash = 0u;
+
 	// write header
 	Put(spv::MagicNumber);
 	Put(spv::Version);
@@ -55,6 +59,7 @@ bool SPIRVModule::Save(const std::string& _sFilePath)
 
 void SPIRVModule::Put(const uint32_t& _uWord)
 {
+	m_uHash = hlx::AddHash(m_uHash, _uWord);
 	m_InstructionStream.push_back(_uWord);
 }
 //---------------------------------------------------------------------------------------------------
@@ -91,3 +96,22 @@ bool SPIRVModule::GetVariableByName(const std::string& _sName, VariableInfo & _O
 
 	return false;
 }
+//---------------------------------------------------------------------------------------------------
+
+size_t VariableInfo::ComputeHash() const
+{
+	return 
+		hlx::CombineHashes(Type.GetHash(),
+		hlx::Hash(
+			kStorageClass,
+			uMemberOffset,
+			uDescriptorSet,
+			uBinding,
+			uLocation,
+			uSpecConstId,
+			uInputAttachmentIndex,
+			bTexSampled,
+			bTexStored,
+			bInstanceData));
+}
+//---------------------------------------------------------------------------------------------------

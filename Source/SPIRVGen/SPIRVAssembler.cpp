@@ -36,6 +36,7 @@ SPIRVModule SPIRVAssembler::Assemble()
 	{
 		if (var.kStorageClass != spv::StorageClassFunction)
 		{
+			var.uHash = var.ComputeHash();
 			Module.AddVariable(var);
 		}
 	}

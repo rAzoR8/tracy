@@ -1,6 +1,8 @@
 #ifndef TRACY_SPIRVINTEROP_H
 #define TRACY_SPIRVINTEROP_H
 
+// TODO: use <vulkan/vulkan.hpp> instead to be independant of our vulkan implementation
+// maybe move this file to the SPIRVProject
 #include "VulkanAPI.h"
 #include "../../SPIRVGen/SPIRVModule.h"
 #include "Logger.h"
@@ -8,6 +10,22 @@
 
 namespace Tracy
 {
+	//---------------------------------------------------------------------------------------------------
+	inline vk::ShaderStageFlagBits GetShaderStage(const SPIRVModule& _Module)
+	{
+		switch (_Module.GetExectionModel())
+		{
+		case spv::ExecutionModelVertex: return vk::ShaderStageFlagBits::eVertex;
+		case spv::ExecutionModelTessellationControl: return vk::ShaderStageFlagBits::eTessellationControl;
+		case spv::ExecutionModelTessellationEvaluation: return vk::ShaderStageFlagBits::eTessellationEvaluation;
+		case spv::ExecutionModelGeometry: return vk::ShaderStageFlagBits::eGeometry;
+		case spv::ExecutionModelFragment: return vk::ShaderStageFlagBits::eFragment;
+		case spv::ExecutionModelGLCompute: return vk::ShaderStageFlagBits::eCompute;
+		case spv::ExecutionModelKernel: return vk::ShaderStageFlagBits::eCompute;
+		default:
+			return vk::ShaderStageFlagBits::eAll;
+		}
+	}
 	//---------------------------------------------------------------------------------------------------
 
 	// Element of a descriptor set (input)
@@ -64,6 +82,39 @@ namespace Tracy
 			}
 			break;
 		}
+	}
+	//---------------------------------------------------------------------------------------------------
+	// TODO: add override shaderstage flag to be able to change allowed stages ignoring the Module stage 
+	inline vk::DescriptorSetLayout CreateDescriptorSetLayout(const SPIRVModule& _Module, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators)
+	{
+		vk::DescriptorSetLayoutCreateInfo Info{};
+		std::vector<vk::DescriptorSetLayoutBinding> Bindings;
+		vk::ShaderStageFlags kStageFlags = GetShaderStage(_Module);
+
+		// todo: use hash of variables and stage flags to avoid creating an existing layouts
+
+		for (const VariableInfo& Var : _Module.GetVariables())
+		{
+			switch (Var.kStorageClass)
+			{
+			case spv::StorageClassInput:
+			case spv::StorageClassOutput:
+			case spv::StorageClassMax:
+				continue; // skip non resource classes (incomplete list)
+			default:
+				break;
+			}
+
+			Bindings.emplace_back();
+			vk::DescriptorSetLayoutBinding& Binding = Bindings.back();
+			Binding.stageFlags = kStageFlags;
+			CreateDescriptorSetLayoutBinding(Binding, Var);
+		}
+
+		Info.bindingCount = static_cast<uint32_t>(Bindings.size());
+		Info.pBindings = Bindings.data();
+
+		return _hDevice.createDescriptorSetLayout(Info, _pAllocators);
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -361,23 +412,7 @@ namespace Tracy
 		return vkModule;
 	}
 
-	inline vk::ShaderStageFlagBits GetShaderStage(const SPIRVModule& _Module)
-	{
-		switch (_Module.GetExectionModel())
-		{
-		case spv::ExecutionModelVertex: return vk::ShaderStageFlagBits::eVertex;
-		case spv::ExecutionModelTessellationControl: return vk::ShaderStageFlagBits::eTessellationControl;
-		case spv::ExecutionModelTessellationEvaluation: return vk::ShaderStageFlagBits::eTessellationEvaluation;
-		case spv::ExecutionModelGeometry: return vk::ShaderStageFlagBits::eGeometry;
-		case spv::ExecutionModelFragment: return vk::ShaderStageFlagBits::eFragment;
-		case spv::ExecutionModelGLCompute: return vk::ShaderStageFlagBits::eCompute;
-		case spv::ExecutionModelKernel: return vk::ShaderStageFlagBits::eCompute;
-		default:
-			return vk::ShaderStageFlagBits::eAll;
-		}
-	}
-
-	inline vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::Device _hDevice, const SPIRVModule& _Module, const vk::SpecializationInfo* _pSpecInfo = nullptr, vk::AllocationCallbacks* _pAllocCallbacks = nullptr) const
+	inline vk::PipelineShaderStageCreateInfo CreateShaderStage(vk::Device _hDevice, const SPIRVModule& _Module, const vk::SpecializationInfo* _pSpecInfo = nullptr, vk::AllocationCallbacks* _pAllocCallbacks = nullptr)
 	{
 		vk::PipelineShaderStageCreateInfo ShaderStage{};
 
