@@ -54,10 +54,10 @@ namespace Tracy
 		uint32_t uLocation = HUNDEFINED32; // res output
 		uint32_t uSpecConstId = HUNDEFINED32; // used in vulkan api to set data for specialization
 		uint32_t uInputAttachmentIndex = HUNDEFINED32; // subpass output index
-		mutable bool m_bTexSampled = false; // indicates that the var texture has been sampled in the code
-		mutable bool m_bTexStored = false; // indicates that the var texture has been stored in the code
-		bool m_bInstanceData = false; // only valid for StorageClassInput in vertex stage
-		mutable bool m_bMaterializedName = false;
+		mutable bool bTexSampled = false; // indicates that the var texture has been sampled in the code
+		mutable bool bTexStored = false; // indicates that the var texture has been stored in the code
+		bool bInstanceData = false; // only valid for StorageClassInput in vertex stage
+		mutable bool bMaterializedName = false;
 
 		std::string sName; // user can set this to identify the variable stored in the module
 
@@ -246,7 +246,7 @@ namespace Tracy
 
 			if constexpr(Assemble)
 			{
-				m_bTexSampled = true;
+				bTexSampled = true;
 
 				// Result Type must be a vector of four components of floating point type or integer type.
 				// Its components must be the same as Sampled Type of the underlying OpTypeImage(unless that underlying	Sampled Type is OpTypeVoid).

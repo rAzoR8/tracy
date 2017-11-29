@@ -19,6 +19,17 @@ int main(int argc, char* argv[])
 
 	SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
 
+	//_spv_begin
+	//{
+	//	var_in_t<float3_t> vertpos = "VertexPos";
+	//	var_out_t<float4_t> col;
+
+	//	col.rgb = vertpos;
+	//}
+	//_spv_end
+
+	//code = _spv_code;
+
 	if constexpr(bAssemble)
 	{
 		code.Save("test.spv");

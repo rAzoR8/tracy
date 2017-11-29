@@ -21,7 +21,7 @@ void var_decoration<true>::MaterializeDecorations() const
 
 	// instantiate variable name
 
-	if (sName.empty() == false && m_bMaterializedName == false)
+	if (sName.empty() == false && bMaterializedName == false)
 	{
 		if (uMemberIndex == HUNDEFINED32)
 		{
@@ -39,7 +39,7 @@ void var_decoration<true>::MaterializeDecorations() const
 			GlobalAssembler.AddOperation(OpName);
 		}
 
-		m_bMaterializedName = true;
+		bMaterializedName = true;
 	}
 }
 //---------------------------------------------------------------------------------------------------
