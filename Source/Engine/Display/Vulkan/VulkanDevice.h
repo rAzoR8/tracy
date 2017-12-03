@@ -5,6 +5,7 @@
 
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
+#include "VulkanMemoryAllocator.h"
 #include "VulkanTexture.h"
 #include <unordered_map>
 
@@ -74,9 +75,8 @@ namespace Tracy
 		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
 
-		// Base address of memory blocks
-		vk::DeviceMemory m_TextureMemory;
-		vk::DeviceMemory m_BufferMemory;
+		// Allocator
+		VulkanMemoryAllocator* m_Allocator;
 
 		// Texture Tables
 		std::unordered_map<THandle, VulkanRenderTexture> m_RenderTargets;

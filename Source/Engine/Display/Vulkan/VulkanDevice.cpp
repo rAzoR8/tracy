@@ -9,8 +9,6 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 	m_Device(nullptr),
 	m_Properties(_PhysDevice.getProperties()),
 	m_MemoryProperties(_PhysDevice.getMemoryProperties()),
-	m_TextureMemory(nullptr),
-	m_BufferMemory(nullptr)
 {
 	m_Info.hHandle = _uHandle;
 	HASSERT(m_Info.hHandle != kUndefinedSizeT, "Device constructor has invalid handle.");
@@ -32,6 +30,9 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 	// Create Logical Device
 	Create();
 	HASSERTD(m_Device != vk::Device(), "Failed to create logical device.");
+
+	// Create Allocator
+	m_Allocator = new VulkanMemoryAllocator(m_PhysicalDevice, m_Device);
 
 	// Setup Resouce Tables
 	m_RenderTargets.reserve(50u);	// Hardcoded for now, should come from outside

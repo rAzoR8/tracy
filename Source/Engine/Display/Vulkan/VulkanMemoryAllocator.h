@@ -8,11 +8,13 @@ namespace Tracy
 	//constexpr vk::DeviceSize kDefaultLargeBlockSize = 256ull * 1024ull * 1024ull;
 	//constexpr vk::DeviceSize kDefaulSmallBlockSize = 64ull * 1024ull * 1024ull;
 
-	struct VulkanAllocatorCreateInfo
+	// This mechanic is weird atm. This struct will contain more config in the future.
+	/*struct VulkanAllocatorCreateInfo
 	{
 		const vk::PhysicalDevice* PhysicalDevice = nullptr;
 		const vk::Device* Device = nullptr;
-	};
+
+	};*/
 
 	/*enum EVulkanAllocationFlags : uint32_t
 	{
@@ -42,18 +44,22 @@ namespace Tracy
 	{
 		vk::DeviceMemory Memory = nullptr;
 		vk::DeviceSize uOffset = 0ull;
+		vk::DeviceSize uSize = 0ull;
 		//uint64_t uBlockID = 0ull;
 	};
 
 	class VulkanMemoryAllocator
 	{
 	public:
-		explicit VulkanMemoryAllocator(const VulkanAllocatorCreateInfo& _Info);
+		explicit VulkanMemoryAllocator(const vk::PhysicalDevice& _PhysicalDevice, const vk::Device& _Device);
 		~VulkanMemoryAllocator();
 
 		// Create, Allocate and Bind resource
-		vk::Result CreateImageResource(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image);
+		vk::Result CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image);
 		vk::Result CreateBufferResource(const VulkanAllocationInfo& _Info);
+
+		// Create Virtual Image Memory Allocation
+		vk::Result CreateImageAllocation(const vk::ImageCreateInfo& _Info, vk::Image& _Image);
 
 		// Allocate resouce memory
 		vk::Result AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image);

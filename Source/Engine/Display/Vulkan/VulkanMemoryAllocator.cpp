@@ -2,9 +2,9 @@
 
 #include "Logger.h"
 
-Tracy::VulkanMemoryAllocator::VulkanMemoryAllocator(const VulkanAllocatorCreateInfo& _Info) :
-	m_PhysicalDevice(*_Info.PhysicalDevice),
-	m_Device(*_Info.Device),
+Tracy::VulkanMemoryAllocator::VulkanMemoryAllocator(const vk::PhysicalDevice& _PhysicalDevice, const vk::Device& _Device) :
+	m_PhysicalDevice(_PhysicalDevice),
+	m_Device(_Device),
 	m_MemoryProperties(m_PhysicalDevice.getMemoryProperties())
 {
 	// Get memory info
@@ -73,9 +73,9 @@ const vk::MemoryPropertyFlags Tracy::VulkanMemoryAllocator::GetMemoryProperties(
 	return vk::MemoryPropertyFlags();
 }
 //---------------------------------------------------------------------------------------------------
-vk::Result Tracy::VulkanMemoryAllocator::CreateImageResource(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image)
+vk::Result Tracy::VulkanMemoryAllocator::CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image)
 {
-	vk::Result uResult = m_Device.createImage(&_Info, nullptr, &_Image);
+	vk::Result uResult = CreateImageAllocation(_Info, _Image);
 	if (uResult != vk::Result::eSuccess)
 	{
 		return uResult;
@@ -92,9 +92,25 @@ vk::Result Tracy::VulkanMemoryAllocator::CreateImageResource(const VulkanAllocat
 	return vk::Result::eSuccess;
 }
 //---------------------------------------------------------------------------------------------------
+vk::Result Tracy::VulkanMemoryAllocator::CreateImageAllocation(const vk::ImageCreateInfo& _Info, vk::Image& _Image)
+{
+	vk::Result uResult = m_Device.createImage(&_Info, nullptr, &_Image);
+	if (uResult != vk::Result::eSuccess)
+	{
+		return uResult;
+	}
+
+	// Update stats, let vk check for enough memory on the right heap.
+	vk::MemoryRequirements MemReq = m_Device.getImageMemoryRequirements(_Image);
+	m_uAllocatedVirtualMemory += MemReq.size;
+
+	return vk::Result::eSuccess;
+}
+//---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image)
 {
 	vk::MemoryRequirements MemReq = m_Device.getImageMemoryRequirements(_Image);
+	_Allocation.uSize = MemReq.size;
 
 	vk::MemoryAllocateInfo MemInfo{};
 	MemInfo.pNext = nullptr;
@@ -106,6 +122,9 @@ vk::Result Tracy::VulkanMemoryAllocator::AllocateImageMemory(const VulkanAllocat
 	{
 		return uResult;
 	}
+
+	// Update stats, let vk check for enough memory on the right heap.
+	m_uAllocatedPhysicalMemory += MemReq.size;
 
 	return vk::Result::eSuccess;
 }
