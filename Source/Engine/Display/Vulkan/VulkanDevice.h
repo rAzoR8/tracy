@@ -44,9 +44,6 @@ namespace Tracy
 	private:
 		void Create();
 
-		uint32_t GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties);
-		bool GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType);
-
 	private:
 		struct QueueOffset
 		{

@@ -179,40 +179,7 @@ void VulkanDevice::Create()
 		}
 	}
 }
-
 //---------------------------------------------------------------------------------------------------
-uint32_t Tracy::VulkanDevice::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties)
-{
-	uint32_t uMemoryType = UINT32_MAX;
-
-	HASSERT(GetMemoryTypeIndex(_RequestedType, _RequestedProperties, uMemoryType), "Requested memory type %d is not available", _RequestedType);
-
-	return uMemoryType;
-}
-//---------------------------------------------------------------------------------------------------
-
-bool Tracy::VulkanDevice::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType)
-{
-	//uint32_t Type = _RequestedType;
-
-	for (uint32_t uMemoryIndex = 0u; uMemoryIndex < m_MemoryProperties.memoryTypeCount; ++uMemoryIndex)
-	{
-		const uint32_t uMemoryTypeBits = (1u << uMemoryIndex);
-		const bool bIsRequestedMemoryType = _RequestedType & uMemoryTypeBits;
-
-		const bool bHasRequestedProperty = (m_MemoryProperties.memoryTypes[uMemoryIndex].propertyFlags & _RequestedProperties) == _RequestedProperties;
-
-		if (bIsRequestedMemoryType && bHasRequestedProperty)
-		{
-			_OutMemoryType = uMemoryIndex;
-			return true;
-		}
-	}
-
-	return false;
-}
-//---------------------------------------------------------------------------------------------------
-
 const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType) const
 {
 	// Check if given queue is supported by the implementation
