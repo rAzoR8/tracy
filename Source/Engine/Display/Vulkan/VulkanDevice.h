@@ -5,6 +5,7 @@
 
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
+#include "VulkanTexture.h"
 #include <unordered_map>
 
 namespace Tracy
@@ -19,6 +20,7 @@ namespace Tracy
 		explicit VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle);
 		~VulkanDevice();
 
+		// Getters
 		const vk::PhysicalDeviceProperties& GetProperties() const;
 		const vk::PhysicalDeviceMemoryProperties& GetMemoryProperties() const;
 		const uint64_t GetTotalMemory() const;
@@ -28,7 +30,11 @@ namespace Tracy
 		const vk::Device& GetDevice() const;
 		const THandle& GetHandle() const;
 
+		// Methods
 		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType = vk::QueueFlagBits::eGraphics) const;
+		
+		// Textures
+		const THandle CreateRenderTarget(const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat);
 
 		explicit operator bool() const
 		{
@@ -64,11 +70,20 @@ namespace Tracy
 			{}
 		};
 
+		// Device and Queues
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
 		vk::PhysicalDeviceProperties m_Properties;
 		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
+
+		// Base address of memory blocks
+		vk::DeviceMemory m_TextureMemory;
+		vk::DeviceMemory m_BufferMemory;
+
+		// Texture Tables
+		std::unordered_map<THandle, VulkanRenderTexture> m_RenderTargets;
+		THandle m_hNextRenderTarget = 0u;
 	};
 
 	//---------------------------------------------------------------------------------------------------

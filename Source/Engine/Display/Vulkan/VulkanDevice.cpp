@@ -8,7 +8,9 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 	m_PhysicalDevice(_PhysDevice),
 	m_Device(nullptr),
 	m_Properties(_PhysDevice.getProperties()),
-	m_MemoryProperties(_PhysDevice.getMemoryProperties())
+	m_MemoryProperties(_PhysDevice.getMemoryProperties()),
+	m_TextureMemory(nullptr),
+	m_BufferMemory(nullptr)
 {
 	m_Info.hHandle = _uHandle;
 	HASSERT(m_Info.hHandle != kUndefinedSizeT, "Device constructor has invalid handle.");
@@ -30,6 +32,9 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 	// Create Logical Device
 	Create();
 	HASSERTD(m_Device != vk::Device(), "Failed to create logical device.");
+
+	// Setup Resouce Tables
+	m_RenderTargets.reserve(50u);	// Hardcoded for now, should come from outside
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -188,7 +193,7 @@ uint32_t Tracy::VulkanDevice::GetMemoryTypeIndex(const uint32_t _RequestedType, 
 
 bool Tracy::VulkanDevice::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType)
 {
-	uint32_t Type = _RequestedType;
+	//uint32_t Type = _RequestedType;
 
 	for (uint32_t uMemoryIndex = 0u; uMemoryIndex < m_MemoryProperties.memoryTypeCount; ++uMemoryIndex)
 	{
@@ -218,5 +223,34 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 	}
 
 	return false;
+}
+
+const THandle Tracy::VulkanDevice::CreateRenderTarget(const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat)
+{
+	m_RenderTargets.insert({ m_hNextRenderTarget,{} });
+
+	VulkanRenderTexture& Texture = m_RenderTargets[m_hNextRenderTarget];
+
+	vk::ImageCreateInfo Info{};
+	Info.extent = vk::Extent3D(_uWidth, _uHeight, 1u);
+	Info.imageType = vk::ImageType::e2D;
+	Info.format = _kFormat;
+	Info.mipLevels = 1u;
+	Info.arrayLayers = 1u;
+	Info.usage = vk::ImageUsageFlagBits::eColorAttachment;
+
+	vk::Result uResult = m_Device.createImage(Info, nullptr, &Texture.m_Image);
+	HASSERT(uResult != vk::Result::eSuccess, "Failed to Create Image.");
+
+	vk::MemoryRequirements MemReq = m_Device.getImageMemoryRequirements(Texture.m_Image);
+
+	vk::MemoryAllocateInfo MemInfo{};
+	MemInfo.pNext = nullptr;
+	MemInfo.allocationSize = MemReq.size;
+	MemInfo.memoryTypeIndex = GetMemoryTypeIndex(MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+	m_Device.allocateMemory(m_TextureMemory)
+
+	return THandle();
 }
 //---------------------------------------------------------------------------------------------------

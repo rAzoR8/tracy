@@ -6,30 +6,36 @@
 
 namespace Tracy
 {
-	enum ETextureFormat
-	{
-		kTextureFormat_R32G32B32A32_FLOAT = vk::Format::eR32G32B32A32Sfloat,
-	};
-
+	// Textures are created by the device that acts as factory
 	class VulkanTexture
 	{
-		friend class VulkanTextureManager;
+		friend class VulkanDevice;
 	public:
 		virtual ~VulkanTexture();
-
 
 		const THandle& GetHandle() const;
 
 		const bool Resize(const uint32_t _uWidth, const uint32_t _uHeight);
 
+		// SRV is common to all textures
+		THandle AddShaderResourceView();
+
+	private:
+		VulkanTexture(vk::Device _Device, const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat, const vk::ImageUsageFlags _kUsage);
+
 	protected:
 		vk::Image m_Image;
+		vk::DeviceSize m_ByteSize;
 
-		std::unordered_map<THandle, vk::ImageView> m_SRV;
-		std::unordered_map<THandle, vk::ImageView> m_RTV;
-		std::unordered_map<THandle, vk::ImageView> m_DSV;
+		std::vector<vk::ImageView> m_SRV;
+		std::vector<vk::ImageView> m_RTV;
+		std::vector<vk::ImageView> m_DSV;
 
-		THandle m_hHandle;
+		THandle m_hNextSRV = 0u;
+		THandle m_hNextRTV = 0u;
+		THandle m_hNextDSV = 0u;
+
+		THandle m_hHandle = kUndefinedSizeT;
 	};
 
 	inline const THandle& VulkanTexture::GetHandle() const
@@ -37,21 +43,23 @@ namespace Tracy
 		return m_hHandle;
 	}
 
+	
+
+
+
+
 	class VulkanRenderTexture : public VulkanTexture
 	{
 	public:
+		VulkanRenderTexture() {}
+
 		VulkanRenderTexture(const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat)
 		{
-			vk::ImageCreateInfo info{};
-			info.extent = vk::Extent3D(_uWidth, _uHeight, 1u);
-			info.format = _kFormat;
-			info.imageType = vk::ImageType::e2D;
-			info.mipLevels = 1u;
-			info.arrayLayers = 1u;
-			info.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
-
 			
 		}
+
+		// RTV should only be added to render targets
+		THandle AddRenderTargetView();
 
 
 	private:
