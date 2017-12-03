@@ -20,6 +20,7 @@ Tracy::VulkanMemoryAllocator::VulkanMemoryAllocator(const vk::PhysicalDevice& _P
 			m_uTotalSharedMemory = Heap.size;
 		}
 	}
+	HASSERTD((m_uTotalDeviceMemory > 0u) && (m_uTotalSharedMemory > 0u), "Failed to retrieve device memory amount");
 }
 //---------------------------------------------------------------------------------------------------
 Tracy::VulkanMemoryAllocator::~VulkanMemoryAllocator()

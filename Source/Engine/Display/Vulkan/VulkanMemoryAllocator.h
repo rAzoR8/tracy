@@ -16,12 +16,14 @@ namespace Tracy
 
 	};*/
 
+	// Flags for memory block creation.
 	/*enum EVulkanAllocationFlags : uint32_t
 	{
 		kAllocationFlag_None = 0u,
 		kAllocationFlag_Mappable = (1u << 0u),
 	};*/
 
+	// Heap type flags
 	enum EVulkanAllocationType
 	{
 		kAllocationType_GPU_Only = 0,
@@ -32,6 +34,7 @@ namespace Tracy
 		kAllocationType_NumOf
 	};
 
+	// Hints for Heap selection.
 	struct VulkanAllocationInfo
 	{
 		//vk::DeviceSize uByteSize = 0ull;
@@ -40,6 +43,8 @@ namespace Tracy
 		//uint32_t uMemoryTypeBits = 0u;
 	};
 
+	// Contains all the info to retrieve a memory allocation for a resource.
+	// It should be a resource member.
 	struct VulkanAllocation
 	{
 		vk::DeviceMemory Memory = nullptr;
@@ -48,6 +53,8 @@ namespace Tracy
 		//uint64_t uBlockID = 0ull;
 	};
 
+	// Device helper class for custom memory management.
+	// Currently performs private allocations per resource.
 	class VulkanMemoryAllocator
 	{
 	public:
@@ -69,13 +76,16 @@ namespace Tracy
 		void BindImageMemory(VulkanAllocation& _Allocation, vk::Image& _Image);
 		vk::Result BindBufferMemory();
 
+		// Retrieve device memory info
 		const vk::DeviceSize& GetTotalDeviceMemory() const;
 		const vk::DeviceSize& GetTotalSharedMemory() const;
 
 	private:
+		// Select the flags used in memory allocation given a configuration for the resouce
 		uint32_t GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties);
 		bool GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType);
 
+		// Maps our flags and types to vulkan flags
 		const vk::MemoryPropertyFlags GetMemoryProperties(const EVulkanAllocationType _AllocType) const;
 
 	private:

@@ -7,22 +7,10 @@ using namespace Tracy;
 VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle) :
 	m_PhysicalDevice(_PhysDevice),
 	m_Device(nullptr),
-	m_Properties(_PhysDevice.getProperties()),
-	m_MemoryProperties(_PhysDevice.getMemoryProperties()),
+	m_Properties(_PhysDevice.getProperties())
 {
 	m_Info.hHandle = _uHandle;
 	HASSERT(m_Info.hHandle != kUndefinedSizeT, "Device constructor has invalid handle.");
-
-	// Get total device memory
-	for (const vk::MemoryHeap& Heap : m_MemoryProperties.memoryHeaps)
-	{
-		if (Heap.flags == vk::MemoryHeapFlagBits::eDeviceLocal)
-		{
-			m_Info.uTotalMemory = Heap.size;
-			break;
-		}
-	}
-	HASSERTD(m_Info.uTotalMemory > 0u, "Device memory available is %d", m_Info.uTotalMemory);
 
 	m_Info.VendorID = ToVendorID(m_Properties.vendorID);
 	HASSERT(m_Info.VendorID != kVendorID_Unknown, "Unknown PCI vendor.");
@@ -33,6 +21,7 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 
 	// Create Allocator
 	m_Allocator = new VulkanMemoryAllocator(m_PhysicalDevice, m_Device);
+	m_Info.uTotalMemory = m_Allocator->GetTotalDeviceMemory();
 
 	// Setup Resouce Tables
 	m_RenderTargets.reserve(50u);	// Hardcoded for now, should come from outside
@@ -198,6 +187,7 @@ const THandle Tracy::VulkanDevice::CreateRenderTarget(const uint32_t _uWidth, co
 	m_RenderTargets.insert({ m_hNextRenderTarget,{} });
 
 	VulkanRenderTexture& Texture = m_RenderTargets[m_hNextRenderTarget];
+	Texture.m_hHandle = m_hNextRenderTarget++;
 
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_uWidth, _uHeight, 1u);
@@ -207,18 +197,12 @@ const THandle Tracy::VulkanDevice::CreateRenderTarget(const uint32_t _uWidth, co
 	Info.arrayLayers = 1u;
 	Info.usage = vk::ImageUsageFlagBits::eColorAttachment;
 
-	vk::Result uResult = m_Device.createImage(Info, nullptr, &Texture.m_Image);
-	HASSERT(uResult != vk::Result::eSuccess, "Failed to Create Image.");
+	VulkanAllocationInfo AllocInfo{};
+	AllocInfo.kType = kAllocationType_GPU_Only;
 
-	vk::MemoryRequirements MemReq = m_Device.getImageMemoryRequirements(Texture.m_Image);
+	vk::Result Result = m_Allocator->CreateImage(AllocInfo, Texture.m_Allocation, Info, Texture.m_Image);
+	HASSERT(Result != vk::Result::eSuccess, "Failed to create Render Target. Code: %d", Result);
 
-	vk::MemoryAllocateInfo MemInfo{};
-	MemInfo.pNext = nullptr;
-	MemInfo.allocationSize = MemReq.size;
-	MemInfo.memoryTypeIndex = GetMemoryTypeIndex(MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-	m_Device.allocateMemory(m_TextureMemory)
-
-	return THandle();
+	return Texture.m_hHandle;
 }
 //---------------------------------------------------------------------------------------------------

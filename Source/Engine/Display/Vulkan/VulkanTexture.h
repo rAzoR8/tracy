@@ -3,6 +3,7 @@
 
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
+#include "VulkanMemoryAllocator.h"
 
 namespace Tracy
 {
@@ -11,6 +12,7 @@ namespace Tracy
 	{
 		friend class VulkanDevice;
 	public:
+		VulkanTexture();
 		virtual ~VulkanTexture();
 
 		const THandle& GetHandle() const;
@@ -20,12 +22,10 @@ namespace Tracy
 		// SRV is common to all textures
 		THandle AddShaderResourceView();
 
-	private:
-		VulkanTexture(vk::Device _Device, const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat, const vk::ImageUsageFlags _kUsage);
-
 	protected:
 		vk::Image m_Image;
-		vk::DeviceSize m_ByteSize;
+		
+		VulkanAllocation m_Allocation;
 
 		std::vector<vk::ImageView> m_SRV;
 		std::vector<vk::ImageView> m_RTV;
@@ -52,17 +52,10 @@ namespace Tracy
 	{
 	public:
 		VulkanRenderTexture() {}
-
-		VulkanRenderTexture(const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat)
-		{
-			
-		}
+		~VulkanRenderTexture() {}
 
 		// RTV should only be added to render targets
 		THandle AddRenderTargetView();
-
-
-	private:
 	};
 }
 

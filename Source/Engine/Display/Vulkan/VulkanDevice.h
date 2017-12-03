@@ -23,7 +23,6 @@ namespace Tracy
 
 		// Getters
 		const vk::PhysicalDeviceProperties& GetProperties() const;
-		const vk::PhysicalDeviceMemoryProperties& GetMemoryProperties() const;
 		const uint64_t GetTotalMemory() const;
 		const uint32_t GetQueueIndex(const vk::QueueFlagBits _QueueType) const;
 		
@@ -72,7 +71,6 @@ namespace Tracy
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
 		vk::PhysicalDeviceProperties m_Properties;
-		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
 
 		// Allocator
@@ -87,12 +85,6 @@ namespace Tracy
 	inline const vk::PhysicalDeviceProperties& Tracy::VulkanDevice::GetProperties() const
 	{
 		return m_Properties;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-	inline const vk::PhysicalDeviceMemoryProperties& VulkanDevice::GetMemoryProperties() const
-	{
-		return m_MemoryProperties;
 	}
 
 	//---------------------------------------------------------------------------------------------------
