@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2008
+VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TracyApp", "TracyApp\TracyApp.vcxproj", "{B12702AD-ABFB-343A-A199-8E24837244A3}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Engine.vcx
 	ProjectSection(ProjectDependencies) = postProject
 		{88829D59-BB15-443D-800F-01A6D9595FAC} = {88829D59-BB15-443D-800F-01A6D9595FAC}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRVShaderFactory", "SPIRVShaderFactory\SPIRVShaderFactory.vcxproj", "{70859C6F-CBF5-4864-B5A9-77B0FE394CCA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,12 +47,16 @@ Global
 		{8CD64B25-857B-487B-A437-C23C81546F57}.Debug|x64.Build.0 = Debug|x64
 		{8CD64B25-857B-487B-A437-C23C81546F57}.Release|x64.ActiveCfg = Release|x64
 		{8CD64B25-857B-487B-A437-C23C81546F57}.Release|x64.Build.0 = Release|x64
+		{70859C6F-CBF5-4864-B5A9-77B0FE394CCA}.Debug|x64.ActiveCfg = Debug|x64
+		{70859C6F-CBF5-4864-B5A9-77B0FE394CCA}.Debug|x64.Build.0 = Debug|x64
+		{70859C6F-CBF5-4864-B5A9-77B0FE394CCA}.Release|x64.ActiveCfg = Release|x64
+		{70859C6F-CBF5-4864-B5A9-77B0FE394CCA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		Qt5Version = $(DefaultQtVersion)
 		SolutionGuid = {97AA53BB-1317-4A1C-8070-C64496D33CDC}
+		Qt5Version = $(DefaultQtVersion)
 	EndGlobalSection
 EndGlobal
