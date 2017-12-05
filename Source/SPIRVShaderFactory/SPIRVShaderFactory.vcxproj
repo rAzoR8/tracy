@@ -14,7 +14,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{70859C6F-CBF5-4864-B5A9-77B0FE394CCA}</ProjectGuid>
     <RootNamespace>SPIRVShaderFactory</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -50,6 +50,9 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);COMPILE_SHADERFACTROY_DLL</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -61,6 +64,8 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);COMPILE_SHADERFACTROY_DLL</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -68,10 +73,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ExampleFactory.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ExampleFactory.h" />
+    <ClInclude Include="ExampleShader.h" />
     <ClInclude Include="ShaderFactory.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">
+      <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
