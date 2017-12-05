@@ -55,7 +55,6 @@ bool ShaderFactoryLoader::Load(const std::string& _sLibPath)
 		if (it != m_ShaderFactories.end())
 		{
 			it->second->Release();
-			// TODO: trigger OnReload()
 			it->second = pFactory;
 		}
 		else

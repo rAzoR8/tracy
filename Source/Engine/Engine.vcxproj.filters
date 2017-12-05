@@ -76,7 +76,7 @@
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderFactoryLoader.h">
+    <ClInclude Include="Display\Vulkan\ShaderFactoryLoader.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
   </ItemGroup>
@@ -99,6 +99,8 @@
     <ClCompile Include="Display\IDevice.cpp">
       <Filter>Display</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderFactoryLoader.cpp" />
+    <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp">
+      <Filter>Display\Vulkan\SPIRVInterop</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

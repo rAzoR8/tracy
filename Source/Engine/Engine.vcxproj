@@ -96,6 +96,7 @@
     <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
+    <ClInclude Include="Display\Vulkan\ShaderFactoryLoader.h" />
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h" />
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
     <ClInclude Include="Display\Vulkan\VulkanDevice.h" />
@@ -108,16 +109,15 @@
     <ClInclude Include="Engine.hpp" />
     <ClInclude Include="Platform\IApplication.h" />
     <ClInclude Include="Platform\Win32\Win32Application.h" />
-    <ClInclude Include="ShaderFactoryLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
     <ClCompile Include="Display\DX12\DX12Instance.cpp" />
     <ClCompile Include="Display\IDevice.cpp" />
+    <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanWindow.cpp" />
-    <ClCompile Include="ShaderFactoryLoader.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
