@@ -76,6 +76,9 @@
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderFactoryLoader.h">
+      <Filter>Display\Vulkan\SPIRVInterop</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -96,5 +99,6 @@
     <ClCompile Include="Display\IDevice.cpp">
       <Filter>Display</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderFactoryLoader.cpp" />
   </ItemGroup>
 </Project>

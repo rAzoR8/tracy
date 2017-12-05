@@ -1,13 +1,15 @@
 #ifndef TRACY_SHADERFACTORY_H
 #define TRACY_SHADERFACTORY_H
 
-#include "SPIRVModule.h"
+#include "..\SPIRVGen\SPIRVModule.h"
 
 #ifdef COMPILE_SHADERFACTROY_DLL
 #define DLLINTERFACE  __declspec(dllexport) 
 #else
 #define DLLINTERFACE  __declspec(dllimport) 
 #endif
+
+#include <boost\dll\alias.hpp>
 
 namespace Tracy
 {
@@ -58,6 +60,15 @@ namespace Tracy
 
 		virtual void Release() = 0;
 	};
+
+	using TGetFactoryRetType = std::shared_ptr<IShaderFactory>;
+
+#define GETFACTORY_ALIAS "get_shader_factory"
+//#define GETFACTORY(_namespace, _type) static TGetFactoryRetType GetShaderFactory(){ return std::make_shared<_type>();} BOOST_DLL_ALIAS(_namespace##::##_type##::##GetShaderFactory, get_shader_factory);
+	
+//#define GETFACTORY_FUNCNAME "GetShaderFactory"
+//#define GETFACTORY(_Type) TGetFactoryRetType DLLINTERFACE GetShaderFactory(){ return std::make_shared<_Type>();}
+	
 } // Tracy
 
 #endif // !TRACY_SHADERFACTORY_H

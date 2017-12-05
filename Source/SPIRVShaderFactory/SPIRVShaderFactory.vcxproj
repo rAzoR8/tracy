@@ -48,7 +48,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll\include;$(SolutionDir)boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);COMPILE_SHADERFACTROY_DLL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -62,7 +62,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll\include;$(SolutionDir)boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);COMPILE_SHADERFACTROY_DLL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>

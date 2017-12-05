@@ -15,6 +15,10 @@ namespace Tracy
 		std::string GetIdentifier() const final { return "ExampleFactory"; }
 		SPIRVModule GetModule(const ShaderID _ShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u) final;
 		void Release() final;
+
+		//GETFACTORY(Tracy, ExampleFactory);
+
+		static TGetFactoryRetType GetShaderFactory() { return std::make_shared<ExampleFactory>(); }
 	private:
 
 		SPIRVModule Compile(const ShaderID _ShaderIdentifier) const;
@@ -22,6 +26,9 @@ namespace Tracy
 	private:
 		std::unordered_map<uint64_t, SPIRVModule> m_Modules;
 	};
+
+	BOOST_DLL_ALIAS(Tracy::ExampleFactory::GetShaderFactory, get_shader_factory);
+
 } // Tracy
 
 #endif // !TRACY_EXAMPLEFACTORY_H
