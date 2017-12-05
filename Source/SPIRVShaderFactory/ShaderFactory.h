@@ -61,10 +61,10 @@ namespace Tracy
 		virtual void Release() = 0;
 	};
 
-	using TGetFactoryRetType = std::shared_ptr<IShaderFactory>;
+	using TFactoryPtr = std::shared_ptr<IShaderFactory>;
 
 #define GETFACTORY_ALIAS "get_shader_factory"
-//#define GETFACTORY(_namespace, _type) static TGetFactoryRetType GetShaderFactory(){ return std::make_shared<_type>();} BOOST_DLL_ALIAS(_namespace##::##_type##::##GetShaderFactory, get_shader_factory);
+//#define GETFACTORY(_namespace, _type) static TFactoryPtr GetShaderFactory(){ return std::make_shared<_type>();} BOOST_DLL_ALIAS(_namespace##::##_type##::##GetShaderFactory, get_shader_factory);
 	
 //#define GETFACTORY_FUNCNAME "GetShaderFactory"
 //#define GETFACTORY(_Type) TGetFactoryRetType DLLINTERFACE GetShaderFactory(){ return std::make_shared<_Type>();}

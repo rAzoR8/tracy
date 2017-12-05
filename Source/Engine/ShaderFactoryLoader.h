@@ -11,11 +11,28 @@ namespace dll = boost::dll;
 
 #include "..\SPIRVShaderFactory\ShaderFactory.h"
 #include <unordered_map>
+#include "Singleton.h"
 
 namespace Tracy
 {
-	class ShaderFactoryLoader
+	class IShaderFactoryConsumer
 	{
+	public:
+		IShaderFactoryConsumer(const std::string& _sFactoryIdentifier);
+		virtual ~IShaderFactoryConsumer();
+		// loaded or reloaded
+		virtual void OnFactoryLoaded(const TFactoryPtr& _pFactory) {}
+		virtual void OnFactoryUnloaded() {}
+
+		const std::string& GetFactoryIdentifier() const { return m_sFactoryIdentifier; }
+
+	private:
+		const std::string m_sFactoryIdentifier;
+	};
+
+	class ShaderFactoryLoader : public hlx::Singleton<ShaderFactoryLoader>
+	{
+		friend class IShaderFactoryConsumer;
 	public:
 		ShaderFactoryLoader();
 		~ShaderFactoryLoader();
@@ -23,7 +40,13 @@ namespace Tracy
 		bool Load(const std::string& _sLibPath);
 
 	private:
-		std::unordered_map<std::string, TGetFactoryRetType> m_ShaderFactories;
+		void AddConsumer(IShaderFactoryConsumer* _pConsumer);
+		void RemoveConsumer(IShaderFactoryConsumer* _pConsumer);
+
+	private:
+		std::unordered_map<std::string, TFactoryPtr> m_ShaderFactories;
+
+		std::unordered_map<std::string, IShaderFactoryConsumer*> m_FactoryConsumers;
 	};
 } // Tracy
 
