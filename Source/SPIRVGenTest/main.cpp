@@ -16,8 +16,10 @@ public:
 	{
 		SPIRVModule code = _pFactory->GetModule(0);
 		code.Save("test.spv");
+		system("spirv-dis test.spv");
+		system("spirv-val test.spv");
+		system("pause");
 	}
-
 private:
 
 };
@@ -31,16 +33,6 @@ int main(int argc, char* argv[])
 
 	pLoader->Load("SPIRVShaderFactory");
 
-	constexpr bool bAssemble = true;
-	using TProg = ExampleProg<bAssemble>;
-
-	// instruct assembler to use 0 as default set and bindings/locations are incremented from 0 (or start index)
-	//GlobalAssembler.UseDefaultBindingSetLocation();
-	//GlobalAssembler.UseDefaultSpecConstId();
-	//GlobalAssembler.UseDefaultInputAttachmentIndex();
-
-	//SPIRVModule code = GlobalAssembler.AssembleSimple<TProg>();
-
 	//_spv_begin
 	//{
 	//	var_in_t<float3_t> vertpos = "VertexPos";
@@ -49,17 +41,6 @@ int main(int argc, char* argv[])
 	//	col.rgb = vertpos;
 	//}
 	//_spv_end
-
-	//code = _spv_code;
-
-	//if constexpr(bAssemble)
-	//{
-	//	code.Save("test.spv");
-
-	//	system("spirv-dis test.spv");
-	//	system("spirv-val test.spv");
-	//	system("pause");
-	//}
 
 	return 0;
 }

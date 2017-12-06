@@ -41,7 +41,8 @@ bool ShaderFactoryLoader::Load(const std::string& _sLibPath)
 {
 	boost::filesystem::path Path(_sLibPath);
 
-	m_LoadedLibs.push_back(std::move(dll::import_alias<get_factory_func>(Path, GETFACTORY_ALIAS, dll::load_mode::append_decorations)));
+	// need to keep creator lib alive
+	m_LoadedLibs.push_back(std::move(dll::import_alias<get_factory_func>(Path, GETFACTORY_ALIASNAME, dll::load_mode::append_decorations)));
 
 	TFactoryPtr pFactory = m_LoadedLibs.back()();
 

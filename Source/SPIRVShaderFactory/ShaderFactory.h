@@ -66,8 +66,12 @@ namespace Tracy
 
 	using TFactoryPtr = IShaderFactory*;
 
-#define GETFACTORY_ALIAS "get_shader_factory"
-//#define GETFACTORY(_namespace, _type) static TFactoryPtr GetShaderFactory(){ return new _type();} BOOST_DLL_ALIAS(_namespace##::##_type##::##GetShaderFactory, get_shader_factory);
+#define GETFACTORY_ALIAS get_shader_factory
+#define GETFACTORY_ALIASNAME "get_shader_factory"
+#define GETFACTORY(_type) static TFactoryPtr GetShaderFactory(){ return new _type();}
+#define FACTORY_ALIAS(_funcname) BOOST_DLL_ALIAS(_funcname, GETFACTORY_ALIAS);
+
+//#define DLLINTERFACE ()
 } // Tracy
 
 #endif // !TRACY_SHADERFACTORY_H
