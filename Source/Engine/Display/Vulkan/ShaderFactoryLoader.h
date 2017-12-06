@@ -50,18 +50,20 @@ namespace Tracy
 		friend class IShaderFactoryConsumer;
 	public:
 		typedef TFactoryPtr(get_factory_func)();
-		using TFactoryFunc = typename dll::detail::library_function<get_factory_func>;
+		//using TFactoryFunc = typename dll::detail::library_function<get_factory_func>;
+		using TFactoryFunc = get_factory_func;
 
 		struct ShaderLib
 		{
-			ShaderLib(TFactoryFunc&& _Func, const std::wstring& _sName) : 
-				CreateFactoryFunc(std::forward<TFactoryFunc>(_Func)), sLibName(_sName) {}
+			ShaderLib() {}
+			~ShaderLib();
 
-			TFactoryFunc CreateFactoryFunc;
-			std::wstring sLibName; // for debugging
+			dll::shared_library Lib;
+			//TFactoryFunc CreateFactoryFunc;
 			TFactoryPtr pFactory = nullptr;
 			std::vector<IShaderFactoryConsumer*> Consumers;
 
+			bool Load(const std::wstring& _sName);
 			void Unload();
 		};
 
@@ -71,7 +73,7 @@ namespace Tracy
 		~ShaderFactoryLoader();
 
 		// or reload
-		bool Load(const std::wstring& _sLibPath, ShaderLib** _pLibOut = nullptr);
+		bool Load(const std::wstring& _sLibName, ShaderLib** _pLibOut = nullptr);
 
 	private:
 		void AddConsumer(IShaderFactoryConsumer* _pConsumer);

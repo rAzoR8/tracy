@@ -42,6 +42,7 @@ SPIRVModule IShaderFactoryConsumer::GetModule(const ShaderID _uShaderIdentifier,
 
 	return SPIRVModule();
 }
+//---------------------------------------------------------------------------------------------------
 #pragma endregion
 
 //---------------------------------------------------------------------------------------------------
@@ -56,7 +57,77 @@ void ShaderFactoryLoader::ShaderLib::Unload()
 
 	HSAFE_RELEASE(pFactory);
 	Consumers.clear();
+
+	//pCreateFactoryFunc.reset();
+
+	while (Lib.is_loaded())
+	{
+		Lib.unload();
+	}
 }
+//---------------------------------------------------------------------------------------------------
+
+ShaderFactoryLoader::ShaderLib::~ShaderLib()
+{
+	Unload();
+}
+//---------------------------------------------------------------------------------------------------
+bool ShaderFactoryLoader::ShaderLib::Load(const std::wstring& _sName)
+{
+	Unload();
+
+	boost::filesystem::path Path(_sName);
+
+	try
+	{
+		Lib.load(Path, dll::load_mode::append_decorations);
+
+		if (Lib.is_loaded() == false)
+			return false;
+
+		if (Lib.has(GETFACTORY_ALIASNAME) == false)
+		{
+			HERROR("%s symbol not found in %s", GETFACTORY_ALIASNAME, _sName.c_str());
+			// no such symbol
+			return false;
+		}
+
+		pFactory = Lib.get_alias<get_factory_func>(GETFACTORY_ALIASNAME)();
+
+		if(pFactory != nullptr)
+		{
+			const std::wstring sFactoryName = pFactory->GetIdentifier();
+			const uint32_t uInterFaceVersion = pFactory->GetInterfaceVersion();
+			const uint32_t uFactoryVersion = pFactory->GetFactoryVersion();
+
+			if (uInterFaceVersion != kFactoryInterfaceVersion)
+			{
+				HERROR("Invalid factory interface version %s reports %u but loaded expected %u", sFactoryName.c_str(), uInterFaceVersion, kFactoryInterfaceVersion);
+				Unload();
+				return false;
+			}
+
+			HLOG("Loaded %s::%s Version %u [Interface version %u]", _sName.c_str(), sFactoryName.c_str(), uFactoryVersion, uInterFaceVersion);
+
+			for (IShaderFactoryConsumer* pConsumer : Consumers)
+			{
+				pConsumer->FactoryLoaded(pFactory);
+			}
+		}
+		else
+		{
+			HERROR("Failed to create shader factory from library %s", _sName.c_str());
+		}
+	}
+	catch (const boost::system::system_error& e)
+	{
+		HERROR("%s: %s", _sName.c_str(), WCSTR(e.what()));
+		return false;
+	}
+
+	return pFactory != nullptr;
+}
+//---------------------------------------------------------------------------------------------------
 
 ShaderFactoryLoader::ShaderFactoryLoader()
 {
@@ -72,77 +143,31 @@ ShaderFactoryLoader::~ShaderFactoryLoader()
 }
 //---------------------------------------------------------------------------------------------------
 
-bool ShaderFactoryLoader::Load(const std::wstring& _sLibPath, ShaderLib** _pLibOut)
+bool ShaderFactoryLoader::Load(const std::wstring& _sLibName, ShaderLib** _pLibOut)
 {
-	boost::filesystem::path Path(_sLibPath);
-
-	dll::shared_library lib;
-
-	try
-	{
-		dll::shared_library loadlib(Path, dll::load_mode::append_decorations);
-		if (loadlib.has(GETFACTORY_ALIASNAME) == false)
-		{
-			HERROR("%s symbol not found in %s", GETFACTORY_ALIASNAME, _sLibPath.c_str());
-			// no such symbol
-			return false;
-		}
-
-		lib = std::move(loadlib);
-	}
-	catch (const boost::system::system_error& e)
-	{
-		HERROR("%s: %s", _sLibPath.c_str(), WCSTR(e.what()));
-		return false;
-	}
-
 	// todo: convert to short name
-	auto it = m_ShaderLibs.find(_sLibPath);
+	auto it = m_ShaderLibs.find(_sLibName);
 
 	if (it == m_ShaderLibs.end())
 	{
-		it = m_ShaderLibs.insert({ _sLibPath, ShaderLib(std::move(dll::import_alias<get_factory_func>(std::move(lib), GETFACTORY_ALIASNAME)), _sLibPath) }).first;
+		it = m_ShaderLibs.emplace(_sLibName, ShaderLib{}).first;
 	}
-	else
+
+	bool bResult = it->second.Load(_sLibName);
+
+	if (bResult)
 	{
-		it->second.Unload();
-		it->second.CreateFactoryFunc = std::move(dll::import_alias<get_factory_func>(std::move(lib), GETFACTORY_ALIASNAME));
-	}
-
-	ShaderLib& SLib = it->second;
-	SLib.pFactory = SLib.CreateFactoryFunc();
-
-	if (SLib.pFactory != nullptr)
-	{	
-		const std::wstring sName = SLib.pFactory->GetIdentifier();
-		const uint32_t uInterFaceVersion = SLib.pFactory->GetInterfaceVersion();
-		const uint32_t uFactoryVersion = SLib.pFactory->GetFactoryVersion();
-
-		if (uInterFaceVersion != kFactoryInterfaceVersion)
-		{
-			HERROR("Invalid factory interface version %s reports %u but loaded expected %u", sName.c_str(), uInterFaceVersion, kFactoryInterfaceVersion);
-			SLib.pFactory->Release();
-			return false;
-		}
-
 		if (_pLibOut != nullptr)
 		{
-			*_pLibOut = &SLib;
+			*_pLibOut = &it->second;
 		}
-		
-		for (IShaderFactoryConsumer* pConsumer : SLib.Consumers)
-		{
-			pConsumer->FactoryLoaded(SLib.pFactory);
-		}		
-
-		HLOG("Loaded %s::%s Version %u [Interface version %u]", SLib.sLibName.c_str(), sName.c_str(), uFactoryVersion, uInterFaceVersion);
 	}
 	else
 	{
-		HERROR("Failed to create shader factory from library %s", SLib.sLibName.c_str());
+		m_ShaderLibs.erase(it);
 	}
 
-	return SLib.pFactory != nullptr;
+	return bResult;
 }
 //---------------------------------------------------------------------------------------------------
 
