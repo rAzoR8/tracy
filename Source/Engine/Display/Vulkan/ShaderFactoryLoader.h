@@ -5,9 +5,11 @@
 #include <dll>
 namespace dll = std::dll;
 #else
-#include <boost\dll.hpp>
+#include <boost/dll.hpp>
 namespace dll = boost::dll;
 #endif
+
+#include <boost/function.hpp>
 
 #include "..\SPIRVShaderFactory\ShaderFactory.h"
 #include <unordered_map>
@@ -34,6 +36,9 @@ namespace Tracy
 	{
 		friend class IShaderFactoryConsumer;
 	public:
+		typedef TFactoryPtr(get_factory_func)();
+		using TFactoryFunc = typename dll::detail::library_function<get_factory_func>;
+
 		ShaderFactoryLoader();
 		~ShaderFactoryLoader();
 
@@ -45,7 +50,7 @@ namespace Tracy
 
 	private:
 		std::unordered_map<std::string, TFactoryPtr> m_ShaderFactories;
-
+		std::vector<TFactoryFunc> m_LoadedLibs;
 		std::unordered_map<std::string, IShaderFactoryConsumer*> m_FactoryConsumers;
 	};
 } // Tracy

@@ -1,4 +1,5 @@
 #include "ShaderFactoryLoader.h"
+#include "Logger.h"
 
 using namespace Tracy;
 
@@ -13,7 +14,6 @@ IShaderFactoryConsumer::IShaderFactoryConsumer(const std::string & _sFactoryIden
 IShaderFactoryConsumer::~IShaderFactoryConsumer()
 {
 	ShaderFactoryLoader::Instance()->RemoveConsumer(this);
-
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -40,20 +40,33 @@ ShaderFactoryLoader::~ShaderFactoryLoader()
 bool ShaderFactoryLoader::Load(const std::string& _sLibPath)
 {
 	boost::filesystem::path Path(_sLibPath);
-	typedef TFactoryPtr(get_factory_func)();
 
-	auto get_factory = dll::import_alias<get_factory_func>(Path, GETFACTORY_ALIAS, dll::load_mode::append_decorations);
+	m_LoadedLibs.push_back(std::move(dll::import_alias<get_factory_func>(Path, GETFACTORY_ALIAS, dll::load_mode::append_decorations)));
 
-	TFactoryPtr pFactory = get_factory();
+	TFactoryPtr pFactory = m_LoadedLibs.back()();
 
-	if (pFactory)
+	if (pFactory != nullptr)
 	{
-		std::string sName = pFactory->GetIdentifier();
+		const std::string sName = pFactory->GetIdentifier();
+		const uint32_t uVersion = pFactory->GetInterfaceVersion();
 
+		if (pFactory->GetInterfaceVersion() != kFactoryInterfaceVersion)
+		{
+			HERROR("Invalid factory interface version %s reports %u but loaded expected %u", sName.c_str(), uVersion, kFactoryInterfaceVersion);
+			pFactory->Release();
+			return false;
+		}
+		
 		auto it = m_ShaderFactories.find(sName);
+		auto fit = m_FactoryConsumers.find(sName);
 
 		if (it != m_ShaderFactories.end())
 		{
+			if (fit != m_FactoryConsumers.end())
+			{
+				fit->second->OnFactoryUnloaded();
+			}
+
 			it->second->Release();
 			it->second = pFactory;
 		}
@@ -62,7 +75,6 @@ bool ShaderFactoryLoader::Load(const std::string& _sLibPath)
 			m_ShaderFactories.insert({ sName, pFactory });
 		}
 
-		auto fit = m_FactoryConsumers.find(sName);
 		if (fit != m_FactoryConsumers.end())
 		{
 			fit->second->OnFactoryLoaded(pFactory);

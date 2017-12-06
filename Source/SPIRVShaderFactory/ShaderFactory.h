@@ -47,12 +47,15 @@ namespace Tracy
 		operator uint64_t() const { return uID; }
 	};
 
+	static constexpr uint32_t kFactoryInterfaceVersion = 1u;
+
 	class DLLINTERFACE IShaderFactory
 	{
 	public:
 		IShaderFactory() {};
 		virtual ~IShaderFactory() {};
 
+		inline uint32_t GetInterfaceVersion() const { return kFactoryInterfaceVersion; }
 		// TODO: maybe provide some info like: is threadsafe & caches modules
 
 		virtual std::string GetIdentifier() const = 0;
@@ -61,14 +64,10 @@ namespace Tracy
 		virtual void Release() = 0;
 	};
 
-	using TFactoryPtr = std::shared_ptr<IShaderFactory>;
+	using TFactoryPtr = IShaderFactory*;
 
 #define GETFACTORY_ALIAS "get_shader_factory"
-//#define GETFACTORY(_namespace, _type) static TFactoryPtr GetShaderFactory(){ return std::make_shared<_type>();} BOOST_DLL_ALIAS(_namespace##::##_type##::##GetShaderFactory, get_shader_factory);
-	
-//#define GETFACTORY_FUNCNAME "GetShaderFactory"
-//#define GETFACTORY(_Type) TGetFactoryRetType DLLINTERFACE GetShaderFactory(){ return std::make_shared<_Type>();}
-	
+//#define GETFACTORY(_namespace, _type) static TFactoryPtr GetShaderFactory(){ return new _type();} BOOST_DLL_ALIAS(_namespace##::##_type##::##GetShaderFactory, get_shader_factory);
 } // Tracy
 
 #endif // !TRACY_SHADERFACTORY_H

@@ -11,6 +11,7 @@ ExampleFactory::ExampleFactory()
 
 ExampleFactory::~ExampleFactory()
 {
+	int i = 0;
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -30,6 +31,7 @@ SPIRVModule ExampleFactory::GetModule(const ShaderID _ShaderIdentifier, const vo
 
 void ExampleFactory::Release()
 {
+	delete this;
 }
 //---------------------------------------------------------------------------------------------------
 

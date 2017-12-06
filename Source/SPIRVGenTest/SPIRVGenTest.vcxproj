@@ -51,7 +51,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MinimalRebuild>false</MinimalRebuild>
-      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NO_DEBUG_NEW;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)boost\bin\debug\</AdditionalLibraryDirectories>
@@ -68,7 +68,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(SolutionDir)glm;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NO_DEBUG_NEW;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -89,6 +89,9 @@
   <ItemGroup>
     <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">
       <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\SPIRVShaderFactory\SPIRVShaderFactory.vcxproj">
+      <Project>{70859c6f-cbf5-4864-b5a9-77b0fe394cca}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

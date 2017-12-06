@@ -18,7 +18,7 @@ namespace Tracy
 
 		//GETFACTORY(Tracy, ExampleFactory);
 
-		static TFactoryPtr GetShaderFactory() { return std::make_shared<ExampleFactory>(); }
+		static TFactoryPtr GetShaderFactory() { return new ExampleFactory(); }
 	private:
 
 		SPIRVModule Compile(const ShaderID _ShaderIdentifier) const;
