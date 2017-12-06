@@ -30,6 +30,7 @@ void IShaderFactoryConsumer::FactoryLoaded(const TFactoryPtr& _pFactory)
 void IShaderFactoryConsumer::FactoryUnloaded()
 {
 	m_pFactory = nullptr;
+	OnFactoryUnloaded();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -48,17 +49,19 @@ SPIRVModule IShaderFactoryConsumer::GetModule(const ShaderID _uShaderIdentifier,
 //---------------------------------------------------------------------------------------------------
 // FACTORY LOADER
 //---------------------------------------------------------------------------------------------------
-void ShaderFactoryLoader::ShaderLib::Unload()
+void ShaderFactoryLoader::ShaderLib::Unload(const bool _bKeepConsumers)
 {
 	for (IShaderFactoryConsumer* pConsumer : Consumers)
 	{
-		pConsumer->OnFactoryUnloaded();
+		pConsumer->FactoryUnloaded();
+	}
+
+	if (_bKeepConsumers == false)
+	{
+		Consumers.clear();
 	}
 
 	HSAFE_RELEASE(pFactory);
-	Consumers.clear();
-
-	//pCreateFactoryFunc.reset();
 
 	while (Lib.is_loaded())
 	{
@@ -69,12 +72,12 @@ void ShaderFactoryLoader::ShaderLib::Unload()
 
 ShaderFactoryLoader::ShaderLib::~ShaderLib()
 {
-	Unload();
+	Unload(false);
 }
 //---------------------------------------------------------------------------------------------------
 bool ShaderFactoryLoader::ShaderLib::Load(const std::wstring& _sName)
 {
-	Unload();
+	Unload(true);
 
 	boost::filesystem::path Path(_sName);
 
@@ -87,7 +90,7 @@ bool ShaderFactoryLoader::ShaderLib::Load(const std::wstring& _sName)
 
 		if (Lib.has(GETFACTORY_ALIASNAME) == false)
 		{
-			HERROR("%s symbol not found in %s", GETFACTORY_ALIASNAME, _sName.c_str());
+			HERROR("symbol [%s] not found in %s", GETFACTORY_ALIASNAME, _sName.c_str());
 			// no such symbol
 			return false;
 		}
@@ -103,7 +106,7 @@ bool ShaderFactoryLoader::ShaderLib::Load(const std::wstring& _sName)
 			if (uInterFaceVersion != kFactoryInterfaceVersion)
 			{
 				HERROR("Invalid factory interface version %s reports %u but loaded expected %u", sFactoryName.c_str(), uInterFaceVersion, kFactoryInterfaceVersion);
-				Unload();
+				Unload(false);
 				return false;
 			}
 
@@ -136,9 +139,9 @@ ShaderFactoryLoader::ShaderFactoryLoader()
 
 ShaderFactoryLoader::~ShaderFactoryLoader()
 {
-	for (auto& [libname, lib] : m_ShaderLibs)
+	for (auto& kv : m_ShaderLibs)
 	{	
-		lib.Unload();
+		kv.second.Unload(false);
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -168,6 +171,16 @@ bool ShaderFactoryLoader::Load(const std::wstring& _sLibName, ShaderLib** _pLibO
 	}
 
 	return bResult;
+}
+//---------------------------------------------------------------------------------------------------
+
+void ShaderFactoryLoader::Unload(const std::wstring& _sLibName, const bool _bKeepConsumers)
+{
+	auto it = m_ShaderLibs.find(_sLibName);
+	if (it != m_ShaderLibs.end())
+	{
+		it->second.Unload(_bKeepConsumers);
+	}
 }
 //---------------------------------------------------------------------------------------------------
 

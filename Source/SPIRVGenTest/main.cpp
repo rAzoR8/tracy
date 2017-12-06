@@ -1,7 +1,6 @@
 #include "ExampleProg.h"
 #include "SPIRVModule.h"
 #include "SPIRVInlineAssembler.h"
-//#include "GenerateSwizzleHeader.h"
 
 #include "..\Engine\Display\Vulkan\ShaderFactoryLoader.h"
 
@@ -19,7 +18,7 @@ public:
 		code.Save("test.spv");
 		system("spirv-dis test.spv");
 		system("spirv-val test.spv");
-		system("pause");
+		//system("pause");
 	}
 
 	void OnFactoryLoaded() final
@@ -32,24 +31,22 @@ private:
 
 int main(int argc, char* argv[])
 {
-	//GenerateSwizzleHeader();
+	//hlx::Logger::Instance()->WriteToAdditionalConsole();
 
 	auto pLoader = ShaderFactoryLoader::Instance();
 	RenderPass pass;
-	pass.PrintCode();
-	
+	pass.PrintCode();	
+
+	// enable write access to the dll
+	pLoader->Unload(pass.GetLibName(), true);
+
+	// recompile dll here
+	system("pause");
 
 	// trigger reload
 	pLoader->Load(pass.GetLibName());
 
-	//_spv_begin
-	//{
-	//	var_in_t<float3_t> vertpos = "VertexPos";
-	//	var_out_t<float4_t> col;
-
-	//	col.rgb = vertpos;
-	//}
-	//_spv_end
+	system("pause");
 
 	return 0;
 }

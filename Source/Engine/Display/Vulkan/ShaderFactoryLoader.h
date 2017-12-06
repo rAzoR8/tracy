@@ -59,12 +59,11 @@ namespace Tracy
 			~ShaderLib();
 
 			dll::shared_library Lib;
-			//TFactoryFunc CreateFactoryFunc;
 			TFactoryPtr pFactory = nullptr;
 			std::vector<IShaderFactoryConsumer*> Consumers;
 
 			bool Load(const std::wstring& _sName);
-			void Unload();
+			void Unload(const bool _bKeepConsumers);
 		};
 
 		using TLibMap = std::unordered_map<std::wstring, ShaderLib>;
@@ -74,6 +73,9 @@ namespace Tracy
 
 		// or reload
 		bool Load(const std::wstring& _sLibName, ShaderLib** _pLibOut = nullptr);
+
+		// does not remove the lib!
+		void Unload(const std::wstring& _sLibName, const bool _bKeepConsumers);
 
 	private:
 		void AddConsumer(IShaderFactoryConsumer* _pConsumer);
