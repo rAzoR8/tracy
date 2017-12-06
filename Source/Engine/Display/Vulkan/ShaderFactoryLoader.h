@@ -19,17 +19,30 @@ namespace Tracy
 {
 	class IShaderFactoryConsumer
 	{
+		friend class ShaderFactoryLoader;
 	public:
-		IShaderFactoryConsumer(const std::string& _sFactoryIdentifier);
+		IShaderFactoryConsumer(const std::wstring& _sLibName, const std::wstring& _sFactory);
 		virtual ~IShaderFactoryConsumer();
-		// loaded or reloaded
-		virtual void OnFactoryLoaded(const TFactoryPtr& _pFactory) {}
-		virtual void OnFactoryUnloaded() {}
 
-		const std::string& GetFactoryIdentifier() const { return m_sFactoryIdentifier; }
+		const std::wstring& GetFactoryName() const { return m_sFactory; }
+		const std::wstring& GetLibName() const { return m_sLib; }
 
 	private:
-		const std::string m_sFactoryIdentifier;
+		void FactoryLoaded(const TFactoryPtr& _pFactory);
+		void FactoryUnloaded();
+
+	protected:
+		// loaded or reloaded
+		virtual void OnFactoryLoaded() {}
+		virtual void OnFactoryUnloaded() {}
+
+		SPIRVModule GetModule(const ShaderID _uShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u);
+		bool HasValidFactory() const { return m_pFactory != nullptr; }
+
+	private:
+		const std::wstring m_sLib;
+		const std::wstring m_sFactory;
+		TFactoryPtr m_pFactory = nullptr;
 	};
 
 	class ShaderFactoryLoader : public hlx::Singleton<ShaderFactoryLoader>
@@ -39,19 +52,35 @@ namespace Tracy
 		typedef TFactoryPtr(get_factory_func)();
 		using TFactoryFunc = typename dll::detail::library_function<get_factory_func>;
 
+		struct ShaderLib
+		{
+			ShaderLib(TFactoryFunc&& _Func, const std::wstring& _sName) : 
+				CreateFactoryFunc(std::forward<TFactoryFunc>(_Func)), sLibName(_sName) {}
+
+			TFactoryFunc CreateFactoryFunc;
+			std::wstring sLibName; // for debugging
+			TFactoryPtr pFactory = nullptr;
+			std::vector<IShaderFactoryConsumer*> Consumers;
+
+			void Unload();
+		};
+
+		using TLibMap = std::unordered_map<std::wstring, ShaderLib>;
+
 		ShaderFactoryLoader();
 		~ShaderFactoryLoader();
 
-		bool Load(const std::string& _sLibPath);
+		// or reload
+		bool Load(const std::wstring& _sLibPath, ShaderLib** _pLibOut = nullptr);
 
 	private:
 		void AddConsumer(IShaderFactoryConsumer* _pConsumer);
 		void RemoveConsumer(IShaderFactoryConsumer* _pConsumer);
 
 	private:
-		std::unordered_map<std::string, TFactoryPtr> m_ShaderFactories;
-		std::vector<TFactoryFunc> m_LoadedLibs;
-		std::unordered_map<std::string, IShaderFactoryConsumer*> m_FactoryConsumers;
+
+		// lib name -> dll
+		TLibMap m_ShaderLibs;
 	};
 } // Tracy
 

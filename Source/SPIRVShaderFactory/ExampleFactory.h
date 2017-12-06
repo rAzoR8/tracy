@@ -12,11 +12,10 @@ namespace Tracy
 		ExampleFactory();
 		~ExampleFactory();
 
-		std::string GetIdentifier() const final { return "ExampleFactory"; }
 		SPIRVModule GetModule(const ShaderID _ShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u) final;
 		void Release() final;
 
-		GETFACTORY(ExampleFactory);
+		FACTORYINTERFACE(ExampleFactory, 2u);
 	private:
 
 		SPIRVModule Compile(const ShaderID _ShaderIdentifier) const;

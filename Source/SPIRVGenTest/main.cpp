@@ -10,15 +10,21 @@ using namespace Tracy;
 class RenderPass : public IShaderFactoryConsumer
 {
 public:
-	RenderPass() : IShaderFactoryConsumer("ExampleFactory") {};
+	RenderPass() : IShaderFactoryConsumer(L"SPIRVShaderFactory", L"ExampleFactory") {};
 	~RenderPass() {};
-	void OnFactoryLoaded(const TFactoryPtr& _pFactory) final
+
+	void PrintCode()
 	{
-		SPIRVModule code = _pFactory->GetModule(0);
+		SPIRVModule code = GetModule(0);
 		code.Save("test.spv");
 		system("spirv-dis test.spv");
 		system("spirv-val test.spv");
 		system("pause");
+	}
+
+	void OnFactoryLoaded() final
+	{
+		PrintCode();
 	}
 private:
 
@@ -30,8 +36,11 @@ int main(int argc, char* argv[])
 
 	auto pLoader = ShaderFactoryLoader::Instance();
 	RenderPass pass;
+	pass.PrintCode();
+	
 
-	pLoader->Load("SPIRVShaderFactory");
+	// trigger reload
+	pLoader->Load(pass.GetLibName());
 
 	//_spv_begin
 	//{

@@ -49,7 +49,7 @@ namespace Tracy
 			float3x4 m34;
 			float3 v3;// = { 1.f, 2.f, 3.f };
 
-			auto sp = SpecConst<float>(2.f);
+			auto sp = SpecConst<float>(666.f);
 
 			auto res = m34 * v3 * sp; // instead of using mul
 			auto k = length(res.xyz);
