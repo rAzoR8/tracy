@@ -4,7 +4,7 @@
 [string]$BoostBinReleaseDir = ($SolutionDir + "boost\bin\release\")
 [string]$BoostBinDebugDir = ($SolutionDir + "boost\bin\debug\")
 [string]$BoostInputFiles = ($SolutionDir + "boost\bin.v2\libs\")
-
+[string]$BoostDLLIncludeDir = ($SolutionDir + "boost\libs\dll\include\boost\dll\")
 
 if (!(Test-Path -path $BoostBinReleaseDir))
 {
@@ -31,3 +31,5 @@ foreach ($file in get-ChildItem -recurse -path $BoostInputFiles -include *.lib)
         }
     }
 }
+
+Copy-Item "shared_library.hpp" $BoostDLLIncludeDir
