@@ -64,6 +64,18 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
+	inline size_t LiteralCount(const size_t uSizeInBytes)
+	{
+		if (uSizeInBytes % sizeof(uint32_t) == 0)
+		{
+			return uSizeInBytes / sizeof(uint32_t);
+		}
+		else
+		{
+			return (size_t)std::ceil(uSizeInBytes / (float)sizeof(uint32_t));
+		}
+	}
+
 	inline std::vector<uint32_t> MakeLiteralString(const std::string& _sString)
 	{
 		struct chars
@@ -71,7 +83,7 @@ namespace Tracy
 			char elem[sizeof(uint32_t)];
 		};
 
-		std::vector<uint32_t> Literals((uint32_t)std::ceil(_sString.size() / (float)sizeof(uint32_t)), 0u);
+		std::vector<uint32_t> Literals(LiteralCount(_sString.size()), 0u);
 
 		uint32_t i = 0u;
 		for (const char& c : _sString)
@@ -97,7 +109,7 @@ namespace Tracy
 	inline std::vector<uint32_t> MakeLiterals(T&& _Constant, Ts&& ..._args)
 	{
 		// compute number of uint32_t chunks needed to represent the constants
-		size_t uCount = std::max<size_t>(sizeof(T) / sizeof(uint32_t), 1ull);
+		size_t uCount = std::max<size_t>(LiteralCount(sizeof(T)), 1ull);
 		std::vector<uint32_t> ConstData(uCount, 0u);
 		std::memcpy(ConstData.data(), &_Constant, sizeof(T));
 

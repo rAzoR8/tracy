@@ -1,10 +1,8 @@
-#include "TracyApp.h"
-#include <QtWidgets/QApplication>
+#include "..\Engine\Engine.hpp"
 
-int main(int argc, char *argv[])
+//using namespace Tracy;
+
+int main(int argc, char* argv[])
 {
-	QApplication a(argc, argv);
-	TracyApp w;
-	w.show();
-	return a.exec();
+	return 0;
 }

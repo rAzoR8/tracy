@@ -31,6 +31,8 @@ namespace Tracy
 
 		// Can skip return check, assert if invalid handle
 		const VulkanDevice& GetDevice(const THandle _hDevice) const;
+		VulkanDevice& GetDevice(const THandle _hDevice);
+
 		const VulkanWindow& GetWindow(const THandle _hWindow) const;
 
 #if defined(_WIN32) || defined(WIN32)

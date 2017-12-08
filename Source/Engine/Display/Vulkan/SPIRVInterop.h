@@ -153,7 +153,7 @@ namespace Tracy
 		template <class T>
 		struct Constant
 		{
-			friend class SpecConstFactory;
+			friend struct SpecConstFactory;
 
 			Constant& operator=(const T& _Value)
 			{
@@ -164,7 +164,7 @@ namespace Tracy
 				}
 			}
 
-			const T& operator T() { return Value; }
+			operator T() { return Value; }
 		private:
 
 			Constant(SpecConstFactory& _Parent) : Value(_Value), Parent(_Parent) {}
@@ -219,7 +219,7 @@ namespace Tracy
 		uint64_t ComputeHash() const
 		{
 			uint64_t uHash = hlx::CRC32(m_Data.data(), m_Data.size());
-			uHash |= (hlx::CRC32(m_Entries.data(), m_Entries.size() * sizeof(vk::SpecializationMapEntry)) << 32);
+			AccessUnionElement<uint64_t, uint32_t>(uHash, 1) = hlx::CRC32(m_Entries.data(), m_Entries.size() * sizeof(vk::SpecializationMapEntry));
 			return uHash;
 		}
 
@@ -240,7 +240,7 @@ namespace Tracy
 		template <class T>
 		struct Constant
 		{
-			friend class PushConstantFactory;
+			friend struct PushConstantFactory;
 
 			Constant& operator=(const T& _Value)
 			{
@@ -251,7 +251,7 @@ namespace Tracy
 				}
 			}
 
-			const T& operator T() { return Value; }
+			operator T() { return Value; }
 		private:
 
 			Constant(PushConstantFactory& _Parent, T& _Value , const uint32_t _uOffset) :
@@ -336,7 +336,8 @@ namespace Tracy
 	template <class Selector, class Element>
 	inline Element Select(const Selector _kSelector, const std::initializer_list<Selector>& _Selectors, const std::initializer_list<Element>& _Elements)
 	{
-		for (auto sit = _Selectors.begin(), auto eit = _Elements.begin(); sit != _Selectors.end(); ++sit, ++eit)
+		std::initializer_list<Element>::const_iterator eit = _Elements.begin();
+		for (auto sit = _Selectors.begin(); sit != _Selectors.end(); ++sit, ++eit)
 		{
 			if (*sit == _kSelector)
 				return *eit;
@@ -441,7 +442,7 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	vk::ShaderModuleCreateInfo GetShaderModuleInfo(const SPIRVModule& _Module)
+	inline vk::ShaderModuleCreateInfo GetShaderModuleInfo(const SPIRVModule& _Module)
 	{
 		vk::ShaderModuleCreateInfo Info{};
 		Info.codeSize = static_cast<uint32_t>(_Module.GetCode().size());
@@ -449,7 +450,7 @@ namespace Tracy
 		return Info;
 	}
 
-	vk::ShaderModule CreateShaderModule(vk::Device _hDevice, const SPIRVModule& _Module, vk::AllocationCallbacks* _pAllocCallbacks = nullptr)
+	inline vk::ShaderModule CreateShaderModule(vk::Device _hDevice, const SPIRVModule& _Module, vk::AllocationCallbacks* _pAllocCallbacks = nullptr)
 	{
 		vk::ShaderModuleCreateInfo Info(GetShaderModuleInfo(_Module));
 		vk::ShaderModule vkModule{};

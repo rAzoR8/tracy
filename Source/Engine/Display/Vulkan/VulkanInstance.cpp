@@ -95,8 +95,16 @@ const VulkanDevice& VulkanInstance::GetDevice(const THandle _hDevice) const
 	return DeviceIt->second;
 }
 
+VulkanDevice& VulkanInstance::GetDevice(const THandle _hDevice)
+{
+	const auto& DeviceIt = m_Devices.find(_hDevice);
+	HASSERT(DeviceIt != m_Devices.end(), "Invalid device handle: %d", _hDevice);
+
+	return DeviceIt->second;
+}
+
 //---------------------------------------------------------------------------------------------------
-const VulkanWindow& Tracy::VulkanInstance::GetWindow(const THandle _hWindow) const
+const VulkanWindow& VulkanInstance::GetWindow(const THandle _hWindow) const
 {
 	const auto& WindowIt = m_Windows.find(_hWindow);
 	HASSERT(WindowIt != m_Windows.end(), "Invalid window handle: %d", _hWindow);
@@ -106,7 +114,7 @@ const VulkanWindow& Tracy::VulkanInstance::GetWindow(const THandle _hWindow) con
 
 //---------------------------------------------------------------------------------------------------
 #if defined(_WIN32) || defined(WIN32)
-const THandle Tracy::VulkanInstance::MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance)
+const THandle VulkanInstance::MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance)
 {
 	THandle ResultHandle = kUndefinedSizeT;
 
@@ -126,7 +134,7 @@ const THandle Tracy::VulkanInstance::MakeWindow(const THandle _hPresentDeviceHan
 }
 
 //---------------------------------------------------------------------------------------------------
-void Tracy::VulkanInstance::Destroy(vk::SurfaceKHR& _Surface) const
+void VulkanInstance::Destroy(vk::SurfaceKHR& _Surface) const
 {
 	if (_Surface)
 	{
@@ -136,7 +144,7 @@ void Tracy::VulkanInstance::Destroy(vk::SurfaceKHR& _Surface) const
 }
 
 //---------------------------------------------------------------------------------------------------
-void Tracy::VulkanInstance::Destroy(vk::SwapchainKHR& _Swapchain, const THandle _hDevice) const
+void VulkanInstance::Destroy(vk::SwapchainKHR& _Swapchain, const THandle _hDevice) const
 {
 	if (_Swapchain)
 	{
@@ -146,8 +154,8 @@ void Tracy::VulkanInstance::Destroy(vk::SwapchainKHR& _Swapchain, const THandle 
 		_Swapchain = nullptr;
 	}
 }
-
-void Tracy::VulkanInstance::Destroy(vk::ImageView& _View, const THandle _hDevice) const
+//---------------------------------------------------------------------------------------------------
+void VulkanInstance::Destroy(vk::ImageView& _View, const THandle _hDevice) const
 {
 	if (_View)
 	{
