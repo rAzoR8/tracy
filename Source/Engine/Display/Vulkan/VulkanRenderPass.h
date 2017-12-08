@@ -17,8 +17,18 @@ namespace Tracy
 
 		void CreatePipeline();
 
+		void LoadPipelineCache(const std::wstring& _sPath);
+		void StorePipelineCache(const std::wstring& _sPath);
+
 	private:
 		const std::wstring m_sPassName;
+		bool m_bStorePipelines = true;
+
+		// identifies the current pipeline
+		size_t m_uPipelineHash = kUndefinedSizeT;
+		vk::Pipeline m_ActivePipeline = nullptr;
+
+		vk::PipelineCache m_PipelineCache = nullptr;
 	};
 
 } // Tracy

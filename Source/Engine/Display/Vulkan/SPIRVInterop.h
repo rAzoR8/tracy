@@ -10,6 +10,7 @@
 #include "Logger.h"
 #include "ByteStream.h"
 #include "CRC32.h"
+#include "HashUtils.h"
 
 namespace Tracy
 {
@@ -433,6 +434,27 @@ namespace Tracy
 			Layout.pVertexBindingDescriptions = m_Bindings.data();
 
 			return Layout;
+		}
+
+		inline size_t ComputeHash() const
+		{
+			size_t uHash = 0u;
+			for (const auto& Binding : m_Bindings)
+			{
+				uHash = hlx::AddHash(uHash, Binding.binding);
+				uHash = hlx::AddHash(uHash, Binding.inputRate);
+				uHash = hlx::AddHash(uHash, Binding.stride);
+			}
+
+			for (const auto& Attribute : m_Attributes)
+			{
+				uHash = hlx::AddHash(uHash, Attribute.binding);
+				uHash = hlx::AddHash(uHash, Attribute.format);
+				uHash = hlx::AddHash(uHash, Attribute.offset);
+				uHash = hlx::AddHash(uHash, Attribute.location);
+			}
+
+			return uHash;
 		}
 
 	private:

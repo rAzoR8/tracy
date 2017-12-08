@@ -59,6 +59,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)hlx\src;$(SolutionDir)glm;$(VULKAN_SDK)\Include;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -79,6 +80,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)hlx\src;$(SolutionDir)glm;$(VULKAN_SDK)\Include;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

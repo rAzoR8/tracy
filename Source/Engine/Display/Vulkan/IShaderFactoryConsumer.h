@@ -53,7 +53,6 @@ namespace Tracy
 		void DeactivateStage(const EShaderType _kType);
 
 	private:
-		VulkanDevice& m_Device;
 		const std::wstring m_sLib;
 		const std::wstring m_sFactory;
 		TFactoryPtr m_pFactory = nullptr;
@@ -64,6 +63,7 @@ namespace Tracy
 		std::unordered_map<uint64_t, CompiledShader> m_ShaderModules;
 
 	protected:
+		VulkanDevice& m_Device;
 		std::array<CompiledShader*, kShaderType_NumOf> m_ActiveShaders;
 	};
 	//---------------------------------------------------------------------------------------------------
