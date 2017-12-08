@@ -85,6 +85,9 @@
     <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanRenderPass.h">
+      <Filter>Display\Vulkan\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -111,5 +114,6 @@
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanRenderPass.cpp" />
   </ItemGroup>
 </Project>

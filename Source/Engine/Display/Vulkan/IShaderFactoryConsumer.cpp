@@ -23,6 +23,9 @@ IShaderFactoryConsumer::~IShaderFactoryConsumer()
 
 void IShaderFactoryConsumer::FactoryLoaded(const TFactoryPtr& _pFactory)
 {
+	m_ActiveShaders.fill(nullptr);
+	m_ShaderModules.clear();
+
 	m_pFactory = _pFactory;
 	OnFactoryLoaded();
 }
@@ -30,16 +33,11 @@ void IShaderFactoryConsumer::FactoryLoaded(const TFactoryPtr& _pFactory)
 
 void IShaderFactoryConsumer::FactoryUnloaded()
 {
+	m_ActiveShaders.fill(nullptr);
+	m_ShaderModules.clear();
 	m_pFactory = nullptr;
+
 	OnFactoryUnloaded();
-}
-//---------------------------------------------------------------------------------------------------
-
-SPIRVModule IShaderFactoryConsumer::GetModule(const ShaderID _uShaderIdentifier, const void * _pUserData, const size_t _uSize)
-{
-
-
-	return SPIRVModule();
 }
 
 //---------------------------------------------------------------------------------------------------

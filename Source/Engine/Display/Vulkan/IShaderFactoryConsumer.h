@@ -47,7 +47,6 @@ namespace Tracy
 		virtual void OnFactoryLoaded() {}
 		virtual void OnFactoryUnloaded() {}
 
-		SPIRVModule GetModule(const ShaderID _uShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u);
 		bool HasValidFactory() const { return m_pFactory != nullptr; }
 
 		void SelectShader(const ShaderID _uShaderIdentifier, const SpecConstFactory* _pSpecConstFactory = nullptr, const void* _pUserData = nullptr, const size_t _uSize = 0u);
@@ -61,10 +60,11 @@ namespace Tracy
 
 		THashFunc m_ShaderHasher = DefaultShaderHash;
 
-		std::array<CompiledShader*, kShaderType_NumOf> m_ActiveShaders;
-
 		// hash -> module
 		std::unordered_map<uint64_t, CompiledShader> m_ShaderModules;
+
+	protected:
+		std::array<CompiledShader*, kShaderType_NumOf> m_ActiveShaders;
 	};
 	//---------------------------------------------------------------------------------------------------
 
