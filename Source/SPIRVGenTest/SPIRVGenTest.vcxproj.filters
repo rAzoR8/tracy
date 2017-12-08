@@ -21,15 +21,9 @@
     <ClInclude Include="GenerateSwizzleHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Engine\Display\Vulkan\ShaderFactoryLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Engine\Display\Vulkan\ShaderFactoryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -22,6 +22,9 @@
     <Filter Include="Display\Vulkan\SPIRVInterop">
       <UniqueIdentifier>{08bfe04c-a25b-433a-8f62-a0b740b9d1c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Display\Vulkan\RenderPass">
+      <UniqueIdentifier>{3d3f6b65-a7da-4c58-ab0b-8b627ba3005c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
@@ -79,6 +82,9 @@
     <ClInclude Include="Display\Vulkan\ShaderFactoryLoader.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h">
+      <Filter>Display\Vulkan\SPIRVInterop</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -100,6 +106,9 @@
       <Filter>Display</Filter>
     </ClCompile>
     <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp">
+      <Filter>Display\Vulkan\SPIRVInterop</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClCompile>
   </ItemGroup>

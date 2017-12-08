@@ -96,6 +96,7 @@
     <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
+    <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h" />
     <ClInclude Include="Display\Vulkan\ShaderFactoryLoader.h" />
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h" />
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
@@ -114,6 +115,7 @@
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
     <ClCompile Include="Display\DX12\DX12Instance.cpp" />
     <ClCompile Include="Display\IDevice.cpp" />
+    <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp" />
     <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />

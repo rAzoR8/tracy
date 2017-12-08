@@ -1,12 +1,15 @@
 #ifndef TRACY_SPIRVINTEROP_H
 #define TRACY_SPIRVINTEROP_H
 
-// TODO: use <vulkan/vulkan.hpp> instead to be independant of our vulkan implementation
 // maybe move this file to the SPIRVProject
-#include "VulkanAPI.h"
+#ifndef DONT_INCLUDE_VULKAN_HEADER
+#include <vulkan/vulkan.hpp>
+#endif
+
 #include "../../SPIRVGen/SPIRVModule.h"
 #include "Logger.h"
 #include "ByteStream.h"
+#include "CRC32.h"
 
 namespace Tracy
 {
@@ -212,6 +215,13 @@ namespace Tracy
 		}
 
 		const bool HasChanged() const { m_bChanged; }
+
+		uint64_t ComputeHash() const
+		{
+			uint64_t uHash = hlx::CRC32(m_Data.data(), m_Data.size());
+			uHash |= (hlx::CRC32(m_Entries.data(), m_Entries.size() * sizeof(vk::SpecializationMapEntry)) << 32);
+			return uHash;
+		}
 
 	private:
 		void SetChangedFlag() { m_bChanged = true; }

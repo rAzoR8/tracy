@@ -11,46 +11,17 @@ namespace dll = boost::dll;
 
 #include <boost/function.hpp>
 
-#include "..\SPIRVShaderFactory\ShaderFactory.h"
+#include "IShaderFactoryConsumer.h"
 #include <unordered_map>
 #include "Singleton.h"
 
 namespace Tracy
 {
-	class IShaderFactoryConsumer
-	{
-		friend class ShaderFactoryLoader;
-	public:
-		IShaderFactoryConsumer(const std::wstring& _sLibName, const std::wstring& _sFactory);
-		virtual ~IShaderFactoryConsumer();
-
-		const std::wstring& GetFactoryName() const { return m_sFactory; }
-		const std::wstring& GetLibName() const { return m_sLib; }
-
-	private:
-		void FactoryLoaded(const TFactoryPtr& _pFactory);
-		void FactoryUnloaded();
-
-	protected:
-		// loaded or reloaded
-		virtual void OnFactoryLoaded() {}
-		virtual void OnFactoryUnloaded() {}
-
-		SPIRVModule GetModule(const ShaderID _uShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u);
-		bool HasValidFactory() const { return m_pFactory != nullptr; }
-
-	private:
-		const std::wstring m_sLib;
-		const std::wstring m_sFactory;
-		TFactoryPtr m_pFactory = nullptr;
-	};
-
 	class ShaderFactoryLoader : public hlx::Singleton<ShaderFactoryLoader>
 	{
 		friend class IShaderFactoryConsumer;
 	public:
 		typedef TFactoryPtr(get_factory_func)();
-		//using TFactoryFunc = typename dll::detail::library_function<get_factory_func>;
 		using TFactoryFunc = get_factory_func;
 
 		struct ShaderLib
