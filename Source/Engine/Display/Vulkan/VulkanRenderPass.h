@@ -15,7 +15,8 @@ namespace Tracy
 		void OnFactoryLoaded() final {}
 		void OnFactoryUnloaded() final {}
 
-		void CreatePipeline();
+		// called before draw or after shader has been selected
+		bool ActivatePipeline();
 
 		void LoadPipelineCache(const std::wstring& _sPath);
 		void StorePipelineCache(const std::wstring& _sPath);
@@ -27,6 +28,9 @@ namespace Tracy
 		// identifies the current pipeline
 		size_t m_uPipelineHash = kUndefinedSizeT;
 		vk::Pipeline m_ActivePipeline = nullptr;
+
+		// pipeline description hash -> pipeline
+		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
 
 		vk::PipelineCache m_PipelineCache = nullptr;
 	};

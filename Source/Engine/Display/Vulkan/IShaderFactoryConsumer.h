@@ -52,6 +52,8 @@ namespace Tracy
 		void SelectShader(const ShaderID _uShaderIdentifier, const SpecConstFactory* _pSpecConstFactory = nullptr, const void* _pUserData = nullptr, const size_t _uSize = 0u);
 		void DeactivateStage(const EShaderType _kType);
 
+		const vk::Device& VKDevice() const;
+
 	private:
 		const std::wstring m_sLib;
 		const std::wstring m_sFactory;
@@ -72,6 +74,11 @@ namespace Tracy
 	inline void IShaderFactoryConsumer::SetShaderHashFunction(const TFunc& _Func)
 	{
 		m_ShaderHasher = _Func;
+	}
+
+	inline const vk::Device& IShaderFactoryConsumer::VKDevice() const
+	{
+		return m_Device.GetDevice();
 	}
 } // Tracy
 

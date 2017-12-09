@@ -9,19 +9,28 @@ VulkanRenderPass::VulkanRenderPass(const std::wstring& _sPassName, const std::ws
 	IShaderFactoryConsumer(_sLibName, _sFactory, _hDevice),
 	m_sPassName(_sPassName)
 {
-	LoadPipelineCache(m_sPassName + L"pipeline.cache");
+	LoadPipelineCache(m_sPassName + L"_pipeline.cache");
 }
 //---------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::~VulkanRenderPass()
 {
-	StorePipelineCache(m_sPassName + L"pipeline.cache");
+	StorePipelineCache(m_sPassName + L"_pipeline.cache");
+
+	for (auto& kv : m_Pipelines)
+	{
+		VKDevice().destroyPipeline(kv.second);
+	}
+
+	m_Pipelines.clear();
+
+	VKDevice().destroyPipelineCache(m_PipelineCache);
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderPass::CreatePipeline()
+bool VulkanRenderPass::ActivatePipeline()
 {
-	size_t uHash = kUndefinedSizeT;
+	size_t uHash = 0u; // needs to differ from kUndefinedSizeT
 
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
 
@@ -53,15 +62,40 @@ void VulkanRenderPass::CreatePipeline()
 	}
 
 	// ...
+	// TODO: fill out the other stuff
 
 	if (uHash != m_uPipelineHash)
 	{
-		// TODO: lookup in map or create new pipeline
+		auto it = m_Pipelines.find(uHash);
 
-		//m_Device.GetDevice().createGraphicsPipelines()
+		if (it != m_Pipelines.end())
+		{
+			m_ActivePipeline = it->second;
+		}
+		else
+		{
+			vk::Pipeline NewPipeline;
+			if (LogVKErrorBool(VKDevice().createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline)) == false)
+			{
+				return false;
+			}
+
+			m_ActivePipeline = NewPipeline;
+
+			m_Pipelines.insert({ uHash, NewPipeline });
+		}
 
 		m_uPipelineHash = uHash;
 	}
+
+	if (m_ActivePipeline)
+	{
+		// TODO: activate pipeline at commandbuffer
+
+		return true;
+	}
+
+	return false;
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -80,7 +114,9 @@ void VulkanRenderPass::LoadPipelineCache(const std::wstring& _sPath)
 		Info.initialDataSize = buffer.size();
 		Info.pInitialData = buffer.data();
 
-		LogVKError(m_Device.GetDevice().createPipelineCache(&Info, nullptr, &m_PipelineCache));
+		LogVKError(VKDevice().createPipelineCache(&Info, nullptr, &m_PipelineCache));
+
+		stream.close();
 	}
 	else
 	{
@@ -98,17 +134,21 @@ void VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 		if (stream.is_open())
 		{
 			size_t uSize = 0u;
-			if (LogVKErrorBool(m_Device.GetDevice().getPipelineCacheData(m_PipelineCache, &uSize, nullptr)) && uSize > 0)
+			if (LogVKErrorBool(VKDevice().getPipelineCacheData(m_PipelineCache, &uSize, nullptr)) && uSize > 0)
 			{
 				hlx::bytes buffer(uSize);
 
-				if (LogVKErrorBool(m_Device.GetDevice().getPipelineCacheData(m_PipelineCache, &uSize, &buffer.front())))
+				if (LogVKErrorBool(VKDevice().getPipelineCacheData(m_PipelineCache, &uSize, &buffer.front())))
 				{
 					stream.put(buffer);
 				}
 			}
 
 			stream.close();
+		}
+		else
+		{
+			HERROR("Failed to open file %s", _sPath.c_str());
 		}
 	}
 }
