@@ -95,22 +95,9 @@ namespace Tracy
 		vk::DescriptorSetLayoutCreateInfo Info{};
 		std::vector<vk::DescriptorSetLayoutBinding> Bindings;
 		
-		// todo: use hash of variables and stage flags to avoid creating an existing layouts
-
 		for (const VariableInfo& Var : _SetVars)
-		{
-			switch (Var.kStorageClass)
-			{
-			case spv::StorageClassInput:
-			case spv::StorageClassOutput:
-			case spv::StorageClassMax:
-				continue; // skip non resource classes (incomplete list)
-			default:
-				break;
-			}
-
-			Bindings.emplace_back();
-			vk::DescriptorSetLayoutBinding& Binding = Bindings.back();
+		{						
+			vk::DescriptorSetLayoutBinding& Binding = Bindings.emplace_back();
 			Binding.stageFlags = _kStageFlags;
 			CreateDescriptorSetLayoutBinding(Binding, Var);
 		}
@@ -122,21 +109,55 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
+	// returns hash (pImmutableSamplers excluded)
+	inline size_t CreateDescriptorSetLayoutBindings(const std::vector<VariableInfo>& _SetVars, std::vector<vk::DescriptorSetLayoutBinding>& _OutBindings, const vk::ShaderStageFlags _kStageFlags = vk::ShaderStageFlagBits::eAll)
+	{
+		size_t uHash = 0u;
+		for (const VariableInfo& Var : _SetVars)
+		{
+			vk::DescriptorSetLayoutBinding& Binding = _OutBindings.emplace_back();
+			Binding.stageFlags = _kStageFlags;
+			CreateDescriptorSetLayoutBinding(Binding, Var);
+
+			uHash = hlx::AddHash(uHash, Binding.binding);
+			uHash = hlx::AddHash(uHash, Binding.descriptorCount);
+			uHash = hlx::AddHash(uHash, Binding.descriptorType);
+			uHash = hlx::AddHash(uHash, Binding.stageFlags);
+		}
+
+		return uHash;
+	}
+	//---------------------------------------------------------------------------------------------------
+
 	constexpr size_t uMaxDescriptorSets = 16u; // Per layout
 	inline std::vector<vk::DescriptorSetLayout> CreateDescriptorSetLayouts(const SPIRVModule& _Module, const vk::ShaderStageFlags _kStageFlags, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators = nullptr)
 	{
 		using TVarSet = std::vector<VariableInfo>;
 		std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
 
+		uint32_t uMaxSet = 0u;
 		for (const VariableInfo& Var : _Module.GetVariables())
 		{
+			switch (Var.kStorageClass)
+			{
+			case spv::StorageClassUniform:
+			case spv::StorageClassUniformConstant:
+			case spv::StorageClassImage:
+			case spv::StorageClassStorageBuffer:
+				break;
+			default:
+				continue; // skip non resource classes (incomplete list)
+			}
+
 			HASSERT(Var.uDescriptorSet < uMaxDescriptorSets, "Invalid descriptor set index");
 			DescriptorSets[Var.uDescriptorSet].push_back(Var);
+			uMaxSet = std::max(uMaxSet, Var.uDescriptorSet);
 		}
 
 		std::vector<vk::DescriptorSetLayout> Layouts;
 		for (const TVarSet& Set : DescriptorSets)
 		{
+			// TODO: need to put null layouts in between valid ones?
 			if (Set.empty() == false)
 			{
 				Layouts.push_back(CreateDescriptorSetLayout(Set, _kStageFlags, _hDevice, _pAllocators));
