@@ -34,7 +34,7 @@ namespace Tracy
 		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType = vk::QueueFlagBits::eGraphics) const;
 		
 		// Textures
-		const THandle CreateRenderTarget(const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat);
+		const THandle CreateRenderTarget(const TextureDesc& _Desc);
 
 		explicit operator bool() const
 		{

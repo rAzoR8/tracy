@@ -182,17 +182,17 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 	return false;
 }
 
-const THandle Tracy::VulkanDevice::CreateRenderTarget(const uint32_t _uWidth, const uint32_t _uHeight, const vk::Format _kFormat)
+const THandle Tracy::VulkanDevice::CreateRenderTarget(const TextureDesc& _Desc)
 {
-	m_RenderTargets.insert({ m_hNextRenderTarget,{} });
+	m_RenderTargets.insert({ m_hNextRenderTarget, {} });
 
 	VulkanRenderTexture& Texture = m_RenderTargets[m_hNextRenderTarget];
 	Texture.m_hHandle = m_hNextRenderTarget++;
 
 	vk::ImageCreateInfo Info{};
-	Info.extent = vk::Extent3D(_uWidth, _uHeight, 1u);
+	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, 1u);
 	Info.imageType = vk::ImageType::e2D;
-	Info.format = _kFormat;
+	Info.format = _Desc.kFormat;
 	Info.mipLevels = 1u;
 	Info.arrayLayers = 1u;
 	Info.usage = vk::ImageUsageFlagBits::eColorAttachment;

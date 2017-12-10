@@ -7,16 +7,15 @@
 
 namespace Tracy
 {
-	enum ETextureUsage
+	enum ETextureUsage : uint32_t
 	{
-		kTextureUsage_None = 0,
-		kTextureUsage_RenderTarget,
-		kTextureUsage_DepthStencil,
-		kTextureUsage_ShaderRead,
-		kTextureUsage_ShaderStore,
-		kTextureUsage_CopyTarget,
-		kTextureUsage_CopySource,
-		kTextureUsage_NumOf
+		kTextureUsage_None			= 0u,
+		kTextureUsage_RenderTarget	= (1 << 0),		// RTV
+		kTextureUsage_DepthStencil	= (1 << 1),		// DSV
+		kTextureUsage_ShaderRead	= (1 << 2),		// SRV
+		kTextureUsage_ShaderStore	= (1 << 3),		// UAV
+		kTextureUsage_CopyTarget	= (1 << 4),		// BLIT_DST
+		kTextureUsage_CopySource	= (1 << 5),		// BLIT_SRC
 	};
 
 	struct TextureDesc
@@ -26,6 +25,7 @@ namespace Tracy
 		uint32_t uDepth = 0u;
 		vk::Format kFormat = vk::Format::eUndefined;	// Ideally should be abstracted and mapped to agnostic type
 		bool bMappable = false;
+		std::string sName = "NewTexture";
 	};
 
 	// Textures are created by the device that acts as factory
