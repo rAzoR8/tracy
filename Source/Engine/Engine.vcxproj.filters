@@ -99,5 +99,8 @@
     <ClCompile Include="Display\Vulkan\VulkanMemoryAllocator.cpp">
       <Filter>Display\Vulkan\Memory</Filter>
     </ClCompile>
+    <ClCompile Include="Platform\Win32\Win32Application.cpp">
+      <Filter>Platform\Win32</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -9,3 +9,4 @@ Source/SPIRVGen/x64/
 Source/SPIRVGenTest/x64/
 *.spv
 /Source/Engine/x64/
+/Source/Engine/x64/

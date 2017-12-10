@@ -24,6 +24,8 @@ namespace Tracy
 		uint32_t uWidth = 0u;
 		uint32_t uHeight = 0u;
 		uint32_t uDepth = 0u;
+		vk::Format kFormat = vk::Format::eUndefined;	// Ideally should be abstracted and mapped to agnostic type
+		bool bMappable = false;
 	};
 
 	// Textures are created by the device that acts as factory
