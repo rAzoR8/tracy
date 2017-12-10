@@ -6,7 +6,7 @@
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
 #include <unordered_map>
-#include <future>
+#include "Async\AsyncTask.h"
 #include <mutex>
 
 namespace Tracy
@@ -19,42 +19,7 @@ namespace Tracy
 
 	public:
 		explicit VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle);
-		~VulkanDevice();
-
-		struct AsyncTask
-		{
-			template <class Func>
-			inline AsyncTask(std::mutex& _Mutex, Func&& _Func)
-			{
-				m_Future = std::async(std::launch::async, [&]()->vk::Result
-				{
-					std::lock_guard<std::mutex> lock(_Mutex);					
-					vk::Result kRes = _Func();
-					return kRes;
-				});
-			}
-
-			inline AsyncTask(AsyncTask&& _Other) : m_Future(std::move(_Other.m_Future)), m_kResult(_Other.m_kResult) {}
-
-			inline void Wait() { if (m_Future.valid()) { m_kResult = m_Future.get(); } }
-			inline ~AsyncTask() { Wait(); }
-			inline operator vk::Result() { Wait();  return m_kResult; }
-
-		private:
-			vk::Result m_kResult = vk::Result::eSuccess;
-			std::future<vk::Result> m_Future;
-		};
-
-		template <class ...Args>
-		inline static void WaitForAsyncTasks(AsyncTask& _Task, Args&& ... _Args)
-		{
-			_Task.Wait();
-
-			if constexpr(sizeof...(_Args) > 0)
-			{
-				WaitForAsyncTasks(std::forward<Args>(_Args)...);
-			}
-		}
+		~VulkanDevice();		
 
 		const vk::PhysicalDeviceProperties& GetProperties() const;
 		const vk::PhysicalDeviceMemoryProperties& GetMemoryProperties() const;
@@ -76,26 +41,20 @@ namespace Tracy
 		// DEVICE CALLS
 
 		// explicit
-		//inline AsyncTask createGraphicsPipelines(vk::PipelineCache pipelineCache, uint32_t createInfoCount, const vk::GraphicsPipelineCreateInfo* pCreateInfos, const vk::AllocationCallbacks* pAllocator, vk::Pipeline* pPipelines)
+		//inline AsyncTask<vk::Result> createGraphicsPipelines(vk::PipelineCache pipelineCache, uint32_t createInfoCount, const vk::GraphicsPipelineCreateInfo* pCreateInfos, const vk::AllocationCallbacks* pAllocator, vk::Pipeline* pPipelines)
 		//{
-		//	return AsyncTask(m_Mutex, [&]() /*-> vk::Result */{return m_Device.createGraphicsPipelines(pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines); });
+		//	return [&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device.createGraphicsPipelines(pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines); };
 		//}
 
+		// any overload
 #ifndef DeviceFunc
 #define DeviceFunc(_funcName) \
 		template <class ...Args> \
-		inline AsyncTask _funcName(Args&& ... _Args) { return AsyncTask(m_Mutex, [&]() {return m_Device._funcName(std::forward<Args>(_Args)...); }); }
+		inline auto _funcName(Args&& ... _Args) { return make_task([&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device._funcName(std::forward<Args>(_Args)...); }); }
 #endif
 
-#ifndef DeviceFuncVoid
-#define DeviceFuncVoid(_funcName) \
-		template <class ...Args> \
-		inline AsyncTask _funcName(Args&& ... _Args) { return AsyncTask(m_Mutex, [&]() { m_Device._funcName(std::forward<Args>(_Args)...); return vk::Result::eSuccess;}); }
-#endif
-		
-		// any overload
 		DeviceFunc(createGraphicsPipelines)
-		DeviceFuncVoid(destroyPipeline)
+		DeviceFunc(destroyPipeline)
 
 	private:
 		void Create();

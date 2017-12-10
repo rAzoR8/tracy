@@ -123,11 +123,11 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 		{
 			vk::Pipeline NewPipeline;
 
-			m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline);
-			//if (LogVKErrorBool(VKDevice().createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline)) == false)
-			//{
-			//	return false;
-			//}
+			//m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline);
+			if (LogVKErrorBool(m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline)) == false)
+			{
+				return false;
+			}
 
 			m_ActivePipeline = NewPipeline;
 

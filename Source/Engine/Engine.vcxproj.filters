@@ -25,6 +25,9 @@
     <Filter Include="Display\Vulkan\RenderPass">
       <UniqueIdentifier>{3d3f6b65-a7da-4c58-ab0b-8b627ba3005c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Async">
+      <UniqueIdentifier>{508c06d5-265e-4eb5-b8f4-9155abf38367}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
@@ -87,6 +90,9 @@
     </ClInclude>
     <ClInclude Include="Display\Vulkan\VulkanRenderPass.h">
       <Filter>Display\Vulkan\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="Async\AsyncTask.h">
+      <Filter>Async</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
