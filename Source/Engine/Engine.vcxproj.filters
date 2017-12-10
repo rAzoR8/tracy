@@ -120,6 +120,8 @@
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClCompile>
-    <ClCompile Include="Display\Vulkan\VulkanRenderPass.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanRenderPass.cpp">
+      <Filter>Display\Vulkan\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

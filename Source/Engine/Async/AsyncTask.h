@@ -25,7 +25,7 @@ namespace Tracy
 			m_Result = std::move(_Other.m_Result);
 		}
 
-		inline TReplacementT Wait()
+		inline TReplacementT& Wait()
 		{
 			if (m_Future.valid())
 			{
