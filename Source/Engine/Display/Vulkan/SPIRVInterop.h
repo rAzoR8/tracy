@@ -122,7 +122,7 @@ namespace Tracy
 			uHash = hlx::AddHash(uHash, Binding.binding);
 			uHash = hlx::AddHash(uHash, Binding.descriptorCount);
 			uHash = hlx::AddHash(uHash, Binding.descriptorType);
-			uHash = hlx::AddHash(uHash, Binding.stageFlags);
+			uHash = hlx::AddHash(uHash, (uint32_t)Binding.stageFlags);
 		}
 
 		return uHash;

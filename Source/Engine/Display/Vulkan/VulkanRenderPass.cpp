@@ -54,7 +54,8 @@ void VulkanRenderPass::Uninitialize()
 {
 	for (auto& kv : m_Pipelines)
 	{
-		VKDevice().destroyPipeline(kv.second);
+		//VKDevice().destroyPipeline(kv.second);
+		m_Device.destroyPipeline(kv.second);
 	}
 
 	m_Pipelines.clear();
@@ -121,10 +122,12 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 		else
 		{
 			vk::Pipeline NewPipeline;
-			if (LogVKErrorBool(VKDevice().createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline)) == false)
-			{
-				return false;
-			}
+
+			m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline);
+			//if (LogVKErrorBool(VKDevice().createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline)) == false)
+			//{
+			//	return false;
+			//}
 
 			m_ActivePipeline = NewPipeline;
 
