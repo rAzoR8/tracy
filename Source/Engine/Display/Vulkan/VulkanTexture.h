@@ -6,6 +6,25 @@
 
 namespace Tracy
 {
+	enum ETextureUsage
+	{
+		kTextureUsage_None = 0,
+		kTextureUsage_RenderTarget,
+		kTextureUsage_DepthStencil,
+		kTextureUsage_ShaderRead,
+		kTextureUsage_ShaderStore,
+		kTextureUsage_CopyTarget,
+		kTextureUsage_CopySource,
+		kTextureUsage_NumOf
+	};
+
+	struct TextureDesc
+	{
+		uint32_t uWidth = 0u;
+		uint32_t uHeight = 0u;
+		uint32_t uDepth = 0u;
+	};
+
 	// Textures are created by the device that acts as factory
 	class VulkanTexture
 	{
