@@ -5,6 +5,7 @@
 
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
+#include "VulkanMemoryAllocator.h"
 #include "VulkanTexture.h"
 #include <unordered_map>
 
@@ -22,7 +23,6 @@ namespace Tracy
 
 		// Getters
 		const vk::PhysicalDeviceProperties& GetProperties() const;
-		const vk::PhysicalDeviceMemoryProperties& GetMemoryProperties() const;
 		const uint64_t GetTotalMemory() const;
 		const uint32_t GetQueueIndex(const vk::QueueFlagBits _QueueType) const;
 		
@@ -43,9 +43,6 @@ namespace Tracy
 
 	private:
 		void Create();
-
-		uint32_t GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties);
-		bool GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType);
 
 	private:
 		struct QueueOffset
@@ -74,12 +71,10 @@ namespace Tracy
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
 		vk::PhysicalDeviceProperties m_Properties;
-		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
 
-		// Base address of memory blocks
-		vk::DeviceMemory m_TextureMemory;
-		vk::DeviceMemory m_BufferMemory;
+		// Allocator
+		VulkanMemoryAllocator* m_Allocator;
 
 		// Texture Tables
 		std::unordered_map<THandle, VulkanRenderTexture> m_RenderTargets;
@@ -90,12 +85,6 @@ namespace Tracy
 	inline const vk::PhysicalDeviceProperties& Tracy::VulkanDevice::GetProperties() const
 	{
 		return m_Properties;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-	inline const vk::PhysicalDeviceMemoryProperties& VulkanDevice::GetMemoryProperties() const
-	{
-		return m_MemoryProperties;
 	}
 
 	//---------------------------------------------------------------------------------------------------
