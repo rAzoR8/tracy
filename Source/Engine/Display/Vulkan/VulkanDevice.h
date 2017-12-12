@@ -47,6 +47,12 @@ namespace Tracy
 		inline auto _funcName(Args ... _Args) { return make_task([&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device._funcName(_Args...); }); }
 #endif
 
+		DeviceFunc(createDescriptorSetLayout)
+		DeviceFunc(destroyDescriptorSetLayout)
+
+		DeviceFunc(createPipelineLayout)
+		DeviceFunc(destroyPipelineLayout)
+
 		DeviceFunc(createPipelineCache)
 		DeviceFunc(destroyPipelineCache)
 

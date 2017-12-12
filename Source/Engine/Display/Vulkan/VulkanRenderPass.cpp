@@ -52,6 +52,16 @@ bool VulkanRenderPass::Initialize(const RenderPassDesc& _Desc)
 
 void VulkanRenderPass::Uninitialize()
 {
+	for (auto& kv : m_DescriptorSetLayouts)
+	{
+		m_Device.destroyDescriptorSetLayout(kv.second);
+	}
+
+	for (auto& kv : m_PipelineLayouts)
+	{
+		m_Device.destroyPipelineLayout(kv.second);
+	}
+
 	for (auto& kv : m_Pipelines)
 	{
 		m_Device.destroyPipeline(kv.second);
@@ -147,6 +157,66 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 	}
 
 	return false;
+}
+//---------------------------------------------------------------------------------------------------
+
+vk::PipelineLayout VulkanRenderPass::CreatePipelineLayout(const SPIRVModule& _Module, const PushConstantFactory* _pPushConstants)
+{
+	std::array<TVarSet, uMaxDescriptorSets> Sets;
+	uint32_t uLastSet = SortIntoDescriptorSets(_Module, Sets);
+
+	std::vector<vk::DescriptorSetLayout> Layouts(uLastSet);
+
+	size_t uHash = 0u;
+
+	for (uint32_t uSet = 0u; uSet < uLastSet; ++uSet)
+	{
+		if (Sets[uSet].empty() == false)
+		{
+			std::vector<vk::DescriptorSetLayoutBinding> Bindings;
+			const size_t uSetHash = CreateDescriptorSetLayoutBindings(Sets[uSet], Bindings);
+			uHash = hlx::CombineHashes(uHash, uSetHash);
+
+			auto it = m_DescriptorSetLayouts.find(uSetHash);
+
+			if (it != m_DescriptorSetLayouts.end())
+			{
+				Layouts[uSet] = it->second;
+			}
+			else // create new set
+			{
+				vk::DescriptorSetLayoutCreateInfo Info{};
+				Info.bindingCount = static_cast<uint32_t>(Bindings.size());
+				Info.pBindings = Bindings.data();
+
+				Layouts[uSet] = m_Device.createDescriptorSetLayout(Info);
+				m_DescriptorSetLayouts.insert({ uSetHash, Layouts[uSet] });
+			}
+		}
+		else
+		{
+			uHash = hlx::AddHash(uHash, uSet);
+		}
+	}
+
+	auto it = m_PipelineLayouts.find(uHash);
+	if (it != m_PipelineLayouts.end())
+	{
+		return it->second;
+	}
+
+	vk::PipelineLayoutCreateInfo Info{};
+
+	Info.pPushConstantRanges = _pPushConstants != nullptr ? _pPushConstants->GetRanges() : nullptr;
+	Info.pushConstantRangeCount = _pPushConstants != nullptr ? _pPushConstants->GetRangeCount() : 0u;
+
+	Info.pSetLayouts = Layouts.data();
+	Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
+
+	vk::PipelineLayout Layout{};
+	LogVKError(m_Device.createPipelineLayout(&Info, nullptr, &Layout));
+
+	return Layout;
 }
 //---------------------------------------------------------------------------------------------------
 
