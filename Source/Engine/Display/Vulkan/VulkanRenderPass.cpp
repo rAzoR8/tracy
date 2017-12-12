@@ -18,7 +18,7 @@ VulkanRenderPass::~VulkanRenderPass()
 
 	Uninitialize();
 
-	VKDevice().destroyPipelineCache(m_PipelineCache);
+	m_Device.destroyPipelineCache(m_PipelineCache);
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -54,7 +54,6 @@ void VulkanRenderPass::Uninitialize()
 {
 	for (auto& kv : m_Pipelines)
 	{
-		//VKDevice().destroyPipeline(kv.second);
 		m_Device.destroyPipeline(kv.second);
 	}
 
@@ -74,7 +73,7 @@ void VulkanRenderPass::OnFactoryUnloaded()
 	Uninitialize();
 }
 //---------------------------------------------------------------------------------------------------
-
+// TODO: just create pipeline, dont bind, use secondary commandbuffers to record in parallel
 bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 {
 	size_t uHash = 0u; // needs to differ from kUndefinedSizeT
@@ -123,7 +122,6 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 		{
 			vk::Pipeline NewPipeline;
 
-			//m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline);
 			if (LogVKErrorBool(m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline)) == false)
 			{
 				return false;
@@ -175,7 +173,7 @@ bool VulkanRenderPass::LoadPipelineCache(const std::wstring& _sPath)
 		HERROR("Failed to load file %s", _sPath.c_str());
 	}
 
-	return LogVKErrorBool(VKDevice().createPipelineCache(&Info, nullptr, &m_PipelineCache));
+	return LogVKErrorBool(m_Device.createPipelineCache(&Info, nullptr, &m_PipelineCache));
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -189,12 +187,14 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 
 		if (stream.is_open())
 		{
+
 			size_t uSize = 0u;
-			if (LogVKErrorBool(VKDevice().getPipelineCacheData(m_PipelineCache, &uSize, nullptr)) && uSize > 0)
+			
+			if (LogVKErrorBool(m_Device.getPipelineCacheData(m_PipelineCache, &uSize, nullptr)) && uSize > 0)
 			{
 				hlx::bytes buffer(uSize);
 
-				if (LogVKErrorBool(VKDevice().getPipelineCacheData(m_PipelineCache, &uSize, &buffer.front())))
+				if (LogVKErrorBool(m_Device.getPipelineCacheData(m_PipelineCache, &uSize, &buffer.front())))
 				{
 					stream.put(buffer);
 					bSuccess = true;

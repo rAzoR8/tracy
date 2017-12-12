@@ -40,18 +40,17 @@ namespace Tracy
 		//---------------------------------------------------------------------------------------------------
 		// DEVICE CALLS
 
-		// explicit
-		//inline AsyncTask<vk::Result> createGraphicsPipelines(vk::PipelineCache pipelineCache, uint32_t createInfoCount, const vk::GraphicsPipelineCreateInfo* pCreateInfos, const vk::AllocationCallbacks* pAllocator, vk::Pipeline* pPipelines)
-		//{
-		//	return [&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device.createGraphicsPipelines(pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines); };
-		//}
-
 		// any overload
 #ifndef DeviceFunc
 #define DeviceFunc(_funcName) \
 		template <class ...Args> \
-		inline auto _funcName(Args&& ... _Args) { return make_task([&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device._funcName(std::forward<Args>(_Args)...); }); }
+		inline auto _funcName(Args ... _Args) { return make_task([&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device._funcName(_Args...); }); }
 #endif
+
+		DeviceFunc(createPipelineCache)
+		DeviceFunc(destroyPipelineCache)
+
+		DeviceFunc(getPipelineCacheData)
 
 		DeviceFunc(createGraphicsPipelines)
 		DeviceFunc(destroyPipeline)

@@ -130,12 +130,12 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	constexpr size_t uMaxDescriptorSets = 16u; // Per layout
-	inline std::vector<vk::DescriptorSetLayout> CreateDescriptorSetLayouts(const SPIRVModule& _Module, const vk::ShaderStageFlags _kStageFlags, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators = nullptr)
-	{
-		using TVarSet = std::vector<VariableInfo>;
-		std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
+	using TVarSet = std::vector<VariableInfo>;
 
-		uint32_t uMaxSet = 0u;
+	template <size_t N = uMaxDescriptorSets> // returns last used set
+	inline uint32_t SortIntoDescriptorSets(const SPIRVModule& _Module, std::array<TVarSet, N>& _OutDescriptorSets)
+	{
+		uint32_t uLastSet = 0u;
 		for (const VariableInfo& Var : _Module.GetVariables())
 		{
 			switch (Var.kStorageClass)
@@ -149,20 +149,12 @@ namespace Tracy
 				continue; // skip non resource classes (incomplete list)
 			}
 
-			HASSERT(Var.uDescriptorSet < uMaxDescriptorSets, "Invalid descriptor set index");
-			DescriptorSets[Var.uDescriptorSet].push_back(Var);
-			uMaxSet = std::max(uMaxSet, Var.uDescriptorSet);
+			HASSERT(Var.uDescriptorSet < _OutDescriptorSets.size(), "Invalid descriptor set index");
+			uLastSet = std::max(Var.uDescriptorSet, uLastSet);
+			_OutDescriptorSets[Var.uDescriptorSet].push_back(Var);
 		}
 
-		std::vector<vk::DescriptorSetLayout> Layouts;
-		for (const TVarSet& Set : DescriptorSets)
-		{
-			// TODO: need to put null layouts in between valid ones?
-			if (Set.empty() == false)
-			{
-				Layouts.push_back(CreateDescriptorSetLayout(Set, _kStageFlags, _hDevice, _pAllocators));
-			}
-		}
+		return uLastSet;
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -346,8 +338,21 @@ namespace Tracy
 
 		Info.pPushConstantRanges = _pPushConstants != nullptr ? _pPushConstants->GetRanges() : nullptr;
 		Info.pushConstantRangeCount = _pPushConstants != nullptr ? _pPushConstants->GetRangeCount() : 0u;
-		std::vector<vk::DescriptorSetLayout> Layouts(CreateDescriptorSetLayouts(_Module, _kStageFlags, _hDevice, _pAllocators));
 
+		std::array<TVarSet, uMaxDescriptorSets> Sets;
+		uint32_t uLastSet = SortIntoDescriptorSets(_Module, Sets);
+
+		std::vector<vk::DescriptorSetLayout> Layouts(uLastSet);
+
+		// empty sets are default initialized to null handles
+		for (uint32_t uSet = 0u; uSet < uLastSet; ++uSet)
+		{
+			if (Sets[uSet].empty() == false)
+			{
+				Layouts[uSet] = CreateDescriptorSetLayout(Sets[uSet], _kStageFlags, _hDevice, _pAllocators);
+			}
+		}
+		
 		Info.pSetLayouts = Layouts.data();
 		Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
 
