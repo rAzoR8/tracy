@@ -117,6 +117,8 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 		uHash = hlx::CombineHashes(uHash, VLayout.ComputeHash());
 	}
 
+	//uHash = hlx::CombineHashes(uHash, CreatePipelineLayout());
+
 	// ...
 	// TODO: fill out the other stuff
 
@@ -160,7 +162,7 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 }
 //---------------------------------------------------------------------------------------------------
 
-vk::PipelineLayout VulkanRenderPass::CreatePipelineLayout(const SPIRVModule& _Module, const PushConstantFactory* _pPushConstants)
+const size_t VulkanRenderPass::CreatePipelineLayout(const SPIRVModule& _Module, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants)
 {
 	std::array<TVarSet, uMaxDescriptorSets> Sets;
 	uint32_t uLastSet = SortIntoDescriptorSets(_Module, Sets);
@@ -199,24 +201,27 @@ vk::PipelineLayout VulkanRenderPass::CreatePipelineLayout(const SPIRVModule& _Mo
 		}
 	}
 
+	vk::PipelineLayoutCreateInfo Info{};
+	if (_pPushConstants != nullptr)
+	{
+		Info.pPushConstantRanges = _pPushConstants->GetRanges();
+		Info.pushConstantRangeCount =  _pPushConstants->GetRangeCount();
+		uHash = hlx::CombineHashes(uHash, _pPushConstants->ComputeRangeHash());
+	}
+
 	auto it = m_PipelineLayouts.find(uHash);
 	if (it != m_PipelineLayouts.end())
 	{
-		return it->second;
+		_OutPipeline = it->second;
+		return uHash;
 	}
-
-	vk::PipelineLayoutCreateInfo Info{};
-
-	Info.pPushConstantRanges = _pPushConstants != nullptr ? _pPushConstants->GetRanges() : nullptr;
-	Info.pushConstantRangeCount = _pPushConstants != nullptr ? _pPushConstants->GetRangeCount() : 0u;
 
 	Info.pSetLayouts = Layouts.data();
 	Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
 
-	vk::PipelineLayout Layout{};
-	LogVKError(m_Device.createPipelineLayout(&Info, nullptr, &Layout));
+	LogVKError(m_Device.createPipelineLayout(&Info, nullptr, &_OutPipeline));
 
-	return Layout;
+	return uHash;
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -257,7 +262,6 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 
 		if (stream.is_open())
 		{
-
 			size_t uSize = 0u;
 			
 			if (LogVKErrorBool(m_Device.getPipelineCacheData(m_PipelineCache, &uSize, nullptr)) && uSize > 0)

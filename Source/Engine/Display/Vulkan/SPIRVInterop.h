@@ -152,6 +152,8 @@ namespace Tracy
 			HASSERT(Var.uDescriptorSet < _OutDescriptorSets.size(), "Invalid descriptor set index");
 			uLastSet = std::max(Var.uDescriptorSet, uLastSet);
 			_OutDescriptorSets[Var.uDescriptorSet].push_back(Var);
+
+			// TODO: check for same variable & concat shader stage
 		}
 
 		return uLastSet;
@@ -287,11 +289,10 @@ namespace Tracy
 
 			// here we create a range for each variable T since T can be a struct too
 
-			vk::PushConstantRange Range{};
+			vk::PushConstantRange& Range = m_Ranges.emplace_back();
 			Range.offset = uOffset;
 			Range.stageFlags = _kStages;
 			Range.size = (uint32_t)sizeof(T);
-			m_Ranges.push_back(std::move(Range));
 
 			m_Stream <<_Value;			
 			return Constant<T>(*this, *reinterpret_cast<T*>(m_Stream.get_data(uOffset)), uOffset);
@@ -303,6 +304,18 @@ namespace Tracy
 
 		const uint32_t GetRangeCount() const { return static_cast<uint32_t>(m_Ranges.size()); }
 		const vk::PushConstantRange* GetRanges() const { return m_Ranges.data(); }
+		// hash over ranges (not data!)
+		const size_t ComputeRangeHash() const
+		{
+			size_t uHash = 0u;
+			for (const vk::PushConstantRange& Range : m_Ranges)
+			{
+				uHash = hlx::AddHash(uHash, Range.offset);
+				uHash = hlx::AddHash(uHash, (uint32_t)Range.stageFlags);
+				uHash = hlx::AddHash(uHash, Range.size);
+			}
+			return uHash;
+		}
 		const void* GetValues() const { return m_Data.data(); }
 
 		// Make sure to destruct all Constant<T> instances before calling this

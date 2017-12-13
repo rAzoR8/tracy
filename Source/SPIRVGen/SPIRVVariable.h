@@ -714,11 +714,10 @@ namespace Tracy
 	}
 
 	template<typename T, bool Assemble, spv::StorageClass Class>
-	void BindingSetLocationHelper(var_t<T, Assemble, Class>& _Var, const uint32_t _uBinding, const uint32_t _uSet, const uint32_t _uLocation)
+	void BindingSetHelper(var_t<T, Assemble, Class>& _Var, const uint32_t _uBinding, const uint32_t _uSet)
 	{
 		if constexpr(Assemble)
 		{
-			LocationHelper(_Var, _uLocation, true); // TODO: add option for output uniforms
 			uint32_t uBinding = _uBinding != HUNDEFINED32 ? _uBinding : GlobalAssembler.GetCurrentBinding();
 			uint32_t uSet = _uSet != HUNDEFINED32 ? _uSet : GlobalAssembler.GetDefaultSet();
 			if (uBinding != HUNDEFINED32 && uSet != HUNDEFINED32) _Var.SetBinding(uBinding, uSet);
@@ -745,10 +744,10 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 	// uniform variable constructor
-	template <typename T, bool Assemble = true, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
+	template <typename T, bool Assemble = true, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32>
 	struct var_uniform_t : public var_t<T, Assemble, spv::StorageClassUniform>
 	{
-		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
+		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { BindingSetHelper(*this, Binding, Set); }
 		template <spv::StorageClass C1>
 		const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
 	};
@@ -757,7 +756,7 @@ namespace Tracy
 	template <typename T, bool Assemble = true, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 	struct var_uniform_constant_t : public var_t<T, Assemble, spv::StorageClassUniformConstant>
 	{
-		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { BindingSetLocationHelper(*this, Binding, Set, Location); }
+		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { BindingSetHelper(*this, Binding, Set); LocationHelper(*this, Location, true); }
 		template <spv::StorageClass C1>
 		const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
 	};
