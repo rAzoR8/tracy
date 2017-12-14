@@ -1,9 +1,6 @@
 #include "Win32Application.h"
 
 //---------------------------------------------------------------------------------------------------
-THandle Tracy::Win32Application::m_hVkWindow = kUndefinedSizeT;
-
-//---------------------------------------------------------------------------------------------------
 inline Tracy::Win32Application::Win32Application(const HINSTANCE _hInstance) :
 	m_hInstance(_hInstance)
 {
@@ -31,11 +28,11 @@ LRESULT Tracy::Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wPar
 	case WM_SIZE:
 		if (wParam == SIZE_MAXIMIZED)
 		{
-			VulkanInstance::GetInstance().GetWindow(m_hVkWindow).OnResize(LOWORD(lParam), HIWORD(lParam));
+			VulkanInstance::GetInstance().OnChangeDisplaySettings(LOWORD(lParam), HIWORD(lParam));
 		}
 		break;
 	case WM_EXITSIZEMOVE:
-		VulkanInstance::GetInstance().GetWindow(m_hVkWindow).OnResize(LOWORD(lParam), HIWORD(lParam));
+		VulkanInstance::GetInstance().OnChangeDisplaySettings(LOWORD(lParam), HIWORD(lParam));
 		break;
 
 	case WM_CLOSE:

@@ -25,6 +25,9 @@
     <Filter Include="Display\Vulkan\Memory">
       <UniqueIdentifier>{d1bbe76f-5c36-48bd-a5b0-d810380c0377}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Display\Types">
+      <UniqueIdentifier>{3721b82a-a982-4db9-b34a-f3cfc7bc0684}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
@@ -72,6 +75,12 @@
     </ClInclude>
     <ClInclude Include="Display\Vulkan\VulkanMemoryAllocator.h">
       <Filter>Display\Vulkan\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\DisplayTypes.h">
+      <Filter>Display\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanTypeConversion.h">
+      <Filter>Display\Vulkan\Resource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

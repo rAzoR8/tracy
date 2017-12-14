@@ -28,7 +28,7 @@ namespace Tracy
 		HWND m_hWnd = nullptr;
 		HINSTANCE m_hInstance = nullptr;
 
-		static THandle m_hVkWindow;
+		THandle m_hVkWindow = kUndefinedSizeT;
 	};
 
 	//---------------------------------------------------------------------------------------------------
