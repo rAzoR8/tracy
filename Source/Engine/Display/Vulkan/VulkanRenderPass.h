@@ -35,7 +35,7 @@ namespace Tracy
 
 		// called before draw or after shader has been selected
 		bool ActivatePipeline(const bool _bBindToCommandBuffer = true);
-		const size_t CreatePipelineLayout(const SPIRVModule& _Module, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
+		const size_t CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);

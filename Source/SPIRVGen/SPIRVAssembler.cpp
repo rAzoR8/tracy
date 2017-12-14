@@ -23,7 +23,6 @@ SPIRVModule SPIRVAssembler::Assemble()
 	m_uInstrId = 0u;
 	m_TypeIds.clear();
 	m_ConstantIds.clear();
-	//m_pProgram.reset();
 
 	SPIRVModule Module(m_uResultId + 1u);
 	Module.SetEntryPoint(m_sEntryPoint);
@@ -37,6 +36,7 @@ SPIRVModule SPIRVAssembler::Assemble()
 		if (var.kStorageClass != spv::StorageClassFunction)
 		{
 			var.uHash = var.ComputeHash();
+			var.uStageFlags = 1 << m_kModel;
 			Module.AddVariable(var);
 		}
 	}

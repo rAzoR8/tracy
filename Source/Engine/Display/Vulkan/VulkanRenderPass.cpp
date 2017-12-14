@@ -91,6 +91,8 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
 
 	std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages;
+	std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
+	uint32_t uLastDescriptorSet = 0u;
 
 	for (const CompiledShader* pShader : m_ActiveShaders)
 	{
@@ -99,6 +101,8 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 			ShaderStages.push_back(pShader->StageCreateInfo);
 			uHash = hlx::CombineHashes(uHash, pShader->uIDHash);
 			uHash = hlx::CombineHashes(uHash, pShader->uSpecConstHash);
+
+			uLastDescriptorSet = std::max(uLastDescriptorSet, SortIntoDescriptorSets(pShader->Code, DescriptorSets));
 		}
 	}
 
@@ -117,7 +121,8 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 		uHash = hlx::CombineHashes(uHash, VLayout.ComputeHash());
 	}
 
-	//uHash = hlx::CombineHashes(uHash, CreatePipelineLayout());
+	// TODO: pass pushconst factory
+	uHash = hlx::CombineHashes(uHash, CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr));
 
 	// ...
 	// TODO: fill out the other stuff
@@ -162,21 +167,18 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 }
 //---------------------------------------------------------------------------------------------------
 
-const size_t VulkanRenderPass::CreatePipelineLayout(const SPIRVModule& _Module, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants)
+const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t _uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants)
 {
-	std::array<TVarSet, uMaxDescriptorSets> Sets;
-	uint32_t uLastSet = SortIntoDescriptorSets(_Module, Sets);
-
-	std::vector<vk::DescriptorSetLayout> Layouts(uLastSet);
+	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet);
 
 	size_t uHash = 0u;
 
-	for (uint32_t uSet = 0u; uSet < uLastSet; ++uSet)
+	for (uint32_t uSet = 0u; uSet < _uLastSet; ++uSet)
 	{
-		if (Sets[uSet].empty() == false)
+		if (_Sets[uSet].empty() == false)
 		{
 			std::vector<vk::DescriptorSetLayoutBinding> Bindings;
-			const size_t uSetHash = CreateDescriptorSetLayoutBindings(Sets[uSet], Bindings);
+			const size_t uSetHash = CreateDescriptorSetLayoutBindings(_Sets[uSet], Bindings);
 			uHash = hlx::CombineHashes(uHash, uSetHash);
 
 			auto it = m_DescriptorSetLayouts.find(uSetHash);

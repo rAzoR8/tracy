@@ -33,21 +33,23 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	// Element of a descriptor set (input)
-	inline void CreateDescriptorSetLayoutBinding(vk::DescriptorSetLayoutBinding& _Binding, const VariableInfo& _InputVar)
+	inline vk::DescriptorSetLayoutBinding CreateDescriptorSetLayoutBinding(const VariableInfo& _InputVar)
 	{
-		_Binding.binding = _InputVar.uBinding;
-		_Binding.descriptorCount = _InputVar.Type.GetType() == spv::OpTypeArray ? _InputVar.Type.GetDimension() : 1u;
+		vk::DescriptorSetLayoutBinding Binding;
+		Binding.stageFlags = static_cast<vk::ShaderStageFlagBits>(_InputVar.uStageFlags);
+		Binding.binding = _InputVar.uBinding;
+		Binding.descriptorCount = _InputVar.Type.GetType() == spv::OpTypeArray ? _InputVar.Type.GetDimension() : 1u;
 		// Missing: CombinedImageSampler
 		switch (_InputVar.Type.GetType())
 		{
 		case spv::OpTypeSampler:
-			_Binding.descriptorType = vk::DescriptorType::eSampler;
+			Binding.descriptorType = vk::DescriptorType::eSampler;
 			break;
 		case spv::OpTypeImage:
 			switch (_InputVar.Type.GetDimension())
 			{
 			case spv::DimSubpassData:
-				_Binding.descriptorType = vk::DescriptorType::eInputAttachment;
+				Binding.descriptorType = vk::DescriptorType::eInputAttachment;
 				break;
 			case spv::DimBuffer:
 				// TODO: texel buffers
@@ -56,13 +58,13 @@ namespace Tracy
 				switch (_InputVar.Type.GetTexSamplerAccess())
 				{
 				case kTexSamplerAccess_Runtime:
-					_Binding.descriptorType = _InputVar.bTexSampled ? vk::DescriptorType::eSampledImage : vk::DescriptorType::eStorageImage;
+					Binding.descriptorType = _InputVar.bTexSampled ? vk::DescriptorType::eSampledImage : vk::DescriptorType::eStorageImage;
 					break;
 				case kTexSamplerAccess_Sampled:
-					_Binding.descriptorType = vk::DescriptorType::eSampledImage;
+					Binding.descriptorType = vk::DescriptorType::eSampledImage;
 					break;
 				case kTexSamplerAccess_Storage:
-					_Binding.descriptorType = vk::DescriptorType::eStorageImage;
+					Binding.descriptorType = vk::DescriptorType::eStorageImage;
 					break;
 				}
 				break;
@@ -75,10 +77,10 @@ namespace Tracy
 			{
 			case spv::StorageClassUniform:
 			case spv::StorageClassUniformConstant:
-				_Binding.descriptorType = vk::DescriptorType::eUniformBuffer;
+				Binding.descriptorType = vk::DescriptorType::eUniformBuffer;
 				break;
 			case spv::StorageClassStorageBuffer:
-				_Binding.descriptorType = vk::DescriptorType::eStorageBuffer;
+				Binding.descriptorType = vk::DescriptorType::eStorageBuffer;
 				break;
 			default:
 				HFATAL("Unsupported storage class");
@@ -86,20 +88,19 @@ namespace Tracy
 			}
 			break;
 		}
+
+		return Binding;
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	// TODO: add override shaderstage flag to be able to change allowed stages ignoring the Module stage 
-	inline vk::DescriptorSetLayout CreateDescriptorSetLayout(const std::vector<VariableInfo>& _SetVars, const vk::ShaderStageFlags _kStageFlags, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators)
+	inline vk::DescriptorSetLayout CreateDescriptorSetLayout(const std::vector<VariableInfo>& _SetVars, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators)
 	{
 		vk::DescriptorSetLayoutCreateInfo Info{};
 		std::vector<vk::DescriptorSetLayoutBinding> Bindings;
 		
 		for (const VariableInfo& Var : _SetVars)
-		{						
-			vk::DescriptorSetLayoutBinding& Binding = Bindings.emplace_back();
-			Binding.stageFlags = _kStageFlags;
-			CreateDescriptorSetLayoutBinding(Binding, Var);
+		{		
+			Bindings.push_back(CreateDescriptorSetLayoutBinding(Var));
 		}
 
 		Info.bindingCount = static_cast<uint32_t>(Bindings.size());
@@ -110,19 +111,19 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	// returns hash (pImmutableSamplers excluded)
-	inline size_t CreateDescriptorSetLayoutBindings(const std::vector<VariableInfo>& _SetVars, std::vector<vk::DescriptorSetLayoutBinding>& _OutBindings, const vk::ShaderStageFlags _kStageFlags = vk::ShaderStageFlagBits::eAll)
+	inline size_t CreateDescriptorSetLayoutBindings(const std::vector<VariableInfo>& _SetVars, std::vector<vk::DescriptorSetLayoutBinding>& _OutBindings)
 	{
 		size_t uHash = 0u;
 		for (const VariableInfo& Var : _SetVars)
 		{
-			vk::DescriptorSetLayoutBinding& Binding = _OutBindings.emplace_back();
-			Binding.stageFlags = _kStageFlags;
-			CreateDescriptorSetLayoutBinding(Binding, Var);
+			vk::DescriptorSetLayoutBinding Binding = CreateDescriptorSetLayoutBinding(Var);
 
 			uHash = hlx::AddHash(uHash, Binding.binding);
 			uHash = hlx::AddHash(uHash, Binding.descriptorCount);
 			uHash = hlx::AddHash(uHash, Binding.descriptorType);
 			uHash = hlx::AddHash(uHash, (uint32_t)Binding.stageFlags);
+
+			_OutBindings.push_back(Binding);
 		}
 
 		return uHash;
@@ -151,9 +152,26 @@ namespace Tracy
 
 			HASSERT(Var.uDescriptorSet < _OutDescriptorSets.size(), "Invalid descriptor set index");
 			uLastSet = std::max(Var.uDescriptorSet, uLastSet);
-			_OutDescriptorSets[Var.uDescriptorSet].push_back(Var);
 
-			// TODO: check for same variable & concat shader stage
+			TVarSet& Set = _OutDescriptorSets[Var.uDescriptorSet];
+			
+			auto it = std::find_if(Set.begin(), Set.end(), [&](const VariableInfo& _Var) {return Var.uBinding == _Var.uBinding; });
+			if (it == Set.end())
+			{
+				Set.push_back(Var);
+			}
+			else
+			{
+				VariableInfo& OldVar = *it;
+				if (OldVar.ComputeHash() == Var.ComputeHash())
+				{
+					OldVar.uStageFlags |= Var.uStageFlags; // concat shader usage
+				}
+				else
+				{
+					HERROR("Variable %s at binding %d of set %d does not match its previous definition [%s]", WCSTR(Var.sName), Var.uBinding, Var.uDescriptorSet, WCSTR(OldVar.sName));
+				}
+			}
 		}
 
 		return uLastSet;
@@ -344,8 +362,8 @@ namespace Tracy
 	};
 
 	//---------------------------------------------------------------------------------------------------
-
-	inline vk::PipelineLayout CreatePipelineLayout(const SPIRVModule& _Module, const vk::ShaderStageFlags _kStageFlags, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators = nullptr, const PushConstantFactory* _pPushConstants = nullptr)
+	// creates the pipeline layout for only one module
+	inline vk::PipelineLayout CreatePipelineLayout(const SPIRVModule& _Module, vk::Device _hDevice, const vk::AllocationCallbacks* _pAllocators = nullptr, const PushConstantFactory* _pPushConstants = nullptr)
 	{
 		vk::PipelineLayoutCreateInfo Info{};
 
@@ -362,7 +380,7 @@ namespace Tracy
 		{
 			if (Sets[uSet].empty() == false)
 			{
-				Layouts[uSet] = CreateDescriptorSetLayout(Sets[uSet], _kStageFlags, _hDevice, _pAllocators);
+				Layouts[uSet] = CreateDescriptorSetLayout(Sets[uSet], _hDevice, _pAllocators);
 			}
 		}
 		

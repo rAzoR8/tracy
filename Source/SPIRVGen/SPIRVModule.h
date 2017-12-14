@@ -27,6 +27,8 @@ namespace Tracy
 		bool bInstanceData = false;
 		std::string sName;
 
+		// for internal use only
+		uint32_t uStageFlags = 0u; // maps to vk::ShaderStageFlagBits
 		size_t uHash = 0u;
 		size_t ComputeHash() const;
 	};
