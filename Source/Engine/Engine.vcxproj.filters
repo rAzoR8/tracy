@@ -94,6 +94,9 @@
     <ClInclude Include="Async\AsyncTask.h">
       <Filter>Async</Filter>
     </ClInclude>
+    <ClInclude Include="Display\RenderPassDescription.h">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">

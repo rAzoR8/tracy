@@ -32,5 +32,8 @@
     <ClInclude Include="ExampleShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderIdentifier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

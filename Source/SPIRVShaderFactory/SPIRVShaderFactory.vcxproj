@@ -80,6 +80,7 @@
     <ClInclude Include="ExampleFactory.h" />
     <ClInclude Include="ExampleShader.h" />
     <ClInclude Include="ShaderFactory.h" />
+    <ClInclude Include="ShaderIdentifier.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">

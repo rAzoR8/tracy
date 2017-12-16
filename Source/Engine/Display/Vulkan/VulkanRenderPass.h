@@ -2,24 +2,10 @@
 #define TRACY_VULKANRENDERPASS_H
 
 #include "IShaderFactoryConsumer.h"
+#include "..\RenderPassDescription.h"
 
 namespace Tracy
 {
-	struct ShaderCfg
-	{
-		ShaderID Identifier;
-		hlx::bytes UserData;
-		// spec const data?
-	};
-
-	using TPipelineCfg = std::vector<ShaderCfg>;
-
-	struct RenderPassDesc
-	{
-		// shaders / pipelines that are frequently used
-		std::vector<TPipelineCfg> DefaultPipelines; // pipelines will be created for these on Initialize
-	};
-
 	class VulkanRenderPass : public IShaderFactoryConsumer
 	{
 	public:

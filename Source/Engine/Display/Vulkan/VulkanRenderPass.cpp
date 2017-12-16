@@ -14,11 +14,7 @@ VulkanRenderPass::VulkanRenderPass(const std::wstring& _sPassName, const std::ws
 
 VulkanRenderPass::~VulkanRenderPass()
 {
-	StorePipelineCache(m_sPassName + L"_pipeline.cache");
-
 	Uninitialize();
-
-	m_Device.destroyPipelineCache(m_PipelineCache);
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -52,6 +48,9 @@ bool VulkanRenderPass::Initialize(const RenderPassDesc& _Desc)
 
 void VulkanRenderPass::Uninitialize()
 {
+	StorePipelineCache(m_sPassName + L"_pipeline.cache");
+	m_Device.destroyPipelineCache(m_PipelineCache);
+	
 	for (auto& kv : m_DescriptorSetLayouts)
 	{
 		m_Device.destroyDescriptorSetLayout(kv.second);
@@ -106,10 +105,10 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 		}
 	}
 
-	const CompiledShader* pVertexShader = m_ActiveShaders[kShaderType_Vertex];
-
 	PipelineInfo.pStages = ShaderStages.data();
 	PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStages.size());
+
+	const CompiledShader* pVertexShader = m_ActiveShaders[kShaderType_Vertex];
 
 	VertexLayoutFactory VLayout;
 	vk::PipelineVertexInputStateCreateInfo VertexInputState{};
@@ -123,6 +122,11 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 
 	// TODO: pass pushconst factory
 	uHash = hlx::CombineHashes(uHash, CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr));
+
+	if (!PipelineInfo.layout)
+	{
+		return false;
+	}
 
 	// ...
 	// TODO: fill out the other stuff
@@ -228,29 +232,36 @@ const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uM
 //---------------------------------------------------------------------------------------------------
 
 bool VulkanRenderPass::LoadPipelineCache(const std::wstring& _sPath)
-{
-	HASSERT(m_PipelineCache.operator bool() == false, "PipelineCache has already been loaded");
-
-	hlx::fbytestream stream(_sPath, std::ios_base::in);
-
-	vk::PipelineCacheCreateInfo Info{};
-
-	if (stream.is_open())
+{		
+	if (!m_PipelineCache)
 	{
+		hlx::fbytestream stream(_sPath, std::ios_base::in);
 		hlx::bytes buffer;
-		stream.getAll(buffer);
 
-		Info.initialDataSize = buffer.size();
-		Info.pInitialData = buffer.data();
+		vk::PipelineCacheCreateInfo Info{};
 
-		stream.close();
+		if (stream.is_open())
+		{
+			stream.getAll(buffer);
+
+			Info.initialDataSize = buffer.size();
+			Info.pInitialData = buffer.data();
+
+			stream.close();
+		}
+		else
+		{
+			HERROR("Failed to load file %s", _sPath.c_str());
+		}
+
+		return LogVKErrorBool(m_Device.createPipelineCache(&Info, nullptr, &m_PipelineCache));
 	}
 	else
 	{
-		HERROR("Failed to load file %s", _sPath.c_str());
+		HERROR("PipelineCache has already been loaded");
 	}
 
-	return LogVKErrorBool(m_Device.createPipelineCache(&Info, nullptr, &m_PipelineCache));
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -274,6 +285,7 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 				{
 					stream.put(buffer);
 					bSuccess = true;
+					HLOG("Stored pipeline cache %s [%u bytes]", m_sPassName.c_str(), uSize);
 				}
 			}
 
