@@ -59,6 +59,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)hlx\src;$(SolutionDir)glm;$(VULKAN_SDK)\Include;$(VULKAN_SDK)\spirv-tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -90,6 +91,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Base\BaseTypes.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
     <ClInclude Include="Display\DisplayTypes.h" />
     <ClInclude Include="Display\DX12\DX12API.h" />
@@ -97,6 +99,7 @@
     <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
+    <ClInclude Include="Display\Texture.h" />
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h" />
     <ClInclude Include="Display\Vulkan\VulkanMemoryAllocator.h" />
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
@@ -113,10 +116,12 @@
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
     <ClCompile Include="Display\DX12\DX12Instance.cpp" />
     <ClCompile Include="Display\IDevice.cpp" />
+    <ClCompile Include="Display\Texture.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanMemoryAllocator.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanTypeConversion.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanWindow.cpp" />
     <ClCompile Include="Platform\Win32\Win32Application.cpp" />
   </ItemGroup>

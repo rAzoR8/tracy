@@ -1,40 +1,169 @@
 #ifndef TRACY_DISPLAYTYPES_H
 #define TRACY_DISPLAYTYPES_H
 
-#include <cstdint>
+#include "../Base/BaseTypes.h"
 
 namespace Tracy
 {
-	enum EBindFlag : uint32_t
+	enum ETextureType : u32
 	{
-		kBindFlag_None				= 0u,
-		kBindFlag_VertexBuffer		= (1 << 0),		// VB
-		kBindFlag_IndexBuffer		= (1 << 1),		// IB
-		kBindFlag_ConstantBuffer	= (1 << 2),		// CB
-		kBindFlag_RenderTarget		= (1 << 3),		// RTV
-		kBindFlag_DepthStencil		= (1 << 4),		// DSV
-		kBindFlag_ShaderRead		= (1 << 5),		// SRV
-		kBindFlag_ShaderStore		= (1 << 6),		// UAV
-		kBindFlag_NumOf				= 7u
+		kTextureType_Invalid		= 0u,
+		kTextureType_Texture2D		= 1u,
+		kTextureType_Texture3D		= 2u,
+		kTextureType_TextureArray	= 3u,
+		kTextureType_TextureCube	= 4u,
+
+		kTextureType_RenderTarget	= 5u,
+		kTextureType_RenderDepth	= 6u,
+		kTextureType_RenderArray	= 7u,
+		kTextureType_RenderCube		= 8u,
+		kTextureType_RenderVolume	= 9u
 	};
 
-	enum EUsageFlag : uint32_t
+	enum EUsageFlag : u32
 	{
 		kUsageFlag_None				= 0u,
-		kUsageFlag_GPU_ReadWrite	= (1 << 0),		// GPU Read-Write
-		kUsageFlag_GPU_Read			= (1 << 1),		// GPU Read Only
-		kUsageFlag_Mappable			= (1 << 2),		// CPU Read-Write
-		kUsageFlag_CopyTarget		= (1 << 3),		// BLIT_DST
-		kUsageFlag_CopySource		= (1 << 4),		// BLIT_SRC
-		kUsageFlag_NumOf			= 5u
+		kUsageFlag_VertexBuffer		= (1 << 0),		// VB
+		kUsageFlag_IndexBuffer		= (1 << 1),		// IB
+		kUsageFlag_ConstantBuffer	= (1 << 2),		// CB
+		kUsageFlag_RenderTarget		= (1 << 3),		// RTV
+		kUsageFlag_DepthStencil		= (1 << 4),		// DSV
+		kUsageFlag_ShaderRead		= (1 << 5),		// SRV
+		kUsageFlag_ShaderStore		= (1 << 6),		// UAV
+		kUsageFlag_CopySource		= (1 << 7),		// BLIT_SRC
+		kUsageFlag_CopyDestination	= (1 << 8),		// BLIT_DST
+		kUsageFlag_NumOf			= 9u
 	};
 
-	enum EFormat : uint32_t
+	enum EFormat : u32
 	{
+		// Default
 		kFormat_Undefined = 0u,
-		kFormat_RG4_U_Pack8 = 1u,
+		//------------------------
+		// 8-bits per channel
+		// 1-channel
+		kFormat_R_8_UNORM,
+		kFormat_R_8_SNORM,
+		kFormat_R_8_UINT,
+		kFormat_R_8_SINT,
+		kFormat_R_8_SRGB,
+		// 2-channels
+		kFormat_RG_8_UNORM,
+		kFormat_RG_8_SNORM,
+		kFormat_RG_8_UINT,
+		kFormat_RG_8_SINT,
+		kFormat_RG_8_SRGB,
+		// 3-channels
+		kFormat_RGB_8_UNORM,
+		kFormat_RGB_8_SNORM,
+		kFormat_RGB_8_UINT,
+		kFormat_RGB_8_SINT,
+		kFormat_RGB_8_SRGB,
+		// 3-channels
+		kFormat_BGR_8_UNORM,
+		kFormat_BGR_8_SNORM,
+		kFormat_BGR_8_UINT,
+		kFormat_BGR_8_SINT,
+		kFormat_BGR_8_SRGB,
+		// 4-channels
+		kFormat_RGBA_8_UNORM,
+		kFormat_RGBA_8_SNORM,
+		kFormat_RGBA_8_UINT,
+		kFormat_RGBA_8_SINT,
+		kFormat_RGBA_8_SRGB,
+		// 4-channels
+		kFormat_BGRA_8_UNORM,
+		kFormat_BGRA_8_SNORM,
+		kFormat_BGRA_8_UINT,
+		kFormat_BGRA_8_SINT,
+		kFormat_BGRA_8_SRGB,
+		// 4-channels-pack
+		kFormat_ABGR_8_UNORM_PACK32,
+		kFormat_ABGR_8_SNORM_PACK32,
+		kFormat_ABGR_8_UINT_PACK32,
+		kFormat_ABGR_8_SINT_PACK32,
+		kFormat_ABGR_8_SRGB_PACK32,
+		//------------------------
+		// 16-bits per channel
+		// 1-channel
+		kFormat_R_16_UNORM,
+		kFormat_R_16_SNORM,
+		kFormat_R_16_UINT,
+		kFormat_R_16_SINT,
+		kFormat_R_16_FLOAT,
+		// 2-channels
+		kFormat_RG_16_UNORM,
+		kFormat_RG_16_SNORM,
+		kFormat_RG_16_UINT,
+		kFormat_RG_16_SINT,
+		kFormat_RG_16_FLOAT,
+		// 3-channels
+		kFormat_RGB_16_UNORM,
+		kFormat_RGB_16_SNORM,
+		kFormat_RGB_16_UINT,
+		kFormat_RGB_16_SINT,
+		kFormat_RGB_16_FLOAT,
+		// 4-channels
+		kFormat_RGBA_16_UNORM,
+		kFormat_RGBA_16_SNORM,
+		kFormat_RGBA_16_UINT,
+		kFormat_RGBA_16_SINT,
+		kFormat_RGBA_16_FLOAT,
+		//------------------------
+		// 32-bits per channel
+		// 1-channel
+		kFormat_R_32_UINT,
+		kFormat_R_32_SINT,
+		kFormat_R_32_FLOAT,
+		// 2-channel
+		kFormat_RG_32_UINT,
+		kFormat_RG_32_SINT,
+		kFormat_RG_32_FLOAT,
+		// 3-channel
+		kFormat_RGB_32_UINT,
+		kFormat_RGB_32_SINT,
+		kFormat_RGB_32_FLOAT,
+		// 4-channel
+		kFormat_RGBA_32_UINT,
+		kFormat_RGBA_32_SINT,
+		kFormat_RGBA_32_FLOAT,
+		//------------------------
+		// 64-bits per channel
+		// 1-channel
+		kFormat_R_64_UINT,
+		kFormat_R_64_SINT,
+		kFormat_R_64_FLOAT,
+		// 2-channel
+		kFormat_RG_64_UINT,
+		kFormat_RG_64_SINT,
+		kFormat_RG_64_FLOAT,
+		// 3-channel
+		kFormat_RGB_64_UINT,
+		kFormat_RGB_64_SINT,
+		kFormat_RGB_64_FLOAT,
+		// 4-channel
+		kFormat_RGBA_64_UINT,
+		kFormat_RGBA_64_SINT,
+		kFormat_RGBA_64_FLOAT,
+		//------------------------
+		// Depth Formats, mixed size
+		// Depth only
+		kFormat_D_16_UNORM,
+		kFormat_D_32_FLOAT,
+		// Stencil Only
+		kFormat_S_8_UINT,
+		// Depth + Stencil
+		kFormat_X8_D24_UNORM_PACK32,
+		kFormat_D16_UNORM_S8_UINT,
+		kFormat_D24_UNORM_S8_UINT,
+		kFormat_D32_SFLOAT_S8_UINT,
+		//------------------------
+		// Compressed Formats
+
+		kFormat_NumOf
 	};
 
+	// VK FORMATS, we use a subset for now
 	/*VK_FORMAT_UNDEFINED = 0,
 		VK_FORMAT_R4G4_UNORM_PACK8 = 1,
 		VK_FORMAT_R4G4B4A4_UNORM_PACK16 = 2,

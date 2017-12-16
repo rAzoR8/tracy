@@ -184,9 +184,11 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 
 const THandle Tracy::VulkanDevice::CreateRenderTarget(const TextureDesc& _Desc)
 {
-	m_RenderTargets.insert({ m_hNextRenderTarget, {} });
+	//m_RenderTargets.insert({ m_hNextRenderTarget, {} });
 
-	VulkanRenderTexture& Texture = m_RenderTargets[m_hNextRenderTarget];
+	VulkanRenderTexture Texture;// = m_RenderTargets[m_hNextRenderTarget];
+
+	// TODO : Compute hash based on texture desc
 	Texture.m_hHandle = m_hNextRenderTarget++;
 
 	vk::ImageCreateInfo Info{};

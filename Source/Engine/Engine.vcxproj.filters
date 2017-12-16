@@ -28,6 +28,9 @@
     <Filter Include="Display\Types">
       <UniqueIdentifier>{3721b82a-a982-4db9-b34a-f3cfc7bc0684}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Base">
+      <UniqueIdentifier>{71c381d3-5f38-4c84-aac5-c06f07c5e570}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
@@ -82,6 +85,12 @@
     <ClInclude Include="Display\Vulkan\VulkanTypeConversion.h">
       <Filter>Display\Vulkan\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Texture.h">
+      <Filter>Display\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\BaseTypes.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -110,6 +119,12 @@
     </ClCompile>
     <ClCompile Include="Platform\Win32\Win32Application.cpp">
       <Filter>Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Texture.cpp">
+      <Filter>Display\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanTypeConversion.cpp">
+      <Filter>Display\Vulkan\Resource</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
