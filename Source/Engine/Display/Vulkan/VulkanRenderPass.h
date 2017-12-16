@@ -9,10 +9,10 @@ namespace Tracy
 	class VulkanRenderPass : public IShaderFactoryConsumer
 	{
 	public:
-		VulkanRenderPass(const std::wstring& _sPassName, const std::wstring& _sLibName, const std::wstring& _sFactory, const THandle _hDevice = 0);
+		VulkanRenderPass(const RenderPassDesc& _Desc, const THandle _hDevice = 0);
 		~VulkanRenderPass();
 
-		bool Initialize(const RenderPassDesc& _Desc);
+		bool Initialize();
 		void Uninitialize();
 
 	private:
@@ -20,15 +20,16 @@ namespace Tracy
 		void OnFactoryUnloaded() final;
 
 		// called before draw or after shader has been selected
-		bool ActivatePipeline(const bool _bBindToCommandBuffer = true);
+		bool ActivatePipeline();
 		const size_t CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
 
 	private:
-		const std::wstring m_sPassName;
-		bool m_bStorePipelines = true;
+		RenderPassDesc m_Description;
+
+		std::vector<VulkanRenderPass> m_SubPasses;
 
 		// identifies the current pipeline
 		size_t m_uPipelineHash = kUndefinedSizeT;

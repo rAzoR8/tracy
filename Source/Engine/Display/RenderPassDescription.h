@@ -8,19 +8,28 @@
 // platform independant description needed to create/load a renderpass
 namespace Tracy
 {
-	struct ShaderCfg
+	struct PipelineDesc
 	{
-		ShaderID Identifier;
-		hlx::bytes UserData;
+		struct ShaderDesc
+		{
+			ShaderID Identifier;
+			hlx::bytes UserData;
+		};
+
+		std::vector<ShaderDesc> Shaders;
+
 		// spec const data?
 	};
 
-	using TPipelineCfg = std::vector<ShaderCfg>;
-
 	struct RenderPassDesc
 	{
+		std::wstring sPassName; // name of this pass
+		std::wstring sLibName; // dll that contains the shader factory
+
 		// shaders / pipelines that are frequently used
-		std::vector<TPipelineCfg> DefaultPipelines; // pipelines will be created for these on Initialize
+		std::vector<PipelineDesc> DefaultPipelines; // pipelines will be created for these on Initialize
+
+		std::vector<RenderPassDesc> SubPasses;
 	};
 } // Tracy
 

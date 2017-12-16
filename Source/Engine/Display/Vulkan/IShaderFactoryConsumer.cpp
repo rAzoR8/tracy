@@ -8,8 +8,8 @@ using namespace Tracy;
 // FACTORY CONSUMER
 //---------------------------------------------------------------------------------------------------
 
-IShaderFactoryConsumer::IShaderFactoryConsumer(const std::wstring& _sLibName, const std::wstring& _sFactory, const THandle _hDevice) :
-	m_sLib(_sLibName), m_sFactory(_sFactory), m_Device(VulkanInstance::GetInstance().GetDevice(_hDevice))
+IShaderFactoryConsumer::IShaderFactoryConsumer(const std::wstring& _sLibName, const THandle _hDevice) :
+	m_sLib(_sLibName), m_Device(VulkanInstance::GetInstance().GetDevice(_hDevice))
 {
 	m_ActiveShaders.fill(nullptr);
 	ShaderFactoryLoader::Instance()->AddConsumer(this);

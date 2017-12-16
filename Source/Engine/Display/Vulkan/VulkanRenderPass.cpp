@@ -5,10 +5,14 @@ using namespace Tracy;
 
 //---------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const std::wstring& _sPassName, const std::wstring& _sLibName, const std::wstring& _sFactory, const THandle _hDevice) :
-	IShaderFactoryConsumer(_sLibName, _sFactory, _hDevice),
-	m_sPassName(_sPassName)
+VulkanRenderPass::VulkanRenderPass(const RenderPassDesc& _Desc, const THandle _hDevice) :
+	IShaderFactoryConsumer(_Desc.sLibName, _hDevice),
+	m_Description(_Desc)
 {
+	for (const RenderPassDesc& SubPass : m_Description.SubPasses)
+	{
+		m_SubPasses.emplace_back(SubPass, _hDevice);
+	}
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -18,27 +22,33 @@ VulkanRenderPass::~VulkanRenderPass()
 }
 //---------------------------------------------------------------------------------------------------
 
-bool VulkanRenderPass::Initialize(const RenderPassDesc& _Desc)
+bool VulkanRenderPass::Initialize()
 {
 	if (HasValidFactory() == false)
 		return false;
 
-	if (LoadPipelineCache(m_sPassName + L"_pipeline.cache") == false)
+	if (LoadPipelineCache(m_Description.sPassName + L"_pipeline.cache") == false)
 		return false;
 
 	// create default pipelines
-	for (const TPipelineCfg& Pipeline : _Desc.DefaultPipelines)
+	for (const PipelineDesc& Pipeline : m_Description.DefaultPipelines)
 	{
 		m_ActiveShaders.fill(nullptr); // clear previous pipeline (todo: create function that clears all other states too)
 
 		// load the shader
-		for (const ShaderCfg& Shader : Pipeline)
+		for (const PipelineDesc::ShaderDesc& Shader : Pipeline.Shaders)
 		{
 			SelectShader(Shader.Identifier, nullptr, Shader.UserData.data(), Shader.UserData.size());
 		}
 
 		// create pipeline but dont bind to commandbuffer
-		if (ActivatePipeline(false) == false)
+		if (ActivatePipeline() == false)
+			return false;
+	}
+
+	for (VulkanRenderPass& SubPass : m_SubPasses)
+	{
+		if (SubPass.Initialize() == false)
 			return false;
 	}
 
@@ -48,7 +58,12 @@ bool VulkanRenderPass::Initialize(const RenderPassDesc& _Desc)
 
 void VulkanRenderPass::Uninitialize()
 {
-	StorePipelineCache(m_sPassName + L"_pipeline.cache");
+	for (VulkanRenderPass& SubPass : m_SubPasses)
+	{
+		SubPass.Uninitialize();
+	}
+
+	StorePipelineCache(m_Description.sPassName + L"_pipeline.cache");
 	m_Device.destroyPipelineCache(m_PipelineCache);
 	
 	for (auto& kv : m_DescriptorSetLayouts)
@@ -74,6 +89,7 @@ void VulkanRenderPass::Uninitialize()
 void VulkanRenderPass::OnFactoryLoaded()
 {
 	Uninitialize();
+	Initialize();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -82,8 +98,7 @@ void VulkanRenderPass::OnFactoryUnloaded()
 	Uninitialize();
 }
 //---------------------------------------------------------------------------------------------------
-// TODO: just create pipeline, dont bind, use secondary commandbuffers to record in parallel
-bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
+bool VulkanRenderPass::ActivatePipeline()
 {
 	size_t uHash = 0u; // needs to differ from kUndefinedSizeT
 
@@ -93,6 +108,7 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 	std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
 	uint32_t uLastDescriptorSet = 0u;
 
+	// load active shaders set by SelectShader function
 	for (const CompiledShader* pShader : m_ActiveShaders)
 	{
 		if (pShader != nullptr)
@@ -156,18 +172,7 @@ bool VulkanRenderPass::ActivatePipeline(const bool _bBindToCommandBuffer)
 		m_uPipelineHash = uHash;
 	}
 
-	if (m_ActivePipeline)
-	{
-		if (_bBindToCommandBuffer)
-		{
-			// TODO: activate pipeline at commandbuffer
-		
-		}
-
-		return true;
-	}
-
-	return false;
+	return m_ActivePipeline.operator bool();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -285,7 +290,7 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 				{
 					stream.put(buffer);
 					bSuccess = true;
-					HLOG("Stored pipeline cache %s [%u bytes]", m_sPassName.c_str(), uSize);
+					HLOG("Stored pipeline cache %s [%u bytes]", m_Description.sPassName.c_str(), uSize);
 				}
 			}
 

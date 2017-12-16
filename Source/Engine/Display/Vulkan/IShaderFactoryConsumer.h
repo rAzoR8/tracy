@@ -26,10 +26,9 @@ namespace Tracy
 
 		using THashFunc = std::function<uint64_t(const ShaderID, const void*, const size_t)>;
 
-		IShaderFactoryConsumer(const std::wstring& _sLibName, const std::wstring& _sFactory, const THandle _hDevice = 0);
+		IShaderFactoryConsumer(const std::wstring& _sLibName, const THandle _hDevice = 0u);
 		virtual ~IShaderFactoryConsumer();
 
-		const std::wstring& GetFactoryName() const { return m_sFactory; }
 		const std::wstring& GetLibName() const { return m_sLib; }
 
 		template <class TFunc>
@@ -56,7 +55,6 @@ namespace Tracy
 
 	private:
 		const std::wstring m_sLib;
-		const std::wstring m_sFactory;
 		TFactoryPtr m_pFactory = nullptr;
 
 		THashFunc m_ShaderHasher = DefaultShaderHash;
