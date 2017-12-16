@@ -97,6 +97,9 @@
     <ClInclude Include="Display\RenderPassDescription.h">
       <Filter>Display</Filter>
     </ClInclude>
+    <ClInclude Include="Display\DisplayTypes.h">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">

@@ -96,6 +96,7 @@
   <ItemGroup>
     <ClInclude Include="Async\AsyncTask.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
+    <ClInclude Include="Display\DisplayTypes.h" />
     <ClInclude Include="Display\DX12\DX12API.h" />
     <ClInclude Include="Display\DX12\DX12Device.h" />
     <ClInclude Include="Display\DX12\DX12Instance.h" />
