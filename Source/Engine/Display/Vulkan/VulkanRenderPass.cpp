@@ -7,7 +7,8 @@ using namespace Tracy;
 
 VulkanRenderPass::VulkanRenderPass(const RenderPassDesc& _Desc, const THandle _hDevice) :
 	IShaderFactoryConsumer(_Desc.sLibName, _hDevice),
-	m_Description(_Desc)
+	m_Description(_Desc),
+	m_uMaterialID(_Desc.bSubPass ? 0u : 1u << m_MaterialIDs.GetAssociatedID(_Desc.sPassName))
 {
 	for (const RenderPassDesc& SubPass : m_Description.SubPasses)
 	{

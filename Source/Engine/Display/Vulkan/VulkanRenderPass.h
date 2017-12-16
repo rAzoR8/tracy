@@ -3,6 +3,7 @@
 
 #include "IShaderFactoryConsumer.h"
 #include "..\RenderPassDescription.h"
+#include "UniqueAssociationID.h"
 
 namespace Tracy
 {
@@ -14,6 +15,8 @@ namespace Tracy
 
 		bool Initialize();
 		void Uninitialize();
+
+		uint64_t GetMaterialID() const;
 
 	private:
 		void OnFactoryLoaded() final;
@@ -28,6 +31,8 @@ namespace Tracy
 
 	private:
 		RenderPassDesc m_Description;
+		// maybe rename to passid?
+		const uint64_t m_uMaterialID; // 1 << m_MaterialIDs.GetAssociatedID()
 
 		std::vector<VulkanRenderPass> m_SubPasses;
 
@@ -42,7 +47,12 @@ namespace Tracy
 		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
 
 		vk::PipelineCache m_PipelineCache = nullptr;
+
+		// maps renderpass name to unique id (only main passes, subpasses are ignored)
+		static hlx::UniqueAssociationID<std::wstring, uint64_t> m_MaterialIDs;
 	};
+
+	inline uint64_t VulkanRenderPass::GetMaterialID() const	{ return m_uMaterialID;	}
 
 } // Tracy
 

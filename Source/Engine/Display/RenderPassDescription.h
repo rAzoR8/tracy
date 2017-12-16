@@ -25,6 +25,9 @@ namespace Tracy
 	{
 		std::wstring sPassName; // name of this pass
 		std::wstring sLibName; // dll that contains the shader factory
+		bool bSubPass = false; // must be true for elements of SubPasses
+
+		bool bRenderByObject = true; // false for screenspace materials
 
 		// shaders / pipelines that are frequently used
 		std::vector<PipelineDesc> DefaultPipelines; // pipelines will be created for these on Initialize
