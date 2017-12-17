@@ -123,8 +123,5 @@
     <ClCompile Include="Display\Texture.cpp">
       <Filter>Display\Types</Filter>
     </ClCompile>
-    <ClCompile Include="Display\Vulkan\VulkanTypeConversion.cpp">
-      <Filter>Display\Vulkan\Resource</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

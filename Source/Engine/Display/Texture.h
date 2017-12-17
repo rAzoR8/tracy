@@ -5,6 +5,16 @@
 
 namespace Tracy
 {
+	struct TextureDesc
+	{
+		uint32_t uWidth = 0u;
+		uint32_t uHeight = 0u;
+		uint32_t uDepth = 0u;
+		EFormat kFormat = kFormat_Undefined;
+		EUsageFlag kUsageFlag = kUsageFlag_None;
+		std::string sName = "NewTexture";
+	};
+
 	class Texture
 	{
 	public:

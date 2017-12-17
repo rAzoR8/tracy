@@ -5,39 +5,15 @@
 #include "StandardDefines.h"
 #include "VulkanMemoryAllocator.h"
 #include "../DisplayTypes.h"
+#include "../Texture.h"
 
 namespace Tracy
 {
-	struct TextureDesc
-	{
-		uint32_t uWidth = 0u;
-		uint32_t uHeight = 0u;
-		uint32_t uDepth = 0u;
-		vk::Format kFormat = vk::Format::eUndefined;	// Ideally should be abstracted and mapped to agnostic type
-		EBindFlag kBindFlag = kBindFlag_None;
-		std::string sName = "NewTexture";
-	};
-
 	// Textures are created by the device that acts as factory
-	class VulkanTexture
+	class VulkanTexture : public Texture
 	{
 		friend class VulkanDevice;
 	public:
-		enum ETextureType : uint32_t
-		{
-			kTextureType_Invalid = 0u,
-			kTextureType_Texture2D = 1u,
-			kTextureType_Texture3D = 2u,
-			kTextureType_TextureArray = 3u,
-			kTextureType_TextureCube = 4u,
-
-			kTextureType_RenderTarget = 5u,
-			kTextureType_RenderStencil = 6u,
-			kTextureType_RenderArray = 7u,
-			kTextureType_RenderCube = 8u,
-			kTextureType_RenderVolume = 9u
-		};
-
 		VulkanTexture();
 		virtual ~VulkanTexture();
 

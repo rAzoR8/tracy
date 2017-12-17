@@ -121,7 +121,6 @@
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanMemoryAllocator.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanTexture.cpp" />
-    <ClCompile Include="Display\Vulkan\VulkanTypeConversion.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanWindow.cpp" />
     <ClCompile Include="Platform\Win32\Win32Application.cpp" />
   </ItemGroup>

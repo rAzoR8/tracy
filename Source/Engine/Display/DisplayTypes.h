@@ -22,17 +22,23 @@ namespace Tracy
 
 	enum EUsageFlag : u32
 	{
+		// Default
 		kUsageFlag_None				= 0u,
+		// Buffer Types
 		kUsageFlag_VertexBuffer		= (1 << 0),		// VB
 		kUsageFlag_IndexBuffer		= (1 << 1),		// IB
 		kUsageFlag_ConstantBuffer	= (1 << 2),		// CB
-		kUsageFlag_RenderTarget		= (1 << 3),		// RTV
-		kUsageFlag_DepthStencil		= (1 << 4),		// DSV
-		kUsageFlag_ShaderRead		= (1 << 5),		// SRV
-		kUsageFlag_ShaderStore		= (1 << 6),		// UAV
-		kUsageFlag_CopySource		= (1 << 7),		// BLIT_SRC
-		kUsageFlag_CopyDestination	= (1 << 8),		// BLIT_DST
-		kUsageFlag_NumOf			= 9u
+		kUsageFlag_StorageBuffer	= (1 << 3),		// Structured Buffer
+		kUsageFlag_IndirectBuffer	= (1 << 4),		// Indirect Draw Data
+		// Texture Types
+		kUsageFlag_RenderTarget		= (1 << 5),		// RTV
+		kUsageFlag_DepthStencil		= (1 << 6),		// DSV
+		kUsageFlag_ShaderRead		= (1 << 7),		// SRV
+		kUsageFlag_ShaderStore		= (1 << 8),		// UAV
+		kUsageFlag_CopySource		= (1 << 9),		// BLIT_SRC
+		kUsageFlag_CopyDestination	= (1 << 10),	// BLIT_DST
+		// Upper Bit Pos
+		kUsageFlag_NumOf			= 11u
 	};
 
 	enum EFormat : u32

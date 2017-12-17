@@ -1,5 +1,7 @@
 #include "VulkanDevice.h"
 
+#include "VulkanTypeConversion.h"
+
 #include "Logger.h"
 
 using namespace Tracy;
@@ -194,10 +196,10 @@ const THandle Tracy::VulkanDevice::CreateRenderTarget(const TextureDesc& _Desc)
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, 1u);
 	Info.imageType = vk::ImageType::e2D;
-	Info.format = _Desc.kFormat;
+	Info.format = GetFormat(_Desc.kFormat);
 	Info.mipLevels = 1u;
 	Info.arrayLayers = 1u;
-	Info.usage = vk::ImageUsageFlagBits::eColorAttachment;
+	Info.usage = GetImageUsage<vk::ImageUsageFlags>(_Desc.kUsageFlag);//vk::ImageUsageFlagBits::eColorAttachment;
 
 	VulkanAllocationInfo AllocInfo{};
 	AllocInfo.kType = kAllocationType_GPU_Only;
