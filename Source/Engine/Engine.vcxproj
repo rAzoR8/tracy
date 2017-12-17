@@ -110,6 +110,7 @@
     <ClInclude Include="Display\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Display\Vulkan\VulkanInstance.h" />
     <ClInclude Include="Display\Vulkan\VulkanMemoryManager.h" />
+    <ClInclude Include="Display\Vulkan\VulkanRenderGraph.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderPass.h" />
     <ClInclude Include="Display\Vulkan\VulkanResourceManager.h" />
     <ClInclude Include="Display\Vulkan\VulkanTexture.h" />
@@ -127,6 +128,7 @@
     <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanRenderGraph.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderPass.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanWindow.cpp" />
   </ItemGroup>

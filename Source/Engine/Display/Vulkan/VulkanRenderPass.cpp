@@ -5,14 +5,14 @@ using namespace Tracy;
 
 //---------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const RenderPassDesc& _Desc, const THandle _hDevice) :
+VulkanRenderPass::VulkanRenderPass(const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice) :
 	IShaderFactoryConsumer(_Desc.sLibName, _hDevice),
 	m_Description(_Desc),
-	m_uMaterialID(_Desc.bSubPass ? 0u : 1u << m_MaterialIDs.GetAssociatedID(_Desc.sPassName))
+	m_uPassIndex(_uPassIndex)
 {
 	for (const RenderPassDesc& SubPass : m_Description.SubPasses)
 	{
-		m_SubPasses.emplace_back(SubPass, _hDevice);
+		m_SubPasses.emplace_back(SubPass, (uint32_t)m_SubPasses.size(), _hDevice);
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -97,6 +97,12 @@ void VulkanRenderPass::OnFactoryLoaded()
 void VulkanRenderPass::OnFactoryUnloaded()
 {
 	Uninitialize();
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
+{
+	m_Dependencies.push_back(_Dependency);
 }
 //---------------------------------------------------------------------------------------------------
 bool VulkanRenderPass::ActivatePipeline()

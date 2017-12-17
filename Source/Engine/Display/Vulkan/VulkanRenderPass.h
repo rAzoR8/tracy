@@ -3,24 +3,39 @@
 
 #include "IShaderFactoryConsumer.h"
 #include "..\RenderPassDescription.h"
-#include "UniqueAssociationID.h"
 
 namespace Tracy
 {
 	class VulkanRenderPass : public IShaderFactoryConsumer
 	{
+		friend class VulkanRenderGraph;
 	public:
-		VulkanRenderPass(const RenderPassDesc& _Desc, const THandle _hDevice = 0);
+		struct Dependence
+		{
+			VulkanRenderPass* pPrevPass;
+
+			// TODO: pointer to resource or something cool
+			std::vector<InputDependency::Resource> Resources;
+
+			// add pipeline barriers etc
+		};
+
+		VulkanRenderPass(const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
 		~VulkanRenderPass();
 
 		bool Initialize();
 		void Uninitialize();
 
+		uint32_t GetPassIndex() const;
 		uint64_t GetMaterialID() const;
+
+		const RenderPassDesc& GetDescription() const;
 
 	private:
 		void OnFactoryLoaded() final;
 		void OnFactoryUnloaded() final;
+
+		void AddDependency(const Dependence& _Dependency);
 
 		// called before draw or after shader has been selected
 		bool ActivatePipeline();
@@ -31,10 +46,12 @@ namespace Tracy
 
 	private:
 		RenderPassDesc m_Description;
-		// maybe rename to passid?
-		const uint64_t m_uMaterialID; // 1 << m_MaterialIDs.GetAssociatedID()
+		// index relative to parent pass or rendergraph (index into vector)
+		const uint32_t m_uPassIndex; 
 
 		std::vector<VulkanRenderPass> m_SubPasses;
+
+		std::vector<Dependence> m_Dependencies;
 
 		// identifies the current pipeline
 		size_t m_uPipelineHash = kUndefinedSizeT;
@@ -47,12 +64,13 @@ namespace Tracy
 		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
 
 		vk::PipelineCache m_PipelineCache = nullptr;
-
-		// maps renderpass name to unique id (only main passes, subpasses are ignored)
-		static hlx::UniqueAssociationID<std::wstring, uint64_t> m_MaterialIDs;
 	};
 
-	inline uint64_t VulkanRenderPass::GetMaterialID() const	{ return m_uMaterialID;	}
+	inline uint32_t VulkanRenderPass::GetPassIndex() const{	return m_uPassIndex;}
+
+	inline uint64_t VulkanRenderPass::GetMaterialID() const	{ return 1ull << m_uPassIndex;}
+
+	inline const RenderPassDesc& VulkanRenderPass::GetDescription() const {return m_Description;	}
 
 } // Tracy
 

@@ -22,11 +22,11 @@
     <Filter Include="Display\Vulkan\SPIRVInterop">
       <UniqueIdentifier>{08bfe04c-a25b-433a-8f62-a0b740b9d1c2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Display\Vulkan\RenderPass">
-      <UniqueIdentifier>{3d3f6b65-a7da-4c58-ab0b-8b627ba3005c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Async">
       <UniqueIdentifier>{508c06d5-265e-4eb5-b8f4-9155abf38367}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display\Vulkan\Renderer">
+      <UniqueIdentifier>{3d3f6b65-a7da-4c58-ab0b-8b627ba3005c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -89,7 +89,7 @@
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
     <ClInclude Include="Display\Vulkan\VulkanRenderPass.h">
-      <Filter>Display\Vulkan\RenderPass</Filter>
+      <Filter>Display\Vulkan\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Async\AsyncTask.h">
       <Filter>Async</Filter>
@@ -99,6 +99,9 @@
     </ClInclude>
     <ClInclude Include="Display\DisplayTypes.h">
       <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanRenderGraph.h">
+      <Filter>Display\Vulkan\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -127,7 +130,8 @@
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClCompile>
     <ClCompile Include="Display\Vulkan\VulkanRenderPass.cpp">
-      <Filter>Display\Vulkan\RenderPass</Filter>
+      <Filter>Display\Vulkan\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanRenderGraph.cpp" />
   </ItemGroup>
 </Project>

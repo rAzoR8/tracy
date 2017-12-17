@@ -117,7 +117,7 @@ namespace Tracy
 
 #pragma endregion
 		SPIRVProgram();
-		~SPIRVProgram();
+		virtual ~SPIRVProgram();
 
 		template <class TProg, class... Ts>
 		void Execute(Ts&& ..._args);
