@@ -36,8 +36,9 @@ namespace Tracy
 		kPrimitiveTopology_LineStrip = 2,
 		kPrimitiveTopology_TriangleList = 3,
 		kPrimitiveTopology_TriangleStrip = 4,
-		kPrimitiveTopology_TriangleFan= 4,
-		kPrimitiveTopology_Unknown
+		kPrimitiveTopology_TriangleFan = 5,
+		kPrimitiveTopology_NumOf, 
+		kPrimitiveTopology_Unknown = kPrimitiveTopology_NumOf
 	};
 
 	enum ETextureType : uint32_t

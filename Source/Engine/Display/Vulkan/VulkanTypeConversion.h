@@ -136,7 +136,7 @@ namespace Tracy::detail
 	};
 
 	template <typename TUsage>
-	const auto& GetMapping()
+	inline const auto& GetMapping()
 	{
 		if constexpr (std::is_same_v<TUsage, vk::ImageUsageFlagBits>)
 		{
@@ -145,10 +145,28 @@ namespace Tracy::detail
 
 		return detail::VkBufferUsageMapping;
 	}
+	//---------------------------------------------------------------------------------------------------
+
+	static const vk::PrimitiveTopology g_VkPrimitiveTopology[kPrimitiveTopology_NumOf] =
+	{
+		vk::PrimitiveTopology::ePointList,
+		vk::PrimitiveTopology::eLineList,
+		vk::PrimitiveTopology::eLineStrip,
+		vk::PrimitiveTopology::eTriangleList,
+		vk::PrimitiveTopology::eTriangleStrip,
+		vk::PrimitiveTopology::eTriangleFan
+	};
 }
+//---------------------------------------------------------------------------------------------------
 
 namespace Tracy
 {
+	inline vk::PrimitiveTopology GetPrimitiveTopology(const EPrimitiveTopology _kTopo)
+	{
+		HASSERTD(_kTopo < kPrimitiveTopology_NumOf, "Invalid Primitive Topology");
+		return detail::g_VkPrimitiveTopology[_kTopo];
+	}
+
 	template <typename TUsage>
 	inline const TUsage GetImageUsage(const EUsageFlag _kFlag)
 	{
