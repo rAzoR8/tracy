@@ -5,7 +5,6 @@
 
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
-#include "VulkanMemoryAllocator.h"
 #include "VulkanTexture.h"
 #include <unordered_map>
 #include "Async\AsyncTask.h"

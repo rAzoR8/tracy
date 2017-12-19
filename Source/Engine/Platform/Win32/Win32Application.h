@@ -6,8 +6,6 @@
 #include "../../Display/Vulkan/VulkanInstance.h"
 #include "../../Display/DX12/DX12Instance.h"
 
-#include "../../Display/Vulkan/VulkanWindow.h"
-
 #include "Logger.h"
 
 namespace Tracy

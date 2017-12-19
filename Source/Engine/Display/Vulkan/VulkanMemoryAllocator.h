@@ -101,8 +101,8 @@ namespace Tracy
 		vk::DeviceSize m_uAllocatedPhysicalMemory = 0ull;
 	};
 
-	const vk::DeviceSize& VulkanMemoryAllocator::GetTotalDeviceMemory() const { return m_uTotalDeviceMemory; }
-	const vk::DeviceSize& VulkanMemoryAllocator::GetTotalSharedMemory() const { return m_uTotalSharedMemory; }
+	inline const vk::DeviceSize& VulkanMemoryAllocator::GetTotalDeviceMemory() const { return m_uTotalDeviceMemory; }
+	inline const vk::DeviceSize& VulkanMemoryAllocator::GetTotalSharedMemory() const { return m_uTotalSharedMemory; }
 }
 
 #endif // !TRACY_VULKANALLOCATORTYPES_H
