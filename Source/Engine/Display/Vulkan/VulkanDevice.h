@@ -5,6 +5,8 @@
 
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
+#include "VulkanMemoryAllocator.h"
+#include "VulkanTexture.h"
 #include <unordered_map>
 #include "Async\AsyncTask.h"
 #include <mutex>
@@ -21,8 +23,8 @@ namespace Tracy
 		explicit VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle);
 		~VulkanDevice();		
 
+		// Getters
 		const vk::PhysicalDeviceProperties& GetProperties() const;
-		const vk::PhysicalDeviceMemoryProperties& GetMemoryProperties() const;
 		const uint64_t GetTotalMemory() const;
 		const uint32_t GetQueueIndex(const vk::QueueFlagBits _QueueType) const;
 		
@@ -30,7 +32,11 @@ namespace Tracy
 		const vk::Device& GetDevice() const;
 		const THandle& GetHandle() const;
 
+		// Methods
 		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType = vk::QueueFlagBits::eGraphics) const;
+		
+		// Textures
+		const THandle CreateRenderTarget(const TextureDesc& _Desc);
 
 		explicit operator bool() const
 		{
@@ -64,9 +70,6 @@ namespace Tracy
 	private:
 		void Create();
 
-		uint32_t GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties);
-		bool GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType);
-
 	private:
 		struct QueueOffset
 		{
@@ -94,20 +97,20 @@ namespace Tracy
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
 		vk::PhysicalDeviceProperties m_Properties;
-		vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
+
+		// Allocator
+		VulkanMemoryAllocator* m_Allocator;
+
+		// Texture Tables
+		std::unordered_map<THandle, VulkanRenderTexture> m_RenderTargets;
+		THandle m_hNextRenderTarget = 0u;
 	};
 
 	//---------------------------------------------------------------------------------------------------
 	inline const vk::PhysicalDeviceProperties& Tracy::VulkanDevice::GetProperties() const
 	{
 		return m_Properties;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-	inline const vk::PhysicalDeviceMemoryProperties& VulkanDevice::GetMemoryProperties() const
-	{
-		return m_MemoryProperties;
 	}
 
 	//---------------------------------------------------------------------------------------------------

@@ -6,6 +6,8 @@
 #include "../../Display/Vulkan/VulkanInstance.h"
 #include "../../Display/DX12/DX12Instance.h"
 
+#include "../../Display/Vulkan/VulkanWindow.h"
+
 #include "Logger.h"
 
 namespace Tracy
@@ -13,12 +15,9 @@ namespace Tracy
 	class Win32Application : public IApplication
 	{
 	public:
-		Win32Application(const HINSTANCE _hInstance) :
-			m_hInstance(_hInstance)
-		{
-		}
+		Win32Application(const HINSTANCE _hInstance);
 		
-		~Win32Application() {}
+		~Win32Application();
 
 		bool Init(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _eAPI) final;
 		int Run() final;
@@ -29,9 +28,10 @@ namespace Tracy
 		HWND m_hWnd = nullptr;
 		HINSTANCE m_hInstance = nullptr;
 
-		std::unique_ptr<IGraphicsInstance> m_MainAPI;
+		THandle m_hVkWindow = kUndefinedSizeT;
 	};
 
+	//---------------------------------------------------------------------------------------------------
 	inline bool Win32Application::Init(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _eAPI)
 	{
 		HASSERT(m_hInstance != nullptr, "Invalid Instance handle.");
@@ -75,13 +75,19 @@ namespace Tracy
 		}
 
 		// Init API
-		const std::vector<DeviceInfo> Devices = VulkanInstance::GetInstance().Init(/*_uWidth, _uHeight, m_hWnd, m_hInstance*/);
+		VulkanInstance& Gfx = VulkanInstance::GetInstance();
+		const std::vector<DeviceInfo> Devices = Gfx.Init();
+		HASSERT(Devices.size() > 0u, "No compatible graphics adapter found");
+
+		m_hVkWindow = Gfx.MakeWindow(Devices[0u].hHandle, _uWidth, _uHeight, m_hWnd, m_hInstance);
+		HASSERT(m_hVkWindow != kUndefinedSizeT, "Failed to create default window");
 
 		ShowWindow(m_hWnd, false);
 
 		return true;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	inline int Win32Application::Run()
 	{
 		MSG Msg = {};
