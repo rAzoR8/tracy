@@ -116,7 +116,7 @@ void VulkanRenderPass::ActivePass()
 //---------------------------------------------------------------------------------------------------
 bool VulkanRenderPass::ActivatePipeline()
 {
-	size_t uHash = 0u; // needs to differ from kUndefinedSizeT
+	hlx::Hasher uHash = 0u; // needs to differ from kUndefinedSizeT
 
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
 
@@ -134,8 +134,8 @@ bool VulkanRenderPass::ActivatePipeline()
 		if (pShader != nullptr)
 		{
 			ShaderStages.push_back(pShader->StageCreateInfo);
-			uHash = hlx::CombineHashes(uHash, pShader->uIDHash);
-			uHash = hlx::CombineHashes(uHash, pShader->uSpecConstHash);
+			uHash += pShader->uIDHash;
+			uHash += pShader->uSpecConstHash;
 
 			uLastDescriptorSet = std::max(uLastDescriptorSet, SortIntoDescriptorSets(pShader->Code, DescriptorSets));
 		}
@@ -149,7 +149,7 @@ bool VulkanRenderPass::ActivatePipeline()
 	//---------------------------------------------------------------------------------------------------
 
 	// TODO: pass pushconst factory
-	uHash = hlx::CombineHashes(uHash, CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr));
+	uHash += CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr);
 
 	if (!PipelineInfo.layout)
 	{
@@ -169,7 +169,7 @@ bool VulkanRenderPass::ActivatePipeline()
 	{
 		VertexInputState = VLayout.GetVertexLayout(pVertexShader->Code.GetVariables());
 		PipelineInfo.pVertexInputState = &VertexInputState;
-		uHash = hlx::CombineHashes(uHash, VLayout.ComputeHash());
+		uHash += VLayout.ComputeHash();
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -181,10 +181,54 @@ bool VulkanRenderPass::ActivatePipeline()
 	IAInfo.topology = GetPrimitiveTopology(m_Description.kPrimitiveTopology);
 	PipelineInfo.pInputAssemblyState = &IAInfo;
 
+	uHash << IAInfo.primitiveRestartEnable << IAInfo.topology;
+
 	// dont set Viewport here, use Dynamic state instead: vkCmdSetViewport
 	// this allows us the resize the swapchain without recreating the pipeline
 	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#vkCmdSetViewport
 
+	//---------------------------------------------------------------------------------------------------
+	// Rasterizer STAGE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineRasterizationStateCreateInfo RInfo{};
+	RInfo.rasterizerDiscardEnable = VK_FALSE; // not supported atm
+	uHash << RInfo.rasterizerDiscardEnable;
+
+	RInfo.depthClampEnable = VK_FALSE; // not supported atm
+	uHash << RInfo.depthClampEnable;
+
+	RInfo.cullMode = GetCullMode(m_Description.kCullMode);
+	uHash << RInfo.cullMode;
+
+	RInfo.polygonMode = GetPolygonMode(m_Description.kFillMode);
+	uHash << RInfo.polygonMode;
+
+	RInfo.frontFace = GetFrontFace(m_Description.kFrontFace);
+	uHash << RInfo.frontFace;
+
+	RInfo.depthBiasEnable = m_Description.fDepthBiasClamp != 0.f || m_Description.fDepthBiasConstFactor != 0.f || m_Description.fDepthBiasSlopeFactor;
+	uHash << RInfo.depthBiasEnable;
+
+	if (m_Description.kFillMode == kPolygonFillMode_Line)
+	{
+		RInfo.lineWidth = m_Description.fLineWidth;
+		uHash << RInfo.lineWidth;
+	}
+
+	if (RInfo.depthBiasEnable)
+	{
+		RInfo.depthBiasConstantFactor = m_Description.fDepthBiasConstFactor;
+		RInfo.depthBiasClamp = m_Description.fDepthBiasClamp;
+		RInfo.depthBiasSlopeFactor = m_Description.fDepthBiasSlopeFactor;
+
+		uHash << RInfo.depthBiasConstantFactor;
+		uHash << RInfo.depthBiasClamp;
+		uHash << RInfo.depthBiasSlopeFactor;
+	}
+
+	// pNext pointer musst be ignored!
+	PipelineInfo.pRasterizationState = &RInfo;
 
 	// ...
 	// TODO: fill out the other stuff

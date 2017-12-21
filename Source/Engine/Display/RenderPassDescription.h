@@ -87,7 +87,19 @@ namespace Tracy
 
 		bool bRenderByObject = true; // false for screenspace materials
 
+		// IA Stage
 		EPrimitiveTopology kPrimitiveTopology = kPrimitiveTopology_Unknown;
+
+		// Rasterizer Stage
+		EPolygonFillMode kFillMode = kPolygonFillMode_Unknown;
+		ECullMode kCullMode = kCullMode_Unknown;
+		EFrontFace kFrontFace = kFrontFace_Unknown;
+		// if any DepthBias value is non 0 depthBiasEnable will be set to true
+		float fDepthBiasConstFactor = 0.f;
+		float fDepthBiasClamp = 0.f;
+		float fDepthBiasSlopeFactor = 0.f;
+
+		float fLineWidth = 0.f;
 
 		FramebufferDesc Framebuffer;
 
