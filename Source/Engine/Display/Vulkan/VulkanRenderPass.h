@@ -19,6 +19,12 @@ namespace Tracy
 
 			// add pipeline barriers etc
 		};
+		
+		struct ViewportState
+		{
+			std::vector<vk::Viewport> Viewports;
+			std::vector<vk::Rect2D> Scissors;
+		};
 
 		VulkanRenderPass(const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
 		~VulkanRenderPass();
@@ -37,6 +43,9 @@ namespace Tracy
 
 		void AddDependency(const Dependence& _Dependency);
 
+		// prepares command buffer & dynamic state for recording
+		void ActivePass();
+
 		// called before draw or after shader has been selected
 		bool ActivatePipeline();
 		const size_t CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
@@ -49,8 +58,9 @@ namespace Tracy
 		// index relative to parent pass or rendergraph (index into vector)
 		const uint32_t m_uPassIndex; 
 
-		std::vector<VulkanRenderPass> m_SubPasses;
+		ViewportState m_ViewportState;
 
+		std::vector<VulkanRenderPass> m_SubPasses;
 		std::vector<Dependence> m_Dependencies;
 
 		// identifies the current pipeline

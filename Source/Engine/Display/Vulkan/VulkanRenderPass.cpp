@@ -1,5 +1,6 @@
 #include "VulkanRenderPass.h"
 #include "FileStream.h"
+#include "VulkanTypeConversion.h"
 
 using namespace Tracy;
 
@@ -105,11 +106,23 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 	m_Dependencies.push_back(_Dependency);
 }
 //---------------------------------------------------------------------------------------------------
+// prepares command buffer & dynamic state for recording
+// called for each batch of objects that use a different shader
+void VulkanRenderPass::ActivePass()
+{
+	//vkCmdSetViewport
+	// m_ViewportState
+}
+//---------------------------------------------------------------------------------------------------
 bool VulkanRenderPass::ActivatePipeline()
 {
 	size_t uHash = 0u; // needs to differ from kUndefinedSizeT
 
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
+
+	//---------------------------------------------------------------------------------------------------
+	// SHADER STAGES
+	//---------------------------------------------------------------------------------------------------
 
 	std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages;
 	std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
@@ -131,6 +144,22 @@ bool VulkanRenderPass::ActivatePipeline()
 	PipelineInfo.pStages = ShaderStages.data();
 	PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStages.size());
 
+	//---------------------------------------------------------------------------------------------------
+	// PIPELINE LAYOUT
+	//---------------------------------------------------------------------------------------------------
+
+	// TODO: pass pushconst factory
+	uHash = hlx::CombineHashes(uHash, CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr));
+
+	if (!PipelineInfo.layout)
+	{
+		return false;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// VERTEX LAYOUT
+	//---------------------------------------------------------------------------------------------------
+
 	const CompiledShader* pVertexShader = m_ActiveShaders[kShaderType_Vertex];
 
 	VertexLayoutFactory VLayout;
@@ -143,13 +172,19 @@ bool VulkanRenderPass::ActivatePipeline()
 		uHash = hlx::CombineHashes(uHash, VLayout.ComputeHash());
 	}
 
-	// TODO: pass pushconst factory
-	uHash = hlx::CombineHashes(uHash, CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr));
+	//---------------------------------------------------------------------------------------------------
+	// IA STAGE
+	//---------------------------------------------------------------------------------------------------
 
-	if (!PipelineInfo.layout)
-	{
-		return false;
-	}
+	vk::PipelineInputAssemblyStateCreateInfo IAInfo{};
+	IAInfo.primitiveRestartEnable = VK_FALSE; // not supported atm
+	IAInfo.topology = GetPrimitiveTopology(m_Description.kPrimitiveTopology);
+	PipelineInfo.pInputAssemblyState = &IAInfo;
+
+	// dont set Viewport here, use Dynamic state instead: vkCmdSetViewport
+	// this allows us the resize the swapchain without recreating the pipeline
+	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#vkCmdSetViewport
+
 
 	// ...
 	// TODO: fill out the other stuff

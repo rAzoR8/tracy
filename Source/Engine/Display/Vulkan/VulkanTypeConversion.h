@@ -156,6 +156,25 @@ namespace Tracy::detail
 		vk::PrimitiveTopology::eTriangleStrip,
 		vk::PrimitiveTopology::eTriangleFan
 	};
+
+	static const vk::PolygonMode g_VkPolygonMode[kPolygonFillMode_NumOf] =
+	{
+		vk::PolygonMode::eFill,
+		vk::PolygonMode::eLine
+	};
+
+	static const vk::CullModeFlagBits g_VkCullMode[kCullMode_NumOf] =
+	{
+		vk::CullModeFlagBits::eNone,
+		vk::CullModeFlagBits::eFront,
+		vk::CullModeFlagBits::eBack
+	};
+
+	static const vk::FrontFace g_VkFrontFace[kFrontFace_NumOf] =
+	{
+		vk::FrontFace::eCounterClockwise,
+		vk::FrontFace::eClockwise
+	};
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -165,6 +184,24 @@ namespace Tracy
 	{
 		HASSERTD(_kTopo < kPrimitiveTopology_NumOf, "Invalid Primitive Topology");
 		return detail::g_VkPrimitiveTopology[_kTopo];
+	}
+
+	inline vk::PolygonMode GetPolygonMode(const EPolygonFillMode _kMode)
+	{
+		HASSERTD(_kMode < kPolygonFillMode_NumOf, "Invalid Polygon Fill Mode");
+		return detail::g_VkPolygonMode[_kMode];
+	}
+
+	inline vk::CullModeFlagBits GetCullMode(const ECullMode _kMode)
+	{
+		HASSERTD(_kMode < kCullMode_NumOf, "Invalid Cull Mode");
+		return detail::g_VkCullMode[_kMode];
+	}
+
+	inline vk::FrontFace GetFrontFace(const EFrontFace _kFace)
+	{
+		HASSERTD(_kFace < kFrontFace_NumOf, "Invalid Front Face");
+		return detail::g_VkFrontFace[_kFace];
 	}
 
 	template <typename TUsage>

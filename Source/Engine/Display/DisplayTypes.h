@@ -41,6 +41,112 @@ namespace Tracy
 		kPrimitiveTopology_Unknown = kPrimitiveTopology_NumOf
 	};
 
+	//---------------------------------------------------------------------------------------------------
+
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770366(v=vs.85).aspx
+	//typedef enum D3D12_FILL_MODE {
+	//	D3D12_FILL_MODE_WIREFRAME = 2,
+	//	D3D12_FILL_MODE_SOLID = 3
+	//}
+
+	//typedef enum VkPolygonMode {
+	//	VK_POLYGON_MODE_FILL = 0,
+	//	VK_POLYGON_MODE_LINE = 1,
+	//	VK_POLYGON_MODE_POINT = 2,
+	//}
+
+	// we use to common subset:
+	enum EPolygonFillMode : uint32_t
+	{
+		kPolygonFillMode_Solid = 0, // fill
+		kPolygonFillMode_Line = 1, // wireframe
+
+		kPolygonFillMode_NumOf,
+		kPolygonFillMode_Unknown = kPolygonFillMode_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770354(v=vs.85).aspx
+	//typedef enum D3D12_CULL_MODE {
+	//	D3D12_CULL_MODE_NONE = 1,
+	//	D3D12_CULL_MODE_FRONT = 2,
+	//	D3D12_CULL_MODE_BACK = 3
+	//}
+
+	// https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkCullModeFlagBits
+	//typedef enum VkCullModeFlagBits {
+	//	VK_CULL_MODE_NONE = 0,
+	//	VK_CULL_MODE_FRONT_BIT = 0x00000001,
+	//	VK_CULL_MODE_BACK_BIT = 0x00000002,
+	//	VK_CULL_MODE_FRONT_AND_BACK = 0x00000003,
+	//}
+
+	enum ECullMode : uint32_t
+	{
+		kCullMode_None = 0,
+		kCullMode_Front = 1,
+		kCullMode_Back = 2,
+
+		kCullMode_NumOf,
+		kCullMode_Unknown = kCullMode_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkFrontFace
+	//typedef enum VkFrontFace {
+	//	VK_FRONT_FACE_COUNTER_CLOCKWISE = 0,
+	//	VK_FRONT_FACE_CLOCKWISE = 1,
+	//}
+
+	// DX12: BOOL FrontCounterClockwise
+
+	enum EFrontFace : uint32_t
+	{
+		kFrontFace_CounterClockwise = 0,
+		kFrontFace_Clockwise = 1,
+
+		kFrontFace_NumOf,
+		kFrontFace_Unknown = kFrontFace_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	// DX12 RASTERIZER DESC: https://msdn.microsoft.com/en-us/library/windows/desktop/dn770387(v=vs.85).aspx
+	//typedef struct D3D12_RASTERIZER_DESC {
+	//	D3D12_FILL_MODE                       FillMode;
+	//	D3D12_CULL_MODE                       CullMode;
+	//	BOOL                                  FrontCounterClockwise;
+	//	INT                                   DepthBias;
+	//	FLOAT                                 DepthBiasClamp;
+	//	FLOAT                                 SlopeScaledDepthBias;
+	//	BOOL                                  DepthClipEnable;
+	//	BOOL                                  MultisampleEnable;
+	//	BOOL                                  AntialiasedLineEnable;
+	//	UINT                                  ForcedSampleCount;
+	//	D3D12_CONSERVATIVE_RASTERIZATION_MODE ConservativeRaster;
+	//}
+
+	//---------------------------------------------------------------------------------------------------
+	// VK	RASTERIZER DESC: https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkPipelineRasterizationStateCreateInfo
+	//typedef struct VkPipelineRasterizationStateCreateInfo {
+	//	VkStructureType                            sType;
+	//	const void*                                pNext;
+	//	VkPipelineRasterizationStateCreateFlags    flags;
+	//	VkBool32                                   depthClampEnable;
+	//	VkBool32                                   rasterizerDiscardEnable;
+	//	VkPolygonMode                              polygonMode;
+	//	VkCullModeFlags                            cullMode;
+	//	VkFrontFace                                frontFace;
+	//	VkBool32                                   depthBiasEnable;
+	//	float                                      depthBiasConstantFactor;
+	//	float                                      depthBiasClamp;
+	//	float                                      depthBiasSlopeFactor;
+	//	float                                      lineWidth;
+	//}
+
+	//---------------------------------------------------------------------------------------------------
+	
+	// TODO: NumOf / Unknown pattern
 	enum ETextureType : uint32_t
 	{
 		kTextureType_Invalid		= 0u,
