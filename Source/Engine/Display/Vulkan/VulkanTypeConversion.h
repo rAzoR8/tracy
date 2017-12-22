@@ -175,6 +175,30 @@ namespace Tracy::detail
 		vk::FrontFace::eCounterClockwise,
 		vk::FrontFace::eClockwise
 	};
+
+	static const vk::CompareOp g_VkCompareOp[kComparisonOp_NumOf] = 
+	{
+		vk::CompareOp::eNever,
+		vk::CompareOp::eLess,
+		vk::CompareOp::eEqual,
+		vk::CompareOp::eLessOrEqual,
+		vk::CompareOp::eGreater,
+		vk::CompareOp::eNotEqual,
+		vk::CompareOp::eGreaterOrEqual,
+		vk::CompareOp::eAlways
+	};
+
+	static const vk::StencilOp g_VkStencilOp[kStencilOp_NumOf] = 
+	{
+		vk::StencilOp::eKeep,
+		vk::StencilOp::eZero,
+		vk::StencilOp::eReplace,
+		vk::StencilOp::eIncrementAndClamp,
+		vk::StencilOp::eDecrementAndClamp,
+		vk::StencilOp::eInvert,
+		vk::StencilOp::eIncrementAndWrap,
+		vk::StencilOp::eDecrementAndWrap
+	};
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -202,6 +226,46 @@ namespace Tracy
 	{
 		HASSERTD(_kFace < kFrontFace_NumOf, "Invalid Front Face");
 		return detail::g_VkFrontFace[_kFace];
+	}
+
+	inline vk::CompareOp GetCompareOp(const EComparisonOp _kOp) 
+	{
+		HASSERTD(_kOp < kComparisonOp_NumOf, "Invalid Depth Comparison Operation");
+		return detail::g_VkCompareOp[_kOp];
+	}
+
+	inline vk::StencilOp GetStencilOp(const EStencilOp _kOp) 
+	{
+		HASSERTD(_kOp < kStencilOp_Unknown, "Invalid Stencil Operation");
+		return detail::g_VkStencilOp[_kOp];
+	}
+
+	inline vk::StencilOpState GetStencilOpState(const StencilOpDesc& _Desc)
+	{
+		vk::StencilOpState SState{};
+
+		SState.failOp = GetStencilOp(_Desc.kFailOp);
+		SState.passOp = GetStencilOp(_Desc.kPassOp);
+		SState.depthFailOp = GetStencilOp(_Desc.kDepthFailOp);
+		SState.compareOp = GetCompareOp(_Desc.kStencilCompareOp);
+
+		// TODO: write mask, reference etc
+
+		return SState;
+	}
+
+	inline vk::PipelineDepthStencilStateCreateInfo GetDepthStencilState(const DepthStencilStateDesc& _Desc)
+	{
+		vk::PipelineDepthStencilStateCreateInfo Info{};
+
+		Info.depthTestEnable = _Desc.bDepthTestEnabled ? VK_TRUE : VK_FALSE;
+		Info.depthWriteEnable = _Desc.bDepthWriteEnabled ? VK_TRUE : VK_FALSE;
+
+		Info.depthCompareOp = GetCompareOp(_Desc.kDepthCompareOp);
+		Info.front = GetStencilOpState(_Desc.FrontFace);
+		Info.back = GetStencilOpState(_Desc.BackFace);
+
+		return Info;
 	}
 
 	template <typename TUsage>

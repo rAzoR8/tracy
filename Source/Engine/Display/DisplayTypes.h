@@ -145,7 +145,156 @@ namespace Tracy
 	//}
 
 	//---------------------------------------------------------------------------------------------------
+
+	//typedef enum D3D12_COMPARISON_FUNC {
+	//	D3D12_COMPARISON_FUNC_NEVER = 1,
+	//	D3D12_COMPARISON_FUNC_LESS = 2,
+	//	D3D12_COMPARISON_FUNC_EQUAL = 3,
+	//	D3D12_COMPARISON_FUNC_LESS_EQUAL = 4,
+	//	D3D12_COMPARISON_FUNC_GREATER = 5,
+	//	D3D12_COMPARISON_FUNC_NOT_EQUAL = 6,
+	//	D3D12_COMPARISON_FUNC_GREATER_EQUAL = 7,
+	//	D3D12_COMPARISON_FUNC_ALWAYS = 8
+	//}
+
+	//enum class CompareOp
+	//{
+	//	eNever = VK_COMPARE_OP_NEVER,
+	//	eLess = VK_COMPARE_OP_LESS,
+	//	eEqual = VK_COMPARE_OP_EQUAL,
+	//	eLessOrEqual = VK_COMPARE_OP_LESS_OR_EQUAL,
+	//	eGreater = VK_COMPARE_OP_GREATER,
+	//	eNotEqual = VK_COMPARE_OP_NOT_EQUAL,
+	//	eGreaterOrEqual = VK_COMPARE_OP_GREATER_OR_EQUAL,
+	//	eAlways = VK_COMPARE_OP_ALWAYS
+	//};
+
+	enum EComparisonOp : uint32_t
+	{
+		kComparisonOp_Never = 0,
+		kComparisonOp_Less = 1,
+		kComparisonOp_Equal = 2,
+		kComparisonOp_LessEqual = 3,
+		kComparisonOp_Greater = 4,
+		kComparisonOp_NotEqual = 5,
+		kComparisonOp_GreaterEqual = 6,
+		kComparisonOp_Always = 7,
+
+		kComparisonOp_NumOf,
+		kComparisonOp_Unknown = kComparisonOp_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	//typedef enum D3D12_STENCIL_OP {
+	//	D3D12_STENCIL_OP_KEEP = 1,
+	//	D3D12_STENCIL_OP_ZERO = 2,
+	//	D3D12_STENCIL_OP_REPLACE = 3,
+	//	D3D12_STENCIL_OP_INCR_SAT = 4,
+	//	D3D12_STENCIL_OP_DECR_SAT = 5,
+	//	D3D12_STENCIL_OP_INVERT = 6,
+	//	D3D12_STENCIL_OP_INCR = 7,
+	//	D3D12_STENCIL_OP_DECR = 8
+	//}
+
+	//typedef enum VkStencilOp {
+	//	VK_STENCIL_OP_KEEP = 0,
+	//	VK_STENCIL_OP_ZERO = 1,
+	//	VK_STENCIL_OP_REPLACE = 2,
+	//	VK_STENCIL_OP_INCREMENT_AND_CLAMP = 3,
+	//	VK_STENCIL_OP_DECREMENT_AND_CLAMP = 4,
+	//	VK_STENCIL_OP_INVERT = 5,
+	//	VK_STENCIL_OP_INCREMENT_AND_WRAP = 6,
+	//	VK_STENCIL_OP_DECREMENT_AND_WRAP = 7,
+	//}
+
+	// dx12 and vulkan stencil ops are identical (also dx12 INCR and DECR wrap)
 	
+	enum EStencilOp : uint32_t
+	{
+		kStencilOp_Keep = 0,
+		kStencilOp_Zero = 1,
+		kStencilOp_Replace = 2,
+		kStencilOp_IncrementAndClamp = 3, //D3D12_STENCIL_OP_INCR_SAT
+		kStencilOp_DecrementAndClamp = 4, //VK_STENCIL_OP_DECREMENT_AND_CLAMP
+		kStencilOp_Invert = 5,
+		kStencilOp_IncrementAndWrap = 6, //D3D12_STENCIL_OP_INCR
+		kStencilOp_DecrementAndWrap = 7, //D3D12_STENCIL_OP_DECR
+
+		kStencilOp_NumOf,
+		kStencilOp_Unknown = kStencilOp_NumOf,
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	//typedef struct VkStencilOpState {
+	//	VkStencilOp    failOp;
+	//	VkStencilOp    passOp;
+	//	VkStencilOp    depthFailOp;
+	//	VkCompareOp    compareOp;
+	//	uint32_t       compareMask;
+	//	uint32_t       writeMask;
+	//	uint32_t       reference;
+	//}
+
+	//typedef struct D3D12_DEPTH_STENCILOP_DESC {
+	//	D3D12_STENCIL_OP      StencilFailOp;
+	//	D3D12_STENCIL_OP      StencilDepthFailOp;
+	//	D3D12_STENCIL_OP      StencilPassOp;
+	//	D3D12_COMPARISON_FUNC StencilFunc;
+	//}
+
+	struct StencilOpDesc
+	{
+		EStencilOp kFailOp = kStencilOp_Unknown; // Stencil Fail op
+		EStencilOp kPassOp = kStencilOp_Unknown; // Stencil Pass op
+		EStencilOp kDepthFailOp = kStencilOp_Unknown;
+		EComparisonOp kStencilCompareOp = kComparisonOp_Unknown;
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770356(v=vs.85).aspx
+	//typedef struct D3D12_DEPTH_STENCIL_DESC {
+	//	BOOL                       DepthEnable;
+	//	D3D12_DEPTH_WRITE_MASK     DepthWriteMask;
+	//	D3D12_COMPARISON_FUNC      DepthFunc;
+	//	BOOL                       StencilEnable;
+	//	UINT8                      StencilReadMask;
+	//	UINT8                      StencilWriteMask;
+	//	D3D12_DEPTH_STENCILOP_DESC FrontFace;
+	//	D3D12_DEPTH_STENCILOP_DESC BackFace;
+	//}
+
+	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkPipelineDepthStencilStateCreateInfo
+	//typedef struct VkPipelineDepthStencilStateCreateInfo {
+	//	VkStructureType                           sType;
+	//	const void*                               pNext;
+	//	VkPipelineDepthStencilStateCreateFlags    flags;
+	//	VkBool32                                  depthTestEnable;
+	//	VkBool32                                  depthWriteEnable;
+	//	VkCompareOp                               depthCompareOp;
+	//	VkBool32                                  depthBoundsTestEnable;
+	//	VkBool32                                  stencilTestEnable;
+	//	VkStencilOpState                          front;
+	//	VkStencilOpState                          back;
+	//	float                                     minDepthBounds;
+	//	float                                     maxDepthBounds;
+	//}
+
+	//---------------------------------------------------------------------------------------------------
+
+	struct DepthStencilStateDesc
+	{
+		bool bDepthTestEnabled = false;
+		bool bDepthWriteEnabled = false; //D3D12_DEPTH_WRITE_MASK
+		EComparisonOp kDepthCompareOp = kComparisonOp_Unknown;
+
+		StencilOpDesc FrontFace;
+		StencilOpDesc BackFace;
+
+		// todo: depthBoundsTestEnable etc
+	};
+	//---------------------------------------------------------------------------------------------------
+
 	// TODO: NumOf / Unknown pattern
 	enum ETextureType : uint32_t
 	{

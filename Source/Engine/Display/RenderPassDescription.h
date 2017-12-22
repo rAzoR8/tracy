@@ -35,6 +35,13 @@ namespace Tracy
 		float fDepthBiasClamp = 0.f;
 		float fDepthBiasSlopeFactor = 0.f;
 		float fLineWidth = 0.f;
+
+		// Tesselation Stage
+		uint32_t uPatchControlPointCount = 0u;
+
+		// DepthStencil State
+		DepthStencilStateDesc DepthStencilState;
+
 	};
 
 	struct InputDependency

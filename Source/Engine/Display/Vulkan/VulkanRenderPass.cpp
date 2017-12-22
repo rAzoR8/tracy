@@ -119,6 +119,7 @@ bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 	hlx::Hasher uHash = 0u; // needs to differ from kUndefinedSizeT
 
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
+	PipelineInfo.basePipelineIndex = -1;
 
 	// this is going to be the base pipeline, allow derivatives from this one
 	if (!m_BasePipeline && _Desc.bBasePipeline)
@@ -194,6 +195,31 @@ bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#vkCmdSetViewport
 
 	//---------------------------------------------------------------------------------------------------
+	// TESSELATION STAGE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineTessellationStateCreateInfo TInfo{};
+
+	if (m_ActiveShaders[kShaderType_TessellationControl] != nullptr && m_ActiveShaders[kShaderType_TessellationEvaluation] != nullptr) 
+	{		
+		//TODO: patchControlPoints must be greater than zero and less than or equal to VkPhysicalDeviceLimits::maxTessellationPatchSize
+		//pNext must be NULL or a pointer to a valid instance of VkPipelineTessellationDomainOriginStateCreateInfoKHR
+		
+		HASSERT(_Desc.uPatchControlPointCount > 0u /*&& VkPhysicalDeviceLimits::maxTessellationPatchSize*/, "Invalid number of tesselation patch control points");
+		TInfo.patchControlPoints = _Desc.uPatchControlPointCount;
+		uHash << TInfo.patchControlPoints;
+
+		PipelineInfo.pTessellationState = &TInfo;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// MULTISAMPLING STATE (unsupported/disabled atm)
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineMultisampleStateCreateInfo MSInfo{}; // TODO: add to uHash if MS is needed
+	PipelineInfo.pMultisampleState = &MSInfo;
+
+	//---------------------------------------------------------------------------------------------------
 	// Rasterizer STAGE
 	//---------------------------------------------------------------------------------------------------
 
@@ -235,6 +261,15 @@ bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 
 	// pNext pointer musst be ignored!
 	PipelineInfo.pRasterizationState = &RInfo;
+
+	//---------------------------------------------------------------------------------------------------
+	// DepthStencil STATE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineDepthStencilStateCreateInfo DSInfo = GetDepthStencilState(_Desc.DepthStencilState);
+	uHash << DSInfo.depthTestEnable << DSInfo.depthWriteEnable << DSInfo.depthCompareOp << DSInfo.front << DSInfo.back;
+
+	PipelineInfo.pDepthStencilState = &DSInfo;
 
 	// ...
 	// TODO: fill out the other stuff
