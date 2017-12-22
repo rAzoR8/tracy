@@ -47,7 +47,7 @@ namespace Tracy
 		void ActivePass();
 
 		// called before draw or after shader has been selected
-		bool ActivatePipeline();
+		bool CreatePipeline(const PipelineDesc& _Desc);
 		const size_t CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
@@ -66,6 +66,7 @@ namespace Tracy
 		// identifies the current pipeline
 		size_t m_uPipelineHash = kUndefinedSizeT;
 		vk::Pipeline m_ActivePipeline = nullptr;
+		vk::Pipeline m_BasePipeline = nullptr;
 
 		std::unordered_map<size_t, vk::DescriptorSetLayout> m_DescriptorSetLayouts;
 		std::unordered_map<size_t, vk::PipelineLayout> m_PipelineLayouts;

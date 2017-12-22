@@ -44,7 +44,7 @@ bool VulkanRenderPass::Initialize()
 		}
 
 		// create pipeline but dont bind to commandbuffer
-		if (ActivatePipeline() == false)
+		if (CreatePipeline(Pipeline) == false)
 			return false;
 	}
 
@@ -114,11 +114,17 @@ void VulkanRenderPass::ActivePass()
 	// m_ViewportState
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanRenderPass::ActivatePipeline()
+bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 {
 	hlx::Hasher uHash = 0u; // needs to differ from kUndefinedSizeT
 
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
+
+	// this is going to be the base pipeline, allow derivatives from this one
+	if (!m_BasePipeline && _Desc.bBasePipeline)
+	{
+		PipelineInfo.flags |= vk::PipelineCreateFlagBits::eAllowDerivatives;
+	}
 
 	//---------------------------------------------------------------------------------------------------
 	// SHADER STAGES
@@ -178,7 +184,7 @@ bool VulkanRenderPass::ActivatePipeline()
 
 	vk::PipelineInputAssemblyStateCreateInfo IAInfo{};
 	IAInfo.primitiveRestartEnable = VK_FALSE; // not supported atm
-	IAInfo.topology = GetPrimitiveTopology(m_Description.kPrimitiveTopology);
+	IAInfo.topology = GetPrimitiveTopology(_Desc.kPrimitiveTopology);
 	PipelineInfo.pInputAssemblyState = &IAInfo;
 
 	uHash << IAInfo.primitiveRestartEnable << IAInfo.topology;
@@ -198,29 +204,29 @@ bool VulkanRenderPass::ActivatePipeline()
 	RInfo.depthClampEnable = VK_FALSE; // not supported atm
 	uHash << RInfo.depthClampEnable;
 
-	RInfo.cullMode = GetCullMode(m_Description.kCullMode);
+	RInfo.cullMode = GetCullMode(_Desc.kCullMode);
 	uHash << RInfo.cullMode;
 
-	RInfo.polygonMode = GetPolygonMode(m_Description.kFillMode);
+	RInfo.polygonMode = GetPolygonMode(_Desc.kFillMode);
 	uHash << RInfo.polygonMode;
 
-	RInfo.frontFace = GetFrontFace(m_Description.kFrontFace);
+	RInfo.frontFace = GetFrontFace(_Desc.kFrontFace);
 	uHash << RInfo.frontFace;
 
-	RInfo.depthBiasEnable = m_Description.fDepthBiasClamp != 0.f || m_Description.fDepthBiasConstFactor != 0.f || m_Description.fDepthBiasSlopeFactor;
+	RInfo.depthBiasEnable = _Desc.fDepthBiasClamp != 0.f || _Desc.fDepthBiasConstFactor != 0.f || _Desc.fDepthBiasSlopeFactor;
 	uHash << RInfo.depthBiasEnable;
 
-	if (m_Description.kFillMode == kPolygonFillMode_Line)
+	if (_Desc.kFillMode == kPolygonFillMode_Line)
 	{
-		RInfo.lineWidth = m_Description.fLineWidth;
+		RInfo.lineWidth = _Desc.fLineWidth;
 		uHash << RInfo.lineWidth;
 	}
 
 	if (RInfo.depthBiasEnable)
 	{
-		RInfo.depthBiasConstantFactor = m_Description.fDepthBiasConstFactor;
-		RInfo.depthBiasClamp = m_Description.fDepthBiasClamp;
-		RInfo.depthBiasSlopeFactor = m_Description.fDepthBiasSlopeFactor;
+		RInfo.depthBiasConstantFactor = _Desc.fDepthBiasConstFactor;
+		RInfo.depthBiasClamp = _Desc.fDepthBiasClamp;
+		RInfo.depthBiasSlopeFactor = _Desc.fDepthBiasSlopeFactor;
 
 		uHash << RInfo.depthBiasConstantFactor;
 		uHash << RInfo.depthBiasClamp;
@@ -232,6 +238,13 @@ bool VulkanRenderPass::ActivatePipeline()
 
 	// ...
 	// TODO: fill out the other stuff
+
+	// we want to derive from the base pipeline
+	if (m_BasePipeline && _Desc.bBasePipeline == false) 
+	{
+		PipelineInfo.flags |= vk::PipelineCreateFlagBits::eDerivative;
+		PipelineInfo.basePipelineHandle = m_BasePipeline;
+	}
 
 	if (uHash != m_uPipelineHash)
 	{
@@ -251,6 +264,12 @@ bool VulkanRenderPass::ActivatePipeline()
 			}
 
 			m_ActivePipeline = NewPipeline;
+
+			// this is the base pipeline now
+			if (!m_BasePipeline && _Desc.bBasePipeline)
+			{
+				m_BasePipeline = NewPipeline;
+			}
 
 			m_Pipelines.insert({ uHash, NewPipeline });
 		}

@@ -11,6 +11,7 @@ namespace Tracy
 {
 	struct PipelineDesc
 	{
+
 		struct ShaderDesc
 		{
 			ShaderID Identifier;
@@ -18,8 +19,22 @@ namespace Tracy
 		};
 
 		std::vector<ShaderDesc> Shaders;
-
 		// spec const data?
+
+		bool bBasePipeline = false;
+
+		// IA Stage
+		EPrimitiveTopology kPrimitiveTopology = kPrimitiveTopology_Unknown;
+
+		// Rasterizer Stage
+		EPolygonFillMode kFillMode = kPolygonFillMode_Unknown;
+		ECullMode kCullMode = kCullMode_Unknown;
+		EFrontFace kFrontFace = kFrontFace_Unknown;
+		// if any DepthBias value is non 0 depthBiasEnable will be set to true
+		float fDepthBiasConstFactor = 0.f;
+		float fDepthBiasClamp = 0.f;
+		float fDepthBiasSlopeFactor = 0.f;
+		float fLineWidth = 0.f;
 	};
 
 	struct InputDependency
@@ -86,22 +101,8 @@ namespace Tracy
 		bool bSubPass = false; // must be true for elements of SubPasses
 
 		bool bRenderByObject = true; // false for screenspace materials
-
-		// IA Stage
-		EPrimitiveTopology kPrimitiveTopology = kPrimitiveTopology_Unknown;
-
-		// Rasterizer Stage
-		EPolygonFillMode kFillMode = kPolygonFillMode_Unknown;
-		ECullMode kCullMode = kCullMode_Unknown;
-		EFrontFace kFrontFace = kFrontFace_Unknown;
-		// if any DepthBias value is non 0 depthBiasEnable will be set to true
-		float fDepthBiasConstFactor = 0.f;
-		float fDepthBiasClamp = 0.f;
-		float fDepthBiasSlopeFactor = 0.f;
-
-		float fLineWidth = 0.f;
-
-		FramebufferDesc Framebuffer;
+		
+		FramebufferDesc Framebuffer; 
 
 		// shaders / pipelines that are frequently used
 		std::vector<PipelineDesc> DefaultPipelines; // pipelines will be created for these on Initialize
