@@ -225,7 +225,7 @@ bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 
 	vk::PipelineRasterizationStateCreateInfo RInfo{};
 	RInfo.rasterizerDiscardEnable = VK_FALSE; // not supported atm
-	uHash << RInfo.rasterizerDiscardEnable;
+	uHash << RInfo.rasterizerDiscardEnable;// pNext pointer musst be ignored in the hash 
 
 	RInfo.depthClampEnable = VK_FALSE; // not supported atm
 	uHash << RInfo.depthClampEnable;
@@ -259,7 +259,6 @@ bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 		uHash << RInfo.depthBiasSlopeFactor;
 	}
 
-	// pNext pointer musst be ignored!
 	PipelineInfo.pRasterizationState = &RInfo;
 
 	//---------------------------------------------------------------------------------------------------
