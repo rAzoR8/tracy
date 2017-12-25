@@ -53,6 +53,8 @@ namespace Tracy
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
 
+		bool CreateDescriptorPool();
+		
 	private:
 		RenderPassDesc m_Description;
 		// index relative to parent pass or rendergraph (index into vector)
@@ -68,12 +70,22 @@ namespace Tracy
 		vk::Pipeline m_ActivePipeline = nullptr;
 		vk::Pipeline m_BasePipeline = nullptr;
 
-		std::unordered_map<size_t, vk::DescriptorSetLayout> m_DescriptorSetLayouts;
+		struct DesciptorSet
+		{
+			vk::DescriptorSetLayout Layout;
+			vk::DescriptorSet Set;
+			TVarSet Variables;
+		};
+
+		// todo: vector<DesciptorSet> currentSets (active sets)
+		std::unordered_map<size_t, DesciptorSet> m_DescriptorSets;
+
+		vk::DescriptorPool m_DescriptorPool;
+
 		std::unordered_map<size_t, vk::PipelineLayout> m_PipelineLayouts;
 
 		// pipeline description hash -> pipeline
 		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
-
 		vk::PipelineCache m_PipelineCache = nullptr;
 	};
 
