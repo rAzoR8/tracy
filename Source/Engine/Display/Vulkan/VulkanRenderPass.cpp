@@ -507,7 +507,24 @@ bool VulkanRenderPass::CreateDescriptorPool()
 	vk::DescriptorPoolCreateInfo Info{};
 	std::vector<vk::DescriptorPoolSize> PoolSizes;
 
-	Info.maxSets = 128u; // donno what makes sense here
+	auto AddSize = [&PoolSizes](vk::DescriptorType kType, uint32_t uCount)
+	{
+		PoolSizes.push_back(vk::DescriptorPoolSize(kType, uCount));
+	};
+
+	AddSize(vk::DescriptorType::eCombinedImageSampler, 64u);
+	AddSize(vk::DescriptorType::eInputAttachment, 8u);
+	AddSize(vk::DescriptorType::eSampledImage, 64u);
+	AddSize(vk::DescriptorType::eSampler, 64u);
+	AddSize(vk::DescriptorType::eStorageBuffer, 64u);
+	AddSize(vk::DescriptorType::eStorageBufferDynamic, 64u);
+	AddSize(vk::DescriptorType::eStorageImage, 64u);
+	AddSize(vk::DescriptorType::eStorageTexelBuffer, 64u);
+	AddSize(vk::DescriptorType::eUniformBuffer, 64u);
+	AddSize(vk::DescriptorType::eUniformBufferDynamic, 64u);
+	AddSize(vk::DescriptorType::eUniformTexelBuffer, 64u);
+
+	Info.maxSets = 512u; // donno what makes sense here
 	Info.poolSizeCount = static_cast<uint32_t>(PoolSizes.size());
 	Info.pPoolSizes = PoolSizes.data();
 
