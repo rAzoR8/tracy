@@ -15,6 +15,7 @@ namespace Tracy
 
 	private:
 		float3_t m_vPosition;
+		float3_t m_vScale;
 		float4_t m_vOrientation;
 
 	};

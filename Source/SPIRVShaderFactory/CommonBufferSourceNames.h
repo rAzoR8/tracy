@@ -8,7 +8,8 @@ namespace Tracy
 {
 	namespace BufferSources
 	{
-		static constexpr uint64_t ObjectPosition = "TRACY_OBJ_POS"_hash;
+		static constexpr uint64_t ObjectPosition = "TRACY_OBJ_POSITION"_hash;
+		static constexpr uint64_t ObjectScale = "TRACY_OBJ_SCALE"_hash;
 		static constexpr uint64_t ObjectOrientation = "TRACY_OBJ_ORIENTATION"_hash;
 	}
 } // Tracy
