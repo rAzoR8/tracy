@@ -63,6 +63,8 @@ bool VulkanRenderPass::Initialize()
 
 void VulkanRenderPass::Uninitialize()
 {
+	// todo: wait for commandbuffer to finish processing
+
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
 		SubPass.Uninitialize();

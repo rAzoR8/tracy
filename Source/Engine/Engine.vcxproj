@@ -95,6 +95,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Async\AsyncTask.h" />
+    <ClInclude Include="Display\BufferSource.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
     <ClInclude Include="Display\DisplayTypes.h" />
     <ClInclude Include="Display\DX12\DX12API.h" />
@@ -102,6 +103,7 @@
     <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
+    <ClInclude Include="Display\RenderObject.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
     <ClInclude Include="Display\Texture.h" />
     <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h" />
@@ -124,6 +126,7 @@
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
     <ClCompile Include="Display\DX12\DX12Instance.cpp" />
     <ClCompile Include="Display\IDevice.cpp" />
+    <ClCompile Include="Display\RenderObject.cpp" />
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp" />
     <ClCompile Include="Display\Texture.cpp" />
     <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp" />
