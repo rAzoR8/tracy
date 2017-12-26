@@ -4,6 +4,7 @@
 //#include <utility> // pair
 #include <cstdint>
 #include <vector>
+#include "HashUtils.h"
 
 namespace Tracy
 {
@@ -26,12 +27,15 @@ namespace Tracy
 
 			const void* pData;
 			uint32_t uSize;
-			uint64_t uHash;
+			uint64_t uHash; // hash of the global variable name
 		};
 
 		const std::vector<Var>& GetVars() const;
 
+		const uint64_t GetID() const;
+
 	private:
+		hlx::Hasher m_uID = 0u;
 		std::vector<Var> m_Vars;
 	};
 	
@@ -45,6 +49,7 @@ namespace Tracy
 	inline void BufferSource::AddVars(const T& _Var, const uint64_t _uNameHash, const Ts& ..._Args)
 	{
 		m_Vars.emplace_back(&_Var, static_cast<uint32_t>(sizeof(T)), _uNameHash);
+		m_uID += _uNameHash; // todo: hash type
 
 		constexpr size_t uArgs = sizeof...(_Args);
 		if constexpr(uArgs > 0)
@@ -58,6 +63,7 @@ namespace Tracy
 	}
 
 	inline const std::vector<BufferSource::Var>& BufferSource::GetVars() const	{ return m_Vars; }
+	inline const uint64_t BufferSource::GetID() const {return m_uID;}
 } // Tracy
 
 #endif // !TRACY_BUFFERSOURCE_H
