@@ -2,8 +2,7 @@
 #define	TRACY_RENDEROBJECT_H
 
 #include "BufferSource.h"
-#include "../SPIRVGen/SPIRVVariableTypes.h" // todo: replace with physx or other math type
-#include <glm/glm.hpp>
+#include "MathTypes.h"
 
 namespace Tracy
 {

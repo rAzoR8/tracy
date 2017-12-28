@@ -96,6 +96,7 @@
   <ItemGroup>
     <ClInclude Include="Async\AsyncTask.h" />
     <ClInclude Include="Display\BufferSource.h" />
+    <ClInclude Include="Display\Camera.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
     <ClInclude Include="Display\DisplayTypes.h" />
     <ClInclude Include="Display\DX12\DX12API.h" />
@@ -103,6 +104,7 @@
     <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
+    <ClInclude Include="Display\Material.h" />
     <ClInclude Include="Display\RenderObject.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
     <ClInclude Include="Display\Texture.h" />
@@ -119,6 +121,7 @@
     <ClInclude Include="Display\Vulkan\VulkanTypeConversion.h" />
     <ClInclude Include="Display\Vulkan\VulkanWindow.h" />
     <ClInclude Include="Engine.hpp" />
+    <ClInclude Include="MathTypes.h" />
     <ClInclude Include="Platform\IApplication.h" />
     <ClInclude Include="Platform\Win32\Win32Application.h" />
   </ItemGroup>

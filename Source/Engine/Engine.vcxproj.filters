@@ -109,6 +109,13 @@
     <ClInclude Include="Display\RenderObject.h">
       <Filter>Display</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Camera.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="MathTypes.h" />
+    <ClInclude Include="Display\Material.h">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
