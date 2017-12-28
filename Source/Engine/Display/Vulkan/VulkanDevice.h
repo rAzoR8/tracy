@@ -37,6 +37,13 @@ namespace Tracy
 		// Textures
 		const THandle CreateRenderTarget(const TextureDesc& _Desc);
 
+		// Texture Views
+		template <ETextureViewType ViewType>
+		const THandle AddView(const THandle _hTexture)
+		{
+			if constexpr
+		}
+
 		explicit operator bool() const
 		{
 			return m_Device && m_PhysicalDevice;
@@ -102,7 +109,7 @@ namespace Tracy
 		VulkanMemoryAllocator* m_Allocator;
 
 		// Texture Tables
-		std::unordered_map<THandle, VulkanRenderTexture> m_RenderTargets;
+		std::unordered_map<THandle, VulkanTexture*> m_RenderTargets;
 		THandle m_hNextRenderTarget = 0u;
 	};
 

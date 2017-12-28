@@ -3,6 +3,7 @@
 #include "VulkanTypeConversion.h"
 
 #include "Logger.h"
+#include "HashUtils.h"
 
 using namespace Tracy;
 
@@ -183,15 +184,14 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 
 	return false;
 }
-
+//---------------------------------------------------------------------------------------------------
 const THandle Tracy::VulkanDevice::CreateRenderTarget(const TextureDesc& _Desc)
 {
 	//m_RenderTargets.insert({ m_hNextRenderTarget, {} });
 
 	VulkanRenderTexture Texture;// = m_RenderTargets[m_hNextRenderTarget];
 
-	// TODO : Compute hash based on texture desc
-	Texture.m_hHandle = m_hNextRenderTarget++;
+	Texture.m_hHandle = hlx::Hash(_Desc.kFormat, _Desc.kUsageFlag, _Desc.sName, _Desc.uWidth, _Desc.uHeight, _Desc.uDepth);
 
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, 1u);
@@ -206,6 +206,8 @@ const THandle Tracy::VulkanDevice::CreateRenderTarget(const TextureDesc& _Desc)
 
 	vk::Result Result = m_Allocator->CreateImage(AllocInfo, Texture.m_Allocation, Info, Texture.m_Image);
 	HASSERT(Result != vk::Result::eSuccess, "Failed to create Render Target. Code: %d", Result);
+
+	
 
 	return Texture.m_hHandle;
 }

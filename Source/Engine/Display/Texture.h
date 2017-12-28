@@ -6,6 +6,13 @@
 
 namespace Tracy
 {
+	enum ETextureViewType
+	{
+		kViewType_ShaderResource = 0u,
+		kViewType_RenderTarget,
+		kViewType_DepthStencil
+	};
+
 	struct TextureDesc
 	{
 		uint32_t uWidth = 0u;
@@ -16,6 +23,7 @@ namespace Tracy
 		std::string sName = "NewTexture";
 	};
 
+	template <ETextureType Type>
 	class Texture
 	{
 	public:
@@ -40,21 +48,28 @@ namespace Tracy
 
 		EFormat m_kFormat = kFormat_Undefined;
 
-		ETextureType m_kType = kTextureType_Invalid;
-
 		std::string m_sName = "";
 
 	private:
+		// internal usage
+		ETextureType m_kType = kTextureType_Invalid;
+
 		// Used to create default name
 		static uint64_t m_uNameGUID;
 	};
 
-	inline const uint16_t Texture::GetWidth() const { return m_uWidth; }
-	inline const uint16_t Texture::GetHeight() const { return m_uHeight; }
-	inline const uint16_t Texture::GetDepth() const { return m_uDepth; }
-	inline const EFormat Texture::GetFormat() const { return m_kFormat; }
-	inline const ETextureType Texture::GetType() const { return m_kType; }
-	inline const std::string Texture::MakeDefaultName() { return "Texture_" + std::to_string(m_uNameGUID++); }
+	template <ETextureType Type>
+	inline const uint16_t Texture<Type>::GetWidth() const { return m_uWidth; }
+	template <ETextureType Type>
+	inline const uint16_t Texture<Type>::GetHeight() const { return m_uHeight; }
+	template <ETextureType Type>
+	inline const uint16_t Texture<Type>::GetDepth() const { return m_uDepth; }
+	template <ETextureType Type>
+	inline const EFormat Texture<Type>::GetFormat() const { return m_kFormat; }
+	template <ETextureType Type>
+	inline const ETextureType Texture<Type>::GetType() const { return m_kType; }
+	template <ETextureType Type>
+	inline const std::string Texture<Type>::MakeDefaultName() { return "Texture_" + std::to_string(m_uNameGUID++); }
 }
 #endif // !_TRACY_TEXTURE_H_
 

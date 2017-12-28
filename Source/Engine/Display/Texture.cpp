@@ -1,11 +1,17 @@
 #include "Texture.h"
 
-uint64_t Tracy::Texture::m_uNameGUID = 0u;
+template <Tracy::ETextureType Type>
+uint64_t Tracy::Texture<Type>::m_uNameGUID = 0u;
 
-Tracy::Texture::Texture()
+//---------------------------------------------------------------------------------------------------
+template <Tracy::ETextureType Type>
+Tracy::Texture<Type>::Texture()
 {
+	m_kType = Type;
 }
 
-Tracy::Texture::~Texture()
+//---------------------------------------------------------------------------------------------------
+template <Tracy::ETextureType Type>
+Tracy::Texture<Type>::~Texture()
 {
 }
