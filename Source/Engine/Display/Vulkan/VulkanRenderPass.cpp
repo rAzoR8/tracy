@@ -1,5 +1,6 @@
 #include "VulkanRenderPass.h"
 #include "FileStream.h"
+#include "VulkanTypeConversion.h"
 
 using namespace Tracy;
 
@@ -31,6 +32,9 @@ bool VulkanRenderPass::Initialize()
 	if (LoadPipelineCache(m_Description.sPassName + L"_pipeline.cache") == false)
 		return false;
 
+	if (CreateDescriptorPool() == false)
+		return false;
+
 	// create default pipelines
 	for (const PipelineDesc& Pipeline : m_Description.DefaultPipelines)
 	{
@@ -43,7 +47,7 @@ bool VulkanRenderPass::Initialize()
 		}
 
 		// create pipeline but dont bind to commandbuffer
-		if (ActivatePipeline() == false)
+		if (CreatePipeline(Pipeline) == false)
 			return false;
 	}
 
@@ -59,6 +63,8 @@ bool VulkanRenderPass::Initialize()
 
 void VulkanRenderPass::Uninitialize()
 {
+	// todo: wait for commandbuffer to finish processing
+
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
 		SubPass.Uninitialize();
@@ -66,23 +72,33 @@ void VulkanRenderPass::Uninitialize()
 
 	StorePipelineCache(m_Description.sPassName + L"_pipeline.cache");
 	m_Device.destroyPipelineCache(m_PipelineCache);
-	
-	for (auto& kv : m_DescriptorSetLayouts)
+	m_PipelineCache = nullptr;
+
+	m_Device.destroyDescriptorPool(m_DescriptorPool);
+	m_DescriptorPool = nullptr;
+
+	for (auto& kv : m_DescriptorSets)
 	{
-		m_Device.destroyDescriptorSetLayout(kv.second);
+		DesciptorSet& Set = kv.second;
+		m_Device.destroyDescriptorSetLayout(Set.Layout);
 	}
+	m_DescriptorSets.clear();	
 
 	for (auto& kv : m_PipelineLayouts)
 	{
 		m_Device.destroyPipelineLayout(kv.second);
 	}
+	m_PipelineLayouts.clear();
 
 	for (auto& kv : m_Pipelines)
 	{
 		m_Device.destroyPipeline(kv.second);
 	}
-
 	m_Pipelines.clear();
+
+	m_uPipelineHash = kUndefinedSizeT;
+	m_ActivePipeline = nullptr;
+	m_BasePipeline = nullptr;
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -105,11 +121,33 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 	m_Dependencies.push_back(_Dependency);
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanRenderPass::ActivatePipeline()
+// prepares command buffer & dynamic state for recording
+// called for each batch of objects that use a different shader
+void VulkanRenderPass::ActivePass()
 {
-	size_t uHash = 0u; // needs to differ from kUndefinedSizeT
+	//vkCmdSetViewport
+	// m_ViewportState
+
+	// first recorded cmd should be the PipelineBarriers for all m_Dependencies elements
+	// vk::CmdPipelineBarrier
+}
+//---------------------------------------------------------------------------------------------------
+bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
+{
+	hlx::Hasher uHash = 0u; // needs to differ from kUndefinedSizeT
 
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
+	PipelineInfo.basePipelineIndex = -1;
+
+	// this is going to be the base pipeline, allow derivatives from this one
+	if (!m_BasePipeline && _Desc.bBasePipeline)
+	{
+		PipelineInfo.flags |= vk::PipelineCreateFlagBits::eAllowDerivatives;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// SHADER STAGES
+	//---------------------------------------------------------------------------------------------------
 
 	std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages;
 	std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
@@ -121,8 +159,8 @@ bool VulkanRenderPass::ActivatePipeline()
 		if (pShader != nullptr)
 		{
 			ShaderStages.push_back(pShader->StageCreateInfo);
-			uHash = hlx::CombineHashes(uHash, pShader->uIDHash);
-			uHash = hlx::CombineHashes(uHash, pShader->uSpecConstHash);
+			uHash += pShader->uIDHash;
+			uHash += pShader->uSpecConstHash;
 
 			uLastDescriptorSet = std::max(uLastDescriptorSet, SortIntoDescriptorSets(pShader->Code, DescriptorSets));
 		}
@@ -130,6 +168,22 @@ bool VulkanRenderPass::ActivatePipeline()
 
 	PipelineInfo.pStages = ShaderStages.data();
 	PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStages.size());
+
+	//---------------------------------------------------------------------------------------------------
+	// PIPELINE LAYOUT
+	//---------------------------------------------------------------------------------------------------
+
+	// TODO: pass pushconst factory
+	uHash += CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr);
+
+	if (!PipelineInfo.layout)
+	{
+		return false;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// VERTEX LAYOUT
+	//---------------------------------------------------------------------------------------------------
 
 	const CompiledShader* pVertexShader = m_ActiveShaders[kShaderType_Vertex];
 
@@ -140,19 +194,109 @@ bool VulkanRenderPass::ActivatePipeline()
 	{
 		VertexInputState = VLayout.GetVertexLayout(pVertexShader->Code.GetVariables());
 		PipelineInfo.pVertexInputState = &VertexInputState;
-		uHash = hlx::CombineHashes(uHash, VLayout.ComputeHash());
+		uHash += VLayout.ComputeHash();
 	}
 
-	// TODO: pass pushconst factory
-	uHash = hlx::CombineHashes(uHash, CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr));
+	//---------------------------------------------------------------------------------------------------
+	// IA STAGE
+	//---------------------------------------------------------------------------------------------------
 
-	if (!PipelineInfo.layout)
+	vk::PipelineInputAssemblyStateCreateInfo IAInfo{};
+	IAInfo.primitiveRestartEnable = VK_FALSE; // not supported atm
+	IAInfo.topology = GetPrimitiveTopology(_Desc.kPrimitiveTopology);
+	PipelineInfo.pInputAssemblyState = &IAInfo;
+
+	uHash << IAInfo.primitiveRestartEnable << IAInfo.topology;
+
+	// dont set Viewport here, use Dynamic state instead: vkCmdSetViewport
+	// this allows us the resize the swapchain without recreating the pipeline
+	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#vkCmdSetViewport
+
+	//---------------------------------------------------------------------------------------------------
+	// TESSELATION STAGE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineTessellationStateCreateInfo TInfo{};
+
+	if (m_ActiveShaders[kShaderType_TessellationControl] != nullptr && m_ActiveShaders[kShaderType_TessellationEvaluation] != nullptr) 
+	{		
+		//TODO: patchControlPoints must be greater than zero and less than or equal to VkPhysicalDeviceLimits::maxTessellationPatchSize
+		//pNext must be NULL or a pointer to a valid instance of VkPipelineTessellationDomainOriginStateCreateInfoKHR
+		
+		HASSERT(_Desc.uPatchControlPointCount > 0u /*&& VkPhysicalDeviceLimits::maxTessellationPatchSize*/, "Invalid number of tesselation patch control points");
+		TInfo.patchControlPoints = _Desc.uPatchControlPointCount;
+		uHash << TInfo.patchControlPoints;
+
+		PipelineInfo.pTessellationState = &TInfo;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// MULTISAMPLING STATE (unsupported/disabled atm)
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineMultisampleStateCreateInfo MSInfo{}; // TODO: add to uHash if MS is needed
+	PipelineInfo.pMultisampleState = &MSInfo;
+
+	//---------------------------------------------------------------------------------------------------
+	// Rasterizer STAGE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineRasterizationStateCreateInfo RInfo{};
+	RInfo.rasterizerDiscardEnable = VK_FALSE; // not supported atm
+	uHash << RInfo.rasterizerDiscardEnable;// pNext pointer musst be ignored in the hash 
+
+	RInfo.depthClampEnable = VK_FALSE; // not supported atm
+	uHash << RInfo.depthClampEnable;
+
+	RInfo.cullMode = GetCullMode(_Desc.kCullMode);
+	uHash << RInfo.cullMode;
+
+	RInfo.polygonMode = GetPolygonMode(_Desc.kFillMode);
+	uHash << RInfo.polygonMode;
+
+	RInfo.frontFace = GetFrontFace(_Desc.kFrontFace);
+	uHash << RInfo.frontFace;
+
+	RInfo.depthBiasEnable = _Desc.fDepthBiasClamp != 0.f || _Desc.fDepthBiasConstFactor != 0.f || _Desc.fDepthBiasSlopeFactor;
+	uHash << RInfo.depthBiasEnable;
+
+	if (_Desc.kFillMode == kPolygonFillMode_Line)
 	{
-		return false;
+		RInfo.lineWidth = _Desc.fLineWidth;
+		uHash << RInfo.lineWidth;
 	}
+
+	if (RInfo.depthBiasEnable)
+	{
+		RInfo.depthBiasConstantFactor = _Desc.fDepthBiasConstFactor;
+		RInfo.depthBiasClamp = _Desc.fDepthBiasClamp;
+		RInfo.depthBiasSlopeFactor = _Desc.fDepthBiasSlopeFactor;
+
+		uHash << RInfo.depthBiasConstantFactor;
+		uHash << RInfo.depthBiasClamp;
+		uHash << RInfo.depthBiasSlopeFactor;
+	}
+
+	PipelineInfo.pRasterizationState = &RInfo;
+
+	//---------------------------------------------------------------------------------------------------
+	// DepthStencil STATE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineDepthStencilStateCreateInfo DSInfo = GetDepthStencilState(_Desc.DepthStencilState);
+	uHash << DSInfo.depthTestEnable << DSInfo.depthWriteEnable << DSInfo.depthCompareOp << DSInfo.front << DSInfo.back;
+
+	PipelineInfo.pDepthStencilState = &DSInfo;
 
 	// ...
 	// TODO: fill out the other stuff
+
+	// we want to derive from the base pipeline
+	if (m_BasePipeline && _Desc.bBasePipeline == false) 
+	{
+		PipelineInfo.flags |= vk::PipelineCreateFlagBits::eDerivative;
+		PipelineInfo.basePipelineHandle = m_BasePipeline;
+	}
 
 	if (uHash != m_uPipelineHash)
 	{
@@ -173,6 +317,12 @@ bool VulkanRenderPass::ActivatePipeline()
 
 			m_ActivePipeline = NewPipeline;
 
+			// this is the base pipeline now
+			if (!m_BasePipeline && _Desc.bBasePipeline)
+			{
+				m_BasePipeline = NewPipeline;
+			}
+
 			m_Pipelines.insert({ uHash, NewPipeline });
 		}
 
@@ -186,22 +336,25 @@ bool VulkanRenderPass::ActivatePipeline()
 const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t _uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants)
 {
 	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet);
+	std::vector<vk::DescriptorSetLayout> SetsToAllocate;
+	std::vector<uint64_t> SetHashesToAllocate;
 
-	size_t uHash = 0u;
+	hlx::Hasher uHash = 0u;
 
 	for (uint32_t uSet = 0u; uSet < _uLastSet; ++uSet)
 	{
-		if (_Sets[uSet].empty() == false)
+		const TVarSet& Vars = _Sets[uSet];
+		if (Vars.empty() == false)
 		{
 			std::vector<vk::DescriptorSetLayoutBinding> Bindings;
-			const size_t uSetHash = CreateDescriptorSetLayoutBindings(_Sets[uSet], Bindings);
-			uHash = hlx::CombineHashes(uHash, uSetHash);
+			const size_t uSetHash = CreateDescriptorSetLayoutBindings(Vars, Bindings);
+			uHash += uSetHash;
 
-			auto it = m_DescriptorSetLayouts.find(uSetHash);
+			auto it = m_DescriptorSets.find(uSetHash);
 
-			if (it != m_DescriptorSetLayouts.end())
+			if (it != m_DescriptorSets.end())
 			{
-				Layouts[uSet] = it->second;
+				Layouts[uSet] = it->second.Layout;
 			}
 			else // create new set
 			{
@@ -209,13 +362,23 @@ const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uM
 				Info.bindingCount = static_cast<uint32_t>(Bindings.size());
 				Info.pBindings = Bindings.data();
 
-				Layouts[uSet] = m_Device.createDescriptorSetLayout(Info);
-				m_DescriptorSetLayouts.insert({ uSetHash, Layouts[uSet] });
+				DesciptorSet NewSet;
+				NewSet.Layout = m_Device.createDescriptorSetLayout(Info);
+				NewSet.Set = nullptr; // init later
+				NewSet.Variables = Vars;
+
+				m_DescriptorSets.insert({ uSetHash, NewSet });
+
+				Layouts[uSet] = NewSet.Layout;
+
+				// batch together all sets that need to be created
+				SetsToAllocate.push_back(NewSet.Layout);
+				SetHashesToAllocate.push_back(uSetHash);
 			}
 		}
 		else
 		{
-			uHash = hlx::AddHash(uHash, uSet);
+			uHash << uSet;
 		}
 	}
 
@@ -223,10 +386,35 @@ const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uM
 	if (_pPushConstants != nullptr)
 	{
 		Info.pPushConstantRanges = _pPushConstants->GetRanges();
-		Info.pushConstantRangeCount =  _pPushConstants->GetRangeCount();
-		uHash = hlx::CombineHashes(uHash, _pPushConstants->ComputeRangeHash());
+		Info.pushConstantRangeCount = _pPushConstants->GetRangeCount();
+		uHash += _pPushConstants->ComputeRangeHash();
 	}
 
+	// batch create sets
+	if (SetsToAllocate.empty() == false)
+	{
+		vk::DescriptorSetAllocateInfo Info{};
+		Info.descriptorPool = m_DescriptorPool;
+		Info.descriptorSetCount = static_cast<uint32_t>(SetsToAllocate.size());
+		Info.pSetLayouts = SetsToAllocate.data();
+
+		std::vector<vk::DescriptorSet> NewSets(Info.descriptorSetCount); 
+
+		// allocate batch in once call
+		if (LogVKErrorBool(VKDevice().allocateDescriptorSets(&Info, NewSets.data())))
+		{
+			for (uint32_t i = 0; i < Info.descriptorSetCount; ++i)
+			{
+				auto it = m_DescriptorSets.find(SetHashesToAllocate[i]);
+				if (it != m_DescriptorSets.end())
+				{
+					it->second.Set = NewSets[i]; // assign newly created set
+				}
+			}
+		}
+	}
+
+	// check if pipeline layout already exists
 	auto it = m_PipelineLayouts.find(uHash);
 	if (it != m_PipelineLayouts.end())
 	{
@@ -310,5 +498,38 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 	}
 
 	return bSuccess;
+}
+//---------------------------------------------------------------------------------------------------
+bool VulkanRenderPass::CreateDescriptorPool()
+{
+	HASSERT(!m_DescriptorPool, "Descriptor pool already exists!");
+	if (m_DescriptorPool)
+		return false;
+
+	vk::DescriptorPoolCreateInfo Info{};
+	std::vector<vk::DescriptorPoolSize> PoolSizes;
+
+	auto AddSize = [&PoolSizes](vk::DescriptorType kType, uint32_t uCount)
+	{
+		PoolSizes.push_back(vk::DescriptorPoolSize(kType, uCount));
+	};
+
+	AddSize(vk::DescriptorType::eCombinedImageSampler, 64u);
+	AddSize(vk::DescriptorType::eInputAttachment, 8u);
+	AddSize(vk::DescriptorType::eSampledImage, 64u);
+	AddSize(vk::DescriptorType::eSampler, 64u);
+	AddSize(vk::DescriptorType::eStorageBuffer, 64u);
+	AddSize(vk::DescriptorType::eStorageBufferDynamic, 64u);
+	AddSize(vk::DescriptorType::eStorageImage, 64u);
+	AddSize(vk::DescriptorType::eStorageTexelBuffer, 64u);
+	AddSize(vk::DescriptorType::eUniformBuffer, 64u);
+	AddSize(vk::DescriptorType::eUniformBufferDynamic, 64u);
+	AddSize(vk::DescriptorType::eUniformTexelBuffer, 64u);
+
+	Info.maxSets = 512u; // donno what makes sense here
+	Info.poolSizeCount = static_cast<uint32_t>(PoolSizes.size());
+	Info.pPoolSizes = PoolSizes.data();
+
+	return LogVKErrorBool(m_Device.createDescriptorPool(&Info, nullptr, &m_DescriptorPool));
 }
 //---------------------------------------------------------------------------------------------------

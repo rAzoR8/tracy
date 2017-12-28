@@ -23,11 +23,8 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 	HASSERTD(m_Device != vk::Device(), "Failed to create logical device.");
 
 	// Create Allocator
-	m_Allocator = new VulkanMemoryAllocator(m_PhysicalDevice, m_Device);
-	m_Info.uTotalMemory = m_Allocator->GetTotalDeviceMemory();
-
-	// Setup Resouce Tables
-	m_RenderTargets.reserve(50u);	// Hardcoded for now, should come from outside
+	m_pAllocator = new VulkanMemoryAllocator(m_PhysicalDevice, m_Device);
+	m_Info.uTotalMemory = m_pAllocator->GetTotalDeviceMemory();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -185,30 +182,19 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-const THandle Tracy::VulkanDevice::CreateRenderTarget(const TextureDesc& _Desc)
+const bool Tracy::VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
 {
-	//m_RenderTargets.insert({ m_hNextRenderTarget, {} });
-
-	VulkanRenderTexture Texture;// = m_RenderTargets[m_hNextRenderTarget];
-
-	Texture.m_hHandle = hlx::Hash(_Desc.kFormat, _Desc.kUsageFlag, _Desc.sName, _Desc.uWidth, _Desc.uHeight, _Desc.uDepth);
-
 	vk::ImageCreateInfo Info{};
-	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, 1u);
-	Info.imageType = vk::ImageType::e2D;
+	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, std::max(static_cast<uint32_t>(_Desc.uDepth), 1u));
+	Info.imageType = GetTextureType(_Desc.kType);
 	Info.format = GetFormat(_Desc.kFormat);
 	Info.mipLevels = 1u;
-	Info.arrayLayers = 1u;
-	Info.usage = GetImageUsage<vk::ImageUsageFlags>(_Desc.kUsageFlag);//vk::ImageUsageFlagBits::eColorAttachment;
+	Info.arrayLayers = std::max(_Desc.uLayerCount, 1u);
+	Info.usage = GetTextureUsage<vk::ImageUsageFlags>(_Desc.kUsageFlag);
 
 	VulkanAllocationInfo AllocInfo{};
 	AllocInfo.kType = kAllocationType_GPU_Only;
 
-	vk::Result Result = m_Allocator->CreateImage(AllocInfo, Texture.m_Allocation, Info, Texture.m_Image);
-	HASSERT(Result != vk::Result::eSuccess, "Failed to create Render Target. Code: %d", Result);
-
-	
-
-	return Texture.m_hHandle;
+	return LogVKErrorBool(m_pAllocator->CreateImage(AllocInfo, _Allocation, Info, _Image));
 }
 //---------------------------------------------------------------------------------------------------

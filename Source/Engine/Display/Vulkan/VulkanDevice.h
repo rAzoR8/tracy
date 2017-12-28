@@ -5,9 +5,11 @@
 
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
-#include "VulkanTexture.h"
+#include "VulkanMemoryAllocator.h"
+#include "VulkanTypeConversion.h"
+#include "Display/Texture.h"
 #include <unordered_map>
-#include "Async\AsyncTask.h"
+#include "Async/AsyncTask.h"
 #include <mutex>
 
 namespace Tracy
@@ -17,6 +19,7 @@ namespace Tracy
 	class VulkanDevice : public IDevice
 	{
 		friend class VulkanInstance;
+		friend class VulkanTexture;
 
 	public:
 		explicit VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle);
@@ -33,16 +36,6 @@ namespace Tracy
 
 		// Methods
 		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType = vk::QueueFlagBits::eGraphics) const;
-		
-		// Textures
-		const THandle CreateRenderTarget(const TextureDesc& _Desc);
-
-		// Texture Views
-		template <ETextureViewType ViewType>
-		const THandle AddView(const THandle _hTexture)
-		{
-			if constexpr
-		}
 
 		explicit operator bool() const
 		{
@@ -58,6 +51,9 @@ namespace Tracy
 		template <class ...Args> \
 		inline auto _funcName(Args ... _Args) { return make_task([&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device._funcName(_Args...); }); }
 #endif
+
+		DeviceFunc(createDescriptorPool)
+		DeviceFunc(destroyDescriptorPool)
 
 		DeviceFunc(createDescriptorSetLayout)
 		DeviceFunc(destroyDescriptorSetLayout)
@@ -75,6 +71,9 @@ namespace Tracy
 
 	private:
 		void Create();
+
+		// Textures
+		const bool CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
 
 	private:
 		struct QueueOffset
@@ -106,11 +105,7 @@ namespace Tracy
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
 
 		// Allocator
-		VulkanMemoryAllocator* m_Allocator;
-
-		// Texture Tables
-		std::unordered_map<THandle, VulkanTexture*> m_RenderTargets;
-		THandle m_hNextRenderTarget = 0u;
+		VulkanMemoryAllocator* m_pAllocator;
 	};
 
 	//---------------------------------------------------------------------------------------------------

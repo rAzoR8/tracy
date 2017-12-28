@@ -1,6 +1,7 @@
 #ifndef _TRACY_TEXTURE_H_
 #define _TRACY_TEXTURE_H_
 
+#include "StandardDefines.h"
 #include "DisplayTypes.h"
 #include <string>
 
@@ -15,20 +16,30 @@ namespace Tracy
 
 	struct TextureDesc
 	{
-		uint32_t uWidth = 0u;
-		uint32_t uHeight = 0u;
-		uint32_t uDepth = 0u;
+		uint16_t uWidth = 0u;
+		uint16_t uHeight = 0u;
+		uint16_t uDepth = 0u;
+		uint32_t uLayerCount = 0u;
 		EFormat kFormat = kFormat_Undefined;
 		EUsageFlag kUsageFlag = kUsageFlag_None;
+		ETextureType kType = kTextureType_Invalid;
 		std::string sName = "NewTexture";
 	};
 
-	template <ETextureType Type>
 	class Texture
 	{
 	public:
-		Texture();
-		~Texture();
+		Texture(
+			const THandle _hDevice = 0u,
+			const ETextureType _kType = kTextureType_Invalid,
+			const uint16_t uWidth = 0u,
+			const uint16_t uHeight = 0u,
+			const uint16_t uDepth = 0u,
+			const EFormat kFormat = kFormat_Undefined,
+			const EUsageFlag kUsageFlag = kUsageFlag_None,
+			const std::string& sName = "NewTexture");
+		Texture(const THandle _hDevice, const TextureDesc& _Desc);
+		virtual ~Texture() {}
 
 		const uint16_t GetWidth() const;
 		const uint16_t GetHeight() const;
@@ -38,38 +49,22 @@ namespace Tracy
 
 		const ETextureType GetType() const;
 
-	private:
-		const std::string MakeDefaultName();
+		const EUsageFlag GetUsage() const;
 
 	protected:
-		uint16_t m_uWidth = UINT16_MAX;
-		uint16_t m_uHeight = UINT16_MAX;
-		uint16_t m_uDepth = UINT16_MAX;
-
-		EFormat m_kFormat = kFormat_Undefined;
-
-		std::string m_sName = "";
-
+		TextureDesc m_Data;
+		
 	private:
-		// internal usage
-		ETextureType m_kType = kTextureType_Invalid;
-
-		// Used to create default name
-		static uint64_t m_uNameGUID;
+		// Owner
+		THandle m_hDevice;
 	};
 
-	template <ETextureType Type>
-	inline const uint16_t Texture<Type>::GetWidth() const { return m_uWidth; }
-	template <ETextureType Type>
-	inline const uint16_t Texture<Type>::GetHeight() const { return m_uHeight; }
-	template <ETextureType Type>
-	inline const uint16_t Texture<Type>::GetDepth() const { return m_uDepth; }
-	template <ETextureType Type>
-	inline const EFormat Texture<Type>::GetFormat() const { return m_kFormat; }
-	template <ETextureType Type>
-	inline const ETextureType Texture<Type>::GetType() const { return m_kType; }
-	template <ETextureType Type>
-	inline const std::string Texture<Type>::MakeDefaultName() { return "Texture_" + std::to_string(m_uNameGUID++); }
+	inline const uint16_t Texture::GetWidth() const { return m_Data.uWidth; }
+	inline const uint16_t Texture::GetHeight() const { return m_Data.uHeight; }
+	inline const uint16_t Texture::GetDepth() const { return m_Data.uDepth; }
+	inline const EFormat Texture::GetFormat() const { return m_Data.kFormat; }
+	inline const ETextureType Texture::GetType() const { return m_Data.kType; }
+	inline const EUsageFlag Texture::GetUsage() const { return m_Data.kUsageFlag; }
 }
 #endif // !_TRACY_TEXTURE_H_
 

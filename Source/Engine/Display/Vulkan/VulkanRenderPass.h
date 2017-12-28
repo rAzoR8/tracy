@@ -19,6 +19,12 @@ namespace Tracy
 
 			// add pipeline barriers etc
 		};
+		
+		struct ViewportState
+		{
+			std::vector<vk::Viewport> Viewports;
+			std::vector<vk::Rect2D> Scissors;
+		};
 
 		VulkanRenderPass(const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
 		~VulkanRenderPass();
@@ -37,32 +43,49 @@ namespace Tracy
 
 		void AddDependency(const Dependence& _Dependency);
 
+		// prepares command buffer & dynamic state for recording
+		void ActivePass();
+
 		// called before draw or after shader has been selected
-		bool ActivatePipeline();
+		bool CreatePipeline(const PipelineDesc& _Desc);
 		const size_t CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
 
+		bool CreateDescriptorPool();
+		
 	private:
 		RenderPassDesc m_Description;
 		// index relative to parent pass or rendergraph (index into vector)
 		const uint32_t m_uPassIndex; 
 
-		std::vector<VulkanRenderPass> m_SubPasses;
+		ViewportState m_ViewportState;
 
+		std::vector<VulkanRenderPass> m_SubPasses;
 		std::vector<Dependence> m_Dependencies;
 
 		// identifies the current pipeline
 		size_t m_uPipelineHash = kUndefinedSizeT;
 		vk::Pipeline m_ActivePipeline = nullptr;
+		vk::Pipeline m_BasePipeline = nullptr;
 
-		std::unordered_map<size_t, vk::DescriptorSetLayout> m_DescriptorSetLayouts;
+		struct DesciptorSet
+		{
+			vk::DescriptorSetLayout Layout;
+			vk::DescriptorSet Set;
+			TVarSet Variables;
+		};
+
+		// todo: vector<DesciptorSet> currentSets (active sets)
+		std::unordered_map<size_t, DesciptorSet> m_DescriptorSets;
+
+		vk::DescriptorPool m_DescriptorPool;
+
 		std::unordered_map<size_t, vk::PipelineLayout> m_PipelineLayouts;
 
 		// pipeline description hash -> pipeline
 		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
-
 		vk::PipelineCache m_PipelineCache = nullptr;
 	};
 

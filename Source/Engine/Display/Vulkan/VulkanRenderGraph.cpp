@@ -62,6 +62,8 @@ bool VulkanRenderGraph::Initialize()
 				return false;
 			}
 		}
+
+		m_MaterialIds.insert({ Desc.sPassName, Pass.GetMaterialID() });
 	}
 
 	return true;

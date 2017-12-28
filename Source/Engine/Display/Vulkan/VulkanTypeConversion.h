@@ -136,7 +136,7 @@ namespace Tracy::detail
 	};
 
 	template <typename TUsage>
-	const auto& GetMapping()
+	inline const auto& GetMapping()
 	{
 		if constexpr (std::is_same_v<TUsage, vk::ImageUsageFlagBits>)
 		{
@@ -145,12 +145,131 @@ namespace Tracy::detail
 
 		return detail::VkBufferUsageMapping;
 	}
+	//---------------------------------------------------------------------------------------------------
+
+	static const vk::PrimitiveTopology g_VkPrimitiveTopology[kPrimitiveTopology_NumOf] =
+	{
+		vk::PrimitiveTopology::ePointList,
+		vk::PrimitiveTopology::eLineList,
+		vk::PrimitiveTopology::eLineStrip,
+		vk::PrimitiveTopology::eTriangleList,
+		vk::PrimitiveTopology::eTriangleStrip,
+		vk::PrimitiveTopology::eTriangleFan
+	};
+
+	static const vk::PolygonMode g_VkPolygonMode[kPolygonFillMode_NumOf] =
+	{
+		vk::PolygonMode::eFill,
+		vk::PolygonMode::eLine
+	};
+
+	static const vk::CullModeFlagBits g_VkCullMode[kCullMode_NumOf] =
+	{
+		vk::CullModeFlagBits::eNone,
+		vk::CullModeFlagBits::eFront,
+		vk::CullModeFlagBits::eBack
+	};
+
+	static const vk::FrontFace g_VkFrontFace[kFrontFace_NumOf] =
+	{
+		vk::FrontFace::eCounterClockwise,
+		vk::FrontFace::eClockwise
+	};
+
+	static const vk::CompareOp g_VkCompareOp[kComparisonOp_NumOf] = 
+	{
+		vk::CompareOp::eNever,
+		vk::CompareOp::eLess,
+		vk::CompareOp::eEqual,
+		vk::CompareOp::eLessOrEqual,
+		vk::CompareOp::eGreater,
+		vk::CompareOp::eNotEqual,
+		vk::CompareOp::eGreaterOrEqual,
+		vk::CompareOp::eAlways
+	};
+
+	static const vk::StencilOp g_VkStencilOp[kStencilOp_NumOf] = 
+	{
+		vk::StencilOp::eKeep,
+		vk::StencilOp::eZero,
+		vk::StencilOp::eReplace,
+		vk::StencilOp::eIncrementAndClamp,
+		vk::StencilOp::eDecrementAndClamp,
+		vk::StencilOp::eInvert,
+		vk::StencilOp::eIncrementAndWrap,
+		vk::StencilOp::eDecrementAndWrap
+	};
 }
+//---------------------------------------------------------------------------------------------------
 
 namespace Tracy
 {
+	inline vk::PrimitiveTopology GetPrimitiveTopology(const EPrimitiveTopology _kTopo)
+	{
+		HASSERTD(_kTopo < kPrimitiveTopology_NumOf, "Invalid Primitive Topology");
+		return detail::g_VkPrimitiveTopology[_kTopo];
+	}
+
+	inline vk::PolygonMode GetPolygonMode(const EPolygonFillMode _kMode)
+	{
+		HASSERTD(_kMode < kPolygonFillMode_NumOf, "Invalid Polygon Fill Mode");
+		return detail::g_VkPolygonMode[_kMode];
+	}
+
+	inline vk::CullModeFlagBits GetCullMode(const ECullMode _kMode)
+	{
+		HASSERTD(_kMode < kCullMode_NumOf, "Invalid Cull Mode");
+		return detail::g_VkCullMode[_kMode];
+	}
+
+	inline vk::FrontFace GetFrontFace(const EFrontFace _kFace)
+	{
+		HASSERTD(_kFace < kFrontFace_NumOf, "Invalid Front Face");
+		return detail::g_VkFrontFace[_kFace];
+	}
+
+	inline vk::CompareOp GetCompareOp(const EComparisonOp _kOp) 
+	{
+		HASSERTD(_kOp < kComparisonOp_NumOf, "Invalid Depth Comparison Operation");
+		return detail::g_VkCompareOp[_kOp];
+	}
+
+	inline vk::StencilOp GetStencilOp(const EStencilOp _kOp) 
+	{
+		HASSERTD(_kOp < kStencilOp_Unknown, "Invalid Stencil Operation");
+		return detail::g_VkStencilOp[_kOp];
+	}
+
+	inline vk::StencilOpState GetStencilOpState(const StencilOpDesc& _Desc)
+	{
+		vk::StencilOpState SState{};
+
+		SState.failOp = GetStencilOp(_Desc.kFailOp);
+		SState.passOp = GetStencilOp(_Desc.kPassOp);
+		SState.depthFailOp = GetStencilOp(_Desc.kDepthFailOp);
+		SState.compareOp = GetCompareOp(_Desc.kStencilCompareOp);
+
+		// TODO: write mask, reference etc
+
+		return SState;
+	}
+
+	inline vk::PipelineDepthStencilStateCreateInfo GetDepthStencilState(const DepthStencilStateDesc& _Desc)
+	{
+		vk::PipelineDepthStencilStateCreateInfo Info{};
+
+		Info.depthTestEnable = _Desc.bDepthTestEnabled ? VK_TRUE : VK_FALSE;
+		Info.depthWriteEnable = _Desc.bDepthWriteEnabled ? VK_TRUE : VK_FALSE;
+
+		Info.depthCompareOp = GetCompareOp(_Desc.kDepthCompareOp);
+		Info.front = GetStencilOpState(_Desc.FrontFace);
+		Info.back = GetStencilOpState(_Desc.BackFace);
+
+		return Info;
+	}
+
 	template <typename TUsage>
-	inline const TUsage GetImageUsage(const EUsageFlag _kFlag)
+	inline const TUsage GetTextureUsage(const EUsageFlag _kFlag)
 	{
 		const auto& Mapping = detail::GetMapping<TUsage>();
 
@@ -184,15 +303,14 @@ namespace Tracy
 		case kTextureType_Texture2D:
 		case kTextureType_TextureArray:
 		case kTextureType_TextureCube:
-		case kTextureType_RenderTarget:
-		case kTextureType_RenderDepth:
-		case kTextureType_RenderArray:
-		case kTextureType_RenderCube:
 			return vk::ImageType::e2D;
 
 		case kTextureType_Texture3D:
-		case kTextureType_RenderVolume:
 			return vk::ImageType::e3D;
+
+		case kTextureType_Texture1D:
+			return vk::ImageType::e1D;
+
 		default:
 			break;
 		}

@@ -69,8 +69,6 @@ void IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 			pActiveShader->StageCreateInfo = CreateShaderStage(m_Device.GetDevice(), pActiveShader->Code, _pSpecConstFactory != nullptr ? &pActiveShader->SpecInfo : nullptr);
 		}
 	}
-
-	// TODO: Create pipeline before the next draw call is recorded
 }
 //---------------------------------------------------------------------------------------------------
 void IShaderFactoryConsumer::DeactivateStage(const EShaderType _kType)

@@ -1,17 +1,29 @@
 #include "Texture.h"
 
-template <Tracy::ETextureType Type>
-uint64_t Tracy::Texture<Type>::m_uNameGUID = 0u;
-
 //---------------------------------------------------------------------------------------------------
-template <Tracy::ETextureType Type>
-Tracy::Texture<Type>::Texture()
+Tracy::Texture::Texture(
+	const THandle _hDevice,
+	const ETextureType _kType, 
+	const uint16_t _uWidth, 
+	const uint16_t _uHeight, 
+	const uint16_t _uDepth, 
+	const EFormat _kFormat, 
+	const EUsageFlag _kUsageFlag, 
+	const std::string& _sName)
 {
-	m_kType = Type;
-}
+	m_Data.kType = _kType;
+	m_Data.uWidth = _uWidth;
+	m_Data.uHeight = _uHeight;
+	m_Data.uDepth = _uDepth;
+	m_Data.kFormat = _kFormat;
+	m_Data.kUsageFlag = _kUsageFlag;
+	m_Data.sName = _sName;
 
+	m_hDevice = _hDevice;
+}
 //---------------------------------------------------------------------------------------------------
-template <Tracy::ETextureType Type>
-Tracy::Texture<Type>::~Texture()
+Tracy::Texture::Texture(const THandle _hDevice, const TextureDesc& _Desc) :
+	m_hDevice(_hDevice),
+	m_Data(_Desc)
 {
 }

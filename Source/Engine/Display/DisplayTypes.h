@@ -36,23 +36,274 @@ namespace Tracy
 		kPrimitiveTopology_LineStrip = 2,
 		kPrimitiveTopology_TriangleList = 3,
 		kPrimitiveTopology_TriangleStrip = 4,
-		kPrimitiveTopology_TriangleFan= 4,
-		kPrimitiveTopology_Unknown
+		kPrimitiveTopology_TriangleFan = 5,
+		kPrimitiveTopology_NumOf, 
+		kPrimitiveTopology_Unknown = kPrimitiveTopology_NumOf
 	};
 
+	//---------------------------------------------------------------------------------------------------
+
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770366(v=vs.85).aspx
+	//typedef enum D3D12_FILL_MODE {
+	//	D3D12_FILL_MODE_WIREFRAME = 2,
+	//	D3D12_FILL_MODE_SOLID = 3
+	//}
+
+	//typedef enum VkPolygonMode {
+	//	VK_POLYGON_MODE_FILL = 0,
+	//	VK_POLYGON_MODE_LINE = 1,
+	//	VK_POLYGON_MODE_POINT = 2,
+	//}
+
+	// we use to common subset:
+	enum EPolygonFillMode : uint32_t
+	{
+		kPolygonFillMode_Solid = 0, // fill
+		kPolygonFillMode_Line = 1, // wireframe
+
+		kPolygonFillMode_NumOf,
+		kPolygonFillMode_Unknown = kPolygonFillMode_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770354(v=vs.85).aspx
+	//typedef enum D3D12_CULL_MODE {
+	//	D3D12_CULL_MODE_NONE = 1,
+	//	D3D12_CULL_MODE_FRONT = 2,
+	//	D3D12_CULL_MODE_BACK = 3
+	//}
+
+	// https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkCullModeFlagBits
+	//typedef enum VkCullModeFlagBits {
+	//	VK_CULL_MODE_NONE = 0,
+	//	VK_CULL_MODE_FRONT_BIT = 0x00000001,
+	//	VK_CULL_MODE_BACK_BIT = 0x00000002,
+	//	VK_CULL_MODE_FRONT_AND_BACK = 0x00000003,
+	//}
+
+	enum ECullMode : uint32_t
+	{
+		kCullMode_None = 0,
+		kCullMode_Front = 1,
+		kCullMode_Back = 2,
+
+		kCullMode_NumOf,
+		kCullMode_Unknown = kCullMode_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkFrontFace
+	//typedef enum VkFrontFace {
+	//	VK_FRONT_FACE_COUNTER_CLOCKWISE = 0,
+	//	VK_FRONT_FACE_CLOCKWISE = 1,
+	//}
+
+	// DX12: BOOL FrontCounterClockwise
+
+	enum EFrontFace : uint32_t
+	{
+		kFrontFace_CounterClockwise = 0,
+		kFrontFace_Clockwise = 1,
+
+		kFrontFace_NumOf,
+		kFrontFace_Unknown = kFrontFace_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	// DX12 RASTERIZER DESC: https://msdn.microsoft.com/en-us/library/windows/desktop/dn770387(v=vs.85).aspx
+	//typedef struct D3D12_RASTERIZER_DESC {
+	//	D3D12_FILL_MODE                       FillMode;
+	//	D3D12_CULL_MODE                       CullMode;
+	//	BOOL                                  FrontCounterClockwise;
+	//	INT                                   DepthBias;
+	//	FLOAT                                 DepthBiasClamp;
+	//	FLOAT                                 SlopeScaledDepthBias;
+	//	BOOL                                  DepthClipEnable;
+	//	BOOL                                  MultisampleEnable;
+	//	BOOL                                  AntialiasedLineEnable;
+	//	UINT                                  ForcedSampleCount;
+	//	D3D12_CONSERVATIVE_RASTERIZATION_MODE ConservativeRaster;
+	//}
+
+	//---------------------------------------------------------------------------------------------------
+	// VK	RASTERIZER DESC: https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkPipelineRasterizationStateCreateInfo
+	//typedef struct VkPipelineRasterizationStateCreateInfo {
+	//	VkStructureType                            sType;
+	//	const void*                                pNext;
+	//	VkPipelineRasterizationStateCreateFlags    flags;
+	//	VkBool32                                   depthClampEnable;
+	//	VkBool32                                   rasterizerDiscardEnable;
+	//	VkPolygonMode                              polygonMode;
+	//	VkCullModeFlags                            cullMode;
+	//	VkFrontFace                                frontFace;
+	//	VkBool32                                   depthBiasEnable;
+	//	float                                      depthBiasConstantFactor;
+	//	float                                      depthBiasClamp;
+	//	float                                      depthBiasSlopeFactor;
+	//	float                                      lineWidth;
+	//}
+
+	//---------------------------------------------------------------------------------------------------
+
+	//typedef enum D3D12_COMPARISON_FUNC {
+	//	D3D12_COMPARISON_FUNC_NEVER = 1,
+	//	D3D12_COMPARISON_FUNC_LESS = 2,
+	//	D3D12_COMPARISON_FUNC_EQUAL = 3,
+	//	D3D12_COMPARISON_FUNC_LESS_EQUAL = 4,
+	//	D3D12_COMPARISON_FUNC_GREATER = 5,
+	//	D3D12_COMPARISON_FUNC_NOT_EQUAL = 6,
+	//	D3D12_COMPARISON_FUNC_GREATER_EQUAL = 7,
+	//	D3D12_COMPARISON_FUNC_ALWAYS = 8
+	//}
+
+	//enum class CompareOp
+	//{
+	//	eNever = VK_COMPARE_OP_NEVER,
+	//	eLess = VK_COMPARE_OP_LESS,
+	//	eEqual = VK_COMPARE_OP_EQUAL,
+	//	eLessOrEqual = VK_COMPARE_OP_LESS_OR_EQUAL,
+	//	eGreater = VK_COMPARE_OP_GREATER,
+	//	eNotEqual = VK_COMPARE_OP_NOT_EQUAL,
+	//	eGreaterOrEqual = VK_COMPARE_OP_GREATER_OR_EQUAL,
+	//	eAlways = VK_COMPARE_OP_ALWAYS
+	//};
+
+	enum EComparisonOp : uint32_t
+	{
+		kComparisonOp_Never = 0,
+		kComparisonOp_Less = 1,
+		kComparisonOp_Equal = 2,
+		kComparisonOp_LessEqual = 3,
+		kComparisonOp_Greater = 4,
+		kComparisonOp_NotEqual = 5,
+		kComparisonOp_GreaterEqual = 6,
+		kComparisonOp_Always = 7,
+
+		kComparisonOp_NumOf,
+		kComparisonOp_Unknown = kComparisonOp_NumOf
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	//typedef enum D3D12_STENCIL_OP {
+	//	D3D12_STENCIL_OP_KEEP = 1,
+	//	D3D12_STENCIL_OP_ZERO = 2,
+	//	D3D12_STENCIL_OP_REPLACE = 3,
+	//	D3D12_STENCIL_OP_INCR_SAT = 4,
+	//	D3D12_STENCIL_OP_DECR_SAT = 5,
+	//	D3D12_STENCIL_OP_INVERT = 6,
+	//	D3D12_STENCIL_OP_INCR = 7,
+	//	D3D12_STENCIL_OP_DECR = 8
+	//}
+
+	//typedef enum VkStencilOp {
+	//	VK_STENCIL_OP_KEEP = 0,
+	//	VK_STENCIL_OP_ZERO = 1,
+	//	VK_STENCIL_OP_REPLACE = 2,
+	//	VK_STENCIL_OP_INCREMENT_AND_CLAMP = 3,
+	//	VK_STENCIL_OP_DECREMENT_AND_CLAMP = 4,
+	//	VK_STENCIL_OP_INVERT = 5,
+	//	VK_STENCIL_OP_INCREMENT_AND_WRAP = 6,
+	//	VK_STENCIL_OP_DECREMENT_AND_WRAP = 7,
+	//}
+
+	// dx12 and vulkan stencil ops are identical (also dx12 INCR and DECR wrap)
+	
+	enum EStencilOp : uint32_t
+	{
+		kStencilOp_Keep = 0,
+		kStencilOp_Zero = 1,
+		kStencilOp_Replace = 2,
+		kStencilOp_IncrementAndClamp = 3, //D3D12_STENCIL_OP_INCR_SAT
+		kStencilOp_DecrementAndClamp = 4, //VK_STENCIL_OP_DECREMENT_AND_CLAMP
+		kStencilOp_Invert = 5,
+		kStencilOp_IncrementAndWrap = 6, //D3D12_STENCIL_OP_INCR
+		kStencilOp_DecrementAndWrap = 7, //D3D12_STENCIL_OP_DECR
+
+		kStencilOp_NumOf,
+		kStencilOp_Unknown = kStencilOp_NumOf,
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	//typedef struct VkStencilOpState {
+	//	VkStencilOp    failOp;
+	//	VkStencilOp    passOp;
+	//	VkStencilOp    depthFailOp;
+	//	VkCompareOp    compareOp;
+	//	uint32_t       compareMask;
+	//	uint32_t       writeMask;
+	//	uint32_t       reference;
+	//}
+
+	//typedef struct D3D12_DEPTH_STENCILOP_DESC {
+	//	D3D12_STENCIL_OP      StencilFailOp;
+	//	D3D12_STENCIL_OP      StencilDepthFailOp;
+	//	D3D12_STENCIL_OP      StencilPassOp;
+	//	D3D12_COMPARISON_FUNC StencilFunc;
+	//}
+
+	struct StencilOpDesc
+	{
+		EStencilOp kFailOp = kStencilOp_Unknown; // Stencil Fail op
+		EStencilOp kPassOp = kStencilOp_Unknown; // Stencil Pass op
+		EStencilOp kDepthFailOp = kStencilOp_Unknown;
+		EComparisonOp kStencilCompareOp = kComparisonOp_Unknown;
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770356(v=vs.85).aspx
+	//typedef struct D3D12_DEPTH_STENCIL_DESC {
+	//	BOOL                       DepthEnable;
+	//	D3D12_DEPTH_WRITE_MASK     DepthWriteMask;
+	//	D3D12_COMPARISON_FUNC      DepthFunc;
+	//	BOOL                       StencilEnable;
+	//	UINT8                      StencilReadMask;
+	//	UINT8                      StencilWriteMask;
+	//	D3D12_DEPTH_STENCILOP_DESC FrontFace;
+	//	D3D12_DEPTH_STENCILOP_DESC BackFace;
+	//}
+
+	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkPipelineDepthStencilStateCreateInfo
+	//typedef struct VkPipelineDepthStencilStateCreateInfo {
+	//	VkStructureType                           sType;
+	//	const void*                               pNext;
+	//	VkPipelineDepthStencilStateCreateFlags    flags;
+	//	VkBool32                                  depthTestEnable;
+	//	VkBool32                                  depthWriteEnable;
+	//	VkCompareOp                               depthCompareOp;
+	//	VkBool32                                  depthBoundsTestEnable;
+	//	VkBool32                                  stencilTestEnable;
+	//	VkStencilOpState                          front;
+	//	VkStencilOpState                          back;
+	//	float                                     minDepthBounds;
+	//	float                                     maxDepthBounds;
+	//}
+
+	//---------------------------------------------------------------------------------------------------
+
+	struct DepthStencilStateDesc
+	{
+		bool bDepthTestEnabled = false;
+		bool bDepthWriteEnabled = false; //D3D12_DEPTH_WRITE_MASK
+		EComparisonOp kDepthCompareOp = kComparisonOp_Unknown;
+
+		StencilOpDesc FrontFace;
+		StencilOpDesc BackFace;
+
+		// todo: depthBoundsTestEnable etc
+	};
+	//---------------------------------------------------------------------------------------------------
+
+	// TODO: NumOf / Unknown pattern
 	enum ETextureType : uint32_t
 	{
 		kTextureType_Invalid		= 0u,
-		kTextureType_Texture2D		= 1u,
-		kTextureType_Texture3D		= 2u,
-		kTextureType_TextureArray	= 3u,
-		kTextureType_TextureCube	= 4u,
-
-		kTextureType_RenderTarget	= 5u,
-		kTextureType_RenderDepth	= 6u,
-		kTextureType_RenderArray	= 7u,
-		kTextureType_RenderCube		= 8u,
-		kTextureType_RenderVolume	= 9u
+		kTextureType_Texture1D		= 1u,
+		kTextureType_Texture2D		= 2u,
+		kTextureType_Texture3D		= 3u,
+		kTextureType_TextureArray	= 4u,
+		kTextureType_TextureCube	= 5u
 	};
 
 	enum EUsageFlag : uint32_t
