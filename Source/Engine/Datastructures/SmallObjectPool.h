@@ -6,10 +6,20 @@
 
 namespace Tracy
 {
+	template <class T>
+	struct FakeAtomic
+	{
+		FakeAtomic& operator=(const T& v) { var = v; }
+		operator T() const { return var; }
+		T fetch_add(const T& v) { T ret = var; var += v; return ret; }
+	private:
+		T var;
+	};
+
 	template <class T, bool ThreadSafe = true, bool AllowFallbackAlloc = false>
 	class SmallObjectPool
 	{
-		using TCounter = std::conditional_t<ThreadSafe, std::atomic_uint32_t, uint32_t>;
+		using TCounter = std::conditional_t<ThreadSafe, std::atomic_uint32_t, FakeAtomic<uint32_t>>;
 
 	public:
 		SmallObjectPool(const uint32_t _uBlockSize = 1024u, const uint32_t _uBlockCount = 1024u);
