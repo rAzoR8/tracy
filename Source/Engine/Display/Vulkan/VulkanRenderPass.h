@@ -6,6 +6,9 @@
 
 namespace Tracy
 {
+	// forward decl
+	class Camera;
+
 	class VulkanRenderPass : public IShaderFactoryConsumer
 	{
 		friend class VulkanRenderGraph;
@@ -32,6 +35,8 @@ namespace Tracy
 		bool Initialize();
 		void Uninitialize();
 
+		bool Render(const Camera& _Camera);
+
 		uint32_t GetPassIndex() const;
 		uint64_t GetMaterialID() const;
 
@@ -44,7 +49,7 @@ namespace Tracy
 		void AddDependency(const Dependence& _Dependency);
 
 		// prepares command buffer & dynamic state for recording
-		void ActivePass();
+		void ActivatePass();
 
 		// called before draw or after shader has been selected
 		bool CreatePipeline(const PipelineDesc& _Desc);

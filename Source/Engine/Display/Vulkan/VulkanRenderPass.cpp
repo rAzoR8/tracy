@@ -1,6 +1,8 @@
 #include "VulkanRenderPass.h"
 #include "FileStream.h"
 #include "VulkanTypeConversion.h"
+#include "..\Camera.h"
+#include "..\RenderObject.h"
 
 using namespace Tracy;
 
@@ -103,6 +105,77 @@ void VulkanRenderPass::Uninitialize()
 
 //---------------------------------------------------------------------------------------------------
 
+bool VulkanRenderPass::Render(const Camera& _Camera)
+{
+	ActivatePass();
+
+	// TODO: wait for previous passes to finish work on dependencies
+
+	if ((_Camera.GetPassIDs() & m_uPassIndex) != m_uPassIndex)
+	{
+		HERROR("Camera does not support pass %llu", m_uPassIndex);
+		return false;
+	}
+
+	struct VariableMapping
+	{
+		//vk::buffer
+		//descriptorset & vars
+		std::vector<uint32_t> Variables; // index into buffer source
+		bool Initialized() { return bInitialized; }
+		bool Valid() { return bValid; }
+
+		bool bValid = false;
+		bool bInitialized = false;
+	};
+
+	std::vector<VariableMapping> Mappings(BufferSource::GetInstanceCount());
+
+	// helper function
+	auto DigestSource = [&](const BufferSource* pSrc)
+	{
+		VariableMapping& Mapping = Mappings[pSrc->GetID()];
+
+		if (Mapping.Initialized() == false)
+		{
+			// write indices of variables with names matching in descriptor set and buffer source into mapping Variables
+		}
+
+		if (Mapping.Valid())
+		{
+			const std::vector<BufferSource::Var>& Source = pSrc->GetVars();
+			// transfer 
+			for (const uint32_t& i : Mapping.Variables)
+			{
+				//Source[i].pData
+			}
+		}
+	};
+
+	// TODO: set camera sources
+	DigestSource(&_Camera);
+
+	// TODO: call user custom functor (taking camera & pass as ref arguments)
+	
+	for (RenderObject* pObj : _Camera.GetObjects())
+	{
+		// TODO: check if material / shader changed and call SelectShader() & create pipeline			
+		for (const BufferSource* pSrc : pObj->GetBufferSources()) 
+		{			
+			DigestSource(pSrc);
+		}
+
+		// TODO: transfer textrures from material (Create Material Source)
+		// TODO: record draw call
+	}
+
+	// TODO: issue commandbuffer
+
+	return true;
+}
+
+//---------------------------------------------------------------------------------------------------
+
 void VulkanRenderPass::OnFactoryLoaded()
 {
 	Uninitialize();
@@ -123,7 +196,7 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 //---------------------------------------------------------------------------------------------------
 // prepares command buffer & dynamic state for recording
 // called for each batch of objects that use a different shader
-void VulkanRenderPass::ActivePass()
+void VulkanRenderPass::ActivatePass()
 {
 	//vkCmdSetViewport
 	// m_ViewportState
