@@ -95,6 +95,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Async\AsyncTask.h" />
+    <ClInclude Include="Datastructures\SmallObjectPool.h" />
     <ClInclude Include="Display\BufferSource.h" />
     <ClInclude Include="Display\Camera.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
