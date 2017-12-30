@@ -46,7 +46,7 @@ void VulkanDevice::Create()
 	//
 
 	// Sparse binding is still not really supported
-	std::vector<vk::QueueFlagBits> queueFlags =
+	std::vector<vk::QueueFlagBits> QueueFlags =
 	{
 		vk::QueueFlagBits::eGraphics,
 		vk::QueueFlagBits::eCompute,
@@ -55,35 +55,35 @@ void VulkanDevice::Create()
 	};
 	// Priorities must be 1.0 as they are not implemented yet in vk spec v1.0.
 	// Each family will contain at most all flags
-	std::vector<float> queuePriorities(queueFlags.size(), 1.0f);
+	std::vector<float> QueuePriorities(QueueFlags.size(), 1.0f);
 
 	// Get device queues
-	std::vector<vk::QueueFamilyProperties> queueProps = m_PhysicalDevice.getQueueFamilyProperties();
+	std::vector<vk::QueueFamilyProperties> QueueProps = m_PhysicalDevice.getQueueFamilyProperties();
 
 	// Support vars
 	bool bNewFamily = false;
 	uint32_t uCurrFamily = UINT32_MAX;
-	
+
 	// Collect information about families and how many queues we need from the family
 	// first -> family idx | second -> queue count
 	std::unordered_map<uint32_t, uint32_t> QueueFamilyInfo;
 	// Store the offset of each found queue in the family to which it belongs
-	std::vector<QueueOffset> QueueOffset;
+	std::vector<QueueOffset> QueueOffsets;
 	
 	// We would like to find a queue for each kind of gpu task
-	for (auto& flag : queueFlags)
+	for (auto& Flag : QueueFlags)
 	{
-		vk::QueueFlags currMostSpecificFlag = vk::QueueFlagBits::eSparseBinding | vk::QueueFlagBits::eTransfer | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eGraphics;
+		vk::QueueFlags kCurrMostSpecificFlag = vk::QueueFlagBits::eSparseBinding | vk::QueueFlagBits::eTransfer | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eGraphics;
 		
 		// For all available gpu families (a family is a cluster of queues that can have multiple uses e.g. gfx & compute)
-		for (size_t uFamily = 0, end = queueProps.size(); uFamily < end; ++uFamily)
+		for (size_t uFamily = 0, end = QueueProps.size(); uFamily < end; ++uFamily)
 		{
-			vk::QueueFlags currFlag = queueProps[uFamily].queueFlags;
-			if  ((currFlag & flag) &&							// If this family has the flag we look for
-				((uint32_t)currFlag <= (uint32_t)currMostSpecificFlag))	// If this is most specific so far
+			const vk::QueueFlags kCurrFlag = QueueProps[uFamily].queueFlags;
+			if  ((kCurrFlag & Flag) &&							// If this family has the flag we look for
+				((uint32_t)kCurrFlag <= (uint32_t)kCurrMostSpecificFlag))	// If this is most specific so far
 			{
 				// Store this current queue flags
-				currMostSpecificFlag = currFlag;
+				kCurrMostSpecificFlag = kCurrFlag;
 				// Check whether this queue is in a new family or in the same one as another (Nvidia vs. AMD convention)
 				if (uFamily != uCurrFamily)
 				{
@@ -97,9 +97,9 @@ void VulkanDevice::Create()
 		uint32_t uQueueFamily = uCurrFamily;
 		if (bNewFamily == false)	// If we didn't find the current flag in a new family
 		{
-			for (size_t uFamily = 0, end = queueProps.size(); uFamily < end; ++uFamily)
+			for (size_t uFamily = 0, end = QueueProps.size(); uFamily < end; ++uFamily)
 			{
-				if (queueProps[uFamily].queueFlags & flag)
+				if (QueueProps[uFamily].queueFlags & Flag)
 				{
 					uQueueFamily = static_cast<uint32_t>(uFamily);
 					break;
@@ -111,15 +111,15 @@ void VulkanDevice::Create()
 			bNewFamily = false;
 		}
 
-		// Store the offset of the new found queue into its family
-		QueueOffset.emplace_back(uQueueFamily, std::min(QueueFamilyInfo[uQueueFamily]++, queueProps[uQueueFamily].queueCount - 1u));
+		// Store the offset of the new found queue into its family, copy over the family supported queues
+		QueueOffsets.emplace_back(uQueueFamily, std::min(QueueFamilyInfo[uQueueFamily]++, QueueProps[uQueueFamily].queueCount - 1u));
 	}
 		
 	// Create the info structures to create the device using the collected info
-	for (auto& family : QueueFamilyInfo)
+	for (const auto& FamilyIt : QueueFamilyInfo)
 	{
 		// first -> family idx | second -> queue count
-		QueueCreateInfo.emplace_back(vk::DeviceQueueCreateFlags(), family.first, family.second, queuePriorities.data());
+		QueueCreateInfo.emplace_back(vk::DeviceQueueCreateFlags(), FamilyIt.first, std::min(FamilyIt.second, QueueProps[FamilyIt.first].queueCount), QueuePriorities.data());
 	}
 
 	HASSERTD(QueueCreateInfo.size() > 0u, "Failed to find Device queues.");
@@ -158,14 +158,14 @@ void VulkanDevice::Create()
 	// Fetch a pointer to the actual queue for submit
 	{
 		// For each queue type we want, fetch a pointer to the device queue
-		for (size_t uQueueFlagIndex = 0, uEnd = queueFlags.size(); uQueueFlagIndex < uEnd; ++uQueueFlagIndex)
+		for (size_t uQueueFlagIndex = 0, uEnd = QueueFlags.size(); uQueueFlagIndex < uEnd; ++uQueueFlagIndex)
 		{
 			// Create an item in the queue map, used for later to ease submit
-			auto queuePair = m_Queues.emplace(queueFlags[uQueueFlagIndex], Queue());
+			auto queuePair = m_Queues.emplace(QueueFlags[uQueueFlagIndex], Queue());
 			
 			// Assign the queue
-			queuePair.first->second.uFamilyIndex = QueueOffset[uQueueFlagIndex].uOffset;
-			queuePair.first->second.Handle = m_Device.getQueue(QueueOffset[uQueueFlagIndex].uFamilyIndex, QueueOffset[uQueueFlagIndex].uOffset);
+			queuePair.first->second.uFamilyIndex = QueueOffsets[uQueueFlagIndex].uOffset;
+			queuePair.first->second.Handle = m_Device.getQueue(QueueOffsets[uQueueFlagIndex].uFamilyIndex, QueueOffsets[uQueueFlagIndex].uOffset);
 		}
 	}
 }
@@ -187,7 +187,7 @@ const bool Tracy::VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAl
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, std::max(static_cast<uint32_t>(_Desc.uDepth), 1u));
 	Info.imageType = GetTextureType(_Desc.kType);
-	Info.format = GetFormat(_Desc.kFormat);
+	Info.format = GetResourceFormat(_Desc.kFormat);
 	Info.mipLevels = 1u;
 	Info.arrayLayers = std::max(_Desc.uLayerCount, 1u);
 	Info.usage = GetTextureUsage<vk::ImageUsageFlags>(_Desc.kUsageFlag);

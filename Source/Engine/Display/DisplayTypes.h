@@ -295,6 +295,35 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 
+	// Used to convert ComponentMapping in View creation
+	enum EColorChannel : uint32_t
+	{
+		kChannel_Identity	= 0u,	// Is Default
+		kChannel_Zero		= 1u,
+		kChannel_One		= 2u,
+		kChannel_Red		= 3u,
+		kChannel_Green		= 4u,
+		kChannel_Blue		= 5u,
+		kChannel_Alpha		= 6u,
+
+		kChannel_NumOf
+	};
+
+	struct ColorSwizzle
+	{
+		EColorChannel Red;
+		EColorChannel Green;
+		EColorChannel Blue;
+		EColorChannel Alpha;
+
+		ColorSwizzle(const EColorChannel _kRed = kChannel_Identity, const EColorChannel _kGreen = kChannel_Identity, const EColorChannel _kBlue = kChannel_Identity, const EColorChannel _kAlpha = kChannel_Identity) :
+			Red(_kRed),
+			Green(_kGreen),
+			Blue(_kBlue),
+			Alpha(_kAlpha)
+		{}
+	};
+
 	// TODO: NumOf / Unknown pattern
 	enum ETextureType : uint32_t
 	{

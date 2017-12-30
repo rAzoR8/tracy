@@ -8,23 +8,21 @@ Tracy::VulkanMemoryAllocator::VulkanMemoryAllocator(const vk::PhysicalDevice& _P
 	m_MemoryProperties(m_PhysicalDevice.getMemoryProperties())
 {
 	// Get memory info
-	for (const vk::MemoryHeap& Heap : m_MemoryProperties.memoryHeaps)
+	for (uint32_t uHeapIndex = 0u; uHeapIndex < m_MemoryProperties.memoryHeapCount; ++uHeapIndex)
 	{
+		const vk::MemoryHeap& Heap = m_MemoryProperties.memoryHeaps[uHeapIndex];
 		const auto kFlag = Heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal;
 		if (kFlag != vk::MemoryHeapFlags())
 		{
 			m_uTotalDeviceMemory = Heap.size;
 		}
-		else if(kFlag == vk::MemoryHeapFlags())
-		{
-			m_uTotalSharedMemory = Heap.size;
-		}
 	}
-	HASSERTD((m_uTotalDeviceMemory > 0u) && (m_uTotalSharedMemory > 0u), "Failed to retrieve device memory amount");
+	HASSERTD((m_uTotalDeviceMemory > 0u) /*&& (m_uTotalSharedMemory > 0u)*/, "Failed to retrieve device memory amount");
 }
 //---------------------------------------------------------------------------------------------------
 Tracy::VulkanMemoryAllocator::~VulkanMemoryAllocator()
 {
+	// TODO : We would like to release all resources that are still allocated
 }
 //---------------------------------------------------------------------------------------------------
 uint32_t Tracy::VulkanMemoryAllocator::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties)

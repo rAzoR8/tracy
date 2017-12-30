@@ -237,7 +237,10 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	// TODO : might want to use config to set double or triple buffering
 	SwapchainDesc.minImageCount = m_Capabilities.minImageCount + 1u;
 	// Ensure that we can allow this many images
-	SwapchainDesc.minImageCount = std::min(SwapchainDesc.minImageCount, m_Capabilities.maxImageCount);
+	if (m_Capabilities.maxImageCount > 0u)
+	{
+		SwapchainDesc.minImageCount = std::max(SwapchainDesc.minImageCount, m_Capabilities.maxImageCount);
+	}
 
 	//
 	// Set Surface Transform
@@ -277,7 +280,7 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	// Image Usage
 	//
-	SwapchainDesc.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage;
+	SwapchainDesc.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
 	// Enable blit to backbuffer if supported, can be nice for postfx
 	const vk::FormatProperties& FormatProps = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetAdapter().getFormatProperties(SwapchainDesc.imageFormat);
 	if (FormatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitDst)

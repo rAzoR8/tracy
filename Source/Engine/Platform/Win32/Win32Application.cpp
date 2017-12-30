@@ -1,7 +1,7 @@
 #include "Win32Application.h"
 
 //---------------------------------------------------------------------------------------------------
-inline Tracy::Win32Application::Win32Application(const HINSTANCE _hInstance) :
+Tracy::Win32Application::Win32Application(const HINSTANCE _hInstance) :
 	m_hInstance(_hInstance)
 {
 }

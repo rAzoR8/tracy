@@ -57,7 +57,8 @@ const std::vector<DeviceInfo> VulkanInstance::Init(/*const uint32_t _uWidth, con
 	if (m_Instance)
 	{
 		// enumerate devices
-		for (const vk::PhysicalDevice& Device : m_Instance.enumeratePhysicalDevices())
+		const std::vector<vk::PhysicalDevice> PhysicalDevices = m_Instance.enumeratePhysicalDevices();
+		for (const vk::PhysicalDevice& Device : PhysicalDevices)
 		{
 			const auto Res = m_Devices.try_emplace(m_LastDeviceHandle, Device, m_LastDeviceHandle);
 			HASSERT(Res.second == true, "Failed to add device");

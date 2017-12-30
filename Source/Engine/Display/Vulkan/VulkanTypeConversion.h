@@ -9,7 +9,7 @@
 
 namespace Tracy::detail
 {
-	static const std::unordered_map<EFormat, vk::Format> VkFormatMapping =
+	static const std::unordered_map<EFormat, vk::Format> g_VkFormatMapping =
 	{
 		{ kFormat_R_8_UNORM,	vk::Format::eR8Unorm },
 		{ kFormat_R_8_SNORM,	vk::Format::eR8Snorm },
@@ -114,7 +114,7 @@ namespace Tracy::detail
 		{ kFormat_D32_SFLOAT_S8_UINT,	vk::Format::eD32SfloatS8Uint }
 	};
 
-	static const std::unordered_map<EUsageFlag, vk::ImageUsageFlagBits> VkImageUsageMapping =
+	static const std::unordered_map<EUsageFlag, vk::ImageUsageFlagBits> g_VkImageUsageMapping =
 	{
 		{ kUsageFlag_RenderTarget,		vk::ImageUsageFlagBits::eColorAttachment },
 		{ kUsageFlag_DepthStencil,		vk::ImageUsageFlagBits::eDepthStencilAttachment },
@@ -124,7 +124,7 @@ namespace Tracy::detail
 		{ kUsageFlag_CopyDestination,	vk::ImageUsageFlagBits::eTransferDst }
 	};
 
-	static const std::unordered_map<EUsageFlag, vk::BufferUsageFlagBits> VkBufferUsageMapping =
+	static const std::unordered_map<EUsageFlag, vk::BufferUsageFlagBits> g_VkBufferUsageMapping =
 	{
 		{ kUsageFlag_VertexBuffer,		vk::BufferUsageFlagBits::eVertexBuffer },
 		{ kUsageFlag_IndexBuffer,		vk::BufferUsageFlagBits::eIndexBuffer },
@@ -135,15 +135,38 @@ namespace Tracy::detail
 		{ kUsageFlag_CopyDestination,	vk::BufferUsageFlagBits::eTransferDst },
 	};
 
+	static const std::unordered_map<EColorChannel, vk::ComponentSwizzle> g_VkChannelSwizzle =
+	{
+		{kChannel_Identity,		vk::ComponentSwizzle::eIdentity},
+		{kChannel_Zero,			vk::ComponentSwizzle::eZero},
+		{kChannel_One,			vk::ComponentSwizzle::eOne},
+		{kChannel_Red,			vk::ComponentSwizzle::eR},
+		{kChannel_Green,		vk::ComponentSwizzle::eG},
+		{kChannel_Blue,			vk::ComponentSwizzle::eB},
+		{kChannel_Alpha,		vk::ComponentSwizzle::eA}
+	};
+
+	static const vk::ComponentSwizzle GetSwizzle(const EColorChannel _kChannel)
+	{
+		const auto& MapIt = g_VkChannelSwizzle.find(_kChannel);
+		if (MapIt != g_VkChannelSwizzle.end())
+		{
+			return MapIt->second;
+		}
+
+		HASSERTD(false, "Invalid Color Channel in Swizzle.");
+		return vk::ComponentSwizzle::eZero;
+	}
+
 	template <typename TUsage>
 	inline const auto& GetMapping()
 	{
 		if constexpr (std::is_same_v<TUsage, vk::ImageUsageFlagBits>)
 		{
-			return detail::VkImageUsageMapping;
+			return detail::g_VkImageUsageMapping;
 		}
 
-		return detail::VkBufferUsageMapping;
+		return detail::g_VkBufferUsageMapping;
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -281,8 +304,8 @@ namespace Tracy
 
 			if (bHasFlag)
 			{
-				const auto& MappingIt = detail::VkImageUsageMapping.find(static_cast<EUsageFlag>(uFlag));
-				if (MappingIt != detail::VkImageUsageMapping.end())
+				const auto& MappingIt = detail::g_VkImageUsageMapping.find(static_cast<EUsageFlag>(uFlag));
+				if (MappingIt != detail::g_VkImageUsageMapping.end())
 				{
 					Result |= MappingIt->second;
 				}
@@ -318,12 +341,48 @@ namespace Tracy
 		HASSERT(false, "Invalid Texture Format, either dirty data or kTextureType_Invalid");
 		return vk::ImageType::e1D;
 	}
+
+	inline const vk::ImageViewType GetTextureViewType(const ETextureType _kTexType)
+	{
+		switch (_kTexType)
+		{
+		case kTextureType_Texture2D:
+			return vk::ImageViewType::e2D;
+
+		case kTextureType_TextureArray:
+			return vk::ImageViewType::e2DArray;
+
+		case kTextureType_TextureCube:
+			return vk::ImageViewType::eCube;
+
+		case kTextureType_Texture3D:
+			return vk::ImageViewType::e3D;
+
+		case kTextureType_Texture1D:
+			return vk::ImageViewType::e1D;
+
+		default:
+			break;
+		}
+
+		HASSERT(false, "Invalid Texture Format, either dirty data or kTextureType_Invalid");
+		return vk::ImageViewType::e1D;
+	}
+
+	inline const vk::ComponentMapping GetTextureComponentMapping(const ColorSwizzle& _Swizzle)
+	{
+		return vk::ComponentMapping(
+			detail::GetSwizzle(_Swizzle.Red),
+			detail::GetSwizzle(_Swizzle.Green),
+			detail::GetSwizzle(_Swizzle.Blue),
+			detail::GetSwizzle(_Swizzle.Alpha));
+	}
 	
-	inline const vk::Format& GetFormat(const EFormat _kFormat)
+	inline const vk::Format& GetResourceFormat(const EFormat _kFormat)
 	{
 		HASSERT(_kFormat > kFormat_Undefined && _kFormat < kFormat_NumOf, "Format is either Undefined or OutOfRange");
 
-		return detail::VkFormatMapping.at(_kFormat);
+		return detail::g_VkFormatMapping.at(_kFormat);
 	}
 }
 

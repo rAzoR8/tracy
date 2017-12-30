@@ -6,7 +6,5 @@
 #include "Display\DX12\DX12Instance.h"
 #endif
 
-#include "Display\Vulkan\VulkanInstance.h"
-
 #endif // !ENGINE_HPP
 

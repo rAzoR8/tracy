@@ -6,6 +6,7 @@
 #include "VulkanInstance.h"
 #include "VulkanMemoryAllocator.h"
 #include "VulkanDevice.h"
+#include "VulkanTypeConversion.h"
 #include "../DisplayTypes.h"
 #include "../Texture.h"
 
@@ -26,6 +27,24 @@ namespace Tracy
 		virtual ~VulkanTexture();
 
 		static VkTextureRef Create(const THandle _hDevice, const TextureDesc& _Desc);
+
+		bool AddView(const TextureViewDesc& _Desc)
+		{
+			if (m_Image)
+			{
+				vk::ImageViewCreateInfo Info;
+				Info.image = m_Image;
+				Info.format = GetResourceFormat(_Desc.kFormat);
+				Info.viewType = GetTextureViewType(m_Data.kType);
+				Info.components = GetTextureComponentMapping(_Desc.Swizzle);
+				Info.subresourceRange.baseMipLevel = _Desc.Subresource.uBaseMipLevel;
+				Info.subresourceRange.levelCount = _Desc.Subresource.uMipLevelCount;
+				Info.subresourceRange.baseArrayLayer = _Desc.Subresource.uBaseArrayLayer;
+				Info.subresourceRange.layerCount = _Desc.Subresource.uArrayLayerCount;
+				//Info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::
+			}
+			
+		}
 
 		const bool Resize(const uint32_t _uWidth, const uint32_t _uHeight);
 

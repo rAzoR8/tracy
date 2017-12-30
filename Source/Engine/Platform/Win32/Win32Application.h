@@ -80,7 +80,7 @@ namespace Tracy
 		m_hVkWindow = Gfx.MakeWindow(Devices[0u].hHandle, _uWidth, _uHeight, m_hWnd, m_hInstance);
 		HASSERT(m_hVkWindow != kUndefinedSizeT, "Failed to create default window");
 
-		ShowWindow(m_hWnd, false);
+		ShowWindow(m_hWnd, SW_SHOW);
 
 		return true;
 	}

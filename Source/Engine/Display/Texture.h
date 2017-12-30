@@ -4,6 +4,7 @@
 #include "StandardDefines.h"
 #include "DisplayTypes.h"
 #include <string>
+#include <array>
 
 namespace Tracy
 {
@@ -24,6 +25,21 @@ namespace Tracy
 		EUsageFlag kUsageFlag = kUsageFlag_None;
 		ETextureType kType = kTextureType_Invalid;
 		std::string sName = "NewTexture";
+	};
+
+	struct TextureSubresource
+	{
+		uint32_t uBaseMipLevel;
+		uint32_t uMipLevelCount;
+		uint32_t uBaseArrayLayer;
+		uint32_t uArrayLayerCount;
+	};
+
+	struct TextureViewDesc
+	{
+		EFormat kFormat;
+		ColorSwizzle Swizzle;
+		TextureSubresource Subresource;
 	};
 
 	class Texture

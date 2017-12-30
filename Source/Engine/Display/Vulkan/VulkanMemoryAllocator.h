@@ -78,7 +78,7 @@ namespace Tracy
 
 		// Retrieve device memory info
 		const vk::DeviceSize& GetTotalDeviceMemory() const;
-		const vk::DeviceSize& GetTotalSharedMemory() const;
+		//const vk::DeviceSize& GetTotalSharedMemory() const;
 
 	private:
 		// Select the flags used in memory allocation given a configuration for the resouce
@@ -95,14 +95,14 @@ namespace Tracy
 		const vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 
 		vk::DeviceSize m_uTotalDeviceMemory = 0ull;
-		vk::DeviceSize m_uTotalSharedMemory = 0ull;
+		//vk::DeviceSize m_uTotalSharedMemory = 0ull;
 
 		vk::DeviceSize m_uAllocatedVirtualMemory = 0ull;
 		vk::DeviceSize m_uAllocatedPhysicalMemory = 0ull;
 	};
 
 	inline const vk::DeviceSize& VulkanMemoryAllocator::GetTotalDeviceMemory() const { return m_uTotalDeviceMemory; }
-	inline const vk::DeviceSize& VulkanMemoryAllocator::GetTotalSharedMemory() const { return m_uTotalSharedMemory; }
+	//inline const vk::DeviceSize& VulkanMemoryAllocator::GetTotalSharedMemory() const { return m_uTotalSharedMemory; }
 }
 
 #endif // !TRACY_VULKANALLOCATORTYPES_H
