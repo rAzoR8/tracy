@@ -5,6 +5,7 @@
 
 namespace Tracy
 {
+	// T must have a suitable default constructor for block allocation
 	template <class T, bool ThreadSafe, class DataAllocator>
 	struct BaseRef
 	{
@@ -45,6 +46,7 @@ namespace Tracy
 		using TBaseRef = BaseRef<T, ThreadSafe, DataAllocator>;
 		typedef typename RefCounted<T, ThreadSafe, DataAllocator, RefAllocator> RefCountedType;
 
+		// construct with arguments passed to T
 		template <class ...Ts>
 		inline RefCounted(CreateRefCountedTag, Ts&& ... _Args)
 		{
@@ -59,6 +61,7 @@ namespace Tracy
 			}			
 		}
 
+		// default / null constructor
 		inline constexpr RefCounted(std::nullptr_t p = nullptr) noexcept : m_pRef(nullptr) {}
 
 #define REFCOUNT_DEFAULTCONSTR(_derived, _base) inline _derived(std::nullptr_t p = nullptr) : _base(nullptr) {}
@@ -134,6 +137,7 @@ namespace Tracy
 		__declspec(property(get = Get)) T& Ref;
 
 	private:
+
 		inline void Decrement()
 		{
 			if (m_pRef != nullptr)
@@ -157,6 +161,7 @@ namespace Tracy
 
 	private:
 		// TODO: make pointer atomic and use strong exchange to set to null
+		// (but that is only possible with spinlocks or mutexes so we ignore the race condition for now and hope for the best)
 		TBaseRef* m_pRef = nullptr;
 	};
 } // Tracy

@@ -1,4 +1,5 @@
 #include "VulkanTexture.h"
+#include "VulkanInstance.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------

@@ -3,8 +3,7 @@
 
 #include "StandardDefines.h"
 #include "DisplayTypes.h"
-#include <string>
-#include <array>
+//#include <string>
 #include "Datastructures\RefCounted.h"
 
 namespace Tracy

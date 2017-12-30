@@ -1,24 +1,14 @@
 #ifndef TRACY_VULKANTEXTURE_H
 #define TRACY_VULKANTEXTURE_H
 
-#include "VulkanAPI.h"
 #include "StandardDefines.h"
-#include "VulkanInstance.h"
+
 #include "VulkanMemoryAllocator.h"
-#include "VulkanDevice.h"
 #include "VulkanTypeConversion.h"
-#include "../DisplayTypes.h"
 #include "../Texture.h"
-
-#include "HashUtils.h"
-
-#include <unordered_map>
 
 namespace Tracy
 {
-	class VulkanTexture;
-	using VkTextureRef = std::shared_ptr<VulkanTexture>;
-
 	struct VkTexData : public TexAPIData
 	{
 		vk::Image hImage;
@@ -67,7 +57,6 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	inline VkTexData& VulkanTexture::GetAPIData() { return *reinterpret_cast<VkTexData*>(Get().pAPIData); }
-
 }
 
 #endif // !TRACY_VULKANTEXTURE_H
