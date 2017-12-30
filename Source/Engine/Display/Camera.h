@@ -15,7 +15,12 @@ namespace Tracy
 		Camera() {};
 		virtual ~Camera() {};
 
+		const std::vector<RenderObject*>& GetObjects() const;
+		const uint64_t& GetPassIDs() const;
 	private:
+		uint64_t m_uPassIds; // renderpasses this camera renders to
+		// only objects that match the m_uPassIds mask will be gathered into m_Objects
+
 		std::vector<RenderObject*> m_Objects;
 
 		float3_t m_vPosition;
@@ -35,6 +40,15 @@ namespace Tracy
 
 		// TODO frustum for culling
 	};
+
+	inline const std::vector<RenderObject*>& Tracy::Camera::GetObjects() const
+	{
+		return m_Objects;
+	}
+	inline const uint64_t& Camera::GetPassIDs() const
+	{
+		return m_uPassIds;
+	}
 } // Tracy
 
 #endif // !TRACY_CAMERA_H

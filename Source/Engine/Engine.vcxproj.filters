@@ -28,6 +28,9 @@
     <Filter Include="Display\Vulkan\Renderer">
       <UniqueIdentifier>{3d3f6b65-a7da-4c58-ab0b-8b627ba3005c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Datastructures">
+      <UniqueIdentifier>{f054180f-5d50-4ce6-8ffa-a9b862f21165}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
@@ -115,6 +118,21 @@
     <ClInclude Include="MathTypes.h" />
     <ClInclude Include="Display\Material.h">
       <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\SmallObjectPool.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\BigObjectPool.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\ConditionalAtomic.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\RefCounted.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\Allocators.h">
+      <Filter>Datastructures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
