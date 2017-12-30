@@ -122,6 +122,12 @@
     <ClInclude Include="Datastructures\SmallObjectPool.h">
       <Filter>Datastructures</Filter>
     </ClInclude>
+    <ClInclude Include="Datastructures\BigObjectPool.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\ConditionalAtomic.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">

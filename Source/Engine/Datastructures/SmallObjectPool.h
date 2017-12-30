@@ -1,31 +1,21 @@
 #ifndef TRACY_SMALLOBJECTPOOL_H
 #define TRACY_SMALLOBJECTPOOL_H
 
-#include <atomic>
 #include <vector>
+#include "ConditionalAtomic.h"
 
 namespace Tracy
 {
-	template <class T>
-	struct FakeAtomic
-	{
-		FakeAtomic& operator=(const T& v) { var = v; }
-		operator T() const { return var; }
-		T fetch_add(const T& v) { T ret = var; var += v; return ret; }
-	private:
-		T var;
-	};
-
 	template <class T, bool ThreadSafe = true, bool AllowFallbackAlloc = false>
 	class SmallObjectPool
 	{
-		using TCounter = std::conditional_t<ThreadSafe, std::atomic_uint32_t, FakeAtomic<uint32_t>>;
+		using TCounter = TCondAtomic<uint32_t, ThreadSafe>;
 
 	public:
 		SmallObjectPool(const uint32_t _uBlockSize = 1024u, const uint32_t _uBlockCount = 1024u);
 		~SmallObjectPool();
 
-		//AllowFallbackAlloc might leak memory if SmallObjectPool.Free is not called for this address BUT allocation can not fail (if new T() does not fail)
+		//AllowFallbackAlloc might leak memory if Free() is not called (pool destructed before freeing) for this address BUT allocation can not fail (if new T() does not fail)
 		T* Alloc();
 
 		// this allocator assumes that free is never called twice for the same address!
@@ -122,7 +112,7 @@ namespace Tracy
 				if (b.uFreed.fetch_add(1u) >= m_uBlockSize) 
 				{
 					b.uFirstFree = 0u;
-					b.Freed = 0u;
+					b.uFreed = 0u;
 				}
 
 				return;
