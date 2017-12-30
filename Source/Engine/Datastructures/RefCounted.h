@@ -6,7 +6,7 @@
 namespace Tracy
 {
 	// ThreadSafe indicates that reference counting is threadsafe, but no necessarily that allocation is thread safe 
-	template <class T, bool ThreadSafe, class RefAllocator = DefaultHeapAllocator, class DataAllocator = DefaultHeapAllocator>
+	template <class T, bool ThreadSafe, class RefAllocator = DefaultHeapAllocator<T>, class DataAllocator = DefaultHeapAllocator<T>>
 	class RefCounted
 	{
 	public:
@@ -31,10 +31,10 @@ namespace Tracy
 			m_pRef(nullptr) {}
 
 		// copy
-		inline RefCounted(const RefCounted& _Other) : 
-			m_pRef(_Other.m_pRef)
+		inline RefCounted(const RefCounted& _Other)  
 		{
-			Increment();
+			_Other.Increment();
+			m_pRef = _Other.m_pRef;
 		}
 
 		// overwrite
