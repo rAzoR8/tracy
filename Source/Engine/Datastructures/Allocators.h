@@ -17,8 +17,8 @@ namespace Tracy
 			return Pool;
 		}
 
-		inline static T* Alloc() const { return Instance().Alloc(); }
-		inline static void Free(const T* _pData) const { Instance().Free(_pData); }
+		inline static T* Alloc() { return Instance().Alloc(); }
+		inline static void Free(const T* _pData) { Instance().Free(_pData); }
 	};
 
 	template <class T, bool ThreadSafe = true>
@@ -32,15 +32,15 @@ namespace Tracy
 			return Pool;
 		}
 
-		inline static T* Alloc() const { return Instance().Alloc(); }
-		inline static void Free(const T* _pData) const { Instance().Free(_pData); }
+		inline static T* Alloc() { return Instance().Alloc(); }
+		inline static void Free(const T* _pData) { Instance().Free(_pData); }
 	};
 
 	template <class T>
 	struct DefaultHeapAllocator 
 	{
-		inline static T* Alloc() const { return new T; }
-		inline static void Free(const T* _pData) const { delete _pData; }
+		inline static T* Alloc() { return new T; }
+		inline static void Free(const T* _pData) { delete _pData; }
 	};
 
 	template <class T, class ...Args>

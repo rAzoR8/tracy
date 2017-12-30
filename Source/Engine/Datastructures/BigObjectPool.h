@@ -12,7 +12,7 @@ namespace Tracy
 	class BigObjectPool
 	{
 		using TCounter = TCondAtomic<uint32_t, ThreadSafe>;
-		using TFlag = TCondAtomicFlag<ThreadSafe>
+		using TFlag = TCondAtomicFlag<ThreadSafe>;
 
 		using TMutex = std::conditional_t<ThreadSafe, std::mutex, detail::FakeMutex>;
 		using TLockGuard = std::conditional_t<ThreadSafe, std::lock_guard<TMutex>, detail::FakeLockGuard<TMutex>>;

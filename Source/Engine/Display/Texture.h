@@ -5,6 +5,7 @@
 #include "DisplayTypes.h"
 #include <string>
 #include <array>
+#include "Datastructures\RefCounted.h"
 
 namespace Tracy
 {
@@ -17,6 +18,7 @@ namespace Tracy
 
 	struct TextureDesc
 	{
+		THandle hDevice = 0u; // Owner
 		uint16_t uWidth = 0u;
 		uint16_t uHeight = 0u;
 		uint16_t uDepth = 0u;
@@ -25,6 +27,31 @@ namespace Tracy
 		EUsageFlag kUsageFlag = kUsageFlag_None;
 		ETextureType kType = kTextureType_Invalid;
 		std::string sName = "NewTexture";
+	};
+
+	struct TexAPIData 
+	{
+		TexAPIData(){}
+		virtual ~TexAPIData() {}
+	};
+
+	struct TextureRefEntry
+	{
+		TextureRefEntry() {}
+
+		TextureRefEntry(const TextureDesc& _Desc, TexAPIData* pAPIData = nullptr) :
+			Desc(_Desc), pAPIData(pAPIData) {}
+
+		virtual ~TextureRefEntry()
+		{
+			if (pAPIData != nullptr)
+			{
+				delete pAPIData;
+			}
+		}
+
+		TextureDesc Desc;
+		TexAPIData* pAPIData;
 	};
 
 	struct TextureSubresource
@@ -42,19 +69,15 @@ namespace Tracy
 		TextureSubresource Subresource;
 	};
 
-	class Texture
+	class Texture : public RefCounted<TextureRefEntry, true>
 	{
+	protected:
+
+		Texture(const TextureDesc& _Desc);
+
+		REFCOUNT_INTERFACE(Texture, RefCountedType);
+
 	public:
-		Texture(
-			const THandle _hDevice = 0u,
-			const ETextureType _kType = kTextureType_Invalid,
-			const uint16_t uWidth = 0u,
-			const uint16_t uHeight = 0u,
-			const uint16_t uDepth = 0u,
-			const EFormat kFormat = kFormat_Undefined,
-			const EUsageFlag kUsageFlag = kUsageFlag_None,
-			const std::string& sName = "NewTexture");
-		Texture(const THandle _hDevice, const TextureDesc& _Desc);
 		virtual ~Texture() {}
 
 		const uint16_t GetWidth() const;
@@ -66,21 +89,14 @@ namespace Tracy
 		const ETextureType GetType() const;
 
 		const EUsageFlag GetUsage() const;
-
-	protected:
-		TextureDesc m_Data;
-		
-	private:
-		// Owner
-		THandle m_hDevice;
 	};
 
-	inline const uint16_t Texture::GetWidth() const { return m_Data.uWidth; }
-	inline const uint16_t Texture::GetHeight() const { return m_Data.uHeight; }
-	inline const uint16_t Texture::GetDepth() const { return m_Data.uDepth; }
-	inline const EFormat Texture::GetFormat() const { return m_Data.kFormat; }
-	inline const ETextureType Texture::GetType() const { return m_Data.kType; }
-	inline const EUsageFlag Texture::GetUsage() const { return m_Data.kUsageFlag; }
+	inline const uint16_t Texture::GetWidth() const { return Get().Desc.uWidth; }
+	inline const uint16_t Texture::GetHeight() const { return Get().Desc.uHeight; }
+	inline const uint16_t Texture::GetDepth() const { return Get().Desc.uDepth; }
+	inline const EFormat Texture::GetFormat() const { return Get().Desc.kFormat; }
+	inline const ETextureType Texture::GetType() const { return Get().Desc.kType; }
+	inline const EUsageFlag Texture::GetUsage() const { return Get().Desc.kUsageFlag; }
 }
 #endif // !_TRACY_TEXTURE_H_
 

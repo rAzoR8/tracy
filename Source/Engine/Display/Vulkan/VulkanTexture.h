@@ -19,6 +19,13 @@ namespace Tracy
 	class VulkanTexture;
 	using VkTextureRef = std::shared_ptr<VulkanTexture>;
 
+	struct VkTexData : public TexAPIData
+	{
+		vk::Image hImage;
+		VulkanAllocation Allocation;
+		std::unordered_map<THandle, vk::ImageView> Views;
+	};
+
 	// Textures are created by the device that acts as factory
 	class VulkanTexture : public Texture
 	{
@@ -26,46 +33,41 @@ namespace Tracy
 		// use device to destroy resource, default destructor can't do it, need device who created the base resource
 		virtual ~VulkanTexture();
 
-		static VkTextureRef Create(const THandle _hDevice, const TextureDesc& _Desc);
+		inline explicit operator bool()
+		{
+			return IsValidRef() && GetAPIData().hImage;
+		}
 
 		bool AddView(const TextureViewDesc& _Desc)
 		{
-			if (m_Image)
+			if (operator bool())
 			{
 				vk::ImageViewCreateInfo Info;
-				Info.image = m_Image;
+				Info.image = GetAPIData().hImage;
 				Info.format = GetResourceFormat(_Desc.kFormat);
-				Info.viewType = GetTextureViewType(m_Data.kType);
+				Info.viewType = GetTextureViewType(GetType());
 				Info.components = GetTextureComponentMapping(_Desc.Swizzle);
 				Info.subresourceRange.baseMipLevel = _Desc.Subresource.uBaseMipLevel;
 				Info.subresourceRange.levelCount = _Desc.Subresource.uMipLevelCount;
 				Info.subresourceRange.baseArrayLayer = _Desc.Subresource.uBaseArrayLayer;
 				Info.subresourceRange.layerCount = _Desc.Subresource.uArrayLayerCount;
 				//Info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::
-			}
-			
+			}			
 		}
 
 		const bool Resize(const uint32_t _uWidth, const uint32_t _uHeight);
 
-		explicit operator bool()
-		{
-			return m_Image;
-		}
+		VulkanTexture(const TextureDesc& _Desc);
 
-	private:
-		VulkanTexture(const THandle _hDevice, const TextureDesc& _Desc);
+		REFCOUNT_INTERFACE(VulkanTexture, Texture);
 
-	private:
-		vk::Image m_Image;
-		
-		VulkanAllocation m_Allocation;
-
-		std::unordered_map<THandle, vk::ImageView> m_Views;
-
-		VulkanDevice& m_Device;
+	protected:
+		VkTexData& GetAPIData();
 	};
 	//---------------------------------------------------------------------------------------------------
+
+	inline VkTexData& VulkanTexture::GetAPIData() { return *reinterpret_cast<VkTexData*>(Get().pAPIData); }
+
 }
 
 #endif // !TRACY_VULKANTEXTURE_H

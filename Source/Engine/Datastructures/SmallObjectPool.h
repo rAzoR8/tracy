@@ -106,7 +106,7 @@ namespace Tracy
 	{
 		for (Block& b : m_MemoryBlocks)
 		{
-			if (_pData >= b.pData && _pData < (b.pData + m_uBlockSize)
+			if (_pData >= b.pData && _pData < (b.pData + m_uBlockSize))
 			{
 				// whole block was freed, can be reused
 				if (b.uFreed.fetch_add(1u) >= m_uBlockSize) 

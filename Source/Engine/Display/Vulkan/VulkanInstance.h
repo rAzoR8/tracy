@@ -53,5 +53,7 @@ namespace Tracy
 		// Collection of presentable windows
 		std::unordered_map<THandle, VulkanWindow> m_Windows;
 	};
+
+	inline static VulkanDevice& GetDevice(const THandle _hDevice = 0u) { return VulkanInstance::GetInstance().GetDevice(_hDevice); }
 }; // Tracy
 #endif // !VULKANINITIALIZER_H
