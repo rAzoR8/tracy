@@ -12,6 +12,8 @@ namespace Tracy
 	class BigObjectPool
 	{
 		using TCounter = TCondAtomic<uint32_t, ThreadSafe>;
+		using TFlag = TCondAtomicFlag<ThreadSafe>
+
 		using TMutex = std::conditional_t<ThreadSafe, std::mutex, detail::FakeMutex>;
 		using TLockGuard = std::conditional_t<ThreadSafe, std::lock_guard<TMutex>, detail::FakeLockGuard<TMutex>>;
 
@@ -29,7 +31,7 @@ namespace Tracy
 		struct Entry
 		{
 			T Data;
-			mutable std::atomic_flag bUsed = ATOMIC_FLAG_INIT;
+			mutable TFlag bUsed = ATOMIC_FLAG_INIT;
 			mutable uint32_t uIndex = -1u; // relative to block
 		};
 
@@ -110,8 +112,8 @@ namespace Tracy
 		pEntry->bUsed.clear(std::memory_order_release);
 		m_uFirstFree = pEntry->uIndex;
 	}
-	//---------------------------------------------------------------------------------------------------
 
+	//---------------------------------------------------------------------------------------------------
 }
 
 #endif // !TRACY_BIGOBJECTPOOL_H

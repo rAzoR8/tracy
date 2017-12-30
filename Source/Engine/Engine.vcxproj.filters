@@ -128,6 +128,12 @@
     <ClInclude Include="Datastructures\ConditionalAtomic.h">
       <Filter>Datastructures</Filter>
     </ClInclude>
+    <ClInclude Include="Datastructures\RefCounted.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\Allocators.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
