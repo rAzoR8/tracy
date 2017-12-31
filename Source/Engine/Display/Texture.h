@@ -76,6 +76,10 @@ namespace Tracy
 
 		REFCOUNT_INTERFACE(Texture, RefCountedType);
 
+#define TEXAPI(_apiType) \
+		inline _apiType& GetAPIData() const { return *reinterpret_cast<_apiType*>(Get().pAPIData); } \
+		__declspec(property(get = GetAPIData)) _apiType& API;
+
 	public:
 		virtual ~Texture() {}
 

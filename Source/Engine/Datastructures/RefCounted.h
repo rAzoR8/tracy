@@ -127,8 +127,8 @@ namespace Tracy
 			REFCOUNT_MOVECONSTR(_derived, _base) \
 			REFCOUNT_MOVEASSIGNOP(_derived, _base)
 
-		inline const bool IsValidRef() { return m_pRef != nullptr && m_pRef->pData != nullptr; }
-		inline explicit operator bool() { return IsValidRef(); }
+		inline const bool IsValidRef() const { return m_pRef != nullptr && m_pRef->pData != nullptr; }
+		inline explicit operator bool() const { return IsValidRef(); }
 
 		// always use the bool operator to check if the reference is valid before using the getters!
 		inline const T& Get() const { return *m_pRef->pData; }

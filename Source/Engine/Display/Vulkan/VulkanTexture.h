@@ -23,27 +23,10 @@ namespace Tracy
 		// use device to destroy resource, default destructor can't do it, need device who created the base resource
 		virtual ~VulkanTexture();
 
-		inline explicit operator bool()
-		{
-			return IsValidRef() && GetAPIData().hImage;
-		}
+		inline const bool IsValidTex() const { return IsValidRef() && API.hImage; }
+		inline explicit operator bool()	{return IsValidTex();}
 
-		bool AddView(const TextureViewDesc& _Desc)
-		{
-			if (operator bool())
-			{
-				vk::ImageViewCreateInfo Info;
-				Info.image = GetAPIData().hImage;
-				Info.format = GetResourceFormat(_Desc.kFormat);
-				Info.viewType = GetTextureViewType(GetType());
-				Info.components = GetTextureComponentMapping(_Desc.Swizzle);
-				Info.subresourceRange.baseMipLevel = _Desc.Subresource.uBaseMipLevel;
-				Info.subresourceRange.levelCount = _Desc.Subresource.uMipLevelCount;
-				Info.subresourceRange.baseArrayLayer = _Desc.Subresource.uBaseArrayLayer;
-				Info.subresourceRange.layerCount = _Desc.Subresource.uArrayLayerCount;
-				//Info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::
-			}			
-		}
+		bool AddView(const TextureViewDesc& _Desc);
 
 		const bool Resize(const uint32_t _uWidth, const uint32_t _uHeight);
 
@@ -52,11 +35,10 @@ namespace Tracy
 		REFCOUNT_INTERFACE(VulkanTexture, Texture);
 
 	protected:
-		VkTexData& GetAPIData();
+		TEXAPI(VkTexData);
 	};
 	//---------------------------------------------------------------------------------------------------
 
-	inline VkTexData& VulkanTexture::GetAPIData() { return *reinterpret_cast<VkTexData*>(Get().pAPIData); }
 }
 
 #endif // !TRACY_VULKANTEXTURE_H

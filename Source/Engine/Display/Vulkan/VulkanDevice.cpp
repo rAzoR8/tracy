@@ -1,9 +1,7 @@
 #include "VulkanDevice.h"
-
 #include "VulkanTypeConversion.h"
-
 #include "Logger.h"
-#include "HashUtils.h"
+//#include "HashUtils.h"
 
 using namespace Tracy;
 
@@ -182,7 +180,7 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-const bool Tracy::VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
+const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
 {
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, std::max(static_cast<uint32_t>(_Desc.uDepth), 1u));
