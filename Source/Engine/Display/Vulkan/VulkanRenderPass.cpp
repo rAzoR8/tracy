@@ -28,7 +28,7 @@ VulkanRenderPass::~VulkanRenderPass()
 
 bool VulkanRenderPass::Initialize()
 {
-	if (HasValidFactory() == false)
+	if (HasValidPlugin() == false)
 		return false;
 
 	if (LoadPipelineCache(m_Description.sPassName + L"_pipeline.cache") == false)

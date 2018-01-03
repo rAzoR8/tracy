@@ -1,7 +1,6 @@
 #ifndef TRACY_RENDERPASSDESCRIPTION_H
 #define TRACY_RENDERPASSDESCRIPTION_H
 
-#include "..\SPIRVShaderFactory\ShaderIdentifier.h"
 #include "DisplayTypes.h"
 #include "Bytes.h"
 #include <vector>

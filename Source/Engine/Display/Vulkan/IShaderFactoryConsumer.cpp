@@ -1,5 +1,4 @@
 #include "IShaderFactoryConsumer.h"
-#include "ShaderFactoryLoader.h"
 #include "VulkanInstance.h"
 
 using namespace Tracy;
@@ -9,37 +8,32 @@ using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
 IShaderFactoryConsumer::IShaderFactoryConsumer(const std::wstring& _sLibName, const THandle _hDevice) :
-	m_sLib(_sLibName), m_Device(VulkanInstance::GetInstance().GetDevice(_hDevice))
+	IPluginConsumer(_sLibName),
+	m_Device(GetDevice(_hDevice))
 {
 	m_ActiveShaders.fill(nullptr);
-	ShaderFactoryLoader::Instance()->AddConsumer(this);
 }
 //---------------------------------------------------------------------------------------------------
 IShaderFactoryConsumer::~IShaderFactoryConsumer()
 {
-	ShaderFactoryLoader::Instance()->RemoveConsumer(this);
 }
 //---------------------------------------------------------------------------------------------------
 
-void IShaderFactoryConsumer::FactoryLoaded(const TFactoryPtr& _pFactory)
+void IShaderFactoryConsumer::OnPluginReloaded(IShaderFactory* _pFactory)
 {
 	m_ActiveShaders.fill(nullptr);
 	m_ShaderModules.clear();
 
-	m_pFactory = _pFactory;
 	OnFactoryLoaded();
 }
 //---------------------------------------------------------------------------------------------------
-
-void IShaderFactoryConsumer::FactoryUnloaded()
+void IShaderFactoryConsumer::OnPluginUnloaded()
 {
 	m_ActiveShaders.fill(nullptr);
 	m_ShaderModules.clear();
-	m_pFactory = nullptr;
 
 	OnFactoryUnloaded();
 }
-
 //---------------------------------------------------------------------------------------------------
 void IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, const SpecConstFactory* _pSpecConstFactory, const void * _pUserData, const size_t _uSize)
 {
@@ -57,8 +51,8 @@ void IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 		{
 			pActiveShader = &m_ShaderModules.insert({ uHash, {} }).first->second;
 
-			HASSERT(m_pFactory != nullptr, "Invalid ShaderFactory!");	
-			pActiveShader->Code = m_pFactory->GetModule(_ShaderIdentifier, _pUserData, _uSize);
+			HASSERT(GetPlugin() != nullptr, "Invalid ShaderFactory!");	
+			pActiveShader->Code = GetPlugin()->GetModule(_ShaderIdentifier, _pUserData, _uSize);
 
 			if (_pSpecConstFactory != nullptr)
 			{

@@ -113,8 +113,8 @@
     <ClInclude Include="Display\RenderObject.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
     <ClInclude Include="Display\Texture.h" />
+    <ClInclude Include="Display\Vulkan\IShaderFactory.h" />
     <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h" />
-    <ClInclude Include="Display\Vulkan\ShaderFactoryLoader.h" />
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h" />
     <ClInclude Include="Display\Vulkan\VulkanMemoryAllocator.h" />
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
@@ -129,6 +129,8 @@
     <ClInclude Include="MathTypes.h" />
     <ClInclude Include="Platform\IApplication.h" />
     <ClInclude Include="Platform\Win32\Win32Application.h" />
+    <ClInclude Include="Plugin\IPlugin.h" />
+    <ClInclude Include="Plugin\PluginLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
@@ -137,7 +139,6 @@
     <ClCompile Include="Display\RenderObject.cpp" />
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp" />
     <ClCompile Include="Display\Texture.cpp" />
-    <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderGraph.cpp" />

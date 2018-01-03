@@ -1,7 +1,7 @@
 #ifndef TRACY_EXAMPLEFACTORY_H
 #define TRACY_EXAMPLEFACTORY_H
 
-#include "ShaderFactory.h"
+#include "Display\Vulkan\IShaderFactory.h"
 #include <unordered_map>
 
 namespace Tracy
@@ -15,7 +15,7 @@ namespace Tracy
 		SPIRVModule GetModule(const ShaderID _ShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u) final;
 		void Release() final;
 
-		FACTORYINTERFACE(ExampleFactory, 2u);
+		PLUGIN_INTERFACE(ExampleFactory, 2u);
 	private:
 
 		SPIRVModule Compile(const ShaderID _ShaderIdentifier) const;
@@ -24,7 +24,7 @@ namespace Tracy
 		std::unordered_map<uint64_t, SPIRVModule> m_Modules;
 	};
 
-	FACTORY_ALIAS(Tracy::ExampleFactory::GetShaderFactory)
+	PLUGIN_ALIAS(Tracy::ExampleFactory::GetPlugin)
 } // Tracy
 
 #endif // !TRACY_EXAMPLEFACTORY_H

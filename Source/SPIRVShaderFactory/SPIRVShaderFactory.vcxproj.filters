@@ -23,16 +23,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ShaderFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ExampleFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExampleShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderIdentifier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CommonBufferSourceNames.h">

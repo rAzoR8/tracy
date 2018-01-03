@@ -31,6 +31,9 @@
     <Filter Include="Datastructures">
       <UniqueIdentifier>{f054180f-5d50-4ce6-8ffa-a9b862f21165}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{46dcf5ef-5c6b-4ac3-adcd-30150658ec89}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
@@ -74,9 +77,6 @@
       <Filter>Display\Vulkan\Resource</Filter>
     </ClInclude>
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h">
-      <Filter>Display\Vulkan\SPIRVInterop</Filter>
-    </ClInclude>
-    <ClInclude Include="Display\Vulkan\ShaderFactoryLoader.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
     <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h">
@@ -134,6 +134,15 @@
     <ClInclude Include="Datastructures\Allocators.h">
       <Filter>Datastructures</Filter>
     </ClInclude>
+    <ClInclude Include="Plugin\PluginLoader.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="Plugin\IPlugin.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\IShaderFactory.h">
+      <Filter>Display\Vulkan\SPIRVInterop</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -153,9 +162,6 @@
     </ClCompile>
     <ClCompile Include="Display\IDevice.cpp">
       <Filter>Display</Filter>
-    </ClCompile>
-    <ClCompile Include="Display\Vulkan\ShaderFactoryLoader.cpp">
-      <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClCompile>
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
