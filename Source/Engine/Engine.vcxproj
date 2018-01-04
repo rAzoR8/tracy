@@ -96,7 +96,8 @@
   <ItemGroup>
     <ClInclude Include="Async\AsyncTask.h" />
     <ClInclude Include="Datastructures\Allocators.h" />
-    <ClInclude Include="Datastructures\BaseProtocol.h" />
+    <ClInclude Include="Datastructures\BinaryKeyValueParser.h" />
+    <ClInclude Include="Datastructures\ProtocolParser.h" />
     <ClInclude Include="Datastructures\BigObjectPool.h" />
     <ClInclude Include="Datastructures\ConditionalAtomic.h" />
     <ClInclude Include="Datastructures\RefCounted.h" />
@@ -134,6 +135,7 @@
     <ClInclude Include="Plugin\PluginLoader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Datastructures\BinaryKeyValueParser.cpp" />
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
     <ClCompile Include="Display\DX12\DX12Instance.cpp" />
     <ClCompile Include="Display\IDevice.cpp" />

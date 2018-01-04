@@ -21,7 +21,7 @@ namespace Tracy
 		{
 			LoadVariables(l, r);
 
-			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<U>>(_Ops...);
+			spv::Op kType = (spv::Op)OpTypeDecider<base_type_t<U>>(_Ops...); // use result type T instead?
 			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
 
 			SPIRVOperation Op(kType, var.uTypeId, // result type

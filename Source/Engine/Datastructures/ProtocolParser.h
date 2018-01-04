@@ -9,8 +9,9 @@ namespace Tracy
 {
 	struct MsgHeader
 	{
-		uint32_t uType = UINT32_MAX; // this is a linear index into the MsgReader instances vector
-		uint32_t uLength = UINT32_MAX;
+		uint32_t uType = HUNDEFINED32; // this is a linear index into the MsgParser instances vector
+		uint32_t uVersion = HUNDEFINED32;
+		uint32_t uLength = HUNDEFINED32;
 	};
 
 	struct Message
@@ -45,6 +46,7 @@ namespace Tracy
 
 		ProtocolParser() {}
 		ProtocolParser(const std::vector<TParser*>& _Parsers) : m_Parsers(_Parsers) {}
+		ProtocolParser(TParser* _pParser) : m_Parsers(1u, _pParser) {}
 
 		virtual ~ProtocolParser() {}
 
