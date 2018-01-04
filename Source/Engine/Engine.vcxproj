@@ -96,6 +96,7 @@
   <ItemGroup>
     <ClInclude Include="Async\AsyncTask.h" />
     <ClInclude Include="Datastructures\Allocators.h" />
+    <ClInclude Include="Datastructures\BaseProtocol.h" />
     <ClInclude Include="Datastructures\BigObjectPool.h" />
     <ClInclude Include="Datastructures\ConditionalAtomic.h" />
     <ClInclude Include="Datastructures\RefCounted.h" />

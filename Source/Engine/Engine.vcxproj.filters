@@ -143,6 +143,9 @@
     <ClInclude Include="Display\Vulkan\IShaderFactory.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>
     </ClInclude>
+    <ClInclude Include="Datastructures\BaseProtocol.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
