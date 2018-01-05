@@ -77,6 +77,7 @@ namespace Tracy
 		using TKeyValues = std::unordered_map<uint64_t, Value>;
 
 		BinaryKeyValueStore();
+		BinaryKeyValueStore(const hlx::bytes& _KVBlob);
 		BinaryKeyValueStore(hlx::bytes&& _KVBlob);
 		virtual ~BinaryKeyValueStore();
 
@@ -89,12 +90,9 @@ namespace Tracy
 	private:
 		bool Read(const Header& _Header);
 
-	private:
+	protected:
 		hlx::bytes m_Data;
 		hlx::bytestream m_Stream;
-
-		bool m_bCanWrite = true;
-		uint32_t m_uSizeInBytes = 0u;
 
 		std::unordered_map<uint64_t, Value> m_KeyValues;
 	};
@@ -107,7 +105,7 @@ namespace Tracy
 		if (it != m_KeyValues.end())
 		{
 			const Value& Val = it->second;
-			const uint32_t uSize = Val.GetSize();
+			const uint32_t uSize = Val.Type.GetSize();
 
 			if (uSize == sizeof(T) && Val.uOffset + uSize <= m_Data.size())
 			{

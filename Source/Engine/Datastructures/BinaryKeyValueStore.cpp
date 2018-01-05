@@ -10,6 +10,17 @@ BinaryKeyValueStore::BinaryKeyValueStore() :
 }
 //---------------------------------------------------------------------------------------------------
 
+BinaryKeyValueStore::BinaryKeyValueStore(const hlx::bytes& _KVBlob) :
+	m_Data(_KVBlob),
+	m_Stream(m_Data)
+{
+	Header header{};
+	m_Stream >> header;
+
+	Read(header);
+}
+//---------------------------------------------------------------------------------------------------
+
 BinaryKeyValueStore::BinaryKeyValueStore(hlx::bytes&& _KVBlob) :
 	m_Data(std::forward<hlx::bytes>(_KVBlob)),
 	m_Stream(m_Data)

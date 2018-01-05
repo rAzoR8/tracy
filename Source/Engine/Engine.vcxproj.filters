@@ -106,9 +106,6 @@
     <ClInclude Include="Display\Vulkan\VulkanMemoryAllocator.h">
       <Filter>Display\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="Display\BufferSource.h">
-      <Filter>Display</Filter>
-    </ClInclude>
     <ClInclude Include="Display\RenderObject.h">
       <Filter>Display</Filter>
     </ClInclude>
@@ -147,6 +144,12 @@
       <Filter>Datastructures</Filter>
     </ClInclude>
     <ClInclude Include="Datastructures\BinaryKeyValueStore.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\BufferSource.h">
+      <Filter>Datastructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Datastructures\BinaryKeyValueBufferSource.h">
       <Filter>Datastructures</Filter>
     </ClInclude>
   </ItemGroup>
@@ -194,6 +197,9 @@
       <Filter>Display</Filter>
     </ClCompile>
     <ClCompile Include="Datastructures\BinaryKeyValueStore.cpp">
+      <Filter>Datastructures</Filter>
+    </ClCompile>
+    <ClCompile Include="Datastructures\BinaryKeyValueBufferSource.cpp">
       <Filter>Datastructures</Filter>
     </ClCompile>
   </ItemGroup>

@@ -96,13 +96,14 @@
   <ItemGroup>
     <ClInclude Include="Async\AsyncTask.h" />
     <ClInclude Include="Datastructures\Allocators.h" />
+    <ClInclude Include="Datastructures\BinaryKeyValueBufferSource.h" />
     <ClInclude Include="Datastructures\BinaryKeyValueStore.h" />
+    <ClInclude Include="Datastructures\BufferSource.h" />
     <ClInclude Include="Datastructures\ProtocolParser.h" />
     <ClInclude Include="Datastructures\BigObjectPool.h" />
     <ClInclude Include="Datastructures\ConditionalAtomic.h" />
     <ClInclude Include="Datastructures\RefCounted.h" />
     <ClInclude Include="Datastructures\SmallObjectPool.h" />
-    <ClInclude Include="Display\BufferSource.h" />
     <ClInclude Include="Display\Camera.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
     <ClInclude Include="Display\DisplayTypes.h" />
@@ -135,6 +136,7 @@
     <ClInclude Include="Plugin\PluginLoader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Datastructures\BinaryKeyValueBufferSource.cpp" />
     <ClCompile Include="Datastructures\BinaryKeyValueStore.cpp" />
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
     <ClCompile Include="Display\DX12\DX12Instance.cpp" />

@@ -1,7 +1,7 @@
 #ifndef TRACY_CAMERA_H
 #define TRACY_CAMERA_H
 
-#include "BufferSource.h"
+#include "Datastructures\BufferSource.h"
 #include "MathTypes.h"
 
 namespace Tracy

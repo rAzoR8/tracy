@@ -1,7 +1,7 @@
 #ifndef TRACY_RENDEROBJECT_H
 #define	TRACY_RENDEROBJECT_H
 
-#include "BufferSource.h"
+#include "Datastructures\BufferSource.h"
 #include "MathTypes.h"
 
 namespace Tracy
