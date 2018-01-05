@@ -1,7 +1,6 @@
-#ifndef TRACY_BINARYKEYVALUEPARSER_H
-#define TRACY_BINARYKEYVALUEPARSER_H
+#ifndef TRACY_BINARYKEYVALUESTORE_H
+#define TRACY_BINARYKEYVALUESTORE_H
 
-#include "ProtocolParser.h"
 #include "ByteStream.h"
 #include <unordered_map>
 #include "..\SPIRVGen\SPIRVVariableTypes.h"
@@ -56,7 +55,7 @@ namespace Tracy
 		kBinaryKeyValueVersion_Unknown
 	};
 
-	class BinaryKeyValueParser : public ProtocolParser<hlx::bytestream>
+	class BinaryKeyValueStore
 	{
 	public:
 		struct Value
@@ -65,33 +64,60 @@ namespace Tracy
 			SerializableType Type;
 		};
 
-		using TKeyValues = std::unordered_map<uint64_t, Value>;
+		static constexpr uint32_t kBKVMagic = 0xa8b9c10d;
 
-		struct Parser : MsgParser<hlx::bytestream>
+		struct Header
 		{
-			static constexpr uint32_t kMsgType = 0u; // local
-			Parser(TKeyValues& _KV) : m_KeyValues(_KV) {}
-			bool Read(hlx::bytestream& _Stream, const MsgHeader& _Header) final;
-			bool Write(hlx::bytestream& _Stream, const Message& Message) final;
-
-			TKeyValues& m_KeyValues;
+			uint32_t uMagic = 0u;
+			uint32_t uVersion = 0u;
+			uint32_t uLength = 0u; // payload size in bytes (without header)
+			uint32_t uKeyValues = 0u; // count
 		};
 
-		BinaryKeyValueParser(hlx::bytestream& _Stream);
-		virtual ~BinaryKeyValueParser();
+		using TKeyValues = std::unordered_map<uint64_t, Value>;
 
-		bool Write();
+		BinaryKeyValueStore();
+		BinaryKeyValueStore(hlx::bytes&& _KVBlob);
+		virtual ~BinaryKeyValueStore();
 
-		bool GetNextWriteMsg(Message& _WriteMsg) final;
+		bool Read(hlx::bytestream& _Stream);
+		void Write(hlx::bytestream& _Stream);
+
+		template <class T>
+		T* GetValue(const uint64_t& _uHash) const;
 
 	private:
-		Parser m_Parser;
+		bool Read(const Header& _Header);
+
+	private:
+		hlx::bytes m_Data;
+		hlx::bytestream m_Stream;
+
 		bool m_bCanWrite = true;
+		uint32_t m_uSizeInBytes = 0u;
 
 		std::unordered_map<uint64_t, Value> m_KeyValues;
-		hlx::bytestream& m_Stream;
 	};
+
+	template<class T>
+	inline T* BinaryKeyValueStore::GetValue(const uint64_t& _uHash) const
+	{
+		auto it = m_KeyValues.find(_uHash);
+
+		if (it != m_KeyValues.end())
+		{
+			const Value& Val = it->second;
+			const uint32_t uSize = Val.GetSize();
+
+			if (uSize == sizeof(T) && Val.uOffset + uSize <= m_Data.size())
+			{
+				return reinterpret_cast<T*>(&m_Data[Val.uOffset]);
+			}
+		}
+
+		return nullptr;
+	}
 } // Tracy
 
-#endif // !TRACY_BINARYKEYVALUEPARSER_H
+#endif // !TRACY_BINARYKEYVALUESTORE_H
 

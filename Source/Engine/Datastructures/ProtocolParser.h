@@ -134,8 +134,8 @@ namespace Tracy
 			return Read(_Stream); // next msg
 		}
 
-		HWARNINGD("Unexpected end of stream");
-		return false;
+		//HWARNINGD("Unexpected end of stream");
+		return true;
 	}
 } // Tracy
 

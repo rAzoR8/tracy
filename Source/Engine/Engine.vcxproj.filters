@@ -146,7 +146,7 @@
     <ClInclude Include="Datastructures\ProtocolParser.h">
       <Filter>Datastructures</Filter>
     </ClInclude>
-    <ClInclude Include="Datastructures\BinaryKeyValueParser.h">
+    <ClInclude Include="Datastructures\BinaryKeyValueStore.h">
       <Filter>Datastructures</Filter>
     </ClInclude>
   </ItemGroup>
@@ -193,6 +193,8 @@
     <ClCompile Include="Display\RenderObject.cpp">
       <Filter>Display</Filter>
     </ClCompile>
-    <ClCompile Include="Datastructures\BinaryKeyValueParser.cpp" />
+    <ClCompile Include="Datastructures\BinaryKeyValueStore.cpp">
+      <Filter>Datastructures</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
