@@ -8,11 +8,22 @@ namespace Tracy
 {
 	// forward decl
 	class Camera;
+	class RenderObject;
 
 	class VulkanRenderPass : public IShaderFactoryConsumer
 	{
 		friend class VulkanRenderGraph;
 	public:
+		struct IOnPerObject
+		{
+			virtual bool OnPerObject(VulkanRenderPass& _Pass, RenderObject* _pObject) = 0;
+		};
+
+		struct IOnPerCamera
+		{
+			virtual bool OnPerCamera(VulkanRenderPass& _Pass, const Camera& _Camera) = 0;
+		};
+
 		struct Dependence
 		{
 			VulkanRenderPass* pPrevPass;
@@ -42,6 +53,9 @@ namespace Tracy
 
 		const RenderPassDesc& GetDescription() const;
 
+		void SetPerObjectCallback(IOnPerObject* _pCallback);
+		void SetPerCameraCallback(IOnPerCamera* _pCallback);
+
 	private:
 		void OnFactoryLoaded() final;
 		void OnFactoryUnloaded() final;
@@ -59,11 +73,15 @@ namespace Tracy
 		bool StorePipelineCache(const std::wstring& _sPath);
 
 		bool CreateDescriptorPool();
-		
+
 	private:
 		RenderPassDesc m_Description;
 		// index relative to parent pass or rendergraph (index into vector)
 		const uint32_t m_uPassIndex; 
+
+		// callbacks
+		IOnPerObject* m_pPerObjectCallback = nullptr;
+		IOnPerCamera* m_pPerCameraCallback = nullptr;
 
 		ViewportState m_ViewportState;
 
@@ -92,6 +110,10 @@ namespace Tracy
 		// pipeline description hash -> pipeline
 		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
 		vk::PipelineCache m_PipelineCache = nullptr;
+
+		// todo: make a ringbuffer of commanbuffers that can be pre recorded with static objects
+		// and replayed when the are visible (again)
+		vk::CommandBuffer m_CommandBuffer;
 	};
 
 	inline uint32_t VulkanRenderPass::GetPassIndex() const{	return m_uPassIndex;}
@@ -99,6 +121,16 @@ namespace Tracy
 	inline uint64_t VulkanRenderPass::GetMaterialID() const	{ return 1ull << m_uPassIndex;}
 
 	inline const RenderPassDesc& VulkanRenderPass::GetDescription() const {return m_Description;	}
+
+	inline void VulkanRenderPass::SetPerObjectCallback(IOnPerObject* _pCallback)
+	{
+		m_pPerObjectCallback = _pCallback;
+	}
+
+	inline void VulkanRenderPass::SetPerCameraCallback(IOnPerCamera* _pCallback)
+	{
+		m_pPerCameraCallback = _pCallback;
+	}
 
 } // Tracy
 

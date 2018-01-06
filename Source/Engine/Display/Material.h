@@ -1,27 +1,30 @@
 #ifndef TRACY_MATERIAL_H
 #define TRACY_MATERIAL_H
 
-#include "..\SPIRVShaderFactory\ShaderIdentifier.h"
+#include "ImageSource.h"
+#include "Datastructures\BinaryKeyValueBufferSource.h"
 
 namespace Tracy
 {
-	class Material
+	struct MaterialRefEntry
 	{
-	public:
-		Material();
-		~Material();
+		uint64_t uPassIds = 0u; // renderpasses this material uses
 
-	private:
-		uint64_t m_uPassIds; // renderpasses this material uses
+		BinaryKeyValueBufferSource Values;
+		ImageSource Images;
 	};
 
-	Material::Material()
+	class Material : public RefCounted<MaterialRefEntry, true>
 	{
-	}
+	public:
+		Material() {};
+		virtual ~Material() {};
 
-	Material::~Material()
-	{
-	}
+		REFCOUNT_INTERFACE(Material, RefCountedType);
+
+	private:
+		
+	};
 } // Tracy
 
 #endif // !TRACY_MATERIAL_H

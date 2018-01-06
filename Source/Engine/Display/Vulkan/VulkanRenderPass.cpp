@@ -59,6 +59,9 @@ bool VulkanRenderPass::Initialize()
 			return false;
 	}
 
+	// todo: get command buffer from device, matching compute / gfx
+	//m_CommandBuffer
+
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
@@ -66,6 +69,8 @@ bool VulkanRenderPass::Initialize()
 void VulkanRenderPass::Uninitialize()
 {
 	// todo: wait for commandbuffer to finish processing
+	// return commandbuffer to the device pool
+	//m_CommandBuffer
 
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
@@ -129,12 +134,23 @@ bool VulkanRenderPass::Render(const Camera& _Camera)
 		bool bInitialized = false;
 	};
 
-	std::vector<VariableMapping> Mappings(BufferSource::GetInstanceCount());
+	struct ImageMapping
+	{
+		std::vector<uint32_t> Images; // index into image source
+		bool Initialized() { return bInitialized; }
+		bool Valid() { return bValid; }
+
+		bool bValid = false;
+		bool bInitialized = false;
+	};
+
+	std::vector<VariableMapping> VarMappings(BufferSource::GetInstanceCount());
+	std::vector<ImageMapping> ImageMappings(ImageSource::GetInstanceCount());
 
 	// helper function
-	auto DigestSource = [&](const BufferSource* pSrc)
+	auto DigestBuffer = [&](const BufferSource* pSrc)
 	{
-		VariableMapping& Mapping = Mappings[pSrc->GetID()];
+		VariableMapping& Mapping = VarMappings[pSrc->GetID()];
 
 		if (Mapping.Initialized() == false)
 		{
@@ -152,20 +168,57 @@ bool VulkanRenderPass::Render(const Camera& _Camera)
 		}
 	};
 
-	// TODO: set camera sources
-	DigestSource(&_Camera);
+	auto DigestImages = [&](const ImageSource* pSrc)
+	{
+		ImageMapping& Mapping = ImageMappings[pSrc->GetID()];
 
-	// TODO: call user custom functor (taking camera & pass as ref arguments)
-	
+		if (Mapping.Initialized() == false)
+		{
+		}
+
+		if (Mapping.Valid())
+		{
+			const std::vector<ImageSource::Image>& Source = pSrc->GetImages();
+			// transfer 
+			for (const uint32_t& i : Mapping.Images)
+			{
+				//Source[i].Image
+			}
+		}
+	};
+
+	// set camera sources
+	DigestBuffer(&_Camera);
+
+	if (m_pPerCameraCallback != nullptr)
+	{
+		m_pPerCameraCallback->OnPerCamera(*this, _Camera);
+	}
+
 	for (RenderObject* pObj : _Camera.GetObjects())
 	{
 		// TODO: check if material / shader changed and call SelectShader() & create pipeline			
 		for (const BufferSource* pSrc : pObj->GetBufferSources()) 
 		{			
-			DigestSource(pSrc);
+			DigestBuffer(pSrc);
 		}
 
-		// TODO: transfer textrures from material (Create Material Source)
+		for (const RenderNode& Node : pObj->GetNodes())
+		{
+			if (Node.Material)
+			{
+				DigestBuffer(&Node.Material.Ref.Values); // material values
+				DigestImages(&Node.Material.Ref.Images); // textures
+			}
+
+			// TODO: set vertex & index buffer
+		}
+
+		if (m_pPerObjectCallback != nullptr)
+		{
+			m_pPerObjectCallback->OnPerObject(*this, pObj);
+		}
+
 		// TODO: record draw call
 	}
 

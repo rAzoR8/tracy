@@ -42,6 +42,6 @@ void BinaryKeyValueBufferSource::Initialize()
 		}
 	}
 
-	UpdateHash();
+	Finalize();
 }
 //---------------------------------------------------------------------------------------------------

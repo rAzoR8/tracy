@@ -50,11 +50,11 @@ namespace Tracy
 
 	class Texture : public RefCounted<TextureRefEntry, true>
 	{
-	protected:
-
-		Texture(const TextureDesc& _Desc);
-
+	public:
 		REFCOUNT_INTERFACE(Texture, RefCountedType);
+
+	protected:
+		Texture(const TextureDesc& _Desc);
 
 #define TEXAPI(_apiType) \
 		inline _apiType& GetAPIData() const { return *reinterpret_cast<_apiType*>(Get().pAPIData); } \

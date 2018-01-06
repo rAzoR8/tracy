@@ -112,6 +112,7 @@
     <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
+    <ClInclude Include="Display\ImageSource.h" />
     <ClInclude Include="Display\Material.h" />
     <ClInclude Include="Display\RenderObject.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
