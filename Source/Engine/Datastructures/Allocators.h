@@ -21,10 +21,10 @@ namespace Tracy
 		inline static void Free(const T* _pData) { Instance().Free(_pData); }
 	};
 
-	template <class T, bool ThreadSafe = true>
+	template <class T, bool ThreadSafe = true, uint32_t BlockSizeOverride = 0u>
 	struct BigObjAllocator
 	{
-		using TPool = BigObjectPool<T, ThreadSafe>;
+		using TPool = BigObjectPool<T, ThreadSafe, BlockSizeOverride>;
 
 		inline static TPool& Instance()
 		{

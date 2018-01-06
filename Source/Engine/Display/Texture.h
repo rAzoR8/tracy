@@ -8,26 +8,6 @@
 
 namespace Tracy
 {
-	enum ETextureViewType
-	{
-		kViewType_ShaderResource = 0u,
-		kViewType_RenderTarget,
-		kViewType_DepthStencil
-	};
-
-	struct TextureDesc
-	{
-		THandle hDevice = 0u; // Owner
-		uint16_t uWidth = 0u;
-		uint16_t uHeight = 0u;
-		uint16_t uDepth = 0u;
-		uint32_t uLayerCount = 0u;
-		EFormat kFormat = kFormat_Undefined;
-		EUsageFlag kUsageFlag = kUsageFlag_None;
-		ETextureType kType = kTextureType_Invalid;
-		std::string sName = "NewTexture";
-	};
-
 	struct TexAPIData 
 	{
 		TexAPIData(){}

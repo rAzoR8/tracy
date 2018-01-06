@@ -2,7 +2,7 @@
 #define TRACY_RENDERPASSDESCRIPTION_H
 
 #include "DisplayTypes.h"
-#include "Bytes.h"
+//#include "Bytes.h"
 #include <vector>
 
 // platform independant description needed to create/load a renderpass
@@ -14,7 +14,7 @@ namespace Tracy
 		struct ShaderDesc
 		{
 			ShaderID Identifier;
-			hlx::bytes UserData;
+			//hlx::bytes UserData;
 		};
 
 		std::vector<ShaderDesc> Shaders;

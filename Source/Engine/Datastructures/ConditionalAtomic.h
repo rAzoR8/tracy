@@ -11,7 +11,10 @@ namespace Tracy
 		template <class T>
 		struct FakeAtomic
 		{
-			FakeAtomic& operator=(const T& v) { var = v; }
+			FakeAtomic() {}
+			FakeAtomic(const T& v) : var(v) {}
+
+			FakeAtomic& operator=(const T& v) { var = v; return *this; }
 			operator T() const { return var; }
 			T fetch_add(const T& v) { T ret = var; var += v; return ret; }
 			T fetch_sub(const T& v) { T ret = var; var -= v; return ret; }
@@ -43,13 +46,13 @@ namespace Tracy
 			FakeAtomicFlag(const T& v) { var = v; }
 
 			template <class T>
-			FakeAtomicFlag& operator=(const T& v) { var = v; }
+			FakeAtomicFlag& operator=(const T& v) { var = v; return *this; }
 
 			template <class ...Ts>
 			void clear(Ts&& ...) { var = false; }
 
 			template <class ...Ts>
-			void test_and_set(Ts&& ...) { bool ret = var; var = true; return ret; }
+			bool test_and_set(Ts&& ...) { bool ret = var; var = true; return ret; }
 
 		private:
 			bool var;

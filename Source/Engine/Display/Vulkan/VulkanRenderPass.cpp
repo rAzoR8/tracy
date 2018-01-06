@@ -45,7 +45,7 @@ bool VulkanRenderPass::Initialize()
 		// load the shader
 		for (const PipelineDesc::ShaderDesc& Shader : Pipeline.Shaders)
 		{
-			SelectShader(Shader.Identifier, nullptr, Shader.UserData.data(), Shader.UserData.size());
+			SelectShader(Shader.Identifier, nullptr/*, Shader.UserData.data(), Shader.UserData.size()*/);
 		}
 
 		// create pipeline but dont bind to commandbuffer

@@ -8,10 +8,10 @@
 
 namespace Tracy
 {
-	template <class T, bool ThreadSafe>
+	template <class T, bool ThreadSafe, uint32_t BlockSizeOverride = 0u>
 	class BigObjectPool
 	{
-		using TCounter = TCondAtomic<uint32_t, ThreadSafe>;
+		using TCounter = TCondAtomic<size_t, ThreadSafe>;
 		using TFlag = TCondAtomicFlag<ThreadSafe>;
 
 		using TMutex = std::conditional_t<ThreadSafe, std::mutex, detail::FakeMutex>;
@@ -32,42 +32,43 @@ namespace Tracy
 		{
 			T Data;
 			mutable TFlag bUsed = ATOMIC_FLAG_INIT;
-			mutable uint32_t uIndex = -1u; // relative to block
+			mutable size_t uIndex = 0u; // relative to block
 		};
 
 		TCounter m_uFirstFree = 0u; // entry
 		std::vector<Entry*> m_MemoryBlocks;
+		size_t m_uEntryCount = 0u;
 
 		TMutex m_Mutex;
 	};
 	//---------------------------------------------------------------------------------------------------
 
-	template<class T, bool ThreadSafe>
-	inline BigObjectPool<T, ThreadSafe>::BigObjectPool(const uint32_t _uBlockSize) :
-		m_uBlockSize(_uBlockSize)
+	template<class T, bool ThreadSafe, uint32_t BlockSizeOverride>
+	inline BigObjectPool<T, ThreadSafe, BlockSizeOverride>::BigObjectPool(const uint32_t _uBlockSize) :
+		m_uBlockSize(BlockSizeOverride > 0 ? BlockSizeOverride : _uBlockSize)
 	{
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	template<class T, bool ThreadSafe>
-	inline BigObjectPool<T, ThreadSafe>::~BigObjectPool()
+	template<class T, bool ThreadSafe, uint32_t BlockSizeOverride>
+	inline BigObjectPool<T, ThreadSafe, BlockSizeOverride>::~BigObjectPool()
 	{
-		for (uint32_t i = 0u; i < m_MemoryBlocks.size(); i += m_uBlockSize)
+		for (size_t i = 0u; i < m_MemoryBlocks.size(); i += m_uBlockSize)
 		{
 			delete [] m_MemoryBlocks[i];
 		}
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	template<class T, bool ThreadSafe>
-	inline T* BigObjectPool<T, ThreadSafe>::Alloc()
+	template<class T, bool ThreadSafe, uint32_t BlockSizeOverride>
+	inline T* BigObjectPool<T, ThreadSafe, BlockSizeOverride>::Alloc()
 	{
-		uint32_t uEntry = m_uFirstFree;
-		size_t uEntryCount = m_MemoryBlocks.size() * m_uBlockSize;
+		size_t uEntry = m_uFirstFree;
+		size_t uEntryCount = m_uEntryCount;
 
 		if (uEntry < uEntryCount)
 		{
-			for (uint32_t i = uEntry, c = 0u; c < uEntryCount; ++c)
+			for (size_t i = uEntry, c = 0u; c < uEntryCount; ++c)
 			{
 				Entry* pEntry = m_MemoryBlocks[i];
 				i = (i + 1) % uEntryCount;
@@ -79,8 +80,8 @@ namespace Tracy
 				}
 			}
 
-			//try again with realloc (should not happen)
-			m_uFirstFree = m_MemoryBlocks.size() * m_uBlockSize;
+			//try again with realloc
+			m_uFirstFree = m_uEntryCount;
 			return Alloc();
 		}
 		else
@@ -92,25 +93,27 @@ namespace Tracy
 
 			for (uint32_t i = 0u; i < m_uBlockSize; ++i)
 			{
-				pBlock->uIndex = uEntryCount + i;
+				pBlock[i].uIndex = uEntryCount + i;
 				m_MemoryBlocks.push_back(&pBlock[i]);
 			}
 			
 			pBlock->bUsed.test_and_set(std::memory_order_acquire);
 			m_uFirstFree = uEntryCount + 1;
 
+			m_uEntryCount = uEntryCount + m_uBlockSize;
+
 			return &pBlock->Data;
 		}
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	template<class T, bool ThreadSafe>
-	inline void BigObjectPool<T, ThreadSafe>::Free(const T* _pData)
+	template<class T, bool ThreadSafe, uint32_t BlockSizeOverride>
+	inline void BigObjectPool<T, ThreadSafe, BlockSizeOverride>::Free(const T* _pData)
 	{
 		const Entry* pEntry = reinterpret_cast<const Entry*>(_pData);
 
 		pEntry->bUsed.clear(std::memory_order_release);
-		m_uFirstFree = pEntry->uIndex;
+		m_uFirstFree = pEntry->uIndex; // todo: min(m_uFirstFree, pEntry->uIndex) ?
 	}
 
 	//---------------------------------------------------------------------------------------------------

@@ -7,9 +7,10 @@
 #include "StandardDefines.h"
 #include "VulkanMemoryAllocator.h"
 #include "VulkanTypeConversion.h"
-#include "Display/Texture.h"
-#include <unordered_map>
+#include "Display/DisplayTypes.h"
 #include "Async/AsyncTask.h"
+
+#include <unordered_map>
 #include <mutex>
 
 namespace Tracy

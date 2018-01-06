@@ -12,7 +12,7 @@ namespace Tracy
 		using TCounter = TCondAtomic<uint32_t, ThreadSafe>;
 
 	public:
-		SmallObjectPool(const uint32_t _uBlockSize = 1024u, const uint32_t _uBlockCount = 1024u);
+		SmallObjectPool(const uint32_t _uBlockSize = 1024u, const uint32_t _uBlockCount = 1024u, const uint32_t _uPreallocedBlocks = 16u);
 		~SmallObjectPool();
 
 		//AllowFallbackAlloc might leak memory if Free() is not called (pool destructed before freeing) for this address BUT allocation can not fail (if new T() does not fail)
@@ -40,11 +40,16 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template<class T, bool ThreadSafe, bool AllowFallbackAlloc>
-	inline SmallObjectPool<T, ThreadSafe, AllowFallbackAlloc>::SmallObjectPool(const uint32_t _uBlockSize, const uint32_t _uBlockCount) :
+	inline SmallObjectPool<T, ThreadSafe, AllowFallbackAlloc>::SmallObjectPool(const uint32_t _uBlockSize, const uint32_t _uBlockCount, const uint32_t _uPreallocedBlocks) :
 		m_uBlockSize(_uBlockSize),
 		m_uBlockCount(_uBlockCount),
 		m_MemoryBlocks(_uBlockCount)
 	{
+		for (uint32_t i = 0u; i < _uBlockCount && i < _uPreallocedBlocks; ++i)
+		{
+			Block& b = m_MemoryBlocks[i];
+			b.pData = new T[m_uBlockSize];
+		}
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -79,7 +84,7 @@ namespace Tracy
 				b.uFirstFree = m_uBlockSize; // reset to avoid overflow
 				++uBlocksVisited;
 
-				uBlockIdx = m_uBlockIndex.fetch_add(1u); // next block
+				uBlockIdx = ++m_uBlockIndex; // next block
 				if (uBlockIdx >= m_uBlockCount)
 				{
 					m_uBlockIndex = 0u; // wrap around
@@ -109,7 +114,7 @@ namespace Tracy
 			if (_pData >= b.pData && _pData < (b.pData + m_uBlockSize))
 			{
 				// whole block was freed, can be reused
-				if (b.uFreed.fetch_add(1u) >= m_uBlockSize) 
+				if (++b.uFreed >= m_uBlockSize) 
 				{
 					b.uFirstFree = 0u;
 					b.uFreed = 0u;
