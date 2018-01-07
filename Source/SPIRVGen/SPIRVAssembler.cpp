@@ -244,7 +244,7 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 		OpType.AddIntermediate(SubTypes.front()); // image type
 		break;
 	default:
-		HFATAL("Type %d not implemented", );
+		HFATAL("Type %d not implemented", kType);
 		break;
 	}
 
