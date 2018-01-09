@@ -18,7 +18,7 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 
 	// Create Logical Device
 	Create();
-	HASSERTD(m_Device != vk::Device(), "Failed to create logical device.");
+	HASSERTD(m_Device != vk::Device(nullptr), "Failed to create logical device.");
 
 	// Create Allocator
 	m_pAllocator = new VulkanMemoryAllocator(m_PhysicalDevice, m_Device);
@@ -28,6 +28,21 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 
 VulkanDevice::~VulkanDevice()
 {
+	HSAFE_DELETE(m_pAllocator);
+
+	for (const CommandPoolEntry& Pool : m_CommandPools)
+	{
+		if (Pool.ResetPool)
+		{
+			m_Device.destroyCommandPool(Pool.ResetPool);
+		}
+
+		if (Pool.TransientPool)
+		{
+			m_Device.destroyCommandPool(Pool.TransientPool);
+		}
+	}
+
 	if (m_Device)
 	{
 		m_Device.destroy();
@@ -155,6 +170,8 @@ void VulkanDevice::Create()
 
 	// Fetch a pointer to the actual queue for submit
 	{
+		m_CommandPools.resize(QueueFlags.size());
+
 		// For each queue type we want, fetch a pointer to the device queue
 		for (size_t uQueueFlagIndex = 0, uEnd = QueueFlags.size(); uQueueFlagIndex < uEnd; ++uQueueFlagIndex)
 		{
@@ -164,6 +181,18 @@ void VulkanDevice::Create()
 			// Assign the queue
 			queuePair.first->second.uFamilyIndex = QueueOffsets[uQueueFlagIndex].uOffset;
 			queuePair.first->second.Handle = m_Device.getQueue(QueueOffsets[uQueueFlagIndex].uFamilyIndex, QueueOffsets[uQueueFlagIndex].uOffset);
+
+			// create commandbuffer pools
+			CommandPoolEntry& Pool = m_CommandPools[(uint32_t)QueueFlags[uQueueFlagIndex]];
+
+			vk::CommandPoolCreateInfo Info{};
+			Info.queueFamilyIndex = QueueOffsets[uQueueFlagIndex].uFamilyIndex;
+
+			Info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+			LogVKErrorBool(m_Device.createCommandPool(&Info, nullptr, &Pool.ResetPool));
+
+			Info.flags = vk::CommandPoolCreateFlagBits::eTransient;
+			LogVKErrorBool(m_Device.createCommandPool(&Info, nullptr, &Pool.TransientPool));			
 		}
 	}
 }

@@ -105,6 +105,14 @@ namespace Tracy
 		vk::PhysicalDeviceProperties m_Properties;
 		std::unordered_map<vk::QueueFlagBits, Queue> m_Queues;
 
+		struct CommandPoolEntry
+		{
+			vk::CommandPool ResetPool;
+			vk::CommandPool TransientPool;
+		};
+
+		std::vector<CommandPoolEntry> m_CommandPools; // one for each family index
+
 		// Allocator
 		VulkanMemoryAllocator* m_pAllocator;
 	};
