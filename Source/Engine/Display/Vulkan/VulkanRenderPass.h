@@ -27,7 +27,7 @@ namespace Tracy
 		// called before OnPerCamera
 		struct IOnChangePipeline
 		{
-			virtual PipelineDesc OnChangePipeline(VulkanRenderPass& _Pass) = 0;
+			virtual void OnChangePipeline(VulkanRenderPass& _Pass, PipelineDesc& _CurrentPipeline) = 0;
 		};
 
 		struct Dependence
@@ -40,6 +40,7 @@ namespace Tracy
 			// add pipeline barriers etc
 		};
 		
+		// TODO: abstract viewport into display types, add it to pipeline desc
 		struct ViewportState
 		{
 			std::vector<vk::Viewport> Viewports;
@@ -75,8 +76,8 @@ namespace Tracy
 		bool EndPass();
 
 		// called before draw or after shader has been selected
-		vk::Pipeline CreatePipeline(const PipelineDesc& _Desc);
-		const size_t CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
+		vk::Pipeline ActivatePipeline(const PipelineDesc& _Desc);
+		const size_t ActivatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
@@ -84,6 +85,15 @@ namespace Tracy
 		bool CreateDescriptorPool();
 
 	private:
+
+		struct DesciptorSet
+		{
+			uint32_t uSlot = 0u;
+			vk::DescriptorSetLayout Layout;
+			vk::DescriptorSet Set;
+			TVarSet Variables;
+		};
+
 		RenderPassDesc m_Description;
 		// index relative to parent pass or rendergraph (index into vector)
 		const uint32_t m_uPassIndex; 
@@ -101,15 +111,11 @@ namespace Tracy
 		// identifies the current pipeline
 		size_t m_uPipelineHash = kUndefinedSizeT;
 		vk::Pipeline m_ActivePipeline = nullptr;
+		vk::PipelineLayout m_ActivePipelineLayout = nullptr;
 		PipelineDesc m_ActivePipelineDesc;
-		vk::Pipeline m_BasePipeline = nullptr;
 
-		struct DesciptorSet
-		{
-			vk::DescriptorSetLayout Layout;
-			vk::DescriptorSet Set;
-			TVarSet Variables;
-		};
+		std::vector<DesciptorSet*> m_ActiveDescriptorSets;
+		vk::Pipeline m_BasePipeline = nullptr;
 
 		// todo: vector<DesciptorSet> currentSets (active sets)
 		std::unordered_map<size_t, DesciptorSet> m_DescriptorSets;

@@ -46,7 +46,7 @@ bool VulkanRenderPass::Initialize()
 		}
 
 		// create pipeline but dont bind to commandbuffer
-		return CreatePipeline(_Pipeline).operator bool();
+		return ActivatePipeline(_Pipeline).operator bool();
 	};
 
 	// create default pipelines
@@ -121,11 +121,33 @@ void VulkanRenderPass::Uninitialize()
 bool VulkanRenderPass::Record(const Camera& _Camera)
 {
 	// TODO: wait for previous passes to finish work on dependencies
-	
-	if (m_pOnChangePipeline != nullptr)
+
+	// Upate pipeline
 	{
-		if (CreatePipeline(m_pOnChangePipeline->OnChangePipeline(*this)).operator bool() == false)
+		if (m_pOnChangePipeline != nullptr)
+		{
+			m_pOnChangePipeline->OnChangePipeline(*this, m_ActivePipelineDesc);
+		}
+
+		if (ActivatePipeline(m_ActivePipelineDesc).operator bool() == false)
 			return false;
+
+		// TODO: get ViewportState from pipleine desc m_ActivePipelineDesc
+		m_CommandBuffer.setViewport(0, m_ViewportState.Viewports);
+		m_CommandBuffer.setScissor(0, m_ViewportState.Scissors);
+
+		if (m_ActivePipelineDesc.kFillMode == kPolygonFillMode_Line)
+		{
+			m_CommandBuffer.setLineWidth(m_ActivePipelineDesc.fLineWidth);
+		}
+
+		if (m_ActivePipelineDesc.bDepthBiasEnabled)
+		{
+			m_CommandBuffer.setDepthBias(
+				m_ActivePipelineDesc.fDepthBiasConstFactor,
+				m_ActivePipelineDesc.fDepthBiasClamp,
+				m_ActivePipelineDesc.fDepthBiasSlopeFactor);
+		}
 	}
 
 	struct VariableMapping
@@ -203,7 +225,6 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 	for (RenderObject* pObj : _Camera.GetObjects())
 	{
-		// TODO: check if material / shader changed and call SelectShader() & create pipeline	
 		const RenderNode& Node = pObj->GetNode();
 
 		if (Node.Material)
@@ -219,9 +240,32 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 				}
 			}
 
-			if (bShaderChanged && CreatePipeline(m_ActivePipelineDesc))
+			// check if shader changed and update the pipeline
+			if (bShaderChanged && ActivatePipeline(m_ActivePipelineDesc))
 			{
 				m_CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
+
+				std::vector<vk::DescriptorSet> DescriporSets;
+				uint32_t uFirstSet = UINT32_MAX;
+				for (DesciptorSet* pSet : m_ActiveDescriptorSets)
+				{
+					DescriporSets.push_back(pSet->Set);
+					uFirstSet = std::min(uFirstSet, pSet->uSlot);
+				}
+
+				// TODO: fill for dynamic uniforms and storage buffers
+				std::vector<uint32_t> DynamicOffsets;
+
+				if (m_ActiveDescriptorSets.empty() == false)
+				{
+					m_CommandBuffer.bindDescriptorSets(
+						vk::PipelineBindPoint::eGraphics,
+						m_ActivePipelineLayout,
+						uFirstSet,
+						DescriporSets,
+						DynamicOffsets);
+				
+				} // else?
 			}
 
 			DigestBuffer(Mat.Values); // material values
@@ -289,9 +333,6 @@ bool VulkanRenderPass::BeginPass()
 	if (LogVKErrorBool(m_CommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
 		return false;
 	
-	// ViewportState
-	m_CommandBuffer.setViewport(0, m_ViewportState.Viewports);
-	m_CommandBuffer.setScissor(0, m_ViewportState.Scissors);
 
 	// first recorded cmd should be the PipelineBarriers for all m_Dependencies elements
 	// vk::CmdPipelineBarrier
@@ -306,7 +347,7 @@ bool VulkanRenderPass::EndPass()
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
-vk::Pipeline VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
+vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 {
 	hlx::Hasher uHash = 0u; // needs to differ from kUndefinedSizeT
 
@@ -348,7 +389,7 @@ vk::Pipeline VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 	//---------------------------------------------------------------------------------------------------
 
 	// TODO: pass pushconst factory
-	uHash += CreatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr);
+	uHash += ActivatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr);
 
 	if (!PipelineInfo.layout)
 	{
@@ -431,25 +472,8 @@ vk::Pipeline VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 	RInfo.frontFace = GetFrontFace(_Desc.kFrontFace);
 	uHash << RInfo.frontFace;
 
-	RInfo.depthBiasEnable = _Desc.fDepthBiasClamp != 0.f || _Desc.fDepthBiasConstFactor != 0.f || _Desc.fDepthBiasSlopeFactor;
-	uHash << RInfo.depthBiasEnable;
-
-	if (_Desc.kFillMode == kPolygonFillMode_Line)
-	{
-		RInfo.lineWidth = _Desc.fLineWidth;
-		uHash << RInfo.lineWidth;
-	}
-
-	if (RInfo.depthBiasEnable)
-	{
-		RInfo.depthBiasConstantFactor = _Desc.fDepthBiasConstFactor;
-		RInfo.depthBiasClamp = _Desc.fDepthBiasClamp;
-		RInfo.depthBiasSlopeFactor = _Desc.fDepthBiasSlopeFactor;
-
-		uHash << RInfo.depthBiasConstantFactor;
-		uHash << RInfo.depthBiasClamp;
-		uHash << RInfo.depthBiasSlopeFactor;
-	}
+	RInfo.depthBiasEnable = _Desc.bDepthBiasEnabled;
+	uHash << RInfo.depthBiasEnable; // values are set on the command buffer
 
 	PipelineInfo.pRasterizationState = &RInfo;
 
@@ -505,8 +529,10 @@ vk::Pipeline VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 }
 //---------------------------------------------------------------------------------------------------
 
-const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t _uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants)
+const size_t VulkanRenderPass::ActivatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t _uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants)
 {
+	m_ActiveDescriptorSets.resize(0);
+	
 	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet);
 	std::vector<vk::DescriptorSetLayout> SetsToAllocate;
 	std::vector<uint64_t> SetHashesToAllocate;
@@ -527,6 +553,7 @@ const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uM
 			if (it != m_DescriptorSets.end())
 			{
 				Layouts[uSet] = it->second.Layout;
+				m_ActiveDescriptorSets.push_back(&it->second);
 			}
 			else // create new set
 			{
@@ -535,6 +562,7 @@ const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uM
 				Info.pBindings = Bindings.data();
 
 				DesciptorSet NewSet;
+				NewSet.uSlot = uSet;
 				NewSet.Layout = m_Device.createDescriptorSetLayout(Info);
 				NewSet.Set = nullptr; // init later
 				NewSet.Variables = Vars;
@@ -581,6 +609,7 @@ const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uM
 				if (it != m_DescriptorSets.end())
 				{
 					it->second.Set = NewSets[i]; // assign newly created set
+					m_ActiveDescriptorSets.push_back(&it->second);
 				}
 			}
 		}
@@ -590,14 +619,17 @@ const size_t VulkanRenderPass::CreatePipelineLayout(const std::array<TVarSet, uM
 	auto it = m_PipelineLayouts.find(uHash);
 	if (it != m_PipelineLayouts.end())
 	{
-		_OutPipeline = it->second;
-		return uHash;
+		m_ActivePipelineLayout = it->second;
+	}
+	else
+	{
+		Info.pSetLayouts = Layouts.data();
+		Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
+
+		LogVKError(m_Device.createPipelineLayout(&Info, nullptr, &m_ActivePipelineLayout));
 	}
 
-	Info.pSetLayouts = Layouts.data();
-	Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
-
-	LogVKError(m_Device.createPipelineLayout(&Info, nullptr, &_OutPipeline));
+	_OutPipeline = m_ActivePipelineLayout;
 
 	return uHash;
 }

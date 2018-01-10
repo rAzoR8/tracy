@@ -29,7 +29,8 @@ namespace Tracy
 		EPolygonFillMode kFillMode = kPolygonFillMode_Unknown;
 		ECullMode kCullMode = kCullMode_Unknown;
 		EFrontFace kFrontFace = kFrontFace_Unknown;
-		// if any DepthBias value is non 0 depthBiasEnable will be set to true
+		
+		bool bDepthBiasEnabled = false;
 		float fDepthBiasConstFactor = 0.f;
 		float fDepthBiasClamp = 0.f;
 		float fDepthBiasSlopeFactor = 0.f;
