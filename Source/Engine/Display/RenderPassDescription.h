@@ -58,6 +58,7 @@ namespace Tracy
 		{
 			EResourceType kType = kResourceType_Unknown;
 			std::wstring sName; // name of the output variable
+			// TODO: stage at which this resources need to be available to the next renderpass
 		};
 
 		// dependencies

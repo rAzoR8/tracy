@@ -21,22 +21,26 @@ namespace Tracy
 	{
 		friend class VulkanInstance;
 		friend class VulkanTexture;
+		friend class VulkanRenderGraph;
+		friend class VulkanRenderPass;
 
 	public:
 		explicit VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle _uHandle);
 		~VulkanDevice();		
 
+		// todo: make this stuff private
+
 		// Getters
 		const vk::PhysicalDeviceProperties& GetProperties() const;
 		const uint64_t GetTotalMemory() const;
-		const uint32_t GetQueueIndex(const vk::QueueFlagBits _QueueType) const;
+		const uint32_t GetQueueIndex(const vk::QueueFlagBits _kQueueType) const;
 		
 		const vk::PhysicalDevice& GetAdapter() const;
 		const vk::Device& GetDevice() const;
 		const THandle& GetHandle() const;
 
 		// Methods
-		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType = vk::QueueFlagBits::eGraphics) const;
+		const bool PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _kQueueType = vk::QueueFlagBits::eGraphics) const;
 
 		explicit operator bool() const
 		{
@@ -71,10 +75,14 @@ namespace Tracy
 		DeviceFunc(destroyPipeline)
 
 	private:
-		void Create();
+		bool Initialize();
 
 		// Textures
 		const bool CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
+
+		const bool CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount = 1u);
+
+		const bool DestroyCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, vk::CommandBuffer* _pBuffers, const uint32_t _uCount = 1u);
 
 	private:
 		struct QueueOffset

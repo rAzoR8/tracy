@@ -41,7 +41,7 @@ namespace Tracy
 		// TODO frustum for culling
 	};
 
-	inline const std::vector<RenderObject*>& Tracy::Camera::GetObjects() const
+	inline const std::vector<RenderObject*>& Camera::GetObjects() const
 	{
 		return m_Objects;
 	}

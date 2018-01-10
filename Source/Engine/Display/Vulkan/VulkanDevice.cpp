@@ -17,12 +17,14 @@ VulkanDevice::VulkanDevice(const vk::PhysicalDevice& _PhysDevice, const THandle 
 	HASSERT(m_Info.VendorID != kVendorID_Unknown, "Unknown PCI vendor.");
 
 	// Create Logical Device
-	Create();
-	HASSERTD(m_Device != vk::Device(nullptr), "Failed to create logical device.");
+	if (Initialize())
+	{
+		// Create Allocator
+		m_pAllocator = new VulkanMemoryAllocator(m_PhysicalDevice, m_Device);
+		m_Info.uTotalMemory = m_pAllocator->GetTotalDeviceMemory();
+	}
 
-	// Create Allocator
-	m_pAllocator = new VulkanMemoryAllocator(m_PhysicalDevice, m_Device);
-	m_Info.uTotalMemory = m_pAllocator->GetTotalDeviceMemory();
+	HASSERT(m_Device != vk::Device(nullptr), "Failed to create logical device.");
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -50,7 +52,7 @@ VulkanDevice::~VulkanDevice()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanDevice::Create()
+bool VulkanDevice::Initialize()
 {
 	std::vector<vk::DeviceQueueCreateInfo> QueueCreateInfo;
 	
@@ -164,7 +166,8 @@ void VulkanDevice::Create()
 		CreateInfo.ppEnabledLayerNames = EnabledLayers.data();
 
 		// Allocate the Logical Device
-		m_Device = m_PhysicalDevice.createDevice(CreateInfo);
+		if (LogVKErrorBool(m_PhysicalDevice.createDevice(&CreateInfo, nullptr, &m_Device)) == false)
+			return false;
 	}
 	//--------------------------------------------------------------------------------
 
@@ -189,12 +192,16 @@ void VulkanDevice::Create()
 			Info.queueFamilyIndex = QueueOffsets[uQueueFlagIndex].uFamilyIndex;
 
 			Info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-			LogVKErrorBool(m_Device.createCommandPool(&Info, nullptr, &Pool.ResetPool));
+			if (LogVKErrorBool(m_Device.createCommandPool(&Info, nullptr, &Pool.ResetPool)) == false)
+				return false;
 
 			Info.flags = vk::CommandPoolCreateFlagBits::eTransient;
-			LogVKErrorBool(m_Device.createCommandPool(&Info, nullptr, &Pool.TransientPool));			
+			if (LogVKErrorBool(m_Device.createCommandPool(&Info, nullptr, &Pool.TransientPool)) == false)
+				return false;
 		}
 	}
+
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType) const
@@ -223,5 +230,57 @@ const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocatio
 	AllocInfo.kType = kAllocationType_GPU_Only;
 
 	return LogVKErrorBool(m_pAllocator->CreateImage(AllocInfo, _Allocation, Info, _Image));
+}
+//---------------------------------------------------------------------------------------------------
+
+const bool VulkanDevice::CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount)
+{
+	vk::CommandBufferAllocateInfo Info{};
+	Info.commandBufferCount = _uCount;
+	Info.level = _kLevel;
+
+	const uint32_t uIndex = GetQueueIndex(_kQueueType);
+	HASSERT(uIndex < m_CommandPools.size(), "Invalid queue index");
+
+	const CommandPoolEntry& Entry = m_CommandPools[uIndex];
+
+	switch (_kBufferType)
+	{
+	case vk::CommandPoolCreateFlagBits::eResetCommandBuffer:
+		Info.commandPool = Entry.ResetPool;
+		break;
+	case vk::CommandPoolCreateFlagBits::eTransient:
+		Info.commandPool = Entry.TransientPool;
+		break;
+	default:
+		return false;
+	}
+
+	return LogVKErrorBool(m_Device.allocateCommandBuffers(&Info, _pOutBuffers));
+}
+//---------------------------------------------------------------------------------------------------
+const bool VulkanDevice::DestroyCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, vk::CommandBuffer* _pBuffers, const uint32_t _uCount)
+{
+	const uint32_t uIndex = GetQueueIndex(_kQueueType);
+	HASSERT(uIndex < m_CommandPools.size(), "Invalid queue index");
+
+	const CommandPoolEntry& Entry = m_CommandPools[uIndex];
+	vk::CommandPool Pool{};
+
+	switch (_kBufferType)
+	{
+	case vk::CommandPoolCreateFlagBits::eResetCommandBuffer:
+		Pool = Entry.ResetPool;
+		break;
+	case vk::CommandPoolCreateFlagBits::eTransient:
+		Pool = Entry.TransientPool;
+		break;
+	default:
+		return false;
+	}
+
+	m_Device.freeCommandBuffers(Pool, _uCount,_pBuffers);
+
+	return true;
 }
 //---------------------------------------------------------------------------------------------------

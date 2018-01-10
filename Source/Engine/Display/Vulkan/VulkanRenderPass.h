@@ -46,7 +46,8 @@ namespace Tracy
 		bool Initialize();
 		void Uninitialize();
 
-		bool Render(const Camera& _Camera);
+		// 
+		bool Record(const Camera& _Camera);
 
 		uint32_t GetPassIndex() const;
 		uint64_t GetMaterialID() const;

@@ -59,10 +59,8 @@ bool VulkanRenderPass::Initialize()
 			return false;
 	}
 
-	// todo: get command buffer from device, matching compute / gfx
-	//m_CommandBuffer
-
-	return true;
+	// create command buffer
+	return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::eSecondary, &m_CommandBuffer);
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -110,17 +108,11 @@ void VulkanRenderPass::Uninitialize()
 
 //---------------------------------------------------------------------------------------------------
 
-bool VulkanRenderPass::Render(const Camera& _Camera)
+bool VulkanRenderPass::Record(const Camera& _Camera)
 {
 	ActivatePass();
 
 	// TODO: wait for previous passes to finish work on dependencies
-
-	if ((_Camera.GetPassIDs() & m_uPassIndex) != m_uPassIndex)
-	{
-		HERROR("Camera does not support pass %llu", m_uPassIndex);
-		return false;
-	}
 
 	struct VariableMapping
 	{
@@ -221,8 +213,6 @@ bool VulkanRenderPass::Render(const Camera& _Camera)
 
 		// TODO: record draw call
 	}
-
-	// TODO: issue commandbuffer
 
 	return true;
 }
