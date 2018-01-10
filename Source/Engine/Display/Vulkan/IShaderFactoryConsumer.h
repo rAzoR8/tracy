@@ -45,7 +45,8 @@ namespace Tracy
 		virtual void OnFactoryLoaded() = 0;
 		virtual void OnFactoryUnloaded() = 0;
 
-		void SelectShader(const ShaderID _uShaderIdentifier, const SpecConstFactory* _pSpecConstFactory = nullptr, const void* _pUserData = nullptr, const size_t _uSize = 0u);
+		// returns true if shader changed
+		bool SelectShader(const ShaderID _uShaderIdentifier, const SpecConstFactory* _pSpecConstFactory = nullptr, const void* _pUserData = nullptr, const size_t _uSize = 0u);
 		void DeactivateStage(const EShaderType _kType);
 
 		const vk::Device& VKDevice() const;

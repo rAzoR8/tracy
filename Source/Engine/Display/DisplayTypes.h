@@ -24,6 +24,10 @@ namespace Tracy
 			kType(_kType), uCompileFlags(_uCompileFlags), uShader(_uShader), uVariant(_uVariant) {}
 		ShaderID(const ShaderID& _Other) : uID(_Other.uID) {}
 
+		static constexpr uint64_t kInvalid = kShaderType_NumOf;
+
+		const bool Valid() const { return kType < kShaderType_NumOf; }
+
 		union
 		{
 			struct

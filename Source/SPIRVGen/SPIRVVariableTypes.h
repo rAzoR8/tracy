@@ -15,6 +15,7 @@ namespace Tracy
 	using float2_t = glm::vec2;
 	using float3_t = glm::vec3;
 	using float4_t = glm::vec4;
+	using quaternion_t = glm::quat;
 
 	using int2_t = glm::i32vec2;
 	using int3_t = glm::i32vec3;
@@ -30,7 +31,7 @@ namespace Tracy
 	using float4x3_t = glm::mat4x3; // transposed wrt to open gl
 	using float4x4_t = glm::mat4x4;
 	using matrix_t = glm::mat4x4;
-
+	
 #pragma region col_type
 	template <class MatrixT>
 	struct col_type { typedef std::false_type type; };

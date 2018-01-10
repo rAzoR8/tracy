@@ -97,6 +97,8 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 {
 	std::for_each(std::execution::par, m_RenderPasses.begin(), m_RenderPasses.end(), [&](VulkanRenderPass& Pass)
 	{
+		Pass.BeginPass(); // begin commandbuffer recording
+
 		for (Camera* pCamera : _Cameras)
 		{
 			if (pCamera != nullptr)
@@ -107,6 +109,8 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 				}
 			}
 		}
+
+		Pass.EndPass();
 	});
 
 	// TODO: dependencies and shit

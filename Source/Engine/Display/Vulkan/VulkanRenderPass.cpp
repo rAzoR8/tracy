@@ -37,20 +37,31 @@ bool VulkanRenderPass::Initialize()
 	if (CreateDescriptorPool() == false)
 		return false;
 
-	// create default pipelines
-	for (const PipelineDesc& Pipeline : m_Description.DefaultPipelines)
+	auto InitPipeline = [&](const PipelineDesc& _Pipeline) -> bool
 	{
-		m_ActiveShaders.fill(nullptr); // clear previous pipeline (todo: create function that clears all other states too)
-
 		// load the shader
-		for (const PipelineDesc::ShaderDesc& Shader : Pipeline.Shaders)
+		for (const PipelineDesc::ShaderDesc& Shader : _Pipeline.Shaders)
 		{
 			SelectShader(Shader.Identifier, nullptr/*, Shader.UserData.data(), Shader.UserData.size()*/);
 		}
 
 		// create pipeline but dont bind to commandbuffer
-		if (CreatePipeline(Pipeline) == false)
+		return CreatePipeline(_Pipeline).operator bool();
+	};
+
+	// create default pipelines
+	for (const PipelineDesc& Pipeline : m_Description.DefaultPipelines)
+	{
+		m_ActiveShaders.fill(nullptr); // clear previous pipeline (todo: create function that clears all other states too)
+
+		if (InitPipeline(Pipeline) == false)
 			return false;
+	}
+
+	// set default pipeline
+	if (m_Description.DefaultPipelines.size() > 1)
+	{
+		InitPipeline(m_Description.DefaultPipelines.front());
 	}
 
 	for (VulkanRenderPass& SubPass : m_SubPasses)
@@ -67,8 +78,7 @@ bool VulkanRenderPass::Initialize()
 void VulkanRenderPass::Uninitialize()
 {
 	// todo: wait for commandbuffer to finish processing
-	// return commandbuffer to the device pool
-	//m_CommandBuffer
+	m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_CommandBuffer);
 
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
@@ -110,9 +120,13 @@ void VulkanRenderPass::Uninitialize()
 
 bool VulkanRenderPass::Record(const Camera& _Camera)
 {
-	ActivatePass();
-
 	// TODO: wait for previous passes to finish work on dependencies
+	
+	if (m_pOnChangePipeline != nullptr)
+	{
+		if (CreatePipeline(m_pOnChangePipeline->OnChangePipeline(*this)).operator bool() == false)
+			return false;
+	}
 
 	struct VariableMapping
 	{
@@ -140,9 +154,9 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 	std::vector<ImageMapping> ImageMappings(ImageSource::GetInstanceCount());
 
 	// helper function
-	auto DigestBuffer = [&](const BufferSource* pSrc)
+	auto DigestBuffer = [&](const BufferSource& Src)
 	{
-		VariableMapping& Mapping = VarMappings[pSrc->GetID()];
+		VariableMapping& Mapping = VarMappings[Src.GetID()];
 
 		if (Mapping.Initialized() == false)
 		{
@@ -151,7 +165,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		if (Mapping.Valid())
 		{
-			const std::vector<BufferSource::Var>& Source = pSrc->GetVars();
+			const std::vector<BufferSource::Var>& Source = Src.GetVars();
 			// transfer 
 			for (const uint32_t& i : Mapping.Variables)
 			{
@@ -160,9 +174,9 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		}
 	};
 
-	auto DigestImages = [&](const ImageSource* pSrc)
+	auto DigestImages = [&](const ImageSource& Src)
 	{
-		ImageMapping& Mapping = ImageMappings[pSrc->GetID()];
+		ImageMapping& Mapping = ImageMappings[Src.GetID()];
 
 		if (Mapping.Initialized() == false)
 		{
@@ -170,7 +184,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		if (Mapping.Valid())
 		{
-			const std::vector<ImageSource::Image>& Source = pSrc->GetImages();
+			const std::vector<ImageSource::Image>& Source = Src.GetImages();
 			// transfer 
 			for (const uint32_t& i : Mapping.Images)
 			{
@@ -180,7 +194,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 	};
 
 	// set camera sources
-	DigestBuffer(&_Camera);
+	DigestBuffer(_Camera);
 
 	if (m_pPerCameraCallback != nullptr)
 	{
@@ -189,22 +203,40 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 	for (RenderObject* pObj : _Camera.GetObjects())
 	{
-		// TODO: check if material / shader changed and call SelectShader() & create pipeline			
-		for (const BufferSource* pSrc : pObj->GetBufferSources()) 
-		{			
-			DigestBuffer(pSrc);
-		}
+		// TODO: check if material / shader changed and call SelectShader() & create pipeline	
+		const RenderNode& Node = pObj->GetNode();
 
-		for (const RenderNode& Node : pObj->GetNodes())
+		if (Node.Material)
 		{
-			if (Node.Material)
+			const MaterialRefEntry& Mat = Node.Material.Get();
+			bool bShaderChanged = false;
+
+			for (const ShaderID& id : Mat.Shaders)
 			{
-				DigestBuffer(&Node.Material.Ref.Values); // material values
-				DigestImages(&Node.Material.Ref.Images); // textures
+				if (id.Valid())
+				{
+					bShaderChanged |= SelectShader(id);
+				}
 			}
 
-			// TODO: set vertex & index buffer
+			if (bShaderChanged && CreatePipeline(m_ActivePipelineDesc))
+			{
+				m_CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
+			}
+
+			DigestBuffer(Mat.Values); // material values
+			DigestImages(Mat.Images); // textures
 		}
+
+		for (const BufferSource* pSrc : pObj->GetBufferSources()) 
+		{			
+			if (pSrc != nullptr)
+			{
+				DigestBuffer(*pSrc);
+			}
+		}
+
+		// TODO: set vertex & index buffer
 
 		if (m_pPerObjectCallback != nullptr)
 		{
@@ -239,16 +271,42 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 //---------------------------------------------------------------------------------------------------
 // prepares command buffer & dynamic state for recording
 // called for each batch of objects that use a different shader
-void VulkanRenderPass::ActivatePass()
+bool VulkanRenderPass::BeginPass()
 {
-	//vkCmdSetViewport
-	// m_ViewportState
+	vk::CommandBufferInheritanceInfo PassInfo{};
+
+	PassInfo.occlusionQueryEnable = VK_FALSE;
+	//PassInfo.renderPass = m_Renderpass;
+	//PassInfo.framebuffer = m_FrameBuffer;
+
+	PassInfo.subpass = m_Description.bSubPass ? m_uPassIndex : 0;
+
+	vk::CommandBufferBeginInfo BeginInfo{};
+	BeginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+	BeginInfo.pInheritanceInfo = &PassInfo;
+
+	//m_CommandBuffer.reset(0) //vk::CommandBufferResetFlagBits::eReleaseResources
+	if (LogVKErrorBool(m_CommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
+		return false;
+	
+	// ViewportState
+	m_CommandBuffer.setViewport(0, m_ViewportState.Viewports);
+	m_CommandBuffer.setScissor(0, m_ViewportState.Scissors);
 
 	// first recorded cmd should be the PipelineBarriers for all m_Dependencies elements
 	// vk::CmdPipelineBarrier
+
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
+bool VulkanRenderPass::EndPass()
+{
+	m_CommandBuffer.end();
+
+	return true;
+}
+//---------------------------------------------------------------------------------------------------
+vk::Pipeline VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 {
 	hlx::Hasher uHash = 0u; // needs to differ from kUndefinedSizeT
 
@@ -294,7 +352,7 @@ bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 
 	if (!PipelineInfo.layout)
 	{
-		return false;
+		return nullptr;
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -424,28 +482,26 @@ bool VulkanRenderPass::CreatePipeline(const PipelineDesc& _Desc)
 		}
 		else
 		{
-			vk::Pipeline NewPipeline;
-
-			if (LogVKErrorBool(m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &NewPipeline)) == false)
+			m_ActivePipelineDesc = _Desc;
+			
+			if (LogVKErrorBool(m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &m_ActivePipeline)) == false)
 			{
-				return false;
+				return nullptr;
 			}
-
-			m_ActivePipeline = NewPipeline;
 
 			// this is the base pipeline now
 			if (!m_BasePipeline && _Desc.bBasePipeline)
 			{
-				m_BasePipeline = NewPipeline;
+				m_BasePipeline = m_ActivePipeline;
 			}
 
-			m_Pipelines.insert({ uHash, NewPipeline });
+			m_Pipelines.insert({ uHash, m_ActivePipeline });
 		}
 
 		m_uPipelineHash = uHash;
 	}
 
-	return m_ActivePipeline.operator bool();
+	return m_ActivePipeline;
 }
 //---------------------------------------------------------------------------------------------------
 

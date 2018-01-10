@@ -35,8 +35,9 @@ void IShaderFactoryConsumer::OnPluginUnloaded()
 	OnFactoryUnloaded();
 }
 //---------------------------------------------------------------------------------------------------
-void IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, const SpecConstFactory* _pSpecConstFactory, const void * _pUserData, const size_t _uSize)
+bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, const SpecConstFactory* _pSpecConstFactory, const void* _pUserData, const size_t _uSize)
 {
+	HASSERT(_ShaderIdentifier.kType < kShaderType_NumOf, "Invalid shader identifier");
 	const uint64_t uHash = m_ShaderHasher(_ShaderIdentifier, _pUserData, _uSize);
 	CompiledShader*& pActiveShader = m_ActiveShaders[_ShaderIdentifier.kType];
 
@@ -62,7 +63,11 @@ void IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 
 			pActiveShader->StageCreateInfo = CreateShaderStage(m_Device.GetDevice(), pActiveShader->Code, _pSpecConstFactory != nullptr ? &pActiveShader->SpecInfo : nullptr);
 		}
+
+		return true;
 	}
+
+	return false;
 }
 //---------------------------------------------------------------------------------------------------
 void IShaderFactoryConsumer::DeactivateStage(const EShaderType _kType)

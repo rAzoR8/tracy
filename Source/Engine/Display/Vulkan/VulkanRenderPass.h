@@ -24,6 +24,12 @@ namespace Tracy
 			virtual bool OnPerCamera(VulkanRenderPass& _Pass, const Camera& _Camera) = 0;
 		};
 
+		// called before OnPerCamera
+		struct IOnChangePipeline
+		{
+			virtual PipelineDesc OnChangePipeline(VulkanRenderPass& _Pass) = 0;
+		};
+
 		struct Dependence
 		{
 			VulkanRenderPass* pPrevPass;
@@ -46,7 +52,7 @@ namespace Tracy
 		bool Initialize();
 		void Uninitialize();
 
-		// 
+		// record settings and objects form this camera to the commandbuffer
 		bool Record(const Camera& _Camera);
 
 		uint32_t GetPassIndex() const;
@@ -56,6 +62,7 @@ namespace Tracy
 
 		void SetPerObjectCallback(IOnPerObject* _pCallback);
 		void SetPerCameraCallback(IOnPerCamera* _pCallback);
+		void SetChangePipelineCallback(IOnChangePipeline* _pCallback);
 
 	private:
 		void OnFactoryLoaded() final;
@@ -64,10 +71,11 @@ namespace Tracy
 		void AddDependency(const Dependence& _Dependency);
 
 		// prepares command buffer & dynamic state for recording
-		void ActivatePass();
+		bool BeginPass();
+		bool EndPass();
 
 		// called before draw or after shader has been selected
-		bool CreatePipeline(const PipelineDesc& _Desc);
+		vk::Pipeline CreatePipeline(const PipelineDesc& _Desc);
 		const size_t CreatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
@@ -83,6 +91,7 @@ namespace Tracy
 		// callbacks
 		IOnPerObject* m_pPerObjectCallback = nullptr;
 		IOnPerCamera* m_pPerCameraCallback = nullptr;
+		IOnChangePipeline* m_pOnChangePipeline = nullptr;
 
 		ViewportState m_ViewportState;
 
@@ -92,6 +101,7 @@ namespace Tracy
 		// identifies the current pipeline
 		size_t m_uPipelineHash = kUndefinedSizeT;
 		vk::Pipeline m_ActivePipeline = nullptr;
+		PipelineDesc m_ActivePipelineDesc;
 		vk::Pipeline m_BasePipeline = nullptr;
 
 		struct DesciptorSet
@@ -131,6 +141,11 @@ namespace Tracy
 	inline void VulkanRenderPass::SetPerCameraCallback(IOnPerCamera* _pCallback)
 	{
 		m_pPerCameraCallback = _pCallback;
+	}
+
+	inline void VulkanRenderPass::SetChangePipelineCallback(IOnChangePipeline* _pCallback)
+	{
+		m_pOnChangePipeline = _pCallback;
 	}
 
 } // Tracy
