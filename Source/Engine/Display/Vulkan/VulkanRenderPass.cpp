@@ -148,6 +148,13 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 				m_ActivePipelineDesc.fDepthBiasClamp,
 				m_ActivePipelineDesc.fDepthBiasSlopeFactor);
 		}
+
+		if (m_ActivePipelineDesc.DepthStencilState.bStencilTestEnabled)
+		{
+			m_CommandBuffer.setStencilReference(vk::StencilFaceFlagBits::eFront, m_ActivePipelineDesc.DepthStencilState.uStencilReference);
+			//m_CommandBuffer.setStencilCompareMask()
+			//m_CommandBuffer.setStencilWriteMask()
+		}
 	}
 
 	struct VariableMapping
@@ -211,10 +218,12 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			for (const uint32_t& i : Mapping.Images)
 			{
 				//Source[i].Image
+				
 			}
 		}
 	};
 
+	
 	// set camera sources
 	DigestBuffer(_Camera);
 
@@ -236,7 +245,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			{
 				if (id.Valid())
 				{
-					bShaderChanged |= SelectShader(id);
+					bShaderChanged |= SelectShader(id); // todo: userdata
 				}
 			}
 
@@ -486,9 +495,30 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 	PipelineInfo.pDepthStencilState = &DSInfo;
 
-	// ...
-	// TODO: fill out the other stuff
+	//---------------------------------------------------------------------------------------------------
+	// DYNAMIC STATES
+	//---------------------------------------------------------------------------------------------------
 
+	vk::PipelineDynamicStateCreateInfo DynamicInfo{};
+
+	vk::DynamicState DynamicStates[]{ 
+		vk::DynamicState::eViewport,
+		vk::DynamicState::eScissor,
+		vk::DynamicState::eLineWidth,
+		vk::DynamicState::eDepthBias,
+		vk::DynamicState::eBlendConstants,
+		vk::DynamicState::eDepthBounds,
+		vk::DynamicState::eStencilCompareMask,
+		vk::DynamicState::eStencilWriteMask,
+		vk::DynamicState::eStencilReference
+	};
+
+	DynamicInfo.dynamicStateCount = static_cast<uint32_t>(GetArrayLength(DynamicStates));
+	DynamicInfo.pDynamicStates = DynamicStates;
+	PipelineInfo.pDynamicState = &DynamicInfo;
+
+	//---------------------------------------------------------------------------------------------------
+	
 	// we want to derive from the base pipeline
 	if (m_BasePipeline && _Desc.bBasePipeline == false) 
 	{

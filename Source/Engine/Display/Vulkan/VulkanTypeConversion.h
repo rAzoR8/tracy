@@ -281,6 +281,7 @@ namespace Tracy
 	{
 		vk::PipelineDepthStencilStateCreateInfo Info{};
 
+		Info.stencilTestEnable = _Desc.bStencilTestEnabled ? VK_TRUE : VK_FALSE;
 		Info.depthTestEnable = _Desc.bDepthTestEnabled ? VK_TRUE : VK_FALSE;
 		Info.depthWriteEnable = _Desc.bDepthWriteEnabled ? VK_TRUE : VK_FALSE;
 

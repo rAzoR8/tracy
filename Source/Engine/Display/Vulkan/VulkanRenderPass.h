@@ -92,6 +92,11 @@ namespace Tracy
 			vk::DescriptorSetLayout Layout;
 			vk::DescriptorSet Set;
 			TVarSet Variables;
+
+			// per variable ?
+			//const VkDescriptorImageInfo*     pImageInfo;
+			//const VkDescriptorBufferInfo*    pBufferInfo;
+			//const VkBufferView*              pTexelBufferView;
 		};
 
 		RenderPassDesc m_Description;

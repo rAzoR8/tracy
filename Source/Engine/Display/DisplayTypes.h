@@ -322,6 +322,7 @@ namespace Tracy
 
 	struct DepthStencilStateDesc
 	{
+		bool bStencilTestEnabled = false;
 		bool bDepthTestEnabled = false;
 		bool bDepthWriteEnabled = false; //D3D12_DEPTH_WRITE_MASK
 		EComparisonOp kDepthCompareOp = kComparisonOp_Unknown;
@@ -329,6 +330,7 @@ namespace Tracy
 		StencilOpDesc FrontFace;
 		StencilOpDesc BackFace;
 
+		uint32_t uStencilReference = 0u;
 		// todo: depthBoundsTestEnable etc
 	};
 	//---------------------------------------------------------------------------------------------------
