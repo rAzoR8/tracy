@@ -106,6 +106,13 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 				if ((pCamera->GetPassIDs() & Pass.GetMaterialID()) == Pass.GetMaterialID())
 				{
 					Pass.Record(*pCamera);
+
+					for (VulkanRenderPass& SubPass : Pass.GetSubPasses())
+					{
+						SubPass.Record(*pCamera);
+						// camera might not be needed
+						// we could also record to the same command buffer from the parent pass
+					}
 				}
 			}
 		}

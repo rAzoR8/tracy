@@ -59,6 +59,7 @@ namespace Tracy
 		uint32_t GetPassIndex() const;
 		uint64_t GetMaterialID() const;
 
+		std::vector<VulkanRenderPass>& GetSubPasses();
 		const RenderPassDesc& GetDescription() const;
 
 		void SetPerObjectCallback(IOnPerObject* _pCallback);
@@ -141,6 +142,11 @@ namespace Tracy
 	inline uint32_t VulkanRenderPass::GetPassIndex() const{	return m_uPassIndex;}
 
 	inline uint64_t VulkanRenderPass::GetMaterialID() const	{ return 1ull << m_uPassIndex;}
+
+	inline std::vector<VulkanRenderPass>& VulkanRenderPass::GetSubPasses()
+	{
+		return m_SubPasses;
+	}
 
 	inline const RenderPassDesc& VulkanRenderPass::GetDescription() const {return m_Description;	}
 

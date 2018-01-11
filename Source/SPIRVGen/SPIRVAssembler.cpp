@@ -23,6 +23,7 @@ SPIRVModule SPIRVAssembler::Assemble()
 	m_uInstrId = 0u;
 	m_TypeIds.clear();
 	m_ConstantIds.clear();
+	m_Bindings.clear();
 
 	SPIRVModule Module(m_uResultId + 1u);
 	Module.SetEntryPoint(m_sEntryPoint);

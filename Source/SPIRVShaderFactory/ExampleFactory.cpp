@@ -37,7 +37,7 @@ void ExampleFactory::Release()
 
 SPIRVModule ExampleFactory::Compile(const ShaderID _ShaderIdentifier) const
 {
-	GlobalAssembler.UseDefaultBindingSetLocation();
+	GlobalAssembler.UseDefaultSetLocation();
 	GlobalAssembler.UseDefaultSpecConstId();
 	GlobalAssembler.UseDefaultInputAttachmentIndex();
 

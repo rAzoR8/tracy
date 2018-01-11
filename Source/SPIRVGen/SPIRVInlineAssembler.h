@@ -33,10 +33,16 @@ namespace Tracy
 		const TLambdaFunc& _Func,
 		const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
 		const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+		const bool _bUseDefaults = true,
 		const std::string& _sEntryPoint = "main",
 		const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 		Ts&& ..._args)
 	{
+		if (_bUseDefaults)
+		{
+			GlobalAssembler.SetDefaults();
+		}
+
 		using TInlFunc = SPIRVInlineFunctor<TLambdaFunc, Ts...>;
 		GlobalAssembler.InitializeProgram<TInlFunc>(_kModel, _kMode, _sEntryPoint, _Extensions, _Func);
 		GlobalAssembler.RecordInstructions<TInlFunc>(std::forward<Ts>(_args)...);

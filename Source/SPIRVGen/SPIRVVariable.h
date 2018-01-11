@@ -709,7 +709,8 @@ namespace Tracy
 		if constexpr(Assemble)
 		{
 			uint32_t uLocation = _uLocation != HUNDEFINED32 ? _uLocation : (_bInput ? GlobalAssembler.GetCurrentInputLocation() : GlobalAssembler.GetCurrentOutputLocation());
-			if (uLocation != HUNDEFINED32) _Var.SetLocation(uLocation);
+			HASSERT(uLocation != HUNDEFINED32, "Invalid location for variable %s", _Var.sName.c_str());
+			_Var.SetLocation(uLocation);
 		}
 	}
 
@@ -718,9 +719,10 @@ namespace Tracy
 	{
 		if constexpr(Assemble)
 		{
-			uint32_t uBinding = _uBinding != HUNDEFINED32 ? _uBinding : GlobalAssembler.GetCurrentBinding();
 			uint32_t uSet = _uSet != HUNDEFINED32 ? _uSet : GlobalAssembler.GetDefaultSet();
-			if (uBinding != HUNDEFINED32 && uSet != HUNDEFINED32) _Var.SetBinding(uBinding, uSet);
+			uint32_t uBinding = _uBinding != HUNDEFINED32 ? _uBinding : GlobalAssembler.GetCurrentBinding(uSet);
+			HASSERT(uBinding != HUNDEFINED32 && uSet != HUNDEFINED32, "Invalid set and binding for variable %s", _Var.sName.c_str());
+			_Var.SetBinding(uBinding, uSet);
 		}
 	}
 
@@ -799,7 +801,8 @@ namespace Tracy
 			if constexpr(Assemble)
 			{
 				uInputAttachmentIndex = (InputAttachmentIndex != HUNDEFINED32) ? InputAttachmentIndex : GlobalAssembler.GetCurrentInputAttchmentIndex();
-				//Decorate(SPIRVDecoration(spv::DecorationInputAttachmentIndex, uInputAttachmentIndex));
+				HASSERT(uInputAttachmentIndex != HUNDEFINED32, "Invalid input attachment index for variable %s", sName.c_str());
+				
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationInputAttachmentIndex, uInputAttachmentIndex).MakeOperation(uVarId));
 			}
 		}

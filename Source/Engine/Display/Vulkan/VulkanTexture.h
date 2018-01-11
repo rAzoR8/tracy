@@ -12,6 +12,8 @@ namespace Tracy
 	struct VkTexData : public TexAPIData
 	{
 		vk::Image hImage;
+		// todo: get image into desired layout
+		vk::ImageLayout hLayout;
 		VulkanAllocation Allocation;
 		std::unordered_map<THandle, vk::ImageView> Views;
 	};

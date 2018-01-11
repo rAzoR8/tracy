@@ -326,6 +326,20 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 // called for each batch of objects that use a different shader
 bool VulkanRenderPass::BeginPass()
 {
+	//vk::ClearValue clearValues[2];
+	//clearValues[0].color = { { 0.1f, 0.1f, 0.1f, 1.0f } };
+	//clearValues[1].depthStencil = { 1.0f, 0 };
+
+	//vk::RenderPassBeginInfo renderPassBeginInfo{};
+	//renderPassBeginInfo.renderPass = renderPass;
+	//renderPassBeginInfo.renderArea.offset.x = 0;
+	//renderPassBeginInfo.renderArea.offset.y = 0;
+	//renderPassBeginInfo.renderArea.extent.width = width;
+	//renderPassBeginInfo.renderArea.extent.height = height;
+	//renderPassBeginInfo.clearValueCount = 2;
+	//renderPassBeginInfo.pClearValues = clearValues;
+	//renderPassBeginInfo.framebuffer = framebuffer;
+
 	vk::CommandBufferInheritanceInfo PassInfo{};
 
 	PassInfo.occlusionQueryEnable = VK_FALSE;
@@ -342,7 +356,7 @@ bool VulkanRenderPass::BeginPass()
 	if (LogVKErrorBool(m_CommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
 		return false;
 	
-
+	//m_CommandBuffer.beginRenderPass()
 	// first recorded cmd should be the PipelineBarriers for all m_Dependencies elements
 	// vk::CmdPipelineBarrier
 
@@ -351,6 +365,7 @@ bool VulkanRenderPass::BeginPass()
 //---------------------------------------------------------------------------------------------------
 bool VulkanRenderPass::EndPass()
 {
+	m_CommandBuffer.endRenderPass();
 	m_CommandBuffer.end();
 
 	return true;

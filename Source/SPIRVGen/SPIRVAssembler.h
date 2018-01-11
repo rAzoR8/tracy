@@ -53,6 +53,7 @@ namespace Tracy
 		SPIRVModule AssembleSimple(
 			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
 			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+			const bool _bUseDefaults = true,
 			const std::string& _sEntryPoint = "main",
 			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 			Ts&& ..._args);
@@ -65,7 +66,9 @@ namespace Tracy
 		uint32_t AddType(const SPIRVType& _Type);
 
 		void AddVariableInfo(const var_decoration<true>& _Var);
-		void UseDefaultBindingSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultBinding = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u);
+
+		void SetDefaults();
+		void UseDefaultSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u);
 		void UseDefaultSpecConstId(const uint32_t _uStartId = 0u);
 		void UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex = 0u);
 
@@ -73,7 +76,8 @@ namespace Tracy
 		bool GetForceNextLoads() const;
 
 		const uint32_t& GetDefaultSet() const;
-		const uint32_t GetCurrentBinding();
+		const uint32_t GetCurrentBinding(const uint32_t _uSet);
+
 		const uint32_t GetCurrentInputLocation();
 		const uint32_t GetCurrentOutputLocation();
 		const uint32_t GetCurrentSpecConstId();
@@ -126,7 +130,10 @@ namespace Tracy
 		std::vector<SPIRVInstruction> m_Instructions;
 
 		uint32_t m_uDefaultSet = HUNDEFINED32;
-		uint32_t m_uCurrentBinding = HUNDEFINED32;
+
+		// set -> binding
+		std::unordered_map<uint32_t, uint32_t> m_Bindings;
+
 		uint32_t m_uCurrentInputLocation = HUNDEFINED32;
 		uint32_t m_uCurrentOutputLocation = HUNDEFINED32;
 		uint32_t m_uCurrentSpecConstId = HUNDEFINED32;
@@ -147,14 +154,20 @@ namespace Tracy
 		std::unordered_map<uint32_t, VariableInfo> m_UsedVariables; // info on loaded / stored variables
 	};
 	//---------------------------------------------------------------------------------------------------
+	inline void SPIRVAssembler::SetDefaults()
+	{
+		UseDefaultSetLocation();
+		UseDefaultSpecConstId();
+		UseDefaultInputAttachmentIndex();
+	}
 
-	inline void SPIRVAssembler::UseDefaultBindingSetLocation(const uint32_t _uDefaultSet, const uint32_t _uDefaultBinding, const uint32_t _uDefaulInputLocation, const uint32_t _uDefaultOutputLocation)
+	inline void SPIRVAssembler::UseDefaultSetLocation(const uint32_t _uDefaultSet, const uint32_t _uDefaulInputLocation, const uint32_t _uDefaultOutputLocation)
 	{
 		m_uDefaultSet = _uDefaultSet;
-		m_uCurrentBinding = _uDefaultBinding;
 		m_uCurrentInputLocation = _uDefaulInputLocation;
 		m_uCurrentOutputLocation = _uDefaultOutputLocation;
 	}
+
 	inline void SPIRVAssembler::UseDefaultSpecConstId(const uint32_t _uStartId)
 	{
 		m_uCurrentSpecConstId = _uStartId;
@@ -180,10 +193,19 @@ namespace Tracy
 		return m_uDefaultSet;
 	}
 
-	inline const uint32_t SPIRVAssembler::GetCurrentBinding()
+	inline const uint32_t SPIRVAssembler::GetCurrentBinding(const uint32_t _uSet)
 	{
 		// TODO: assert if to high
-		return m_uCurrentBinding++;
+		auto it = m_Bindings.find(_uSet);
+		if (it != m_Bindings.end())
+		{
+			return it->second++;
+		}
+		else
+		{
+			m_Bindings.insert({ _uSet, 1 });
+			return 0u;
+		}
 	}
 
 	inline const uint32_t SPIRVAssembler::GetCurrentInputLocation()
@@ -209,7 +231,7 @@ namespace Tracy
 	}
 
 #ifndef GlobalAssembler
-#define GlobalAssembler (*SPIRVAssembler::Instance())
+#define GlobalAssembler (*Tracy::SPIRVAssembler::Instance())
 #endif
 
 	template<class TProg, class ...Ts>
@@ -257,10 +279,16 @@ namespace Tracy
 	inline SPIRVModule SPIRVAssembler::AssembleSimple(
 		const spv::ExecutionModel _kModel,
 		const spv::ExecutionMode _kMode,
+		const bool _bUseDefaults,
 		const std::string& _sEntryPoint,
 		const std::vector<std::string>& _Extensions,
 		Ts&& ..._args)
 	{
+		if (_bUseDefaults)
+		{
+			SetDefaults();
+		}
+
 		InitializeProgram<TProg>(_kModel, _kMode, _sEntryPoint,_Extensions, std::forward<Ts>(_args)...);
 		RecordInstructions<TProg>();
 

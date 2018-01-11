@@ -11,6 +11,8 @@ VulkanTexture::VulkanTexture(const TextureDesc& _Desc) :
 	{
 		Ref.pAPIData = new VkTexData(); // deleted by RefCounted	
 		GetDevice().CreateTexture(_Desc, API.Allocation, API.hImage);
+
+		// TODO: layout
 	}
 }
 
