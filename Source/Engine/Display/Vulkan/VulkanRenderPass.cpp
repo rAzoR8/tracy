@@ -1,21 +1,24 @@
 #include "VulkanRenderPass.h"
 #include "FileStream.h"
 #include "VulkanTypeConversion.h"
-#include "..\Camera.h"
-#include "..\RenderObject.h"
+#include "Display\Camera.h"
+#include "Display\RenderObject.h"
+#include "VulkanTexture.h"
+#include "VulkanBuffer.h"
 
 using namespace Tracy;
 
 //---------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice) :
+VulkanRenderPass::VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice) :
 	IShaderFactoryConsumer(_Desc.sLibName, _hDevice),
 	m_Description(_Desc),
-	m_uPassIndex(_uPassIndex)
+	m_uPassIndex(_uPassIndex),
+	m_pParent(_pParent)
 {
 	for (const RenderPassDesc& SubPass : m_Description.SubPasses)
 	{
-		m_SubPasses.emplace_back(SubPass, (uint32_t)m_SubPasses.size(), _hDevice);
+		m_SubPasses.emplace_back(this, SubPass, static_cast<uint32_t>(m_SubPasses.size()), _hDevice);
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -28,6 +31,12 @@ VulkanRenderPass::~VulkanRenderPass()
 
 bool VulkanRenderPass::Initialize()
 {
+	if (m_pParent != nullptr && m_Description.SubPasses.empty() != false)
+	{
+		HERROR("SubPasses can not have sub passes (%s)", m_Description.sPassName.c_str());
+		return false;
+	}
+
 	if (HasValidPlugin() == false)
 		return false;
 
@@ -70,15 +79,27 @@ bool VulkanRenderPass::Initialize()
 			return false;
 	}
 
-	// create command buffer
-	return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::eSecondary, &m_CommandBuffer);
+	if (m_pParent != nullptr) // subpass
+	{
+		// take parent command buffer
+		m_CommandBuffer = m_pParent->m_CommandBuffer;
+		return m_CommandBuffer;
+	}
+	else
+	{
+		// create command buffer
+		return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::eSecondary, &m_CommandBuffer);
+	}
 }
 //---------------------------------------------------------------------------------------------------
 
 void VulkanRenderPass::Uninitialize()
 {
 	// todo: wait for commandbuffer to finish processing
-	m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_CommandBuffer);
+	if (m_pParent == nullptr)
+	{
+		m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_CommandBuffer);
+	}
 
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
@@ -289,14 +310,55 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			}
 		}
 
-		// TODO: set vertex & index buffer
+		// set vertex & index buffer
+		const Mesh& mesh = Node.Mesh;
+		const GPUBuffer& vertexBuffer = mesh.GetVertexBuffer();
+		const GPUBuffer& indexBuffer = mesh.GetIndexBuffer();
+
+		// currently we only support one vertex / index stream and default them to binding 0
+		switch (mesh.GetDrawMode())
+		{
+		case kDrawMode_VertexCount:
+		{
+			m_CommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
+		}
+		break;
+		case kDrawMode_VertexData:
+		{
+			if (vertexBuffer)
+			{
+				vk::DeviceSize offset = mesh.GetVertexOffset();
+				const auto& Entry = VKBuffer(vertexBuffer);
+				m_CommandBuffer.bindVertexBuffers(0u, 1u, &Entry.hBuffer, &offset);
+				m_CommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
+			}
+		}
+		break;
+		case kDrawMode_IndexData:
+		{
+			if (vertexBuffer && indexBuffer)
+			{
+				vk::DeviceSize vertOffset = mesh.GetVertexOffset();
+				const auto& vertEntry = VKBuffer(vertexBuffer);
+
+				vk::DeviceSize indexOffset = mesh.GetIndexOffset();
+				const auto& indexEntry = VKBuffer(indexBuffer);
+
+				m_CommandBuffer.bindVertexBuffers(0u, 1u, &vertEntry.hBuffer, &vertOffset);
+				m_CommandBuffer.bindIndexBuffer(indexEntry.hBuffer, indexOffset, GetIndexType(mesh.GetIndexType()));
+				m_CommandBuffer.drawIndexed(mesh.GetIndexCount(), mesh.GetInstanceCount(), mesh.GetFirstIndex(), mesh.GetVertexOffset(), mesh.GetFirstInstance());
+			}
+		}
+		break;
+		default:
+			break;
+		}
+
 
 		if (m_pPerObjectCallback != nullptr)
 		{
 			m_pPerObjectCallback->OnPerObject(*this, pObj);
 		}
-
-		// TODO: record draw call
 	}
 
 	return true;
@@ -340,22 +402,23 @@ bool VulkanRenderPass::BeginPass()
 	//renderPassBeginInfo.pClearValues = clearValues;
 	//renderPassBeginInfo.framebuffer = framebuffer;
 
-	vk::CommandBufferInheritanceInfo PassInfo{};
+	vk::CommandBufferInheritanceInfo BufferInfo{};
 
-	PassInfo.occlusionQueryEnable = VK_FALSE;
+	BufferInfo.occlusionQueryEnable = VK_FALSE;
 	//PassInfo.renderPass = m_Renderpass;
 	//PassInfo.framebuffer = m_FrameBuffer;
 
-	PassInfo.subpass = m_Description.bSubPass ? m_uPassIndex : 0;
+	BufferInfo.subpass = m_Description.bSubPass ? m_uPassIndex : 0;
 
 	vk::CommandBufferBeginInfo BeginInfo{};
 	BeginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
-	BeginInfo.pInheritanceInfo = &PassInfo;
+	BeginInfo.pInheritanceInfo = &BufferInfo;
 
 	//m_CommandBuffer.reset(0) //vk::CommandBufferResetFlagBits::eReleaseResources
 	if (LogVKErrorBool(m_CommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
 		return false;
 	
+	//vk::RenderPassBeginInfo RenderPassInfo;
 	//m_CommandBuffer.beginRenderPass()
 	// first recorded cmd should be the PipelineBarriers for all m_Dependencies elements
 	// vk::CmdPipelineBarrier
@@ -369,6 +432,28 @@ bool VulkanRenderPass::EndPass()
 	m_CommandBuffer.end();
 
 	return true;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool VulkanRenderPass::BeginSubPass()
+{
+	HASSERT(m_pParent != nullptr, "Pass %s is not a SubPass", m_Description.sPassName);
+
+	//VK_SUBPASS_CONTENTS_INLINE
+	// specifies that the contents of the subpass will be recorded inline in the primary command buffer, and secondary command buffers must not be executed within the subpass.
+
+	//VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
+	// specifies that the contents are recorded in secondary command buffers that will be called from the primary command buffer, and vkCmdExecuteCommands is the only valid command on the command buffer until vkCmdNextSubpass or vkCmdEndRenderPass.
+
+	m_CommandBuffer.nextSubpass(vk::SubpassContents::eSecondaryCommandBuffers);
+
+	return true;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool VulkanRenderPass::EndSubPass()
+{
+	return false;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
@@ -765,7 +850,7 @@ bool VulkanRenderPass::CreateDescriptorPool()
 
 	AddSize(vk::DescriptorType::eCombinedImageSampler, 64u);
 	AddSize(vk::DescriptorType::eInputAttachment, 8u);
-	AddSize(vk::DescriptorType::eSampledImage, 64u);
+	AddSize(vk::DescriptorType::eSampledImage, 1024u);
 	AddSize(vk::DescriptorType::eSampler, 64u);
 	AddSize(vk::DescriptorType::eStorageBuffer, 64u);
 	AddSize(vk::DescriptorType::eStorageBufferDynamic, 64u);

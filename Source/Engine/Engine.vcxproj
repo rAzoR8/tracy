@@ -120,6 +120,7 @@
     <ClInclude Include="Display\IGraphicsInstance.h" />
     <ClInclude Include="Display\ImageSource.h" />
     <ClInclude Include="Display\Material.h" />
+    <ClInclude Include="Display\Mesh.h" />
     <ClInclude Include="Display\RenderObject.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
     <ClInclude Include="Display\Texture.h" />

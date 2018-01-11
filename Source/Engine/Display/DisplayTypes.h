@@ -905,6 +905,23 @@ namespace Tracy
 		// fill me
 		THandle hDevice = 0u; // Owner
 	};
+
+	enum EIndexType : uint32_t
+	{
+		kIndexType_UInt16 = 0,
+		kIndexType_UInt32,
+
+		kIndexType_NumOf,
+		kIndexType_Unknown = kIndexType_NumOf
+	};
+
+	enum EDrawMode : uint32_t
+	{
+		kDrawMode_VertexCount = 0,
+		kDrawMode_VertexData = 1,
+		kDrawMode_IndexData = 2,
+		kDrawMode_Indirect = 3
+	};
 } // Tracy
 
 #endif // !TRACY_DISPLAYTYPES_H

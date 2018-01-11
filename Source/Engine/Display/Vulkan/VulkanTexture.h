@@ -38,7 +38,9 @@ namespace Tracy
 	protected:
 		REFAPI(VkTexData);
 	};
+
 	//---------------------------------------------------------------------------------------------------
+	inline const VkTexData& VKTexture(const Texture& _Texture) { return _Texture.Get().GetAPIData<VkTexData>(); }
 
 }
 

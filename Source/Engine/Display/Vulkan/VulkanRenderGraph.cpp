@@ -14,7 +14,7 @@ VulkanRenderGraph::VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle
 {
 	for (const RenderPassDesc& Pass : m_Description.Passes)
 	{
-		m_RenderPasses.emplace_back(Pass, (uint32_t)m_RenderPasses.size(), _hDevice);
+		m_RenderPasses.emplace_back(nullptr, Pass, static_cast<uint32_t>(m_RenderPasses.size()), _hDevice);
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 {
 	std::for_each(std::execution::par, m_RenderPasses.begin(), m_RenderPasses.end(), [&](VulkanRenderPass& Pass)
 	{
-		Pass.BeginPass(); // begin commandbuffer recording
+		Pass.BeginPass(); // begin commandbuffer recording, maybe rename to begin command buffer
 
 		for (Camera* pCamera : _Cameras)
 		{
@@ -107,9 +107,13 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 				{
 					Pass.Record(*pCamera);
 
+					// todo: m_PrimaryGfxCmdBuffer.nextSubpass()
 					for (VulkanRenderPass& SubPass : Pass.GetSubPasses())
 					{
+						SubPass.BeginSubPass();
 						SubPass.Record(*pCamera);
+						SubPass.EndSubPass();
+
 						// camera might not be needed
 						// we could also record to the same command buffer from the parent pass
 					}
@@ -121,6 +125,18 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 	});
 
 	// TODO: dependencies and shit
+
+	// todo: begin commandbuffer
+
+	for (VulkanRenderPass& Pass : m_RenderPasses)
+	{
+		// renderpass begin
+		m_PrimaryGfxCmdBuffer.executeCommands({ Pass.GetCommandBuffer() });
+		//renderpass end
+	}
+
+	// submit
+	
 }
 //---------------------------------------------------------------------------------------------------
 

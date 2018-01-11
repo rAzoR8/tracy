@@ -31,6 +31,8 @@ namespace Tracy
 		REFAPI(VkBufferData);
 	};
 
+	inline const VkBufferData& VKBuffer(const GPUBuffer& _Buffer) { return _Buffer.Get().GetAPIData<VkBufferData>(); }
+
 } // Tracy
 
 #endif // !TRACY_VULKANBUFFER_H

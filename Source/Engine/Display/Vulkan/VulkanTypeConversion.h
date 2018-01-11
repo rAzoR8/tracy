@@ -253,6 +253,12 @@ namespace Tracy::detail
 		vk::BorderColor::eFloatOpaqueWhite,
 		vk::BorderColor::eIntOpaqueWhite
 	};
+
+	static const vk::IndexType g_VkIndexType[kIndexType_NumOf] = 
+	{
+		vk::IndexType::eUint16,
+		vk::IndexType::eUint32
+	};
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -376,6 +382,12 @@ namespace Tracy
 		Info.unnormalizedCoordinates = vkBool(_Desc.bUnnormalizedCoordinates);
 
 		return Info;
+	}
+
+	inline vk::IndexType GetIndexType(const EIndexType _kType)
+	{
+		HASSERTD(_kType < kIndexType_NumOf, "Invalid index type");
+		return detail::g_VkIndexType[_kType];
 	}
 
 	template <typename TUsage>

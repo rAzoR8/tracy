@@ -2,6 +2,7 @@
 #define	TRACY_RENDEROBJECT_H
 
 #include "Material.h"
+#include "Mesh.h"
 #include "MathTypes.h"
 
 namespace Tracy
@@ -9,8 +10,9 @@ namespace Tracy
 	struct RenderNode
 	{
 		Material Material;
-		// Vertex buffer (cluster offset)
-		// Index buffer
+		Mesh Mesh;
+
+		// todo: vertex count for drawing without mesh etc...
 	};
 
 	class RenderObject : public BufferSource

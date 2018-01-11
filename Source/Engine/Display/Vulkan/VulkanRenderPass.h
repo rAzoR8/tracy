@@ -47,7 +47,7 @@ namespace Tracy
 			std::vector<vk::Rect2D> Scissors;
 		};
 
-		VulkanRenderPass(const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
+		VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
 		~VulkanRenderPass();
 
 		bool Initialize();
@@ -76,6 +76,9 @@ namespace Tracy
 		bool BeginPass();
 		bool EndPass();
 
+		bool BeginSubPass();
+		bool EndSubPass();
+
 		// called before draw or after shader has been selected
 		vk::Pipeline ActivatePipeline(const PipelineDesc& _Desc);
 		const size_t ActivatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
@@ -85,7 +88,10 @@ namespace Tracy
 
 		bool CreateDescriptorPool();
 
+		const vk::CommandBuffer& GetCommandBuffer() const;
+
 	private:
+		VulkanRenderPass* m_pParent = nullptr;
 
 		struct DesciptorSet
 		{
@@ -149,6 +155,11 @@ namespace Tracy
 	inline std::vector<VulkanRenderPass>& VulkanRenderPass::GetSubPasses()
 	{
 		return m_SubPasses;
+	}
+
+	inline const vk::CommandBuffer& Tracy::VulkanRenderPass::GetCommandBuffer() const
+	{
+		return m_CommandBuffer;
 	}
 
 	inline const RenderPassDesc& VulkanRenderPass::GetDescription() const {return m_Description;	}
