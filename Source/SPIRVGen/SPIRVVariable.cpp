@@ -85,7 +85,7 @@ uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
 		uVarId = GlobalAssembler.AddOperation(OpAccessChain);
 	}
 
-	bool bForceLoad = (uVarId != HUNDEFINED32) && (_bForceLoad || GlobalAssembler.GetForceNextLoads());
+	const bool bForceLoad = (uVarId != HUNDEFINED32) && (_bForceLoad || GlobalAssembler.GetForceNextLoads());
 
 	if (uResultId != HUNDEFINED32 && bForceLoad == false)
 		return uResultId;
@@ -124,7 +124,7 @@ var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 }
 //---------------------------------------------------------------------------------------------------
 
-var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
+var_decoration<true>::var_decoration(var_decoration<true>&& _Other) noexcept:
 	uVarId(_Other.uVarId),
 	uResultId(_Other.uResultId),
 	uLastStoredId(_Other.uLastStoredId),
@@ -143,7 +143,7 @@ var_decoration<true>::var_decoration(var_decoration<true>&& _Other) :
 }
 //---------------------------------------------------------------------------------------------------
 
-const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const
+const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const noexcept
 {
 	HASSERT(uTypeId != HUNDEFINED32 && uTypeId == _Other.uTypeId, "Type mismatch!");
 

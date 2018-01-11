@@ -84,6 +84,8 @@ namespace Tracy
 
 		const bool DestroyCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, vk::CommandBuffer* _pBuffers, const uint32_t _uCount = 1u);
 
+		const bool CreateSampler(const SamplerDesc& _Desc, vk::Sampler& _OutSampler);
+
 	private:
 		struct QueueOffset
 		{

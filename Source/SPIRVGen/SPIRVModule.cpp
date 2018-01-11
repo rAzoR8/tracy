@@ -11,7 +11,7 @@ SPIRVModule::SPIRVModule(const SPIRVModule& _Other) :
 {
 }
 //---------------------------------------------------------------------------------------------------
-SPIRVModule::SPIRVModule(const uint32_t _uBounds) :
+SPIRVModule::SPIRVModule(const uint32_t _uBounds) noexcept :
 	m_uBounds(_uBounds)
 {
 }

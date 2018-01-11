@@ -15,23 +15,23 @@ namespace Tracy
 
 	struct SPIRVOperand
 	{
-		SPIRVOperand(const EOperandType _kType = kOperandType_Unknown, const uint32_t _uId = HUNDEFINED32) :
+		SPIRVOperand(const EOperandType _kType = kOperandType_Unknown, const uint32_t _uId = HUNDEFINED32) noexcept :
 			kType(_kType), uId(_uId) {};
 
 
-		static SPIRVOperand Intermediate(const uint32_t _uId){return SPIRVOperand(kOperandType_Intermediate, _uId);	}
-		static SPIRVOperand Literal(const uint32_t _uLiteral1){ return SPIRVOperand(kOperandType_Literal, _uLiteral1); }
+		static SPIRVOperand Intermediate(const uint32_t _uId) noexcept {return SPIRVOperand(kOperandType_Intermediate, _uId);	}
+		static SPIRVOperand Literal(const uint32_t _uLiteral1) noexcept { return SPIRVOperand(kOperandType_Literal, _uLiteral1); }
 
 		EOperandType kType;		
 		uint32_t uId;
 	};
 
-	inline bool operator==(const SPIRVOperand& l, const SPIRVOperand& r)
+	inline bool operator==(const SPIRVOperand& l, const SPIRVOperand& r) noexcept
 	{
 		return l.kType == r.kType && l.uId == r.uId;
 	}
 
-	inline bool operator!=(const SPIRVOperand& l, const SPIRVOperand& r)
+	inline bool operator!=(const SPIRVOperand& l, const SPIRVOperand& r) noexcept
 	{
 		return l.kType != r.kType || l.uId != r.uId;
 	}
@@ -47,7 +47,7 @@ namespace Tracy
 		SPIRVOperation(const spv::Op _kOp, const SPIRVOperand& _Operand);
 
 		SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId, const std::vector<SPIRVOperand>& _Operands = {});
-		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {});
+		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {}) noexcept;
 
 		SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& _Literals);
 
@@ -60,13 +60,13 @@ namespace Tracy
 		void AddLiterals(const std::vector<uint32_t>& _Literals);
 		void AddTypes(const std::vector<uint32_t>& _Types);
 
-		const spv::Op& GetOpCode() const;
-		bool GetUsed() const;
-		bool GetTranslated() const;
+		const spv::Op& GetOpCode() const noexcept;
+		bool GetUsed() const noexcept;
+		bool GetTranslated() const noexcept;
 
-		const uint32_t& GetResultType()  const;
-		const std::vector<SPIRVOperand>& GetOperands() const;
-		std::vector<SPIRVOperand>& GetOperands();
+		const uint32_t& GetResultType() const noexcept;
+		const std::vector<SPIRVOperand>& GetOperands() const noexcept;
+		std::vector<SPIRVOperand>& GetOperands() noexcept;
 
 	private:
 		spv::Op m_kOpCode = spv::OpNop;
@@ -78,32 +78,32 @@ namespace Tracy
 		bool m_bTranslated = false;
 	};
 
-	inline const spv::Op& SPIRVOperation::GetOpCode() const
+	inline const spv::Op& SPIRVOperation::GetOpCode() const noexcept
 	{
 		return m_kOpCode;
 	}
 
-	inline bool SPIRVOperation::GetUsed() const
+	inline bool SPIRVOperation::GetUsed() const noexcept
 	{
 		return m_bUsed;
 	}
 
-	inline bool SPIRVOperation::GetTranslated() const
+	inline bool SPIRVOperation::GetTranslated() const noexcept
 	{
 		return m_bTranslated;
 	}
 
-	inline const std::vector<SPIRVOperand>& SPIRVOperation::GetOperands() const
+	inline const std::vector<SPIRVOperand>& SPIRVOperation::GetOperands() const noexcept
 	{
 		return m_Operands;
 	}
 
-	inline std::vector<SPIRVOperand>& SPIRVOperation::GetOperands()
+	inline std::vector<SPIRVOperand>& SPIRVOperation::GetOperands() noexcept
 	{
 		return m_Operands;
 	}
 
-	inline const uint32_t& SPIRVOperation::GetResultType() const
+	inline const uint32_t& SPIRVOperation::GetResultType() const noexcept
 	{
 		return m_uResultTypeId;
 	}

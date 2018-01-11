@@ -16,13 +16,13 @@ namespace Tracy
 			const spv::Op _kOp = spv::OpNop,
 			const uint32_t _uTypeId = kInvalidId,
 			const uint32_t _uResultId = kInvalidId,
-			const std::vector<uint32_t>& _Operands = {});
+			const std::vector<uint32_t>& _Operands = {}) noexcept;
 		~SPIRVInstruction();
 
-		uint32_t GetOpCode() const;
-		const uint32_t GetTypeId() const;
-		const uint32_t& GetResultId() const;
-		const std::vector<uint32_t>& GetOperands() const;
+		uint32_t GetOpCode() const noexcept;
+		const uint32_t GetTypeId() const noexcept;
+		const uint32_t& GetResultId() const noexcept;
+		const std::vector<uint32_t>& GetOperands() const noexcept;
 
 	private:
 		spv::Op m_kOperation;
@@ -39,9 +39,9 @@ namespace Tracy
 		// Operands x u32 (WordCount-(1-3)) (optional)
 	};
 
-	inline const uint32_t Tracy::SPIRVInstruction::GetTypeId() const {return m_uTypeId;}
-	inline const uint32_t& SPIRVInstruction::GetResultId() const { return m_uResultId; }
-	inline const std::vector<uint32_t>& SPIRVInstruction::GetOperands() const{return m_Operands;}
+	inline const uint32_t Tracy::SPIRVInstruction::GetTypeId() const noexcept {return m_uTypeId;}
+	inline const uint32_t& SPIRVInstruction::GetResultId() const noexcept { return m_uResultId; }
+	inline const std::vector<uint32_t>& SPIRVInstruction::GetOperands() const noexcept {return m_Operands;}
 }; // Tracy
 
 #endif // !TRACY_SPIRVINSTRUCTION_H

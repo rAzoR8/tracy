@@ -14,7 +14,9 @@ namespace Tracy
 		kShaderType_Fragment = 4,
 		kShaderType_GLCompute = 5,
 		kShaderType_Kernel = 6,
+
 		kShaderType_NumOf,
+		kShaderType_Unknown = kShaderType_NumOf
 	};
 
 	struct ShaderID
@@ -24,7 +26,7 @@ namespace Tracy
 			kType(_kType), uCompileFlags(_uCompileFlags), uShader(_uShader), uVariant(_uVariant) {}
 		ShaderID(const ShaderID& _Other) : uID(_Other.uID) {}
 
-		static constexpr uint64_t kInvalid = kShaderType_NumOf;
+		static constexpr uint64_t kInvalid = kShaderType_Unknown;
 
 		const bool Valid() const { return kType < kShaderType_NumOf; }
 
@@ -51,7 +53,7 @@ namespace Tracy
 	//	D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE = 3,
 	//	D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH = 4
 	//}
-	
+
 	// https://vulkan.lunarg.com/doc/view/1.0.33.0/linux/vkspec.chunked/ch19s01.html
 	//typedef enum VkPrimitiveTopology {
 	//	VK_PRIMITIVE_TOPOLOGY_POINT_LIST = 0,
@@ -75,7 +77,7 @@ namespace Tracy
 		kPrimitiveTopology_TriangleList = 3,
 		kPrimitiveTopology_TriangleStrip = 4,
 		kPrimitiveTopology_TriangleFan = 5,
-		kPrimitiveTopology_NumOf, 
+		kPrimitiveTopology_NumOf,
 		kPrimitiveTopology_Unknown = kPrimitiveTopology_NumOf
 	};
 
@@ -247,7 +249,7 @@ namespace Tracy
 	//}
 
 	// dx12 and vulkan stencil ops are identical (also dx12 INCR and DECR wrap)
-	
+
 	enum EStencilOp : uint32_t
 	{
 		kStencilOp_Keep = 0,
@@ -338,15 +340,16 @@ namespace Tracy
 	// Used to convert ComponentMapping in View creation
 	enum EColorChannel : uint32_t
 	{
-		kChannel_Identity	= 0u,	// Is Default
-		kChannel_Zero		= 1u,
-		kChannel_One		= 2u,
-		kChannel_Red		= 3u,
-		kChannel_Green		= 4u,
-		kChannel_Blue		= 5u,
-		kChannel_Alpha		= 6u,
+		kColorChannel_Identity = 0u,	// Is Default
+		kColorChannel_Zero = 1u,
+		kColorChannel_One = 2u,
+		kColorChannel_Red = 3u,
+		kColorChannel_Green = 4u,
+		kColorChannel_Blue = 5u,
+		kColorChannel_Alpha = 6u,
 
-		kChannel_NumOf
+		kColorChannel_NumOf,
+		kColorChannel_Unkown = kColorChannel_NumOf
 	};
 
 	struct ColorSwizzle
@@ -356,7 +359,7 @@ namespace Tracy
 		EColorChannel Blue;
 		EColorChannel Alpha;
 
-		ColorSwizzle(const EColorChannel _kRed = kChannel_Identity, const EColorChannel _kGreen = kChannel_Identity, const EColorChannel _kBlue = kChannel_Identity, const EColorChannel _kAlpha = kChannel_Identity) :
+		ColorSwizzle(const EColorChannel _kRed = kColorChannel_Identity, const EColorChannel _kGreen = kColorChannel_Identity, const EColorChannel _kBlue = kColorChannel_Identity, const EColorChannel _kAlpha = kColorChannel_Identity) :
 			Red(_kRed),
 			Green(_kGreen),
 			Blue(_kBlue),
@@ -367,33 +370,34 @@ namespace Tracy
 	// TODO: NumOf / Unknown pattern
 	enum ETextureType : uint32_t
 	{
-		kTextureType_Invalid		= 0u,
-		kTextureType_Texture1D		= 1u,
-		kTextureType_Texture2D		= 2u,
-		kTextureType_Texture3D		= 3u,
-		kTextureType_TextureArray	= 4u,
-		kTextureType_TextureCube	= 5u
+		kTextureType_Invalid = 0u,
+		kTextureType_Texture1D = 1u,
+		kTextureType_Texture2D = 2u,
+		kTextureType_Texture3D = 3u,
+		kTextureType_TextureArray = 4u,
+		kTextureType_TextureCube = 5u,
 	};
 
 	enum EUsageFlag : uint32_t
 	{
 		// Default
-		kUsageFlag_None				= 0u,
+		kUsageFlag_None = 0u,
 		// Buffer Types
-		kUsageFlag_VertexBuffer		= (1 << 0),		// VB
-		kUsageFlag_IndexBuffer		= (1 << 1),		// IB
-		kUsageFlag_ConstantBuffer	= (1 << 2),		// CB
-		kUsageFlag_StorageBuffer	= (1 << 3),		// Structured Buffer
-		kUsageFlag_IndirectBuffer	= (1 << 4),		// Indirect Draw Data
+		kUsageFlag_VertexBuffer = (1 << 0),		// VB
+		kUsageFlag_IndexBuffer = (1 << 1),		// IB
+		kUsageFlag_ConstantBuffer = (1 << 2),		// CB
+		kUsageFlag_StorageBuffer = (1 << 3),		// Structured Buffer
+		kUsageFlag_IndirectBuffer = (1 << 4),		// Indirect Draw Data
 		// Texture Types
-		kUsageFlag_RenderTarget		= (1 << 5),		// RTV
-		kUsageFlag_DepthStencil		= (1 << 6),		// DSV
-		kUsageFlag_ShaderRead		= (1 << 7),		// SRV
-		kUsageFlag_ShaderStore		= (1 << 8),		// UAV
-		kUsageFlag_CopySource		= (1 << 9),		// BLIT_SRC
-		kUsageFlag_CopyDestination	= (1 << 10),	// BLIT_DST
+		kUsageFlag_RenderTarget = (1 << 5),		// RTV
+		kUsageFlag_DepthStencil = (1 << 6),		// DSV
+		kUsageFlag_ShaderRead = (1 << 7),		// SRV
+		kUsageFlag_ShaderStore = (1 << 8),		// UAV
+		kUsageFlag_CopySource = (1 << 9),		// BLIT_SRC
+		kUsageFlag_CopyDestination = (1 << 10),	// BLIT_DST
 		// Upper Bit Pos
-		kUsageFlag_NumOf			= 11u
+		kUsageFlag_NumOf = 11u,
+		kUsageFlag_Unknown = kUsageFlag_NumOf
 	};
 
 	enum EFormat : uint32_t
@@ -745,25 +749,156 @@ namespace Tracy
 		VK_FORMAT_G16_B16R16_2PLANE_422_UNORM_KHR = 1000156032,
 		VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM_KHR = 1000156033,*/
 
-enum ETextureViewType
-{
-	kViewType_ShaderResource = 0u,
-	kViewType_RenderTarget,
-	kViewType_DepthStencil
-};
 
-struct TextureDesc
-{
-	THandle hDevice = 0u; // Owner
-	uint16_t uWidth = 0u;
-	uint16_t uHeight = 0u;
-	uint16_t uDepth = 0u;
-	uint32_t uLayerCount = 0u;
-	EFormat kFormat = kFormat_Undefined;
-	EUsageFlag kUsageFlag = kUsageFlag_None;
-	ETextureType kType = kTextureType_Invalid;
-	std::string sName = "NewTexture";
-};
+		//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770403(v=vs.85).aspx
+		//typedef struct D3D12_SAMPLER_DESC {
+		//	D3D12_FILTER               Filter;
+		//	D3D12_TEXTURE_ADDRESS_MODE AddressU;
+		//	D3D12_TEXTURE_ADDRESS_MODE AddressV;
+		//	D3D12_TEXTURE_ADDRESS_MODE AddressW;
+		//	FLOAT                      MipLODBias;
+		//	UINT                       MaxAnisotropy;
+		//	D3D12_COMPARISON_FUNC      ComparisonFunc;
+		//	FLOAT                      BorderColor[4];
+		//	FLOAT                      MinLOD;
+		//	FLOAT                      MaxLOD;
+		//}
+
+		//VkFilter
+		//typedef enum VkFilter {
+		//	VK_FILTER_NEAREST = 0,
+		//	VK_FILTER_LINEAR = 1,
+		//}
+	enum ESamplerFilter : uint32_t
+	{
+		kSamplerFilter_Nearest = 0,
+		kSamplerFilter_Linear = 1,
+
+		kSamplerFilter_NumOf,
+		kSamplerFilter_Unknown = kSamplerFilter_NumOf
+	};
+
+	//typedef enum VkSamplerMipmapMode {
+	//	VK_SAMPLER_MIPMAP_MODE_NEAREST = 0,
+	//	VK_SAMPLER_MIPMAP_MODE_LINEAR = 1,
+	//}
+	enum ESamplerMipmapMode : uint32_t
+	{
+		kSamplerMipmapMode_Nearest = 0u,
+		kSamplerMipmapMode_Linear = 1,
+
+		kSamplerMipmapMode_NumOf,
+		kSamplerMipmapMode_Unknown = kSamplerMipmapMode_NumOf
+	};
+
+	//typedef enum VkSamplerAddressMode {
+	//	VK_SAMPLER_ADDRESS_MODE_REPEAT = 0,
+	//	VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT = 1,
+	//	VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE = 2,
+	//	VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER = 3,
+	//	VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE = 4,
+	//}
+
+	enum ESamplerAddressMode : uint32_t
+	{
+		kSamplerAddressMode_Repeat = 0,
+		kSamplerAddressMode_RepeatMirrored = 1,
+		kSamplerAddressMode_ClamToEdge = 2,
+		kSamplerAddressMode_ClampToBorder = 3,
+		kSamplerAddressMode_MirrorClamToEdge = 4,
+
+		kSamplerAddressMode_NumOf,
+		kSamplerAddressMode_Unknown = kSamplerAddressMode_NumOf
+	};
+
+	//typedef enum VkBorderColor {
+	//	VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK = 0,
+	//	VK_BORDER_COLOR_INT_TRANSPARENT_BLACK = 1,
+	//	VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK = 2,
+	//	VK_BORDER_COLOR_INT_OPAQUE_BLACK = 3,
+	//	VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4,
+	//	VK_BORDER_COLOR_INT_OPAQUE_WHITE = 5,
+	//}
+
+	enum ESamplerBorderColor
+	{
+		kSamplerBorderColor_TransparentBlackFloat = 0,
+		kSamplerBorderColor_TransparentBlackInt = 1,
+		kSamplerBorderColor_OpaqueBlackFloat = 2,
+		kSamplerBorderColor_OpaqueBlackInt = 3,
+		kSamplerBorderColor_OpaqueWhiteFloat = 4,
+		kSamplerBorderColor_OpaqueWhiteInt = 5,
+
+		kSamplerBorderColor_NumOf,
+		kSamplerBorderColor_Unknown = kSamplerBorderColor_NumOf
+	};
+
+	//https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkSamplerCreateInfo
+	//typedef struct VkSamplerCreateInfo {
+	//	VkStructureType         sType;
+	//	const void*             pNext;
+	//	VkSamplerCreateFlags    flags;
+	//	VkFilter                magFilter;
+	//	VkFilter                minFilter;
+	//	VkSamplerMipmapMode     mipmapMode;
+	//	VkSamplerAddressMode    addressModeU;
+	//	VkSamplerAddressMode    addressModeV;
+	//	VkSamplerAddressMode    addressModeW;
+	//	float                   mipLodBias;
+	//	VkBool32                anisotropyEnable;
+	//	float                   maxAnisotropy;
+	//	VkBool32                compareEnable;
+	//	VkCompareOp             compareOp;
+	//	float                   minLod;
+	//	float                   maxLod;
+	//	VkBorderColor           borderColor;
+	//	VkBool32                unnormalizedCoordinates;
+	//}
+
+	struct SamplerDesc
+	{
+		ESamplerFilter kMagFiter = kSamplerFilter_Nearest;
+		ESamplerFilter kMinFiter = kSamplerFilter_Nearest;
+		ESamplerMipmapMode kMipmapMode = kSamplerMipmapMode_Nearest;
+
+		ESamplerAddressMode kAddressModeU = kSamplerAddressMode_Repeat;
+		ESamplerAddressMode kAddressModeV = kSamplerAddressMode_Repeat;
+		ESamplerAddressMode kAddressModeW = kSamplerAddressMode_Repeat;
+
+		float fMipLodBias = 0.f;
+		bool bEnableAnisotropy = false;
+		float fMaxAnisotropy = 1.f;
+
+		bool bEnableCompare = false;
+		EComparisonOp kCompareOp = kComparisonOp_Never;
+
+		float fMinLod = 0.f;
+		float fMaxLod = 1.f;
+
+		ESamplerBorderColor kBorderColor = kSamplerBorderColor_OpaqueBlackFloat;
+
+		bool bUnnormalizedCoordinates = false;
+	};
+
+	enum ETextureViewType
+	{
+		kViewType_ShaderResource = 0u,
+		kViewType_RenderTarget,
+		kViewType_DepthStencil
+	};
+
+	struct TextureDesc
+	{
+		THandle hDevice = 0u; // Owner
+		uint16_t uWidth = 0u;
+		uint16_t uHeight = 0u;
+		uint16_t uDepth = 0u;
+		uint32_t uLayerCount = 0u;
+		EFormat kFormat = kFormat_Undefined;
+		EUsageFlag kUsageFlag = kUsageFlag_None;
+		ETextureType kType = kTextureType_Invalid;
+		std::string sName = "NewTexture";
+	};
 } // Tracy
 
 #endif // !TRACY_DISPLAYTYPES_H

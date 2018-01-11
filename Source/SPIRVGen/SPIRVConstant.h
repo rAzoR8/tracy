@@ -30,10 +30,10 @@ namespace Tracy
 
 		size_t GetHash(const bool _bParent = true) const;
 
-		const spv::Op& GetType() const;
-		const SPIRVType& GetCompositeType() const;
-		const std::vector<uint32_t>& GetLiterals() const;
-		const std::vector<SPIRVConstant>& GetComponents() const;
+		const spv::Op& GetType() const noexcept;
+		const SPIRVType& GetCompositeType() const noexcept;
+		const std::vector<uint32_t>& GetLiterals() const noexcept;
+		const std::vector<SPIRVConstant>& GetComponents() const noexcept;
 
 	private:
 		spv::Op m_kConstantType = spv::OpNop;
@@ -44,27 +44,27 @@ namespace Tracy
 		std::vector<uint32_t> m_Constants; // binary data
 	};
 
-	inline const spv::Op& Tracy::SPIRVConstant::GetType() const
+	inline const spv::Op& Tracy::SPIRVConstant::GetType() const noexcept
 	{
 		return m_kConstantType;
 	}
-	inline const SPIRVType& SPIRVConstant::GetCompositeType() const
+	inline const SPIRVType& SPIRVConstant::GetCompositeType() const noexcept
 	{
 		return m_CompositeType;
 	}
-	inline const std::vector<uint32_t>& SPIRVConstant::GetLiterals() const
+	inline const std::vector<uint32_t>& SPIRVConstant::GetLiterals() const noexcept
 	{
 		return m_Constants;
 	}
 
-	inline const std::vector<SPIRVConstant>& SPIRVConstant::GetComponents() const
+	inline const std::vector<SPIRVConstant>& SPIRVConstant::GetComponents() const noexcept
 	{
 		return m_Components;
 	}
 
 	//---------------------------------------------------------------------------------------------------
 
-	inline size_t LiteralCount(const size_t uSizeInBytes)
+	inline size_t LiteralCount(const size_t uSizeInBytes) noexcept
 	{
 		if (uSizeInBytes % sizeof(uint32_t) == 0)
 		{
@@ -72,7 +72,7 @@ namespace Tracy
 		}
 		else
 		{
-			return (size_t)std::ceil(uSizeInBytes / (float)sizeof(uint32_t));
+			return static_cast<size_t>(std::ceil(uSizeInBytes / static_cast<float>(sizeof(uint32_t))));
 		}
 	}
 
@@ -109,7 +109,7 @@ namespace Tracy
 	inline std::vector<uint32_t> MakeLiterals(T&& _Constant, Ts&& ..._args)
 	{
 		// compute number of uint32_t chunks needed to represent the constants
-		size_t uCount = std::max<size_t>(LiteralCount(sizeof(T)), 1ull);
+		const size_t uCount = std::max<size_t>(LiteralCount(sizeof(T)), 1ull);
 		std::vector<uint32_t> ConstData(uCount, 0u);
 		std::memcpy(ConstData.data(), &_Constant, sizeof(T));
 

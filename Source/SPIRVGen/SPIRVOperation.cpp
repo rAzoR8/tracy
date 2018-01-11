@@ -16,7 +16,7 @@ SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId
 {
 }
 
-SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const std::vector<SPIRVOperand>& _Operands) :
+SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const std::vector<SPIRVOperand>& _Operands) noexcept :
 	m_kOpCode(_kOp), m_Operands(_Operands)
 {
 }

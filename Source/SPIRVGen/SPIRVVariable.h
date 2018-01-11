@@ -18,22 +18,22 @@ namespace Tracy
 	struct var_decoration<false>
 	{
 		template <class... Ts>
-		var_decoration(Ts&& ... _args) {} // consume arguments
-		var_decoration(const var_decoration& _Other) {}
-		var_decoration(var_decoration&& _Other) {}
-		inline const var_decoration& operator=(var_decoration&& _Other) const { return *this; }
-		inline const var_decoration& operator=(const var_decoration& _Other) const { return *this; }
+		var_decoration(Ts&& ... _args) noexcept {} // consume arguments
+		//var_decoration(const var_decoration& _Other) {}
+		//var_decoration(var_decoration&& _Other) noexcept {}
+		inline const var_decoration& operator=(var_decoration&& _Other) const noexcept { return *this; }
+		inline const var_decoration& operator=(const var_decoration& _Other) const noexcept { return *this; }
 		template <class T>
 		inline const var_decoration& operator=(T&& _Other) const { return *this; }
 		template <class T>
 		inline const var_decoration& operator=(const T& _Other) const { return *this; }
-		inline void Store() const {};
-		inline uint32_t Load() const { return HUNDEFINED32; };
-		inline void Decorate(const SPIRVDecoration& _Decoration) {};
-		inline void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet) {}
-		inline void SetLocation(const uint32_t _uLocation) {}
-		inline void SetIdentifier(const uint32_t _uIdentifier) {}
-		inline void MaterializeDecorations() const {};
+		inline void Store() const noexcept {};
+		inline uint32_t Load() const noexcept { return HUNDEFINED32; };
+		inline void Decorate(const SPIRVDecoration& _Decoration) noexcept {};
+		inline void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet) noexcept {}
+		inline void SetLocation(const uint32_t _uLocation) noexcept {}
+		inline void SetIdentifier(const uint32_t _uIdentifier) noexcept {}
+		inline void MaterializeDecorations() const noexcept {};
 	};
 
 	template <>
@@ -79,11 +79,11 @@ namespace Tracy
 
 		var_decoration(const spv::StorageClass _kStorageClass) : kStorageClass(_kStorageClass) {};
 		var_decoration(const var_decoration<true>& _Other);
-		var_decoration(var_decoration<true>&& _Other);
+		var_decoration(var_decoration<true>&& _Other) noexcept;
 		virtual ~var_decoration();
 
 		const var_decoration& operator=(const var_decoration& _Other) const;
-		const var_decoration& operator=(var_decoration&& _Other) const;
+		const var_decoration& operator=(var_decoration&& _Other) const noexcept;
 	};
 
 	//---------------------------------------------------------------------------------------------------

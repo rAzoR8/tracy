@@ -137,13 +137,13 @@ namespace Tracy::detail
 
 	static const std::unordered_map<EColorChannel, vk::ComponentSwizzle> g_VkChannelSwizzle =
 	{
-		{kChannel_Identity,		vk::ComponentSwizzle::eIdentity},
-		{kChannel_Zero,			vk::ComponentSwizzle::eZero},
-		{kChannel_One,			vk::ComponentSwizzle::eOne},
-		{kChannel_Red,			vk::ComponentSwizzle::eR},
-		{kChannel_Green,		vk::ComponentSwizzle::eG},
-		{kChannel_Blue,			vk::ComponentSwizzle::eB},
-		{kChannel_Alpha,		vk::ComponentSwizzle::eA}
+		{kColorChannel_Identity,		vk::ComponentSwizzle::eIdentity},
+		{kColorChannel_Zero,			vk::ComponentSwizzle::eZero},
+		{kColorChannel_One,				vk::ComponentSwizzle::eOne},
+		{kColorChannel_Red,				vk::ComponentSwizzle::eR},
+		{kColorChannel_Green,			vk::ComponentSwizzle::eG},
+		{kColorChannel_Blue,			vk::ComponentSwizzle::eB},
+		{kColorChannel_Alpha,			vk::ComponentSwizzle::eA}
 	};
 
 	static const vk::ComponentSwizzle GetSwizzle(const EColorChannel _kChannel)
@@ -222,11 +222,44 @@ namespace Tracy::detail
 		vk::StencilOp::eIncrementAndWrap,
 		vk::StencilOp::eDecrementAndWrap
 	};
+
+	static const vk::Filter g_VkFilter[kSamplerFilter_NumOf] = 
+	{
+		vk::Filter::eNearest,
+		vk::Filter::eLinear
+	};
+
+	static const vk::SamplerMipmapMode g_VkMipmapMode[kSamplerMipmapMode_NumOf] =
+	{
+		vk::SamplerMipmapMode::eNearest,
+		vk::SamplerMipmapMode::eLinear
+	};
+
+	static const vk::SamplerAddressMode g_VkAddressMode[kSamplerAddressMode_NumOf] =
+	{
+		vk::SamplerAddressMode::eRepeat,
+		vk::SamplerAddressMode::eMirroredRepeat,
+		vk::SamplerAddressMode::eClampToEdge,
+		vk::SamplerAddressMode::eClampToBorder,
+		vk::SamplerAddressMode::eMirrorClampToEdge
+	};
+
+	static const vk::BorderColor g_VkBorderColor[kSamplerBorderColor_NumOf] =
+	{
+		vk::BorderColor::eFloatTransparentBlack,
+		vk::BorderColor::eIntTransparentBlack,
+		vk::BorderColor::eFloatOpaqueBlack,
+		vk::BorderColor::eIntOpaqueBlack,
+		vk::BorderColor::eFloatOpaqueWhite,
+		vk::BorderColor::eIntOpaqueWhite
+	};
 }
 //---------------------------------------------------------------------------------------------------
 
 namespace Tracy
 {
+	inline constexpr vk::Bool32 vkBool(const bool _value) { return _value ? VK_TRUE : VK_FALSE; }
+
 	inline vk::PrimitiveTopology GetPrimitiveTopology(const EPrimitiveTopology _kTopo)
 	{
 		HASSERTD(_kTopo < kPrimitiveTopology_NumOf, "Invalid Primitive Topology");
@@ -281,13 +314,66 @@ namespace Tracy
 	{
 		vk::PipelineDepthStencilStateCreateInfo Info{};
 
-		Info.stencilTestEnable = _Desc.bStencilTestEnabled ? VK_TRUE : VK_FALSE;
-		Info.depthTestEnable = _Desc.bDepthTestEnabled ? VK_TRUE : VK_FALSE;
-		Info.depthWriteEnable = _Desc.bDepthWriteEnabled ? VK_TRUE : VK_FALSE;
+		Info.stencilTestEnable = vkBool(_Desc.bStencilTestEnabled);
+		Info.depthTestEnable = vkBool(_Desc.bDepthTestEnabled);
+		Info.depthWriteEnable = vkBool(_Desc.bDepthWriteEnabled);
 
 		Info.depthCompareOp = GetCompareOp(_Desc.kDepthCompareOp);
 		Info.front = GetStencilOpState(_Desc.FrontFace);
 		Info.back = GetStencilOpState(_Desc.BackFace);
+
+		return Info;
+	}
+
+	inline vk::Filter GetSamplerFilter(const ESamplerFilter _kFilter)
+	{
+		HASSERTD(_kFilter < kSamplerFilter_NumOf, "Invalid sampler filter");
+		return detail::g_VkFilter[_kFilter];
+	}
+
+	inline vk::SamplerMipmapMode GetSamplerMipmapMode(const ESamplerMipmapMode _kMode)
+	{
+		HASSERTD(_kMode < kSamplerMipmapMode_NumOf, "Invalid sampler mipmap mode");
+		return detail::g_VkMipmapMode[_kMode];
+	}
+
+	inline vk::SamplerAddressMode GetSamplerAddressMode(const ESamplerAddressMode _kMode)
+	{
+		HASSERTD(_kMode < kSamplerAddressMode_NumOf, "Invalid sampler address mode");
+		return detail::g_VkAddressMode[_kMode];
+	}
+
+	inline vk::BorderColor GetSamplerBorderColor(const ESamplerBorderColor _Color)
+	{
+		HASSERTD(_Color < kSamplerBorderColor_NumOf, "Invalid sampler border color");
+		return detail::g_VkBorderColor[_Color];
+	}
+
+	inline vk::SamplerCreateInfo GetSamplerDesc(const SamplerDesc& _Desc) 
+	{
+		vk::SamplerCreateInfo Info{};
+
+		Info.magFilter = GetSamplerFilter(_Desc.kMagFiter);
+		Info.minFilter = GetSamplerFilter(_Desc.kMinFiter);
+		Info.mipmapMode = GetSamplerMipmapMode(_Desc.kMipmapMode);
+
+		Info.addressModeU = GetSamplerAddressMode(_Desc.kAddressModeU);
+		Info.addressModeV = GetSamplerAddressMode(_Desc.kAddressModeV);
+		Info.addressModeW = GetSamplerAddressMode(_Desc.kAddressModeW);
+
+		Info.mipLodBias = _Desc.fMipLodBias;
+		Info.anisotropyEnable = vkBool(_Desc.bEnableAnisotropy);
+		Info.maxAnisotropy = _Desc.fMaxAnisotropy;
+
+		Info.compareEnable = vkBool(_Desc.bEnableCompare);
+		Info.compareOp = GetCompareOp(_Desc.kCompareOp);
+
+		Info.minLod = _Desc.fMinLod;
+		Info.maxLod = _Desc.fMaxLod;
+
+		Info.borderColor = GetSamplerBorderColor(_Desc.kBorderColor);
+
+		Info.unnormalizedCoordinates = vkBool(_Desc.bUnnormalizedCoordinates);
 
 		return Info;
 	}

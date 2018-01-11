@@ -64,14 +64,14 @@ namespace Tracy
 		size_t GetHash() const;
 		uint32_t GetSize() const; // works for primitives only
 
-		const std::vector<SPIRVType>& GetSubTypes() const;
-		const spv::Op& GetType() const;
-		const uint32_t& GetDimension() const;
-		const bool& GetSign() const;
-		const bool& GetArray() const;
-		const bool& GetMultiSampled() const;
-		const ETexDepthType& GetTexDepthType() const;
-		const ETexSamplerAccess& GetTexSamplerAccess() const;
+		const std::vector<SPIRVType>& GetSubTypes() const noexcept;
+		const spv::Op& GetType() const noexcept;
+		const uint32_t& GetDimension() const noexcept;
+		const bool& GetSign() const noexcept;
+		const bool& GetArray() const noexcept;
+		const bool& GetMultiSampled() const noexcept;
+		const ETexDepthType& GetTexDepthType() const noexcept;
+		const ETexSamplerAccess& GetTexSamplerAccess() const noexcept;
 
 		// type helpers
 		static SPIRVType Void() { return SPIRVType(spv::OpTypeVoid, 0u, false); }
@@ -85,7 +85,7 @@ namespace Tracy
 		static SPIRVType Array(const SPIRVType _Type, const uint32_t _uDimension) { return SPIRVType(spv::OpTypeArray, _Type, _uDimension); }
 		static SPIRVType Struct(const std::vector<SPIRVType>& _MemberTypes = {}) { return SPIRVType(spv::OpTypeStruct, _MemberTypes); }
 		static SPIRVType Function(const SPIRVType& _ReturnType = Void(), const std::vector<SPIRVType>& _ParameterTypes = {});
-		static SPIRVType Pointer(const SPIRVType& _Type, const spv::StorageClass _kClass = spv::StorageClassFunction) { return SPIRVType(spv::OpTypePointer, _Type, (uint32_t)_kClass); }
+		static SPIRVType Pointer(const SPIRVType& _Type, const spv::StorageClass _kClass = spv::StorageClassFunction) { return SPIRVType(spv::OpTypePointer, _Type, static_cast<uint32_t>(_kClass)); }
 		
 		static SPIRVType Image(
 			const SPIRVType& _SampledType = Float(), 
@@ -168,39 +168,35 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 
-	inline const std::vector<SPIRVType>& SPIRVType::GetSubTypes() const
+	inline const std::vector<SPIRVType>& SPIRVType::GetSubTypes() const noexcept
 	{
 		return m_SubTypes;
 	}
-	inline const spv::Op& SPIRVType::GetType() const
+	inline const spv::Op& SPIRVType::GetType() const noexcept
 	{
 		return m_kBaseType;
 	}
-	inline const uint32_t& SPIRVType::GetDimension() const
+	inline const uint32_t& SPIRVType::GetDimension() const noexcept
 	{
 		return m_uDimension;
 	}
-	inline const bool& SPIRVType::GetSign() const
+	inline const bool& SPIRVType::GetSign() const noexcept
 	{
 		return m_bSign;
 	}
-
-	inline const bool& SPIRVType::GetArray() const
+	inline const bool& SPIRVType::GetArray() const noexcept
 	{
 		return m_bArray;
 	}
-
-	inline const bool& SPIRVType::GetMultiSampled() const
+	inline const bool& SPIRVType::GetMultiSampled() const noexcept
 	{
 		return m_bMultiSampled;
 	}
-
-	inline const ETexDepthType& SPIRVType::GetTexDepthType() const
+	inline const ETexDepthType& SPIRVType::GetTexDepthType() const noexcept
 	{
 		return m_kTexDepthType;
 	}
-
-	inline const ETexSamplerAccess& SPIRVType::GetTexSamplerAccess() const
+	inline const ETexSamplerAccess& SPIRVType::GetTexSamplerAccess() const noexcept
 	{
 		return m_kSamplerAccess;
 	}

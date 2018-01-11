@@ -17,7 +17,7 @@ namespace Tracy
 	{
 	public:
 		// invalid
-		SPIRVDecoration() {}
+		SPIRVDecoration() noexcept {}
 
 		// explicit
 		SPIRVDecoration(

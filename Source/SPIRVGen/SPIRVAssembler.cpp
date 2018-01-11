@@ -4,7 +4,7 @@
 
 using namespace Tracy;
 
-SPIRVAssembler::SPIRVAssembler()
+SPIRVAssembler::SPIRVAssembler() noexcept
 {
 	m_Operations.reserve(4096u);
 }
@@ -32,8 +32,9 @@ SPIRVModule SPIRVAssembler::Assemble()
 	Module.SetExtensions(m_Extensions);
 
 	// copy accumulated variable info
-	for (auto&[id, var] : m_UsedVariables)
+	for (auto& kv : m_UsedVariables)
 	{
+		VariableInfo& var = kv.second;
 		if (var.kStorageClass != spv::StorageClassFunction)
 		{
 			var.uHash = var.ComputeHash();
@@ -75,8 +76,8 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	m_PreambleOpIds.clear();
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityShader))));
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, (uint32_t)spv::CapabilityInputAttachment))));
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityShader)))));
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityInputAttachment)))));
 
 	// OpExtension (unused)
 
@@ -93,7 +94,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	// OpEntryPoint
 	// Op1: Execution model
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, (uint32_t)_kModel)), &m_pOpEntryPoint));
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_kModel))), &m_pOpEntryPoint));
 
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode));
 
@@ -104,14 +105,14 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 		spv::OpFunction,
 		AddType(SPIRVType::Void()), // result type
 		{
-			SPIRVOperand(kOperandType_Literal, (uint32_t)spv::FunctionControlMaskNone), // function control
+			SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::FunctionControlMaskNone)), // function control
 			SPIRVOperand(kOperandType_Intermediate, uFunctionTypeId), // function type
 		}));
 
 	AddPreambleId(uFuncId);
 
 	m_pOpExeutionMode->AddIntermediate(uFuncId);
-	m_pOpExeutionMode->AddLiteral((uint32_t)_kMode);
+	m_pOpExeutionMode->AddLiteral(static_cast<uint32_t>(_kMode));
 
 	// Op2: entry point id must be the result id of an OpFunction instruction
 	m_pOpEntryPoint->AddIntermediate(uFuncId);
@@ -190,7 +191,7 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 		break; // nothing to do
 	case spv::OpTypeInt:
 		OpType.AddLiteral(_Type.GetDimension()); // bitwidth
-		OpType.AddLiteral(static_cast<uint32_t>(_Type.GetSign())); // sign bit
+		OpType.AddLiteral(uint32_t(_Type.GetSign())); // sign bit
 		break;
 	case spv::OpTypeFloat:
 		OpType.AddLiteral(_Type.GetDimension()); // bitwidth
@@ -233,10 +234,10 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 		OpType.AddIntermediate(SubTypes.front()); // sampled type
 		OpType.AddLiteral(_Type.GetDimension()); // spv::Dim
 		OpType.AddLiteral(_Type.GetTexDepthType());
-		OpType.AddLiteral((uint32_t)_Type.GetArray());
-		OpType.AddLiteral((uint32_t)_Type.GetMultiSampled());
+		OpType.AddLiteral(uint32_t(_Type.GetArray()));
+		OpType.AddLiteral(uint32_t(_Type.GetMultiSampled()));
 		OpType.AddLiteral(_Type.GetTexSamplerAccess());
-		OpType.AddLiteral((uint32_t)spv::ImageFormatUnknown); // any format
+		OpType.AddLiteral(static_cast<uint32_t>(spv::ImageFormatUnknown)); // any format
 		// If Dim is SubpassData, Sampled must be 2, Image Format must be Unknown, and the Execution Model must be Fragment.
 		break;
 	case spv::OpTypeSampledImage:
@@ -269,7 +270,7 @@ uint32_t SPIRVAssembler::AddConstant(const SPIRVConstant& _Constant)
 
 	// resolve type first to enforce result id ordering
 	const SPIRVType& CompositeType(_Constant.GetCompositeType());
-	spv::Op kType = _Constant.GetType();
+	const spv::Op kType = _Constant.GetType();
 	SPIRVOperation OpConstant(kType, AddType(CompositeType));
 
 	switch (kType)
@@ -314,7 +315,7 @@ void SPIRVAssembler::Resolve()
 	HASSERT(m_Operations.size() > 3, "Insufficient operations");
 
 	// check if op is actually used
-	auto TranslateOp = [this](SPIRVOperation& _Op)
+	const auto TranslateOp = [this](SPIRVOperation& _Op)
 	{
 		if (_Op.GetUsed() && _Op.GetTranslated() == false)
 		{
@@ -335,7 +336,7 @@ void SPIRVAssembler::Resolve()
 	// find input / output vars
 	ForEachOp([this](SPIRVOperation& Op)
 	{
-		spv::StorageClass kClass = GetStorageClass(Op);
+		const spv::StorageClass kClass = GetStorageClass(Op);
 		if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
 		{
 			m_pOpEntryPoint->AddIntermediate(Op.m_uInstrId);
@@ -463,10 +464,10 @@ SPIRVInstruction SPIRVAssembler::Translate(SPIRVOperation& _Op)
 	std::vector<uint32_t> Operands;
 	uint32_t uTypeId = SPIRVInstruction::kInvalidId;
 
-	auto ResolveId = [&](uint32_t id) -> uint32_t
+	const auto ResolveId = [&](uint32_t id) -> uint32_t
 	{
 		HASSERT(id < m_Operations.size(), "Invalid operand Id");
-		uint32_t uResolvedId = m_Operations[id].m_uResultId;
+		const uint32_t uResolvedId = m_Operations[id].m_uResultId;
 		HASSERT(uResolvedId != SPIRVInstruction::kInvalidId, "Unresolved id");
 		return uResolvedId;
 	};

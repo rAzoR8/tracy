@@ -9,12 +9,14 @@
 
 namespace Tracy
 {
-	inline bool is_type_op(spv::Op _Op) {return _Op >= spv::OpTypeVoid && _Op <= spv::OpTypeForwardPointer; };
-	inline bool is_const_op (spv::Op _Op) {return _Op >= spv::OpConstantTrue && _Op <= spv::OpSpecConstantOp; };
-	inline bool is_type_or_const_op(spv::Op _Op) { return is_type_op(_Op) || is_const_op(_Op); }	
-	inline bool is_decorate_op (spv::Op _Op) {return _Op >= spv::OpDecorate && _Op <= spv::OpGroupMemberDecorate; };
-	inline bool is_var_op(spv::Op _Op) {return _Op == spv::OpVariable; };
-	inline bool is_name_op(spv::Op _Op) { return _Op == spv::OpName || _Op == spv::OpMemberName; };
+	using namespace hlx;
+
+	inline constexpr bool is_type_op(spv::Op _Op) {return _Op >= spv::OpTypeVoid && _Op <= spv::OpTypeForwardPointer; };
+	inline constexpr bool is_const_op (spv::Op _Op) {return _Op >= spv::OpConstantTrue && _Op <= spv::OpSpecConstantOp; };
+	inline constexpr bool is_type_or_const_op(spv::Op _Op) { return is_type_op(_Op) || is_const_op(_Op); }	
+	inline constexpr bool is_decorate_op (spv::Op _Op) {return _Op >= spv::OpDecorate && _Op <= spv::OpGroupMemberDecorate; };
+	inline constexpr bool is_var_op(spv::Op _Op) {return _Op == spv::OpVariable; };
+	inline constexpr bool is_name_op(spv::Op _Op) { return _Op == spv::OpName || _Op == spv::OpMemberName; };
 
 	// forward decls
 	template <bool Assemble>
@@ -30,8 +32,8 @@ namespace Tracy
 	public:
 		using TIdMap = std::unordered_map<size_t, uint32_t>;
 
-		SPIRVAssembler();
-		~SPIRVAssembler();
+		SPIRVAssembler() noexcept;
+		virtual ~SPIRVAssembler();
 
 		// todo: check if SPIRVProgam<true> is base of TProg with enable if
 		// also check if TProg has a function operator / is callable
@@ -67,21 +69,21 @@ namespace Tracy
 
 		void AddVariableInfo(const var_decoration<true>& _Var);
 
-		void SetDefaults();
-		void UseDefaultSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u);
-		void UseDefaultSpecConstId(const uint32_t _uStartId = 0u);
-		void UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex = 0u);
+		void SetDefaults() noexcept;
+		void UseDefaultSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u) noexcept;
+		void UseDefaultSpecConstId(const uint32_t _uStartId = 0u) noexcept;
+		void UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex = 0u) noexcept;
 
-		void ForceNextLoads(const bool _bForce = true);
-		bool GetForceNextLoads() const;
+		void ForceNextLoads(const bool _bForce = true) noexcept;
+		bool GetForceNextLoads() const noexcept;
 
-		const uint32_t& GetDefaultSet() const;
+		const uint32_t& GetDefaultSet() const noexcept;
 		const uint32_t GetCurrentBinding(const uint32_t _uSet);
 
-		const uint32_t GetCurrentInputLocation();
-		const uint32_t GetCurrentOutputLocation();
-		const uint32_t GetCurrentSpecConstId();
-		const uint32_t GetCurrentInputAttchmentIndex();
+		const uint32_t GetCurrentInputLocation() noexcept;
+		const uint32_t GetCurrentOutputLocation() noexcept;
+		const uint32_t GetCurrentSpecConstId() noexcept;
+		const uint32_t GetCurrentInputAttchmentIndex() noexcept;
 
 	private:
 		// TODO: add support for compute mode settings (LocalSizeId etc)
@@ -154,41 +156,41 @@ namespace Tracy
 		std::unordered_map<uint32_t, VariableInfo> m_UsedVariables; // info on loaded / stored variables
 	};
 	//---------------------------------------------------------------------------------------------------
-	inline void SPIRVAssembler::SetDefaults()
+	inline void SPIRVAssembler::SetDefaults() noexcept
 	{
 		UseDefaultSetLocation();
 		UseDefaultSpecConstId();
 		UseDefaultInputAttachmentIndex();
 	}
 
-	inline void SPIRVAssembler::UseDefaultSetLocation(const uint32_t _uDefaultSet, const uint32_t _uDefaulInputLocation, const uint32_t _uDefaultOutputLocation)
+	inline void SPIRVAssembler::UseDefaultSetLocation(const uint32_t _uDefaultSet, const uint32_t _uDefaulInputLocation, const uint32_t _uDefaultOutputLocation) noexcept
 	{
 		m_uDefaultSet = _uDefaultSet;
 		m_uCurrentInputLocation = _uDefaulInputLocation;
 		m_uCurrentOutputLocation = _uDefaultOutputLocation;
 	}
 
-	inline void SPIRVAssembler::UseDefaultSpecConstId(const uint32_t _uStartId)
+	inline void SPIRVAssembler::UseDefaultSpecConstId(const uint32_t _uStartId) noexcept
 	{
 		m_uCurrentSpecConstId = _uStartId;
 	}
 
-	inline void SPIRVAssembler::UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex)
+	inline void SPIRVAssembler::UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex) noexcept
 	{
 		m_uCurrentInputAttachmentIndex = _uStartIndex;
 	}
 
-	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce)
+	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce) noexcept
 	{
 		m_bForceNextLoads = _bForce;
 	}
 
-	inline bool SPIRVAssembler::GetForceNextLoads() const
+	inline bool SPIRVAssembler::GetForceNextLoads() const noexcept
 	{
 		return m_bForceNextLoads;
 	}
 
-	inline const uint32_t& SPIRVAssembler::GetDefaultSet() const
+	inline const uint32_t& SPIRVAssembler::GetDefaultSet() const noexcept
 	{
 		return m_uDefaultSet;
 	}
@@ -208,24 +210,24 @@ namespace Tracy
 		}
 	}
 
-	inline const uint32_t SPIRVAssembler::GetCurrentInputLocation()
+	inline const uint32_t SPIRVAssembler::GetCurrentInputLocation() noexcept
 	{
 		// TODO: assert if to high
 		return m_uCurrentInputLocation++;
 	}
 
-	inline const uint32_t SPIRVAssembler::GetCurrentOutputLocation()
+	inline const uint32_t SPIRVAssembler::GetCurrentOutputLocation() noexcept
 	{
 		// TODO: assert if to high
 		return m_uCurrentOutputLocation++;
 	}
 
-	inline const uint32_t SPIRVAssembler::GetCurrentSpecConstId()
+	inline const uint32_t SPIRVAssembler::GetCurrentSpecConstId() noexcept
 	{
 		return m_uCurrentSpecConstId++;
 	}
 
-	inline const uint32_t SPIRVAssembler::GetCurrentInputAttchmentIndex()
+	inline const uint32_t SPIRVAssembler::GetCurrentInputAttchmentIndex() noexcept
 	{
 		return m_uCurrentInputAttachmentIndex++;
 	}

@@ -61,6 +61,11 @@ namespace Tracy
 			}			
 		}
 
+		inline virtual ~RefCounted()
+		{
+			Reset();
+		}
+
 		// default / null constructor
 		inline constexpr RefCounted(std::nullptr_t p = nullptr) noexcept : m_pRef(nullptr) {}
 

@@ -284,3 +284,11 @@ const bool VulkanDevice::DestroyCommandBuffers(const vk::QueueFlagBits _kQueueTy
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
+
+const bool VulkanDevice::CreateSampler(const SamplerDesc& _Desc, vk::Sampler& _OutSampler)
+{
+	vk::SamplerCreateInfo Info = GetSamplerDesc(_Desc);
+	return LogVKErrorBool(m_Device.createSampler(&Info, nullptr, &_OutSampler));
+}
+
+//---------------------------------------------------------------------------------------------------
