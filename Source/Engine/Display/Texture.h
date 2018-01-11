@@ -1,5 +1,5 @@
-#ifndef _TRACY_TEXTURE_H_
-#define _TRACY_TEXTURE_H_
+#ifndef _TRACY_TEXTURE_H
+#define _TRACY_TEXTURE_H
 
 #include "StandardDefines.h"
 #include "DisplayTypes.h"
@@ -7,30 +7,7 @@
 
 namespace Tracy
 {
-	struct TexAPIData 
-	{
-		TexAPIData(){}
-		virtual ~TexAPIData() {}
-	};
-
-	struct TextureRefEntry
-	{
-		TextureRefEntry() {}
-
-		TextureRefEntry(const TextureDesc& _Desc, TexAPIData* pAPIData = nullptr) :
-			Desc(_Desc), pAPIData(pAPIData) {}
-
-		virtual ~TextureRefEntry()
-		{
-			if (pAPIData != nullptr)
-			{
-				delete pAPIData;
-			}
-		}
-
-		TextureDesc Desc;
-		TexAPIData* pAPIData;
-	};
+	using TextureRefEntry = RefEntry<TextureDesc>;
 
 	struct TextureSubresource
 	{
@@ -55,10 +32,6 @@ namespace Tracy
 	protected:
 		Texture(const TextureDesc& _Desc);
 
-#define TEXAPI(_apiType) \
-		inline _apiType& GetAPIData() const { return *reinterpret_cast<_apiType*>(Get().pAPIData); } \
-		__declspec(property(get = GetAPIData)) _apiType& API;
-
 	public:
 		virtual ~Texture() {}
 
@@ -73,12 +46,12 @@ namespace Tracy
 		const EUsageFlag GetUsage() const;
 	};
 
-	inline const uint16_t Texture::GetWidth() const { return Get().Desc.uWidth; }
-	inline const uint16_t Texture::GetHeight() const { return Get().Desc.uHeight; }
-	inline const uint16_t Texture::GetDepth() const { return Get().Desc.uDepth; }
-	inline const EFormat Texture::GetFormat() const { return Get().Desc.kFormat; }
-	inline const ETextureType Texture::GetType() const { return Get().Desc.kType; }
-	inline const EUsageFlag Texture::GetUsage() const { return Get().Desc.kUsageFlag; }
+	inline const uint16_t Texture::GetWidth() const { return Get().Data.uWidth; }
+	inline const uint16_t Texture::GetHeight() const { return Get().Data.uHeight; }
+	inline const uint16_t Texture::GetDepth() const { return Get().Data.uDepth; }
+	inline const EFormat Texture::GetFormat() const { return Get().Data.kFormat; }
+	inline const ETextureType Texture::GetType() const { return Get().Data.kType; }
+	inline const EUsageFlag Texture::GetUsage() const { return Get().Data.kUsageFlag; }
 }
-#endif // !_TRACY_TEXTURE_H_
+#endif // !_TRACY_TEXTURE_H
 

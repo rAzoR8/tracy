@@ -169,6 +169,52 @@ namespace Tracy
 		// (but that is only possible with spinlocks or mutexes so we ignore the race condition for now and hope for the best)
 		TBaseRef* m_pRef = nullptr;
 	};
+
+	struct APIData 
+	{
+		APIData() {}
+		virtual ~APIData() {} // we just need a virtual destructor
+	};
+
+	template <class GeneralData>
+	struct RefEntry
+	{
+		RefEntry() {}
+		RefEntry(const GeneralData& _Data) : Data(_Data) {}
+
+		virtual ~RefEntry()
+		{
+			if (pAPIData != nullptr) // takes ownership of pApiData
+			{
+				delete pAPIData;
+				pAPIData = nullptr;
+			}
+		}
+
+		GeneralData Data;
+
+		template <class TAPIData, class ...Args>
+		void ConstructAPIData(Args&& ... _Args)
+		{
+			if (pAPIData == nullptr)
+			{
+				pAPIData = new TAPIData(std::forward<Args>(_Args)...);
+			}
+		}
+
+		template <class TAPIData>
+		TAPIData& GetAPIData() const { return *reinterpret_cast<TAPIData*>(pAPIData); }
+
+	private:
+		APIData* pAPIData = nullptr;
+	};
+
+#ifndef REFAPI
+#define REFAPI(_apiType) \
+		inline _apiType& GetAPIData() const { return Get().GetAPIData<_apiType>(); } \
+		__declspec(property(get = GetAPIData)) _apiType& API;
+#endif
+
 } // Tracy
 
 #endif // !TRACY_REFCOUNTED_H

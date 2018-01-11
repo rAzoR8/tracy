@@ -10,7 +10,6 @@ namespace Tracy
 {
 	struct PipelineDesc
 	{
-
 		struct ShaderDesc
 		{
 			ShaderID Identifier;
@@ -42,6 +41,13 @@ namespace Tracy
 		// DepthStencil State
 		DepthStencilStateDesc DepthStencilState;
 
+		struct MappedSampler
+		{
+			std::string sName;
+			SamplerDesc Desc;
+		};
+
+		std::vector<MappedSampler> Samplers;
 	};
 
 	struct InputDependency

@@ -233,6 +233,13 @@ const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocatio
 }
 //---------------------------------------------------------------------------------------------------
 
+void VulkanDevice::DestroyTexture(const vk::Image& _Image)
+{
+	// TODO: allocation and stuff
+	m_Device.destroyImage(_Image);
+}
+//---------------------------------------------------------------------------------------------------
+
 const bool VulkanDevice::CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount)
 {
 	vk::CommandBufferAllocateInfo Info{};

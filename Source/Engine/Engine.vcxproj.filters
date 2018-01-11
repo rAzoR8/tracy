@@ -155,6 +155,12 @@
     <ClInclude Include="Display\ImageSource.h">
       <Filter>Display</Filter>
     </ClInclude>
+    <ClInclude Include="Display\GPUBuffer.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanBuffer.h">
+      <Filter>Display\Vulkan\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -205,5 +211,7 @@
     <ClCompile Include="Datastructures\BinaryKeyValueBufferSource.cpp">
       <Filter>Datastructures</Filter>
     </ClCompile>
+    <ClCompile Include="Display\GPUBuffer.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanBuffer.cpp" />
   </ItemGroup>
 </Project>

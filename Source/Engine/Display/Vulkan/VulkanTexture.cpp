@@ -1,7 +1,25 @@
 #include "VulkanTexture.h"
 #include "VulkanInstance.h"
+#include "VulkanTypeConversion.h"
+
 
 using namespace Tracy;
+
+//---------------------------------------------------------------------------------------------------
+
+VkTexData::VkTexData(const TextureDesc& _Desc) : hDevice(_Desc.hDevice)
+{
+	GetDevice(hDevice).CreateTexture(_Desc, Allocation, hImage);
+
+	// TODO: layout
+}
+//---------------------------------------------------------------------------------------------------
+
+VkTexData::~VkTexData()
+{
+	// TODO: destroy views first
+	GetDevice(hDevice).DestroyTexture(hImage);
+}
 //---------------------------------------------------------------------------------------------------
 
 VulkanTexture::VulkanTexture(const TextureDesc& _Desc) :
@@ -9,10 +27,7 @@ VulkanTexture::VulkanTexture(const TextureDesc& _Desc) :
 {
 	if (IsValidRef())
 	{
-		Ref.pAPIData = new VkTexData(); // deleted by RefCounted	
-		GetDevice().CreateTexture(_Desc, API.Allocation, API.hImage);
-
-		// TODO: layout
+		Ref.ConstructAPIData<VkTexData>(_Desc); // deleted by RefCounted	
 	}
 }
 

@@ -1,19 +1,20 @@
 #ifndef TRACY_VULKANTEXTURE_H
 #define TRACY_VULKANTEXTURE_H
 
-#include "StandardDefines.h"
-
 #include "VulkanMemoryAllocator.h"
-#include "VulkanTypeConversion.h"
-#include "../Texture.h"
+#include "Display\Texture.h"
 
 namespace Tracy
 {
-	struct VkTexData : public TexAPIData
+	struct VkTexData : public APIData
 	{
+		VkTexData(const TextureDesc& _Desc);
+		~VkTexData();
+
+		const THandle hDevice;
 		vk::Image hImage;
 		// todo: get image into desired layout
-		vk::ImageLayout hLayout;
+		//vk::ImageLayout hLayout;
 		VulkanAllocation Allocation;
 		std::unordered_map<THandle, vk::ImageView> Views;
 	};
@@ -22,7 +23,7 @@ namespace Tracy
 	class VulkanTexture : public Texture
 	{
 	public:
-		// use device to destroy resource, default destructor can't do it, need device who created the base resource
+		VulkanTexture(const TextureDesc& _Desc);
 		virtual ~VulkanTexture();
 
 		inline const bool IsValidTex() const { return IsValidRef() && API.hImage; }
@@ -32,12 +33,10 @@ namespace Tracy
 
 		const bool Resize(const uint32_t _uWidth, const uint32_t _uHeight);
 
-		VulkanTexture(const TextureDesc& _Desc);
-
 		REFCOUNT_INTERFACE(VulkanTexture, Texture);
 
 	protected:
-		TEXAPI(VkTexData);
+		REFAPI(VkTexData);
 	};
 	//---------------------------------------------------------------------------------------------------
 

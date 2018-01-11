@@ -20,7 +20,7 @@ namespace Tracy
 	class VulkanDevice : public IDevice
 	{
 		friend class VulkanInstance;
-		friend class VulkanTexture;
+		friend struct VkTexData;
 		friend class VulkanRenderGraph;
 		friend class VulkanRenderPass;
 
@@ -79,6 +79,8 @@ namespace Tracy
 
 		// Textures
 		const bool CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
+
+		void DestroyTexture(const vk::Image& _Image);
 
 		const bool CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount = 1u);
 

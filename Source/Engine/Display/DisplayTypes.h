@@ -1,7 +1,7 @@
 #ifndef TRACY_DISPLAYTYPES_H
 #define TRACY_DISPLAYTYPES_H
 
-#include <stdint.h>
+#include "StandardDefines.h"
 
 namespace Tracy
 {
@@ -898,6 +898,12 @@ namespace Tracy
 		EUsageFlag kUsageFlag = kUsageFlag_None;
 		ETextureType kType = kTextureType_Invalid;
 		std::string sName = "NewTexture";
+	};
+
+	struct BufferDesc
+	{
+		// fill me
+		THandle hDevice = 0u; // Owner
 	};
 } // Tracy
 

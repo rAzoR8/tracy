@@ -134,6 +134,9 @@ namespace Tracy
 		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
 		vk::PipelineCache m_PipelineCache = nullptr;
 
+		// name hash -> sampler
+		std::unordered_map<uint64_t, vk::Sampler> m_MappedSamplers;
+
 		// todo: make a ringbuffer of commanbuffers that can be pre recorded with static objects
 		// and replayed when the are visible (again)
 		vk::CommandBuffer m_CommandBuffer;
