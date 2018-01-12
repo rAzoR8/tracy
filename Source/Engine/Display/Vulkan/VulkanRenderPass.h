@@ -14,6 +14,7 @@ namespace Tracy
 	{
 		friend class VulkanRenderGraph;
 	public:
+#pragma region Types
 		struct IOnPerObject
 		{
 			virtual bool OnPerObject(VulkanRenderPass& _Pass, RenderObject* _pObject) = 0;
@@ -46,6 +47,25 @@ namespace Tracy
 			std::vector<vk::Viewport> Viewports;
 			std::vector<vk::Rect2D> Scissors;
 		};
+
+		struct DescriptorPoolDesc
+		{
+			void Reset() { memset(this, 0, sizeof(DescriptorPoolDesc)); }
+			uint32_t uCombinedImageSampler = 64u;
+			uint32_t uInputAttachment = 8u;
+			uint32_t uSampledImage = 64u;
+			uint32_t uSampler = 64u;
+			uint32_t uStorageBuffer = 64u;
+			uint32_t uStorageBufferDynamic = 64u;
+			uint32_t uStorageImage = 64u;
+			uint32_t uStorageTexelBuffer = 64u;
+			uint32_t uUniformBuffer = 64u;
+			uint32_t uUniformBufferDynamic = 64u;
+			uint32_t uUniformTexelBuffer = 64u;
+
+			uint32_t uMaxSets = 1024;
+		};
+#pragma endregion
 
 		VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
 		~VulkanRenderPass();
@@ -86,7 +106,7 @@ namespace Tracy
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
 
-		bool CreateDescriptorPool();
+		bool CreateDescriptorPool(const DescriptorPoolDesc& _Desc);
 
 		const vk::CommandBuffer& GetCommandBuffer() const;
 

@@ -73,6 +73,13 @@ namespace Tracy
 		const ETexDepthType& GetTexDepthType() const noexcept;
 		const ETexSamplerAccess& GetTexSamplerAccess() const noexcept;
 
+		const bool IsPrimitve() const;
+		const bool IsArray() const;
+		const bool IsStruct() const;
+		const bool IsImage() const;
+		const bool IsSampler() const;
+		const bool IsSampledImage() const;
+
 		// type helpers
 		static SPIRVType Void() { return SPIRVType(spv::OpTypeVoid, 0u, false); }
 		static SPIRVType Bool() { return SPIRVType(spv::OpTypeBool, 0u, false); }
@@ -199,6 +206,31 @@ namespace Tracy
 	inline const ETexSamplerAccess& SPIRVType::GetTexSamplerAccess() const noexcept
 	{
 		return m_kSamplerAccess;
+	}
+
+	inline const bool SPIRVType::IsImage() const
+	{
+		return m_kBaseType == spv::OpTypeImage;
+	}
+	inline const bool SPIRVType::IsSampler() const
+	{
+		return m_kBaseType == spv::OpTypeSampler;
+	}
+	inline const bool SPIRVType::IsSampledImage() const
+	{
+		return m_kBaseType == spv::OpTypeSampledImage;
+	}
+	inline const bool SPIRVType::IsPrimitve() const
+	{
+		return m_kBaseType >= spv::OpTypeBool && m_kBaseType <= spv::OpTypeMatrix;
+	}
+	inline const bool SPIRVType::IsArray() const
+	{
+		return m_kBaseType == spv::OpTypeArray || m_kBaseType == spv::OpTypeRuntimeArray;
+	}
+	inline const bool SPIRVType::IsStruct() const
+	{
+		return m_kBaseType == spv::OpTypeStruct;
 	}
 
 	inline SPIRVType SPIRVType::Function(const SPIRVType& _ReturnType, const std::vector<SPIRVType>& _ParameterTypes)

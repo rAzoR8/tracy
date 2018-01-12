@@ -43,7 +43,44 @@ bool VulkanRenderPass::Initialize()
 	if (LoadPipelineCache(m_Description.sPassName + L"_pipeline.cache") == false)
 		return false;
 
-	if (CreateDescriptorPool() == false)
+	// estimate descriptor pool sizes
+	DescriptorPoolDesc PoolDesc{};
+	if (m_Description.DefaultPipelines.empty())
+	{
+		PoolDesc.uSampledImage = 0u;
+		PoolDesc.uSampler = 0u;
+		PoolDesc.uUniformBuffer = 0u;
+
+		std::array<uint32_t, 16u> SetRates; SetRates.fill(0);
+		for (const DescriptorSetRate& Rate : m_Description.DescriptorSetRates)
+		{
+			if (Rate.uSet < SetRates.size())
+			{
+				SetRates[Rate.uSet] = Rate.uCount; // todo: devided by number of variables per set?
+			}
+		}
+
+		const PipelineDesc& Pipeline = m_Description.DefaultPipelines.front();
+		for (const PipelineDesc::ShaderDesc& Shader : Pipeline.Shaders)
+		{
+			SelectShader(Shader.Identifier);
+		}
+
+		for (uint32_t i = 0u; i < kShaderType_NumOf; ++i) 
+		{
+			if (m_ActiveShaders[i] != nullptr)
+			{
+				for (const VariableInfo& var : m_ActiveShaders[i]->Code.GetVariables())
+				{
+					PoolDesc.uSampledImage	+= (var.Type.IsImage() ? 1 : 0) * SetRates[var.uDescriptorSet];
+					PoolDesc.uSampler		+= (var.Type.IsSampler() ? 1 : 0) * SetRates[var.uDescriptorSet];
+					PoolDesc.uUniformBuffer += ((var.Type.IsPrimitve() || var.Type.IsStruct()) ? 1 : 0) * SetRates[var.uDescriptorSet]; // actually also need to check storage class for uniform, but we dont care, this is just an approximation
+				}
+			}
+		}		
+	}
+
+	if (CreateDescriptorPool(PoolDesc) == false)
 		return false;
 
 	auto InitPipeline = [&](const PipelineDesc& _Pipeline) -> bool
@@ -51,7 +88,7 @@ bool VulkanRenderPass::Initialize()
 		// load the shader
 		for (const PipelineDesc::ShaderDesc& Shader : _Pipeline.Shaders)
 		{
-			SelectShader(Shader.Identifier, nullptr/*, Shader.UserData.data(), Shader.UserData.size()*/);
+			SelectShader(Shader.Identifier);
 		}
 
 		// create pipeline but dont bind to commandbuffer
@@ -408,7 +445,7 @@ bool VulkanRenderPass::BeginPass()
 	//PassInfo.renderPass = m_Renderpass;
 	//PassInfo.framebuffer = m_FrameBuffer;
 
-	BufferInfo.subpass = m_Description.bSubPass ? m_uPassIndex : 0;
+	BufferInfo.subpass = m_pParent != nullptr ? m_uPassIndex : 0;
 
 	vk::CommandBufferBeginInfo BeginInfo{};
 	BeginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
@@ -834,7 +871,7 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 	return bSuccess;
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanRenderPass::CreateDescriptorPool()
+bool VulkanRenderPass::CreateDescriptorPool(const DescriptorPoolDesc& _Desc)
 {
 	HASSERT(!m_DescriptorPool, "Descriptor pool already exists!");
 	if (m_DescriptorPool)
@@ -848,19 +885,19 @@ bool VulkanRenderPass::CreateDescriptorPool()
 		PoolSizes.push_back(vk::DescriptorPoolSize(kType, uCount));
 	};
 
-	AddSize(vk::DescriptorType::eCombinedImageSampler, 64u);
-	AddSize(vk::DescriptorType::eInputAttachment, 8u);
-	AddSize(vk::DescriptorType::eSampledImage, 1024u);
-	AddSize(vk::DescriptorType::eSampler, 64u);
-	AddSize(vk::DescriptorType::eStorageBuffer, 64u);
-	AddSize(vk::DescriptorType::eStorageBufferDynamic, 64u);
-	AddSize(vk::DescriptorType::eStorageImage, 64u);
-	AddSize(vk::DescriptorType::eStorageTexelBuffer, 64u);
-	AddSize(vk::DescriptorType::eUniformBuffer, 64u);
-	AddSize(vk::DescriptorType::eUniformBufferDynamic, 64u);
-	AddSize(vk::DescriptorType::eUniformTexelBuffer, 64u);
+	AddSize(vk::DescriptorType::eCombinedImageSampler, _Desc.uCombinedImageSampler);
+	AddSize(vk::DescriptorType::eInputAttachment, _Desc.uInputAttachment);
+	AddSize(vk::DescriptorType::eSampledImage, _Desc.uSampledImage);
+	AddSize(vk::DescriptorType::eSampler, _Desc.uSampler);
+	AddSize(vk::DescriptorType::eStorageBuffer, _Desc.uStorageBuffer);
+	AddSize(vk::DescriptorType::eStorageBufferDynamic, _Desc.uStorageBufferDynamic);
+	AddSize(vk::DescriptorType::eStorageImage, _Desc.uStorageImage);
+	AddSize(vk::DescriptorType::eStorageTexelBuffer, _Desc.uStorageTexelBuffer);
+	AddSize(vk::DescriptorType::eUniformBuffer, _Desc.uUniformBuffer);
+	AddSize(vk::DescriptorType::eUniformBufferDynamic, _Desc.uUniformBufferDynamic);
+	AddSize(vk::DescriptorType::eUniformTexelBuffer, _Desc.uUniformTexelBuffer);
 
-	Info.maxSets = 512u; // donno what makes sense here
+	Info.maxSets = _Desc.uMaxSets;
 	Info.poolSizeCount = static_cast<uint32_t>(PoolSizes.size());
 	Info.pPoolSizes = PoolSizes.data();
 

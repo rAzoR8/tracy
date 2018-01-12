@@ -108,14 +108,19 @@ namespace Tracy
 
 	};
 
+	struct DescriptorSetRate
+	{
+		uint32_t uSet = 0u;
+		uint32_t uCount = 0u; // number of unique sets to pre allocate for uSet
+	};
+
 	struct RenderPassDesc
 	{
 		std::wstring sPassName; // name of this pass
 		std::wstring sLibName; // dll that contains the shader factory
-		bool bSubPass = false; // must be true for elements of SubPasses
-
-		bool bRenderByObject = true; // false for screenspace materials
 		
+		std::vector<DescriptorSetRate> DescriptorSetRates;
+
 		FramebufferDesc Framebuffer; 
 
 		// shaders / pipelines that are frequently used
