@@ -16,6 +16,7 @@ VulkanRenderPass::VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassD
 	m_uPassIndex(_uPassIndex),
 	m_pParent(_pParent)
 {
+	m_DescriptorSetRates.fill(16u); // minimum sets per slot
 	for (const RenderPassDesc& SubPass : m_Description.SubPasses)
 	{
 		m_SubPasses.emplace_back(this, SubPass, static_cast<uint32_t>(m_SubPasses.size()), _hDevice);
@@ -47,16 +48,11 @@ bool VulkanRenderPass::Initialize()
 	DescriptorPoolDesc PoolDesc{};
 	if (m_Description.DefaultPipelines.empty())
 	{
-		PoolDesc.uSampledImage = 0u;
-		PoolDesc.uSampler = 0u;
-		PoolDesc.uUniformBuffer = 0u;
-
-		std::array<uint32_t, 16u> SetRates; SetRates.fill(0);
 		for (const DescriptorSetRate& Rate : m_Description.DescriptorSetRates)
 		{
-			if (Rate.uSet < SetRates.size())
+			if (Rate.uSet < m_DescriptorSetRates.size())
 			{
-				SetRates[Rate.uSet] = Rate.uCount; // todo: devided by number of variables per set?
+				m_DescriptorSetRates[Rate.uSet] = Rate.uCount;
 			}
 		}
 
@@ -66,18 +62,28 @@ bool VulkanRenderPass::Initialize()
 			SelectShader(Shader.Identifier);
 		}
 
+		PoolDesc.uSampledImage = 0u;
+		PoolDesc.uSampler = 0u;
+		PoolDesc.uUniformBuffer = 0u;
 		for (uint32_t i = 0u; i < kShaderType_NumOf; ++i) 
 		{
 			if (m_ActiveShaders[i] != nullptr)
 			{
 				for (const VariableInfo& var : m_ActiveShaders[i]->Code.GetVariables())
 				{
-					PoolDesc.uSampledImage	+= (var.Type.IsImage() ? 1 : 0) * SetRates[var.uDescriptorSet];
-					PoolDesc.uSampler		+= (var.Type.IsSampler() ? 1 : 0) * SetRates[var.uDescriptorSet];
-					PoolDesc.uUniformBuffer += ((var.Type.IsPrimitve() || var.Type.IsStruct()) ? 1 : 0) * SetRates[var.uDescriptorSet]; // actually also need to check storage class for uniform, but we dont care, this is just an approximation
+					const uint32_t& uRate = m_DescriptorSetRates[var.uDescriptorSet];
+					PoolDesc.uSampledImage	+= (var.Type.IsImage() ? 1 : 0) * uRate;
+					PoolDesc.uSampler		+= (var.Type.IsSampler() ? 1 : 0) * uRate;
+					PoolDesc.uUniformBuffer += ((var.Type.IsPrimitve() || var.Type.IsStruct()) ? 1 : 0) * uRate; // actually also need to check storage class for uniform, but we dont care, this is just an approximation
 				}
 			}
 		}		
+	}
+
+	PoolDesc.uMaxSets = 0u; // accumulate with default rates
+	for (const uint32_t& uRate : m_DescriptorSetRates)
+	{
+		PoolDesc.uMaxSets += uRate;
 	}
 
 	if (CreateDescriptorPool(PoolDesc) == false)
@@ -150,11 +156,11 @@ void VulkanRenderPass::Uninitialize()
 	m_Device.destroyDescriptorPool(m_DescriptorPool);
 	m_DescriptorPool = nullptr;
 
-	for (auto& kv : m_DescriptorSets)
-	{
-		DesciptorSet& Set = kv.second;
-		m_Device.destroyDescriptorSetLayout(Set.Layout);
-	}
+	//for (auto& kv : m_DescriptorSets)
+	//{
+	//	DesciptorSet& Set = kv.second;
+	//	m_Device.destroyDescriptorSetLayout(Set.Layout);
+	//}
 	m_DescriptorSets.clear();	
 
 	for (auto& kv : m_PipelineLayouts)
@@ -312,27 +318,27 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			{
 				m_CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
 
-				std::vector<vk::DescriptorSet> DescriporSets;
-				uint32_t uFirstSet = UINT32_MAX;
-				for (DesciptorSet* pSet : m_ActiveDescriptorSets)
-				{
-					DescriporSets.push_back(pSet->Set);
-					uFirstSet = std::min(uFirstSet, pSet->uSlot);
-				}
+				//std::vector<vk::DescriptorSet> DescriporSets;
+				//uint32_t uFirstSet = UINT32_MAX;
+				//for (DesciptorSet* pSet : m_ActiveDescriptorSets)
+				//{
+				//	DescriporSets.push_back(pSet->Set);
+				//	uFirstSet = std::min(uFirstSet, pSet->uSlot);
+				//}
 
 				// TODO: fill for dynamic uniforms and storage buffers
 				std::vector<uint32_t> DynamicOffsets;
 
-				if (m_ActiveDescriptorSets.empty() == false)
-				{
-					m_CommandBuffer.bindDescriptorSets(
-						vk::PipelineBindPoint::eGraphics,
-						m_ActivePipelineLayout,
-						uFirstSet,
-						DescriporSets,
-						DynamicOffsets);
-				
-				} // else?
+				//if (m_ActiveDescriptorSets.empty() == false)
+				//{
+				//	m_CommandBuffer.bindDescriptorSets(
+				//		vk::PipelineBindPoint::eGraphics,
+				//		m_ActivePipelineLayout,
+				//		uFirstSet,
+				//		DescriporSets,
+				//		DynamicOffsets);
+				//
+				//} // else?
 			}
 
 			DigestBuffer(Mat.Values); // material values
@@ -511,7 +517,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 	//---------------------------------------------------------------------------------------------------
 
 	std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages;
-	std::array<TVarSet, uMaxDescriptorSets> DescriptorSets;
+	std::array<TVarSet, kMaxDescriptorSets> DescriptorSets;
 	uint32_t uLastDescriptorSet = 0u;
 
 	// load active shaders set by SelectShader function
@@ -535,9 +541,8 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 	//---------------------------------------------------------------------------------------------------
 
 	// TODO: pass pushconst factory
-	uHash += ActivatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, nullptr);
-
-	if (!PipelineInfo.layout)
+	uint64_t uPipelineLayoutHash = 0u;
+	if (ActivatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, uPipelineLayoutHash, nullptr) == false)
 	{
 		return nullptr;
 	}
@@ -696,14 +701,16 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 }
 //---------------------------------------------------------------------------------------------------
 
-const size_t VulkanRenderPass::ActivatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t _uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants)
+const bool VulkanRenderPass::ActivatePipelineLayout(
+	const std::array<TVarSet, kMaxDescriptorSets>& _Sets,
+	const uint32_t _uLastSet,
+	vk::PipelineLayout& _OutPipeline,
+	uint64_t& _uOutHash,
+	const PushConstantFactory* _pPushConstants)
 {
-	m_ActiveDescriptorSets.resize(0);
+	m_ActiveDescriptorSets.fill(nullptr); // reset
 	
-	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet);
-	std::vector<vk::DescriptorSetLayout> SetsToAllocate;
-	std::vector<uint64_t> SetHashesToAllocate;
-
+	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet); // _uLastSet + 1 ?
 	hlx::Hasher uHash = 0u;
 
 	for (uint32_t uSet = 0u; uSet < _uLastSet; ++uSet)
@@ -720,30 +727,41 @@ const size_t VulkanRenderPass::ActivatePipelineLayout(const std::array<TVarSet, 
 			if (it != m_DescriptorSets.end())
 			{
 				Layouts[uSet] = it->second.Layout;
-				m_ActiveDescriptorSets.push_back(&it->second);
+				m_ActiveDescriptorSets[uSet] = &it->second;
 			}
 			else // create new set
 			{
-				vk::DescriptorSetLayoutCreateInfo Info{};
-				Info.bindingCount = static_cast<uint32_t>(Bindings.size());
-				Info.pBindings = Bindings.data();
+				const uint32_t uCount = m_DescriptorSetRates[uSet];
+				// add descriptor set container
 
-				DesciptorSet NewSet;
-				NewSet.uSlot = uSet;
-				NewSet.Layout = m_Device.createDescriptorSetLayout(Info);
-				NewSet.Set = nullptr; // init later
-				NewSet.Variables = Vars;
+				DesciptorSetContainer* pContainer = &m_DescriptorSets.emplace(uSetHash, uCount).first->second;
+				m_ActiveDescriptorSets[uSet] = pContainer;
 
-				m_DescriptorSets.insert({ uSetHash, NewSet });
+				{ // create layout
+					vk::DescriptorSetLayoutCreateInfo LayoutInfo{};
+					LayoutInfo.bindingCount = static_cast<uint32_t>(Bindings.size());
+					LayoutInfo.pBindings = Bindings.data();
 
-				Layouts[uSet] = NewSet.Layout;
+					Layouts[uSet] = m_Device.createDescriptorSetLayout(LayoutInfo);					
+				}
 
-				// batch together all sets that need to be created
-				SetsToAllocate.push_back(NewSet.Layout);
-				SetHashesToAllocate.push_back(uSetHash);
+				{ // allocate a batch of descriptor sets of the same layout
+					std::vector<vk::DescriptorSetLayout> SetsToAllocate(uCount, Layouts[uSet]); //copy the layout
+
+					vk::DescriptorSetAllocateInfo Info{};
+					Info.descriptorPool = m_DescriptorPool;
+					Info.descriptorSetCount = uCount;
+					Info.pSetLayouts = SetsToAllocate.data();
+
+					// allocate batch in once call
+					if (LogVKErrorBool(VKDevice().allocateDescriptorSets(&Info, pContainer->Sets.data())) == false)
+					{
+						return false;
+					}
+				}
 			}
 		}
-		else
+		else // empty set (not sure if that works)
 		{
 			uHash << uSet;
 		}
@@ -757,31 +775,6 @@ const size_t VulkanRenderPass::ActivatePipelineLayout(const std::array<TVarSet, 
 		uHash += _pPushConstants->ComputeRangeHash();
 	}
 
-	// batch create sets
-	if (SetsToAllocate.empty() == false)
-	{
-		vk::DescriptorSetAllocateInfo Info{};
-		Info.descriptorPool = m_DescriptorPool;
-		Info.descriptorSetCount = static_cast<uint32_t>(SetsToAllocate.size());
-		Info.pSetLayouts = SetsToAllocate.data();
-
-		std::vector<vk::DescriptorSet> NewSets(Info.descriptorSetCount); 
-
-		// allocate batch in once call
-		if (LogVKErrorBool(VKDevice().allocateDescriptorSets(&Info, NewSets.data())))
-		{
-			for (uint32_t i = 0; i < Info.descriptorSetCount; ++i)
-			{
-				auto it = m_DescriptorSets.find(SetHashesToAllocate[i]);
-				if (it != m_DescriptorSets.end())
-				{
-					it->second.Set = NewSets[i]; // assign newly created set
-					m_ActiveDescriptorSets.push_back(&it->second);
-				}
-			}
-		}
-	}
-
 	// check if pipeline layout already exists
 	auto it = m_PipelineLayouts.find(uHash);
 	if (it != m_PipelineLayouts.end())
@@ -793,12 +786,16 @@ const size_t VulkanRenderPass::ActivatePipelineLayout(const std::array<TVarSet, 
 		Info.pSetLayouts = Layouts.data();
 		Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
 
-		LogVKError(m_Device.createPipelineLayout(&Info, nullptr, &m_ActivePipelineLayout));
+		if (LogVKErrorBool(m_Device.createPipelineLayout(&Info, nullptr, &m_ActivePipelineLayout)) == false)
+		{
+			return false;
+		}
 	}
 
 	_OutPipeline = m_ActivePipelineLayout;
+	_uOutHash = uHash;
 
-	return uHash;
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
 

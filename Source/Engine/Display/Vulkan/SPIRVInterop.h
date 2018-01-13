@@ -130,10 +130,10 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	constexpr size_t uMaxDescriptorSets = 16u; // Per layout
+	constexpr size_t kMaxDescriptorSets = 16u;
 	using TVarSet = std::vector<VariableInfo>;
 
-	template <size_t N = uMaxDescriptorSets> // returns last used set
+	template <size_t N = kMaxDescriptorSets> // returns last used set
 	inline uint32_t SortIntoDescriptorSets(const SPIRVModule& _Module, std::array<TVarSet, N>& _OutDescriptorSets)
 	{
 		uint32_t uLastSet = 0u;
@@ -370,7 +370,7 @@ namespace Tracy
 		Info.pPushConstantRanges = _pPushConstants != nullptr ? _pPushConstants->GetRanges() : nullptr;
 		Info.pushConstantRangeCount = _pPushConstants != nullptr ? _pPushConstants->GetRangeCount() : 0u;
 
-		std::array<TVarSet, uMaxDescriptorSets> Sets;
+		std::array<TVarSet, kMaxDescriptorSets> Sets;
 		uint32_t uLastSet = SortIntoDescriptorSets(_Module, Sets);
 
 		std::vector<vk::DescriptorSetLayout> Layouts(uLastSet);

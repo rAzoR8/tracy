@@ -101,7 +101,12 @@ namespace Tracy
 
 		// called before draw or after shader has been selected
 		vk::Pipeline ActivatePipeline(const PipelineDesc& _Desc);
-		const size_t ActivatePipelineLayout(const std::array<TVarSet, uMaxDescriptorSets>& _Sets, const uint32_t uLastSet, vk::PipelineLayout& _OutPipeline, const PushConstantFactory* _pPushConstants = nullptr);
+		const bool ActivatePipelineLayout(
+			const std::array<TVarSet, kMaxDescriptorSets>& _Sets,
+			const uint32_t uLastSet,
+			vk::PipelineLayout& _OutPipeline,
+			uint64_t& _uOutHash,
+			const PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
@@ -113,19 +118,17 @@ namespace Tracy
 	private:
 		VulkanRenderPass* m_pParent = nullptr;
 
-		struct DesciptorSet
+		struct DesciptorSetContainer
 		{
-			uint32_t uSlot = 0u;
+			DesciptorSetContainer(uint32_t _uCount) : uCount(_uCount), Sets(uCount, nullptr){}
+
+			const uint32_t uCount;
+			uint32_t uNextIndex = 0u;
 			vk::DescriptorSetLayout Layout;
-			vk::DescriptorSet Set;
+			std::vector<vk::DescriptorSet> Sets;
 			TVarSet Variables;
-
-			// per variable ?
-			//const VkDescriptorImageInfo*     pImageInfo;
-			//const VkDescriptorBufferInfo*    pBufferInfo;
-			//const VkBufferView*              pTexelBufferView;
 		};
-
+		
 		RenderPassDesc m_Description;
 		// index relative to parent pass or rendergraph (index into vector)
 		const uint32_t m_uPassIndex; 
@@ -141,23 +144,22 @@ namespace Tracy
 		std::vector<Dependence> m_Dependencies;
 
 		// identifies the current pipeline
-		size_t m_uPipelineHash = kUndefinedSizeT;
+		uint64_t m_uPipelineHash = HUNDEFINED64;
 		vk::Pipeline m_ActivePipeline = nullptr;
 		vk::PipelineLayout m_ActivePipelineLayout = nullptr;
 		PipelineDesc m_ActivePipelineDesc;
 
-		std::vector<DesciptorSet*> m_ActiveDescriptorSets;
+		std::array<uint32_t, kMaxDescriptorSets> m_DescriptorSetRates;
+		std::array<DesciptorSetContainer*, kMaxDescriptorSets> m_ActiveDescriptorSets;
 		vk::Pipeline m_BasePipeline = nullptr;
 
-		// todo: vector<DesciptorSet> currentSets (active sets)
-		std::unordered_map<size_t, DesciptorSet> m_DescriptorSets;
-
+		std::unordered_map<uint64_t, DesciptorSetContainer> m_DescriptorSets;
 		vk::DescriptorPool m_DescriptorPool;
 
-		std::unordered_map<size_t, vk::PipelineLayout> m_PipelineLayouts;
+		std::unordered_map<uint64_t, vk::PipelineLayout> m_PipelineLayouts;
 
 		// pipeline description hash -> pipeline
-		std::unordered_map<size_t, vk::Pipeline> m_Pipelines;
+		std::unordered_map<uint64_t, vk::Pipeline> m_Pipelines;
 		vk::PipelineCache m_PipelineCache = nullptr;
 
 		// name hash -> sampler
