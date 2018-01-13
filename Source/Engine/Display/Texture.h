@@ -7,8 +7,6 @@
 
 namespace Tracy
 {
-	using TextureRefEntry = RefEntry<TextureDesc>;
-
 	struct TextureSubresource
 	{
 		uint32_t uBaseMipLevel;
@@ -24,6 +22,8 @@ namespace Tracy
 		TextureSubresource Subresource;
 	};
 
+	using TextureRefEntry = RefEntry<TextureDesc>;
+
 	class Texture : public RefCounted<TextureRefEntry, true>
 	{
 	public:
@@ -31,6 +31,12 @@ namespace Tracy
 
 	protected:
 		Texture(const TextureDesc& _Desc);
+
+		virtual bool Resize(const uint32_t _uWidth, const uint32_t _uHeight, const uint32_t _uDepth) { return false; };
+		virtual bool AddView(const TextureViewDesc& _Desc) { return false; };
+
+		inline const bool IsValidTex() const { return IsValidRef() && Ref.HasAPIData(); }
+		inline explicit operator bool() { return IsValidTex(); }
 
 	public:
 		virtual ~Texture() {}

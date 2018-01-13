@@ -26,12 +26,11 @@ namespace Tracy
 		VulkanTexture(const TextureDesc& _Desc);
 		virtual ~VulkanTexture();
 
-		inline const bool IsValidTex() const { return IsValidRef() && API.hImage; }
-		inline explicit operator bool()	{return IsValidTex();}
+		inline const bool IsValidVkTex() const { return IsValidTex() && API.hImage; }
+		inline explicit operator bool()	{return IsValidVkTex();}
 
-		bool AddView(const TextureViewDesc& _Desc);
-
-		const bool Resize(const uint32_t _uWidth, const uint32_t _uHeight);
+		bool Resize(const uint32_t _uWidth, const uint32_t _uHeight, const uint32_t _uDepth) final;
+		bool AddView(const TextureViewDesc& _Desc) final;
 
 		REFCOUNT_INTERFACE(VulkanTexture, Texture);
 

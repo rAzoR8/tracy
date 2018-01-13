@@ -202,6 +202,8 @@ namespace Tracy
 			}
 		}
 
+		const bool HasAPIData() const { return pAPIData != nullptr; }
+
 		template <class TAPIData>
 		TAPIData& GetAPIData() const { return *reinterpret_cast<TAPIData*>(pAPIData); }
 

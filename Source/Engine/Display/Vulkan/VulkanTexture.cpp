@@ -37,14 +37,20 @@ VulkanTexture::~VulkanTexture()
 }
 
 //---------------------------------------------------------------------------------------------------
-const bool VulkanTexture::Resize(const uint32_t _uWidth, const uint32_t _uHeight)
+bool VulkanTexture::Resize(const uint32_t _uWidth, const uint32_t _uHeight, const uint32_t _uDepth)
 {
+	if (IsValidVkTex())
+	{
+		// resize here
+		
+		return true;
+	}
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
 bool VulkanTexture::AddView(const TextureViewDesc& _Desc)
 {
-	if (IsValidTex())
+	if (IsValidVkTex())
 	{
 		vk::ImageViewCreateInfo Info;
 		Info.image = API.hImage;
