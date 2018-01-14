@@ -890,6 +890,8 @@ namespace Tracy
 	struct TextureDesc
 	{
 		THandle hDevice = 0u; // Owner
+		uint64_t uIdentifier = HUNDEFINED64; // filled by device
+
 		uint16_t uWidth = 0u;
 		uint16_t uHeight = 0u;
 		uint16_t uDepth = 0u;
@@ -897,13 +899,14 @@ namespace Tracy
 		EFormat kFormat = kFormat_Undefined;
 		EUsageFlag kUsageFlag = kUsageFlag_None;
 		ETextureType kType = kTextureType_Invalid;
-		std::string sName = "NewTexture";
+		//std::string sName = "NewTexture";
 	};
 
 	struct BufferDesc
 	{
 		// fill me
 		THandle hDevice = 0u; // Owner
+		uint64_t uIdentifier = HUNDEFINED64; // filled by device
 	};
 
 	enum EIndexType : uint32_t

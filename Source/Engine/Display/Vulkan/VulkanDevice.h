@@ -21,6 +21,7 @@ namespace Tracy
 	{
 		friend class VulkanInstance;
 		friend struct VkTexData;
+		friend struct VkBufferData;
 		friend class VulkanRenderGraph;
 		friend class VulkanRenderPass;
 
@@ -78,9 +79,11 @@ namespace Tracy
 		bool Initialize();
 
 		// Textures
-		const bool CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
-
+		const bool CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
 		void DestroyTexture(const vk::Image& _Image);
+
+		const bool CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
+		void DestroyBuffer(const vk::Buffer& _Buffer);
 
 		const bool CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount = 1u);
 
@@ -112,6 +115,9 @@ namespace Tracy
 		};
 
 		std::mutex m_Mutex;
+		std::atomic_uint64_t m_uBufferIdentifier = 0u;
+		std::atomic_uint64_t m_uTextureIdentifier = 0u;
+
 		vk::PhysicalDevice m_PhysicalDevice;
 		vk::Device m_Device;
 		vk::PhysicalDeviceProperties m_Properties;

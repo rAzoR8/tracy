@@ -38,6 +38,8 @@ namespace Tracy
 		inline const bool IsValidTex() const { return IsValidRef() && Ref.HasAPIData(); }
 		inline explicit operator bool() { return IsValidTex(); }
 
+		const uint64_t& GetIdentifier() const;
+
 	public:
 		virtual ~Texture() {}
 
@@ -46,11 +48,11 @@ namespace Tracy
 		const uint16_t GetDepth() const;
 
 		const EFormat GetFormat() const;
-
 		const ETextureType GetType() const;
-
 		const EUsageFlag GetUsage() const;
 	};
+
+	inline const uint64_t& Texture::GetIdentifier() const {	return Get().Data.uIdentifier; }
 
 	inline const uint16_t Texture::GetWidth() const { return Get().Data.uWidth; }
 	inline const uint16_t Texture::GetHeight() const { return Get().Data.uHeight; }

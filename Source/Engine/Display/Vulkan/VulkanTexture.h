@@ -8,7 +8,7 @@ namespace Tracy
 {
 	struct VkTexData : public APIData
 	{
-		VkTexData(const TextureDesc& _Desc);
+		VkTexData(TextureDesc& _Desc);
 		~VkTexData();
 
 		const THandle hDevice;

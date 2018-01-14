@@ -7,7 +7,7 @@ using namespace Tracy;
 
 //---------------------------------------------------------------------------------------------------
 
-VkTexData::VkTexData(const TextureDesc& _Desc) : hDevice(_Desc.hDevice)
+VkTexData::VkTexData(TextureDesc& _Desc) : hDevice(_Desc.hDevice)
 {
 	GetDevice(hDevice).CreateTexture(_Desc, Allocation, hImage);
 
@@ -27,7 +27,7 @@ VulkanTexture::VulkanTexture(const TextureDesc& _Desc) :
 {
 	if (IsValidRef())
 	{
-		Ref.ConstructAPIData<VkTexData>(_Desc); // deleted by RefCounted	
+		Ref.ConstructAPIData<VkTexData>(Ref.Data); // deleted by RefCounted	
 	}
 }
 

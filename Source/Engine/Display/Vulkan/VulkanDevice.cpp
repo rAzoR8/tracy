@@ -216,7 +216,7 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
+const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
 {
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, std::max(static_cast<uint32_t>(_Desc.uDepth), 1u));
@@ -229,6 +229,8 @@ const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocatio
 	VulkanAllocationInfo AllocInfo{};
 	AllocInfo.kType = kAllocationType_GPU_Only;
 
+	_Desc.uIdentifier = m_uTextureIdentifier.fetch_add(1u);
+
 	return LogVKErrorBool(m_pAllocator->CreateImage(AllocInfo, _Allocation, Info, _Image));
 }
 //---------------------------------------------------------------------------------------------------
@@ -237,6 +239,21 @@ void VulkanDevice::DestroyTexture(const vk::Image& _Image)
 {
 	// TODO: allocation and stuff
 	m_Device.destroyImage(_Image);
+}
+//---------------------------------------------------------------------------------------------------
+
+const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _hBuffer)
+{
+	// TODO: create buffer here
+
+	_Desc.uIdentifier = m_uBufferIdentifier.fetch_add(1u);
+	return false;
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanDevice::DestroyBuffer(const vk::Buffer& _hBuffer)
+{
+	m_Device.destroyBuffer(_hBuffer);
 }
 //---------------------------------------------------------------------------------------------------
 
