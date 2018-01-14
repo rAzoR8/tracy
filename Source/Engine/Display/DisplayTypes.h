@@ -367,13 +367,22 @@ namespace Tracy
 		{}
 	};
 
+	// https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkImageAspectFlagBits
+	/*VK_IMAGE_ASPECT_COLOR_BIT = 0x00000001,
+	VK_IMAGE_ASPECT_DEPTH_BIT = 0x00000002,
+	VK_IMAGE_ASPECT_STENCIL_BIT = 0x00000004,
+	VK_IMAGE_ASPECT_METADATA_BIT = 0x00000008,
+	VK_IMAGE_ASPECT_PLANE_0_BIT_KHR = 0x00000010,
+	VK_IMAGE_ASPECT_PLANE_1_BIT_KHR = 0x00000020,
+	VK_IMAGE_ASPECT_PLANE_2_BIT_KHR = 0x00000040,*/
 	enum EAspect : uint32_t
 	{
 		kAspect_Color = (1 << 0),
 		kAspect_Depth = (1 << 1),
 		kAspect_Stencil = (1 << 2),
-		kAspect_NumOf = 3u,
-		kAspect_Invalid = 0u,
+		kAspect_Metadata = (1 << 3),
+		kAspect_NumOf = 4u,
+		kAspect_None = 0u
 	};
 
 
@@ -387,6 +396,7 @@ namespace Tracy
 		kTextureType_TextureArray1D,
 		kTextureType_TextureArray2D,
 		kTextureType_TextureArrayCube,
+
 		kTextureType_NumOf,
 		kTextureType_Invalid = kTextureType_NumOf,
 	};
@@ -396,27 +406,75 @@ namespace Tracy
 		kBufferType_Invalid = 0u
 	};
 
-	enum EUsageFlag : uint32_t
+	/*VK_IMAGE_USAGE_TRANSFER_SRC_BIT = 0x00000001,
+	VK_IMAGE_USAGE_TRANSFER_DST_BIT = 0x00000002,
+	VK_IMAGE_USAGE_SAMPLED_BIT = 0x00000004,
+	VK_IMAGE_USAGE_STORAGE_BIT = 0x00000008,
+	VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT = 0x00000010,
+	VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT = 0x00000020,
+	VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT = 0x00000040,
+	VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT = 0x00000080,*/
+	enum ETextureUsage : uint32_t
 	{
-		// Default
-		kUsageFlag_None = 0u,
-		// Buffer Types
-		kUsageFlag_VertexBuffer = (1 << 0),		// VB
-		kUsageFlag_IndexBuffer = (1 << 1),		// IB
-		kUsageFlag_ConstantBuffer = (1 << 2),		// CB
-		kUsageFlag_StorageBuffer = (1 << 3),		// Structured Buffer
-		kUsageFlag_IndirectBuffer = (1 << 4),		// Indirect Draw Data
-		// Texture Types
-		kUsageFlag_RenderTarget = (1 << 5),		// RTV
-		kUsageFlag_DepthStencil = (1 << 6),		// DSV
-		kUsageFlag_ShaderRead = (1 << 7),		// SRV
-		kUsageFlag_ShaderStore = (1 << 8),		// UAV
-		kUsageFlag_CopySource = (1 << 9),		// BLIT_SRC
-		kUsageFlag_CopyDestination = (1 << 10),	// BLIT_DST
-		// Upper Bit Pos
-		kUsageFlag_NumOf = 11u,
-		kUsageFlag_Unknown = kUsageFlag_NumOf
+		kTextureUsage_CopySource		= (1 << 0),
+		kTextureUsage_CopyDestination	= (1 << 1),
+		kTextureUsage_ShaderRead		= (1 << 2),
+		kTextureUsage_ShaderStore		= (1 << 3),
+		kTextureUsage_RenderTarget		= (1 << 4),
+		kTextureUsage_DepthStencil		= (1 << 5),
+		kTextureUsage_Transient			= (1 << 6),
+		kTextureUsage_Subpass			= (1 << 7),
+
+		kTextureUsage_NumOf = 8u,
+		kTextureUsage_None = 0u
 	};
+
+	/*VK_BUFFER_USAGE_TRANSFER_SRC_BIT = 0x00000001,
+	VK_BUFFER_USAGE_TRANSFER_DST_BIT = 0x00000002,
+	VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT = 0x00000004,
+	VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT = 0x00000008,
+	VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT = 0x00000010,
+	VK_BUFFER_USAGE_STORAGE_BUFFER_BIT = 0x00000020,
+	VK_BUFFER_USAGE_INDEX_BUFFER_BIT = 0x00000040,
+	VK_BUFFER_USAGE_VERTEX_BUFFER_BIT = 0x00000080,
+	VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT = 0x00000100,*/
+	enum EBufferUsage : uint32_t
+	{
+		kBufferUsage_CopySource			= (1 << 0),
+		kBufferUsage_CopyDestination	= (1 << 1),
+		kBufferUsage_UniformTexel		= (1 << 2),
+		kBufferUsage_StorageTexel		= (1 << 3),
+		kBufferUsage_Uniform			= (1 << 4),
+		kBufferUsage_Storage			= (1 << 5),
+		kBufferUsage_Index				= (1 << 6),
+		kBufferUsage_Vertex				= (1 << 7),
+		kBufferUsage_Indirect			= (1 << 8),
+
+		kBufferUsage_NumOf = 9u,
+		kBufferUsage_None = 0u
+	};
+
+	//enum EUsageFlag : uint32_t
+	//{
+	//	// Default
+	//	kUsageFlag_None = 0u,
+	//	// Buffer Types
+	//	kUsageFlag_VertexBuffer = (1 << 0),		// VB
+	//	kUsageFlag_IndexBuffer = (1 << 1),		// IB
+	//	kUsageFlag_ConstantBuffer = (1 << 2),		// CB
+	//	kUsageFlag_StorageBuffer = (1 << 3),		// Structured Buffer
+	//	kUsageFlag_IndirectBuffer = (1 << 4),		// Indirect Draw Data
+	//	// Texture Types
+	//	kUsageFlag_RenderTarget = (1 << 5),		// RTV
+	//	kUsageFlag_DepthStencil = (1 << 6),		// DSV
+	//	kUsageFlag_ShaderRead = (1 << 7),		// SRV
+	//	kUsageFlag_ShaderStore = (1 << 8),		// UAV
+	//	kUsageFlag_CopySource = (1 << 9),		// BLIT_SRC
+	//	kUsageFlag_CopyDestination = (1 << 10),	// BLIT_DST
+	//	// Upper Bit Pos
+	//	kUsageFlag_NumOf = 11u,
+	//	kUsageFlag_Unknown = kUsageFlag_NumOf
+	//};
 
 	enum EFormat : uint32_t
 	{
@@ -931,7 +989,7 @@ struct TextureDesc
 	uint16_t uDepth = 0u;
 	uint32_t uLayerCount = 0u;
 	EFormat kFormat = kFormat_Undefined;
-	EUsageFlag kUsageFlag = kUsageFlag_None;
+	ETextureUsage kUsageFlag = kTextureUsage_None;
 	ETextureType kType = kTextureType_Invalid;
 	std::string sName = "NewTexture";
 };
@@ -942,7 +1000,7 @@ struct BufferDesc
 	uint64_t uIdentifier = HUNDEFINED64; // filled by device
 	size_t uSize = 0u;
 	EFormat kFormat = kFormat_Undefined;
-	EUsageFlag kUsageFlag = kUsageFlag_None;
+	EBufferUsage kUsageFlag = kBufferUsage_None;
 	std::string sName = "NewBuffer";
 };
 

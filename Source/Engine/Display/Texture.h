@@ -51,7 +51,7 @@ namespace Tracy
 
 		const EFormat GetFormat() const;
 		const ETextureType GetType() const;
-		const EUsageFlag GetUsage() const;
+		const ETextureUsage GetUsage() const;
 	};
 
 	inline const uint64_t& Texture::GetIdentifier() const {	return Get().Data.uIdentifier; }
@@ -61,7 +61,7 @@ namespace Tracy
 	inline const uint16_t Texture::GetDepth() const { return Get().Data.uDepth; }
 	inline const EFormat Texture::GetFormat() const { return Get().Data.kFormat; }
 	inline const ETextureType Texture::GetType() const { return Get().Data.kType; }
-	inline const EUsageFlag Texture::GetUsage() const { return Get().Data.kUsageFlag; }
+	inline const ETextureUsage Texture::GetUsage() const { return Get().Data.kUsageFlag; }
 }
 #endif // !_TRACY_TEXTURE_H
 

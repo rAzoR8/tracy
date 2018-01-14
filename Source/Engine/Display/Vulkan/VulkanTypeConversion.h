@@ -114,7 +114,7 @@ namespace Tracy::detail
 		{ kFormat_D32_SFLOAT_S8_UINT,	vk::Format::eD32SfloatS8Uint }
 	};
 
-	static const std::unordered_map<EUsageFlag, vk::ImageUsageFlagBits> g_VkImageUsageMapping =
+	/*static const std::unordered_map<EUsageFlag, vk::ImageUsageFlagBits> g_VkImageUsageMapping =
 	{
 		{ kUsageFlag_RenderTarget,		vk::ImageUsageFlagBits::eColorAttachment },
 		{ kUsageFlag_DepthStencil,		vk::ImageUsageFlagBits::eDepthStencilAttachment },
@@ -133,7 +133,7 @@ namespace Tracy::detail
 		{ kUsageFlag_IndirectBuffer,	vk::BufferUsageFlagBits::eIndirectBuffer },
 		{ kUsageFlag_CopySource,		vk::BufferUsageFlagBits::eTransferSrc },
 		{ kUsageFlag_CopyDestination,	vk::BufferUsageFlagBits::eTransferDst },
-	};
+	};*/
 
 	static const vk::ComponentSwizzle g_VkChannelSwizzle[kColorChannel_NumOf] =
 	{
@@ -146,12 +146,12 @@ namespace Tracy::detail
 		vk::ComponentSwizzle::eA
 	};
 
-	static const std::unordered_map<EAspect, vk::ImageAspectFlagBits> g_VkAspectMapping = 
+	/*static const std::unordered_map<EAspect, vk::ImageAspectFlagBits> g_VkAspectMapping = 
 	{
 		{kAspect_Color,		vk::ImageAspectFlagBits::eColor},
 		{kAspect_Depth,		vk::ImageAspectFlagBits::eDepth},
 		{kAspect_Stencil,	vk::ImageAspectFlagBits::eStencil}
-	};
+	};*/
 
 	inline static const vk::ComponentSwizzle GetSwizzle(const EColorChannel _kChannel)
 	{
@@ -380,51 +380,60 @@ namespace Tracy
 		return detail::g_VkIndexType[_kType];
 	}
 
+	static const vk::ImageUsageFlagBits g_VkImageUsageFlags[kTextureUsage_NumOf] =
+	{
+		vk::ImageUsageFlagBits::eTransferSrc,
+		vk::ImageUsageFlagBits::eTransferDst,
+		vk::ImageUsageFlagBits::eSampled,
+		vk::ImageUsageFlagBits::eStorage,
+		vk::ImageUsageFlagBits::eColorAttachment,
+		vk::ImageUsageFlagBits::eDepthStencilAttachment,
+		vk::ImageUsageFlagBits::eTransientAttachment,
+		vk::ImageUsageFlagBits::eInputAttachment
+	};
+
 	// TODO : Find a solution to copy paste, they olny differ for mapping used
-	inline const vk::ImageUsageFlags GetTextureUsage(const EUsageFlag _kFlag)
+	inline const vk::ImageUsageFlags GetTextureUsage(const ETextureUsage _kFlag)
 	{
 		vk::ImageUsageFlags Result{};
-		for (uint32_t uFlag = kUsageFlag_None; uFlag < kUsageFlag_NumOf; ++uFlag)
+		for (uint32_t uFlag = kTextureUsage_None; uFlag < kTextureUsage_NumOf; ++uFlag)
 		{
 			const uint32_t uUsageBits = (1u << uFlag);
 			const bool bHasFlag = _kFlag & uUsageBits;
 
 			if (bHasFlag)
 			{
-				const auto& MappingIt = detail::g_VkImageUsageMapping.find(static_cast<EUsageFlag>(uFlag));
-				if (MappingIt != detail::g_VkImageUsageMapping.end())
-				{
-					Result |= MappingIt->second;
-				}
-				else
-				{
-					HLOG("Texture Desc has invalid usage flag: %d", uFlag);
-				}
+				Result |= g_VkImageUsageFlags[uUsageBits];
 			}
 		}
 
 		return Result;
 	}
 
-	inline const vk::BufferUsageFlags GetBufferUsage(const EUsageFlag _kFlag)
+	static const vk::BufferUsageFlagBits g_VkBufferUsageFlags[kBufferUsage_NumOf] =
+	{
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::BufferUsageFlagBits::eTransferDst,
+		vk::BufferUsageFlagBits::eUniformTexelBuffer,
+		vk::BufferUsageFlagBits::eStorageTexelBuffer,
+		vk::BufferUsageFlagBits::eUniformBuffer,
+		vk::BufferUsageFlagBits::eStorageBuffer,
+		vk::BufferUsageFlagBits::eIndexBuffer,
+		vk::BufferUsageFlagBits::eVertexBuffer,
+		vk::BufferUsageFlagBits::eIndirectBuffer
+	};
+
+	inline const vk::BufferUsageFlags GetBufferUsage(const EBufferUsage _kFlag)
 	{
 		vk::BufferUsageFlags Result{};
-		for (uint32_t uFlag = kUsageFlag_None; uFlag < kUsageFlag_NumOf; ++uFlag)
+		for (uint32_t uFlag = kBufferUsage_None; uFlag < kBufferUsage_NumOf; ++uFlag)
 		{
 			const uint32_t uUsageBits = (1u << uFlag);
 			const bool bHasFlag = _kFlag & uUsageBits;
 
 			if (bHasFlag)
 			{
-				const auto& MappingIt = detail::g_VkBufferUsageMapping.find(static_cast<EUsageFlag>(uFlag));
-				if (MappingIt != detail::g_VkBufferUsageMapping.end())
-				{
-					Result |= MappingIt->second;
-				}
-				else
-				{
-					HLOG("Buffer Desc has invalid usage flag: %d", uFlag);
-				}
+				Result |= g_VkBufferUsageFlags[uUsageBits];
 			}
 		}
 
@@ -489,21 +498,25 @@ namespace Tracy
 		return detail::g_VkFormatMapping.at(_kFormat);
 	}
 
+	static const vk::ImageAspectFlagBits g_VkAspectFlags[kAspect_NumOf] =
+	{
+		vk::ImageAspectFlagBits::eColor,
+		vk::ImageAspectFlagBits::eDepth,
+		vk::ImageAspectFlagBits::eStencil,
+		vk::ImageAspectFlagBits::eMetadata
+	};
+
 	inline const vk::ImageAspectFlags GetAspectMask(const EAspect _kAspect)
 	{
 		vk::ImageAspectFlags Result{};
-		for (uint32_t uMaskIndex = kAspect_Invalid; uMaskIndex < kAspect_NumOf; ++uMaskIndex)
+		for (uint32_t uMaskIndex = kAspect_None; uMaskIndex < kAspect_NumOf; ++uMaskIndex)
 		{
 			const uint32_t uCurrentBit = (1 << uMaskIndex);
 			const bool bHasFlag = uCurrentBit & _kAspect;
 
 			if (bHasFlag)
 			{
-				const auto& MapIt = detail::g_VkAspectMapping.find(static_cast<EAspect>(uCurrentBit));
-				if (MapIt != detail::g_VkAspectMapping.end())
-				{
-					Result |= MapIt->second;
-				}
+				Result |= g_VkAspectFlags[uMaskIndex];
 			}
 		}
 
