@@ -921,6 +921,7 @@ namespace Tracy
 struct TextureDesc
 {
 	THandle hDevice = 0u; // Owner
+	uint64_t uIdentifier = HUNDEFINED64; // filled by device
 	uint16_t uWidth = 0u;
 	uint16_t uHeight = 0u;
 	uint16_t uDepth = 0u;
@@ -934,6 +935,7 @@ struct TextureDesc
 struct BufferDesc
 {
 	THandle hDevice = 0u;
+	uint64_t uIdentifier = HUNDEFINED64; // filled by device
 	size_t uSize = 0u;
 	EFormat kFormat = kFormat_Undefined;
 	EUsageFlag kUsageFlag = kUsageFlag_None;

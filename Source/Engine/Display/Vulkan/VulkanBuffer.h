@@ -8,7 +8,7 @@ namespace Tracy
 {
 	struct VkBufferData : public APIData
 	{
-		VkBufferData(const BufferDesc& _Desc);
+		VkBufferData(BufferDesc& _Desc);
 		~VkBufferData();
 
 		const THandle hDevice;

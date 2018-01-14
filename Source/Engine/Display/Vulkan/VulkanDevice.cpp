@@ -216,7 +216,7 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
+const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
 {
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, std::max(static_cast<uint32_t>(_Desc.uDepth), 1u));
@@ -229,6 +229,8 @@ const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocatio
 	VulkanAllocationInfo AllocInfo{};
 	AllocInfo.kType = kAllocationType_GPU_Only;
 
+	_Desc.uIdentifier = m_uTextureIdentifier.fetch_add(1u);
+
 	return LogVKErrorBool(m_pAllocator->CreateImage(AllocInfo, _Allocation, Info, _Image));
 }
 //---------------------------------------------------------------------------------------------------
@@ -238,7 +240,7 @@ void VulkanDevice::DestroyTexture(VulkanAllocation& _Allocation, vk::Image& _Ima
 	m_pAllocator->DestroyImage(_Allocation, _Image);
 }
 //---------------------------------------------------------------------------------------------------
-const bool VulkanDevice::CreateBuffer(const BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
+const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
 {
 	vk::BufferCreateInfo Info{};
 	Info.size = _Desc.uSize;
@@ -246,6 +248,8 @@ const bool VulkanDevice::CreateBuffer(const BufferDesc& _Desc, VulkanAllocation&
 
 	VulkanAllocationInfo AllocInfo{};
 	AllocInfo.kType = kAllocationType_GPU_Only;
+
+	_Desc.uIdentifier = m_uBufferIdentifier.fetch_add(1u);
 
 	return LogVKErrorBool(m_pAllocator->CreateBuffer(AllocInfo, _Allocation, Info, _Buffer));
 }
@@ -255,6 +259,7 @@ void VulkanDevice::DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buf
 	m_pAllocator->DestroyBuffer(_Allocation, _Buffer);
 }
 //---------------------------------------------------------------------------------------------------
+
 const bool VulkanDevice::CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount)
 {
 	vk::CommandBufferAllocateInfo Info{};
