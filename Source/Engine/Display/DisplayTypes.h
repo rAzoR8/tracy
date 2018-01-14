@@ -380,12 +380,15 @@ namespace Tracy
 	// TODO: NumOf / Unknown pattern
 	enum ETextureType : uint32_t
 	{
-		kTextureType_Invalid = 0u,
-		kTextureType_Texture1D = 1u,
-		kTextureType_Texture2D = 2u,
-		kTextureType_Texture3D = 3u,
-		kTextureType_TextureArray = 4u,
-		kTextureType_TextureCube = 5u,
+		kTextureType_Texture1D,
+		kTextureType_Texture2D,
+		kTextureType_Texture3D,
+		kTextureType_TextureCube,
+		kTextureType_TextureArray1D,
+		kTextureType_TextureArray2D,
+		kTextureType_TextureArrayCube,
+		kTextureType_NumOf,
+		kTextureType_Invalid = kTextureType_NumOf,
 	};
 
 	enum EBufferType : uint32_t
@@ -898,7 +901,8 @@ namespace Tracy
 	{
 		kViewType_ShaderResource = 0u,
 		kViewType_RenderTarget,
-		kViewType_DepthStencil
+		kViewType_DepthStencil,
+		kViewType_NumOf
 	};
 
 	enum EIndexType : uint32_t

@@ -135,15 +135,15 @@ namespace Tracy::detail
 		{ kUsageFlag_CopyDestination,	vk::BufferUsageFlagBits::eTransferDst },
 	};
 
-	static const std::unordered_map<EColorChannel, vk::ComponentSwizzle> g_VkChannelSwizzle =
+	static const vk::ComponentSwizzle g_VkChannelSwizzle[kColorChannel_NumOf] =
 	{
-		{kColorChannel_Identity,		vk::ComponentSwizzle::eIdentity},
-		{kColorChannel_Zero,			vk::ComponentSwizzle::eZero},
-		{kColorChannel_One,				vk::ComponentSwizzle::eOne},
-		{kColorChannel_Red,				vk::ComponentSwizzle::eR},
-		{kColorChannel_Green,			vk::ComponentSwizzle::eG},
-		{kColorChannel_Blue,			vk::ComponentSwizzle::eB},
-		{kColorChannel_Alpha,			vk::ComponentSwizzle::eA}
+		vk::ComponentSwizzle::eIdentity,
+		vk::ComponentSwizzle::eZero,
+		vk::ComponentSwizzle::eOne,
+		vk::ComponentSwizzle::eR,
+		vk::ComponentSwizzle::eG,
+		vk::ComponentSwizzle::eB,
+		vk::ComponentSwizzle::eA
 	};
 
 	static const std::unordered_map<EAspect, vk::ImageAspectFlagBits> g_VkAspectMapping = 
@@ -153,27 +153,10 @@ namespace Tracy::detail
 		{kAspect_Stencil,	vk::ImageAspectFlagBits::eStencil}
 	};
 
-	static const vk::ComponentSwizzle GetSwizzle(const EColorChannel _kChannel)
+	inline static const vk::ComponentSwizzle GetSwizzle(const EColorChannel _kChannel)
 	{
-		const auto& MapIt = g_VkChannelSwizzle.find(_kChannel);
-		if (MapIt != g_VkChannelSwizzle.end())
-		{
-			return MapIt->second;
-		}
-
-		HASSERTD(false, "Invalid Color Channel in Swizzle.");
-		return vk::ComponentSwizzle::eZero;
-	}
-
-	template <typename TFlags>
-	inline const auto& GetMapping()
-	{
-		if constexpr (std::is_same_v<TFlags, vk::ImageUsageFlags>)
-		{
-			return detail::g_VkImageUsageMapping;
-		}
-
-		return detail::g_VkBufferUsageMapping;
+		HASSERTD(_kChannel < kColorChannel_NumOf, "Invalid Primitive Topology");
+		return g_VkChannelSwizzle[_kChannel];
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -453,14 +436,16 @@ namespace Tracy
 		switch (_kTexType)
 		{
 		case kTextureType_Texture2D:
-		case kTextureType_TextureArray:
+		case kTextureType_TextureArray2D:
 		case kTextureType_TextureCube:
+		case kTextureType_TextureArrayCube:
 			return vk::ImageType::e2D;
 
 		case kTextureType_Texture3D:
 			return vk::ImageType::e3D;
 
 		case kTextureType_Texture1D:
+		case kTextureType_TextureArray1D:
 			return vk::ImageType::e1D;
 
 		default:
@@ -471,31 +456,21 @@ namespace Tracy
 		return vk::ImageType::e1D;
 	}
 
+	static const vk::ImageViewType g_VkTextureViewType[kTextureType_NumOf] =
+	{
+		vk::ImageViewType::e1D,
+		vk::ImageViewType::e2D,
+		vk::ImageViewType::e3D,
+		vk::ImageViewType::eCube,
+		vk::ImageViewType::e1DArray,
+		vk::ImageViewType::e2DArray,
+		vk::ImageViewType::eCubeArray
+	};
+
 	inline const vk::ImageViewType GetTextureViewType(const ETextureType _kTexType)
 	{
-		switch (_kTexType)
-		{
-		case kTextureType_Texture2D:
-			return vk::ImageViewType::e2D;
-
-		case kTextureType_TextureArray:
-			return vk::ImageViewType::e2DArray;
-
-		case kTextureType_TextureCube:
-			return vk::ImageViewType::eCube;
-
-		case kTextureType_Texture3D:
-			return vk::ImageViewType::e3D;
-
-		case kTextureType_Texture1D:
-			return vk::ImageViewType::e1D;
-
-		default:
-			break;
-		}
-
-		HASSERT(false, "Invalid Texture Format, either dirty data or kTextureType_Invalid");
-		return vk::ImageViewType::e1D;
+		HASSERT(_kTexType < kTextureType_NumOf, "Invalid Texture Format");
+		return g_VkTextureViewType[_kTexType];
 	}
 
 	inline const vk::ComponentMapping GetTextureComponentMapping(const ColorSwizzle& _Swizzle)
