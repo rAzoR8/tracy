@@ -18,6 +18,9 @@ namespace Tracy
 	protected:
 		GPUBuffer(const BufferDesc& _Desc);
 
+		inline const bool IsValidBuffer() const { return IsValidRef() && Ref.HasAPIData(); }
+		inline explicit operator bool() { return IsValidBuffer(); }
+
 	private:
 
 	};

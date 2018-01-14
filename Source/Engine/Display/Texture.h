@@ -13,10 +13,12 @@ namespace Tracy
 		uint32_t uMipLevelCount;
 		uint32_t uBaseArrayLayer;
 		uint32_t uArrayLayerCount;
+		EAspect kAspect;
 	};
 
 	struct TextureViewDesc
 	{
+		ETextureViewType kType;
 		EFormat kFormat;
 		ColorSwizzle Swizzle;
 		TextureSubresource Subresource;

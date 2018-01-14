@@ -146,6 +146,13 @@ namespace Tracy::detail
 		{kColorChannel_Alpha,			vk::ComponentSwizzle::eA}
 	};
 
+	static const std::unordered_map<EAspect, vk::ImageAspectFlagBits> g_VkAspectMapping = 
+	{
+		{kAspect_Color,		vk::ImageAspectFlagBits::eColor},
+		{kAspect_Depth,		vk::ImageAspectFlagBits::eDepth},
+		{kAspect_Stencil,	vk::ImageAspectFlagBits::eStencil}
+	};
+
 	static const vk::ComponentSwizzle GetSwizzle(const EColorChannel _kChannel)
 	{
 		const auto& MapIt = g_VkChannelSwizzle.find(_kChannel);
@@ -158,10 +165,10 @@ namespace Tracy::detail
 		return vk::ComponentSwizzle::eZero;
 	}
 
-	template <typename TUsage>
+	template <typename TFlags>
 	inline const auto& GetMapping()
 	{
-		if constexpr (std::is_same_v<TUsage, vk::ImageUsageFlagBits>)
+		if constexpr (std::is_same_v<TFlags, vk::ImageUsageFlags>)
 		{
 			return detail::g_VkImageUsageMapping;
 		}
@@ -390,12 +397,10 @@ namespace Tracy
 		return detail::g_VkIndexType[_kType];
 	}
 
-	template <typename TUsage>
-	inline const TUsage GetTextureUsage(const EUsageFlag _kFlag)
+	// TODO : Find a solution to copy paste, they olny differ for mapping used
+	inline const vk::ImageUsageFlags GetTextureUsage(const EUsageFlag _kFlag)
 	{
-		const auto& Mapping = detail::GetMapping<TUsage>();
-
-		vk::ImageUsageFlags Result;
+		vk::ImageUsageFlags Result{};
 		for (uint32_t uFlag = kUsageFlag_None; uFlag < kUsageFlag_NumOf; ++uFlag)
 		{
 			const uint32_t uUsageBits = (1u << uFlag);
@@ -410,7 +415,32 @@ namespace Tracy
 				}
 				else
 				{
-					HLOG("Resource has invalid usage flag: %d", uFlag);
+					HLOG("Texture Desc has invalid usage flag: %d", uFlag);
+				}
+			}
+		}
+
+		return Result;
+	}
+
+	inline const vk::BufferUsageFlags GetBufferUsage(const EUsageFlag _kFlag)
+	{
+		vk::BufferUsageFlags Result{};
+		for (uint32_t uFlag = kUsageFlag_None; uFlag < kUsageFlag_NumOf; ++uFlag)
+		{
+			const uint32_t uUsageBits = (1u << uFlag);
+			const bool bHasFlag = _kFlag & uUsageBits;
+
+			if (bHasFlag)
+			{
+				const auto& MappingIt = detail::g_VkBufferUsageMapping.find(static_cast<EUsageFlag>(uFlag));
+				if (MappingIt != detail::g_VkBufferUsageMapping.end())
+				{
+					Result |= MappingIt->second;
+				}
+				else
+				{
+					HLOG("Buffer Desc has invalid usage flag: %d", uFlag);
 				}
 			}
 		}
@@ -482,6 +512,27 @@ namespace Tracy
 		HASSERT(_kFormat > kFormat_Undefined && _kFormat < kFormat_NumOf, "Format is either Undefined or OutOfRange");
 
 		return detail::g_VkFormatMapping.at(_kFormat);
+	}
+
+	inline const vk::ImageAspectFlags GetAspectMask(const EAspect _kAspect)
+	{
+		vk::ImageAspectFlags Result{};
+		for (uint32_t uMaskIndex = kAspect_Invalid; uMaskIndex < kAspect_NumOf; ++uMaskIndex)
+		{
+			const uint32_t uCurrentBit = (1 << uMaskIndex);
+			const bool bHasFlag = uCurrentBit & _kAspect;
+
+			if (bHasFlag)
+			{
+				const auto& MapIt = detail::g_VkAspectMapping.find(static_cast<EAspect>(uCurrentBit));
+				if (MapIt != detail::g_VkAspectMapping.end())
+				{
+					Result |= MapIt->second;
+				}
+			}
+		}
+
+		return Result;
 	}
 }
 

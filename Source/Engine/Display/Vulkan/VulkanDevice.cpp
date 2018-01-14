@@ -224,7 +224,7 @@ const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocatio
 	Info.format = GetResourceFormat(_Desc.kFormat);
 	Info.mipLevels = 1u;
 	Info.arrayLayers = std::max(_Desc.uLayerCount, 1u);
-	Info.usage = GetTextureUsage<vk::ImageUsageFlags>(_Desc.kUsageFlag);
+	Info.usage = GetTextureUsage(_Desc.kUsageFlag);
 
 	VulkanAllocationInfo AllocInfo{};
 	AllocInfo.kType = kAllocationType_GPU_Only;
@@ -233,13 +233,28 @@ const bool VulkanDevice::CreateTexture(const TextureDesc& _Desc, VulkanAllocatio
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanDevice::DestroyTexture(const vk::Image& _Image)
+void VulkanDevice::DestroyTexture(VulkanAllocation& _Allocation, vk::Image& _Image)
 {
-	// TODO: allocation and stuff
-	m_Device.destroyImage(_Image);
+	m_pAllocator->DestroyImage(_Allocation, _Image);
 }
 //---------------------------------------------------------------------------------------------------
+const bool VulkanDevice::CreateBuffer(const BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
+{
+	vk::BufferCreateInfo Info{};
+	Info.size = _Desc.uSize;
+	Info.usage = GetBufferUsage(_Desc.kUsageFlag);
 
+	VulkanAllocationInfo AllocInfo{};
+	AllocInfo.kType = kAllocationType_GPU_Only;
+
+	return LogVKErrorBool(m_pAllocator->CreateBuffer(AllocInfo, _Allocation, Info, _Buffer));
+}
+//---------------------------------------------------------------------------------------------------
+void VulkanDevice::DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
+{
+	m_pAllocator->DestroyBuffer(_Allocation, _Buffer);
+}
+//---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount)
 {
 	vk::CommandBufferAllocateInfo Info{};

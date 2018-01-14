@@ -367,6 +367,16 @@ namespace Tracy
 		{}
 	};
 
+	enum EAspect : uint32_t
+	{
+		kAspect_Color = (1 << 0),
+		kAspect_Depth = (1 << 1),
+		kAspect_Stencil = (1 << 2),
+		kAspect_NumOf = 3u,
+		kAspect_Invalid = 0u,
+	};
+
+
 	// TODO: NumOf / Unknown pattern
 	enum ETextureType : uint32_t
 	{
@@ -376,6 +386,11 @@ namespace Tracy
 		kTextureType_Texture3D = 3u,
 		kTextureType_TextureArray = 4u,
 		kTextureType_TextureCube = 5u,
+	};
+
+	enum EBufferType : uint32_t
+	{
+		kBufferType_Invalid = 0u
 	};
 
 	enum EUsageFlag : uint32_t
@@ -749,7 +764,6 @@ namespace Tracy
 		VK_FORMAT_G16_B16R16_2PLANE_422_UNORM_KHR = 1000156032,
 		VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM_KHR = 1000156033,*/
 
-
 		//https://msdn.microsoft.com/en-us/library/windows/desktop/dn770403(v=vs.85).aspx
 		//typedef struct D3D12_SAMPLER_DESC {
 		//	D3D12_FILTER               Filter;
@@ -887,25 +901,6 @@ namespace Tracy
 		kViewType_DepthStencil
 	};
 
-	struct TextureDesc
-	{
-		THandle hDevice = 0u; // Owner
-		uint16_t uWidth = 0u;
-		uint16_t uHeight = 0u;
-		uint16_t uDepth = 0u;
-		uint32_t uLayerCount = 0u;
-		EFormat kFormat = kFormat_Undefined;
-		EUsageFlag kUsageFlag = kUsageFlag_None;
-		ETextureType kType = kTextureType_Invalid;
-		std::string sName = "NewTexture";
-	};
-
-	struct BufferDesc
-	{
-		// fill me
-		THandle hDevice = 0u; // Owner
-	};
-
 	enum EIndexType : uint32_t
 	{
 		kIndexType_UInt16 = 0,
@@ -922,6 +917,29 @@ namespace Tracy
 		kDrawMode_IndexData = 2,
 		kDrawMode_Indirect = 3
 	};
+
+struct TextureDesc
+{
+	THandle hDevice = 0u; // Owner
+	uint16_t uWidth = 0u;
+	uint16_t uHeight = 0u;
+	uint16_t uDepth = 0u;
+	uint32_t uLayerCount = 0u;
+	EFormat kFormat = kFormat_Undefined;
+	EUsageFlag kUsageFlag = kUsageFlag_None;
+	ETextureType kType = kTextureType_Invalid;
+	std::string sName = "NewTexture";
+};
+
+struct BufferDesc
+{
+	THandle hDevice = 0u;
+	size_t uSize = 0u;
+	EFormat kFormat = kFormat_Undefined;
+	EUsageFlag kUsageFlag = kUsageFlag_None;
+	std::string sName = "NewBuffer";
+};
+
 } // Tracy
 
 #endif // !TRACY_DISPLAYTYPES_H

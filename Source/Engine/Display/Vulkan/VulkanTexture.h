@@ -16,7 +16,13 @@ namespace Tracy
 		// todo: get image into desired layout
 		//vk::ImageLayout hLayout;
 		VulkanAllocation Allocation;
-		std::unordered_map<THandle, vk::ImageView> Views;
+		// Temp solution, figure out how to compute good hash for the view to add!
+		std::unordered_map<THandle, vk::ImageView> Views =
+		{
+			{ kViewType_ShaderResource,	vk::ImageView() },
+			{ kViewType_RenderTarget,	vk::ImageView() },
+			{ kViewType_DepthStencil,	vk::ImageView() }
+		};
 	};
 
 	// Textures are created by the device that acts as factory

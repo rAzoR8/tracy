@@ -5,13 +5,13 @@ using namespace Tracy;
 
 VkBufferData::VkBufferData(const BufferDesc& _Desc) : hDevice(_Desc.hDevice)
 {
-	//GetDevice(hDevice).CreateBuffer(_Desc, Allocation, hBuffer);
+	GetDevice(hDevice).CreateBuffer(_Desc, Allocation, hBuffer);
 }
 //---------------------------------------------------------------------------------------------------
 
 VkBufferData::~VkBufferData()
 {
-	//GetDevice(hDevice).DestroyBuffer(hBuffer);
+	GetDevice(hDevice).DestroyBuffer(Allocation, hBuffer);
 }
 //---------------------------------------------------------------------------------------------------
 

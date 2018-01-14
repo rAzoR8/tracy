@@ -63,22 +63,25 @@ namespace Tracy
 
 		// Create, Allocate and Bind resource
 		vk::Result CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image);
-		vk::Result CreateBufferResource(const VulkanAllocationInfo& _Info) {}
+		vk::Result CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
 
 		// Create Virtual Image Memory Allocation
 		vk::Result CreateImageAllocation(const vk::ImageCreateInfo& _Info, vk::Image& _Image);
+		vk::Result CreateBufferAllocation(const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
 
 		// Allocate resouce memory
 		vk::Result AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image);
-		vk::Result AllocateBufferMemory(const VulkanAllocationInfo& _Info) {}
+		vk::Result AllocateBufferMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
 
 		// Materialize memory virtual allocation
 		void BindImageMemory(VulkanAllocation& _Allocation, vk::Image& _Image);
-		vk::Result BindBufferMemory() {}
+		void BindBufferMemory(VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
+
+		void DestroyImage(VulkanAllocation& _Allocation, vk::Image& _Image);
+		void DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
 
 		// Retrieve device memory info
 		const vk::DeviceSize& GetTotalDeviceMemory() const;
-		//const vk::DeviceSize& GetTotalSharedMemory() const;
 
 	private:
 		// Select the flags used in memory allocation given a configuration for the resouce
@@ -95,14 +98,12 @@ namespace Tracy
 		const vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
 
 		vk::DeviceSize m_uTotalDeviceMemory = 0ull;
-		//vk::DeviceSize m_uTotalSharedMemory = 0ull;
 
 		vk::DeviceSize m_uAllocatedVirtualMemory = 0ull;
 		vk::DeviceSize m_uAllocatedPhysicalMemory = 0ull;
 	};
 
 	inline const vk::DeviceSize& VulkanMemoryAllocator::GetTotalDeviceMemory() const { return m_uTotalDeviceMemory; }
-	//inline const vk::DeviceSize& VulkanMemoryAllocator::GetTotalSharedMemory() const { return m_uTotalSharedMemory; }
 }
 
 #endif // !TRACY_VULKANALLOCATORTYPES_H
