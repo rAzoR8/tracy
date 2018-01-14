@@ -74,70 +74,56 @@ const vk::MemoryPropertyFlags Tracy::VulkanMemoryAllocator::GetMemoryProperties(
 //---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image)
 {
-	vk::Result uResult = CreateImageAllocation(_Info, _Image);
-	if (uResult != vk::Result::eSuccess)
+	if (LogVKErrorBool(CreateImageAllocation(_Info, _Image)))
 	{
-		return uResult;
+		if (LogVKErrorBool(AllocateImageMemory(_AllocInfo, _Allocation, _Image)))
+		{
+			BindImageMemory(_Allocation, _Image);
+		}
 	}
-
-	uResult = AllocateImageMemory(_AllocInfo, _Allocation, _Image);
-	if (uResult != vk::Result::eSuccess)
-	{
-		return uResult;
-	}
-
-	BindImageMemory(_Allocation, _Image);
 
 	return vk::Result::eSuccess;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer)
 {
-	vk::Result uResult = CreateBufferAllocation(_Info, _Buffer);
-	if (uResult != vk::Result::eSuccess)
+	if (LogVKErrorBool(CreateBufferAllocation(_Info, _Buffer)))
 	{
-		return uResult;
+		if (LogVKErrorBool(AllocateBufferMemory(_AllocInfo, _Allocation, _Buffer)))
+		{
+			BindBufferMemory(_Allocation, _Buffer);
+		}
 	}
-
-	uResult = AllocateBufferMemory(_AllocInfo, _Allocation, _Buffer);
-	if (uResult != vk::Result::eSuccess)
-	{
-		return uResult;
-	}
-
-	BindBufferMemory(_Allocation, _Buffer);
 
 	return vk::Result::eSuccess;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::CreateImageAllocation(const vk::ImageCreateInfo& _Info, vk::Image& _Image)
 {
-	vk::Result uResult = m_Device.createImage(&_Info, nullptr, &_Image);
-	if (uResult != vk::Result::eSuccess)
+	if (LogVKErrorBool(m_Device.createImage(&_Info, nullptr, &_Image)))
 	{
-		return uResult;
+		// Update stats, let vk check for enough memory on the right heap.
+		vk::MemoryRequirements MemReq = m_Device.getImageMemoryRequirements(_Image);
+		m_uAllocatedVirtualMemory += MemReq.size;
+
+		return vk::Result::eSuccess;
 	}
 
-	// Update stats, let vk check for enough memory on the right heap.
-	vk::MemoryRequirements MemReq = m_Device.getImageMemoryRequirements(_Image);
-	m_uAllocatedVirtualMemory += MemReq.size;
-
-	return vk::Result::eSuccess;
+	return vk::Result::eErrorInitializationFailed;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::CreateBufferAllocation(const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer)
 {
-	vk::Result uResult = m_Device.createBuffer(&_Info, nullptr, &_Buffer);
-	if (uResult != vk::Result::eSuccess)
+	if (LogVKErrorBool(m_Device.createBuffer(&_Info, nullptr, &_Buffer)))
 	{
-		return uResult;
+		// Update stats, let vk check for enough memory on the right heap.
+		vk::MemoryRequirements MemReq = m_Device.getBufferMemoryRequirements(_Buffer);
+		m_uAllocatedVirtualMemory += MemReq.size;
+
+		return vk::Result::eSuccess;
 	}
 
-	// Update stats, let vk check for enough memory on the right heap.
-	vk::MemoryRequirements MemReq = m_Device.getBufferMemoryRequirements(_Buffer);
-	m_uAllocatedVirtualMemory += MemReq.size;
-
-	return vk::Result::eSuccess;
+	return vk::Result::eErrorInitializationFailed;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image)
@@ -150,16 +136,15 @@ vk::Result Tracy::VulkanMemoryAllocator::AllocateImageMemory(const VulkanAllocat
 	MemInfo.allocationSize = MemReq.size;
 	MemInfo.memoryTypeIndex = GetMemoryTypeIndex(MemInfo.memoryTypeIndex, GetMemoryProperties(_AllocInfo.kType));
 
-	vk::Result uResult = m_Device.allocateMemory(&MemInfo, nullptr, &_Allocation.Memory);
-	if (uResult != vk::Result::eSuccess)
+	if (LogVKErrorBool(m_Device.allocateMemory(&MemInfo, nullptr, &_Allocation.Memory)))
 	{
-		return uResult;
+		// Update stats, let vk check for enough memory on the right heap.
+		m_uAllocatedPhysicalMemory += MemReq.size;
+
+		return vk::Result::eSuccess;
 	}
 
-	// Update stats, let vk check for enough memory on the right heap.
-	m_uAllocatedPhysicalMemory += MemReq.size;
-
-	return vk::Result::eSuccess;
+	return vk::Result::eErrorInitializationFailed;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::AllocateBufferMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer)
@@ -172,16 +157,15 @@ vk::Result Tracy::VulkanMemoryAllocator::AllocateBufferMemory(const VulkanAlloca
 	MemInfo.allocationSize = MemReq.size;
 	MemInfo.memoryTypeIndex = GetMemoryTypeIndex(MemInfo.memoryTypeIndex, GetMemoryProperties(_AllocInfo.kType));
 
-	vk::Result uResult = m_Device.allocateMemory(&MemInfo, nullptr, &_Allocation.Memory);
-	if (uResult != vk::Result::eSuccess)
+	if (LogVKErrorBool(m_Device.allocateMemory(&MemInfo, nullptr, &_Allocation.Memory)))
 	{
-		return uResult;
+		// Update stats, let vk check for enough memory on the right heap.
+		m_uAllocatedPhysicalMemory += MemReq.size;
+
+		return vk::Result::eSuccess;
 	}
 
-	// Update stats, let vk check for enough memory on the right heap.
-	m_uAllocatedPhysicalMemory += MemReq.size;
-
-	return vk::Result::eSuccess;
+	return vk::Result::eErrorInitializationFailed;
 }
 //---------------------------------------------------------------------------------------------------
 void Tracy::VulkanMemoryAllocator::BindImageMemory(VulkanAllocation& _Allocation, vk::Image& _Image)
@@ -194,7 +178,7 @@ void Tracy::VulkanMemoryAllocator::BindBufferMemory(VulkanAllocation& _Allocatio
 	m_Device.bindBufferMemory(_Buffer, _Allocation.Memory, _Allocation.uOffset);
 }
 //---------------------------------------------------------------------------------------------------
-inline void Tracy::VulkanMemoryAllocator::DestroyImage(VulkanAllocation& _Allocation, vk::Image& _Image)
+void Tracy::VulkanMemoryAllocator::DestroyImage(VulkanAllocation& _Allocation, vk::Image& _Image)
 {
 	// TODO : check if nullcheck is necessary before destroy
 	// https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#vkFreeMemory
