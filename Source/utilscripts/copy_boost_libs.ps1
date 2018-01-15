@@ -31,5 +31,3 @@ foreach ($file in get-ChildItem -recurse -path $BoostInputFiles -include *.lib)
         }
     }
 }
-
-Copy-Item "shared_library.hpp" $BoostDLLIncludeDir
