@@ -713,6 +713,14 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet); // _uLastSet + 1 ?
 	hlx::Hasher uHash = 0u;
 
+	// free previous descriptorsets
+	for(auto& kv : m_DescriptorSets)
+	{
+		DescriptorSetContainer& OldContainer = kv.second;
+		OldContainer.uNextIndex = 0u;
+		VKDevice().freeDescriptorSets(m_DescriptorPool, OldContainer.Sets);
+	}
+
 	for (uint32_t uSet = 0u; uSet < _uLastSet; ++uSet)
 	{
 		const TVarSet& Vars = _Sets[uSet];
@@ -722,42 +730,42 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 			const size_t uSetHash = CreateDescriptorSetLayoutBindings(Vars, Bindings);
 			uHash += uSetHash;
 
+			const uint32_t uCount = m_DescriptorSetRates[uSet];
+			DescriptorSetContainer* pContainer = nullptr;
+			
 			auto it = m_DescriptorSets.find(uSetHash);
-
 			if (it != m_DescriptorSets.end())
 			{
-				Layouts[uSet] = it->second.Layout;
-				m_ActiveDescriptorSets[uSet] = &it->second;
+				pContainer = &it->second;
 			}
-			else // create new set
+			else // create new set container & layout
 			{
-				const uint32_t uCount = m_DescriptorSetRates[uSet];
 				// add descriptor set container
+				pContainer = &m_DescriptorSets.emplace(uSetHash, uCount).first->second;
 
-				DesciptorSetContainer* pContainer = &m_DescriptorSets.emplace(uSetHash, uCount).first->second;
-				m_ActiveDescriptorSets[uSet] = pContainer;
+				// create layout
+				vk::DescriptorSetLayoutCreateInfo LayoutInfo{};
+				LayoutInfo.bindingCount = static_cast<uint32_t>(Bindings.size());
+				LayoutInfo.pBindings = Bindings.data();
 
-				{ // create layout
-					vk::DescriptorSetLayoutCreateInfo LayoutInfo{};
-					LayoutInfo.bindingCount = static_cast<uint32_t>(Bindings.size());
-					LayoutInfo.pBindings = Bindings.data();
+				pContainer->Layout = m_Device.createDescriptorSetLayout(LayoutInfo);
+			}
 
-					Layouts[uSet] = m_Device.createDescriptorSetLayout(LayoutInfo);					
-				}
+			Layouts[uSet] = pContainer->Layout;
+			m_ActiveDescriptorSets[uSet] = pContainer;
 
-				{ // allocate a batch of descriptor sets of the same layout
-					std::vector<vk::DescriptorSetLayout> SetsToAllocate(uCount, Layouts[uSet]); //copy the layout
+			{ // allocate a batch of descriptor sets of the same layout
+				std::vector<vk::DescriptorSetLayout> SetsToAllocate(uCount, pContainer->Layout); //copy the layout
 
-					vk::DescriptorSetAllocateInfo Info{};
-					Info.descriptorPool = m_DescriptorPool;
-					Info.descriptorSetCount = uCount;
-					Info.pSetLayouts = SetsToAllocate.data();
+				vk::DescriptorSetAllocateInfo Info{};
+				Info.descriptorPool = m_DescriptorPool;
+				Info.descriptorSetCount = uCount;
+				Info.pSetLayouts = SetsToAllocate.data();
 
-					// allocate batch in once call
-					if (LogVKErrorBool(VKDevice().allocateDescriptorSets(&Info, pContainer->Sets.data())) == false)
-					{
-						return false;
-					}
+				// allocate batch in once call
+				if (LogVKErrorBool(VKDevice().allocateDescriptorSets(&Info, pContainer->Sets.data())) == false)
+				{
+					return false;
 				}
 			}
 		}

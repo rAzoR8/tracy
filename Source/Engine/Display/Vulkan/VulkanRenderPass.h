@@ -118,9 +118,9 @@ namespace Tracy
 	private:
 		VulkanRenderPass* m_pParent = nullptr;
 
-		struct DesciptorSetContainer
+		struct DescriptorSetContainer
 		{
-			DesciptorSetContainer(uint32_t _uCount) : uCount(_uCount), Sets(uCount, nullptr){}
+			DescriptorSetContainer(uint32_t _uCount) : uCount(_uCount), Sets(uCount, nullptr){}
 
 			const uint32_t uCount;
 			uint32_t uNextIndex = 0u;
@@ -150,10 +150,10 @@ namespace Tracy
 		PipelineDesc m_ActivePipelineDesc;
 
 		std::array<uint32_t, kMaxDescriptorSets> m_DescriptorSetRates;
-		std::array<DesciptorSetContainer*, kMaxDescriptorSets> m_ActiveDescriptorSets;
+		std::array<DescriptorSetContainer*, kMaxDescriptorSets> m_ActiveDescriptorSets;
 		vk::Pipeline m_BasePipeline = nullptr;
 
-		std::unordered_map<uint64_t, DesciptorSetContainer> m_DescriptorSets;
+		std::unordered_map<uint64_t, DescriptorSetContainer> m_DescriptorSets;
 		vk::DescriptorPool m_DescriptorPool;
 
 		std::unordered_map<uint64_t, vk::PipelineLayout> m_PipelineLayouts;
