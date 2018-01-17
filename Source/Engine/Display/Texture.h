@@ -37,13 +37,12 @@ namespace Tracy
 		virtual bool Resize(const uint32_t _uWidth, const uint32_t _uHeight, const uint32_t _uDepth) { return false; };
 		virtual bool AddView(const TextureViewDesc& _Desc) { return false; };
 
-		inline const bool IsValidTex() const { return IsValidRef() && Ref.HasAPIData(); }
-		inline explicit operator bool() const { return IsValidTex(); }
-
-		const uint64_t& GetIdentifier() const;
-
 	public:
 		virtual ~Texture() {}
+
+		inline const bool IsValidTex() const { return IsValidRef() && Ref.HasAPIData(); }
+		inline explicit operator bool() const { return IsValidTex(); }
+		const uint64_t& GetIdentifier() const;
 
 		const uint16_t GetWidth() const;
 		const uint16_t GetHeight() const;

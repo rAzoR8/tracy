@@ -16,7 +16,6 @@ VulkanRenderPass::VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassD
 	m_uPassIndex(_uPassIndex),
 	m_pParent(_pParent)
 {
-	m_DescriptorSetRates.fill(16u); // minimum sets per slot
 	for (const RenderPassDesc& SubPass : m_Description.SubPasses)
 	{
 		m_SubPasses.emplace_back(this, SubPass, static_cast<uint32_t>(m_SubPasses.size()), _hDevice);
@@ -42,51 +41,6 @@ bool VulkanRenderPass::Initialize()
 		return false;
 
 	if (LoadPipelineCache(m_Description.sPassName + L"_pipeline.cache") == false)
-		return false;
-
-	// estimate descriptor pool sizes
-	DescriptorPoolDesc PoolDesc{};
-	if (m_Description.DefaultPipelines.empty())
-	{
-		for (const DescriptorSetRate& Rate : m_Description.DescriptorSetRates)
-		{
-			if (Rate.uSet < m_DescriptorSetRates.size())
-			{
-				m_DescriptorSetRates[Rate.uSet] = Rate.uCount;
-			}
-		}
-
-		const PipelineDesc& Pipeline = m_Description.DefaultPipelines.front();
-		for (const PipelineDesc::ShaderDesc& Shader : Pipeline.Shaders)
-		{
-			SelectShader(Shader.Identifier);
-		}
-
-		PoolDesc.uSampledImage = 0u;
-		PoolDesc.uSampler = 0u;
-		PoolDesc.uUniformBuffer = 0u;
-		for (uint32_t i = 0u; i < kShaderType_NumOf; ++i) 
-		{
-			if (m_ActiveShaders[i] != nullptr)
-			{
-				for (const VariableInfo& var : m_ActiveShaders[i]->Code.GetVariables())
-				{
-					const uint32_t& uRate = m_DescriptorSetRates[var.uDescriptorSet];
-					PoolDesc.uSampledImage	+= (var.Type.IsImage() ? 1 : 0) * uRate;
-					PoolDesc.uSampler		+= (var.Type.IsSampler() ? 1 : 0) * uRate;
-					PoolDesc.uUniformBuffer += ((var.Type.IsPrimitve() || var.Type.IsStruct()) ? 1 : 0) * uRate; // actually also need to check storage class for uniform, but we dont care, this is just an approximation
-				}
-			}
-		}		
-	}
-
-	PoolDesc.uMaxSets = 0u; // accumulate with default rates
-	for (const uint32_t& uRate : m_DescriptorSetRates)
-	{
-		PoolDesc.uMaxSets += uRate;
-	}
-
-	if (CreateDescriptorPool(PoolDesc) == false)
 		return false;
 
 	auto InitPipeline = [&](const PipelineDesc& _Pipeline) -> bool
@@ -149,19 +103,15 @@ void VulkanRenderPass::Uninitialize()
 		SubPass.Uninitialize();
 	}
 
+	for (auto& kv : m_DescriptorSets)
+	{
+		m_Device.destroyDescriptorSetLayout(kv.second.hLayout);
+	}
+	m_DescriptorSets.clear();
+
 	StorePipelineCache(m_Description.sPassName + L"_pipeline.cache");
 	m_Device.destroyPipelineCache(m_PipelineCache);
 	m_PipelineCache = nullptr;
-
-	m_Device.destroyDescriptorPool(m_DescriptorPool);
-	m_DescriptorPool = nullptr;
-
-	//for (auto& kv : m_DescriptorSets)
-	//{
-	//	DesciptorSet& Set = kv.second;
-	//	m_Device.destroyDescriptorSetLayout(Set.Layout);
-	//}
-	m_DescriptorSets.clear();	
 
 	for (auto& kv : m_PipelineLayouts)
 	{
@@ -185,6 +135,14 @@ void VulkanRenderPass::Uninitialize()
 bool VulkanRenderPass::Record(const Camera& _Camera)
 {
 	// TODO: wait for previous passes to finish work on dependencies
+
+	for (auto& kv : m_DescriptorSets)
+	{
+		DescriptorSetContainer& Container = kv.second;
+		//m_Device.FreeDescriptorSets(Container.Sets);
+		//Container.Sets.resize(0);
+		Container.uNextFree = 0u;
+	}
 
 	// Upate pipeline
 	{
@@ -221,72 +179,9 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		}
 	}
 
-	struct VariableMapping
-	{
-		//vk::buffer
-		//descriptorset & vars
-		std::vector<uint32_t> Variables; // index into buffer source
-		bool Initialized() { return bInitialized; }
-		bool Valid() { return bValid; }
-
-		bool bValid = false;
-		bool bInitialized = false;
-	};
-
-	struct ImageMapping
-	{
-		std::vector<uint32_t> Images; // index into image source
-		bool Initialized() { return bInitialized; }
-		bool Valid() { return bValid; }
-
-		bool bValid = false;
-		bool bInitialized = false;
-	};
-
-	std::vector<VariableMapping> VarMappings(BufferSource::GetInstanceCount());
-	std::vector<ImageMapping> ImageMappings(ImageSource::GetInstanceCount());
-
-	// helper function
-	auto DigestBuffer = [&](const BufferSource& Src)
-	{
-		VariableMapping& Mapping = VarMappings[Src.GetID()];
-
-		if (Mapping.Initialized() == false)
-		{
-			// write indices of variables with names matching in descriptor set and buffer source into mapping Variables
-		}
-
-		if (Mapping.Valid())
-		{
-			const std::vector<BufferSource::Var>& Source = Src.GetVars();
-			// transfer 
-			for (const uint32_t& i : Mapping.Variables)
-			{
-				//Source[i].pData
-			}
-		}
-	};
-
-	auto DigestImages = [&](const ImageSource& Src)
-	{
-		ImageMapping& Mapping = ImageMappings[Src.GetID()];
-
-		if (Mapping.Initialized() == false)
-		{
-		}
-
-		if (Mapping.Valid())
-		{
-			const std::vector<ImageSource::Image>& Source = Src.GetImages();
-			// transfer 
-			for (const uint32_t& i : Mapping.Images)
-			{
-				//Source[i].Image
-				
-			}
-		}
-	};
-
+	// make member
+	m_BufferMappings.resize(BufferSource::GetInstanceCount());
+	m_ImageMappings.resize(ImageSource::GetInstanceCount());
 	
 	// set camera sources
 	DigestBuffer(_Camera);
@@ -299,6 +194,14 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 	for (RenderObject* pObj : _Camera.GetObjects())
 	{
 		const RenderNode& Node = pObj->GetNode();
+
+		for (const BufferSource* pSrc : pObj->GetBufferSources())
+		{
+			if (pSrc != nullptr)
+			{
+				DigestBuffer(*pSrc);
+			}
+		}
 
 		if (Node.Material)
 		{
@@ -317,40 +220,52 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			if (bShaderChanged && ActivatePipeline(m_ActivePipelineDesc))
 			{
 				m_CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
-
-				//std::vector<vk::DescriptorSet> DescriporSets;
-				//uint32_t uFirstSet = UINT32_MAX;
-				//for (DesciptorSet* pSet : m_ActiveDescriptorSets)
-				//{
-				//	DescriporSets.push_back(pSet->Set);
-				//	uFirstSet = std::min(uFirstSet, pSet->uSlot);
-				//}
-
-				// TODO: fill for dynamic uniforms and storage buffers
-				std::vector<uint32_t> DynamicOffsets;
-
-				//if (m_ActiveDescriptorSets.empty() == false)
-				//{
-				//	m_CommandBuffer.bindDescriptorSets(
-				//		vk::PipelineBindPoint::eGraphics,
-				//		m_ActivePipelineLayout,
-				//		uFirstSet,
-				//		DescriporSets,
-				//		DynamicOffsets);
-				//
-				//} // else?
 			}
 
 			DigestBuffer(Mat.Values); // material values
 			DigestImages(Mat.Images); // textures
+
+			// bind descriptor sets
+			{
+				std::vector<vk::WriteDescriptorSet> Writes;
+				std::vector<vk::DescriptorSet> DescriporSets;
+
+				uint32_t uFirstSet = UINT32_MAX;
+				for (DescriptorSetContainer* pSet : m_ActiveDescriptorSets)
+				{
+					if (pSet->Update(m_Device))
+					{
+						pSet->AddDescriptorWrites(Writes);
+					}
+
+					DescriporSets.push_back(pSet->hSet);
+					uFirstSet = std::min(uFirstSet, pSet->uSlot);
+				}
+
+				if (Writes.empty() == false)
+				{
+					VKDevice().updateDescriptorSets(Writes, {});				
+				}
+
+				// TODO: fill for dynamic uniforms and storage buffers
+				std::vector<uint32_t> DynamicOffsets;
+
+				if (m_ActiveDescriptorSets.empty() == false)
+				{
+					m_CommandBuffer.bindDescriptorSets(
+						vk::PipelineBindPoint::eGraphics,
+						m_ActivePipelineLayout,
+						uFirstSet,
+						DescriporSets,
+						DynamicOffsets);
+
+				} // else?
+			}
 		}
 
-		for (const BufferSource* pSrc : pObj->GetBufferSources()) 
-		{			
-			if (pSrc != nullptr)
-			{
-				DigestBuffer(*pSrc);
-			}
+		if (m_pPerObjectCallback != nullptr)
+		{
+			m_pPerObjectCallback->OnPerObject(*this, pObj);
 		}
 
 		// set vertex & index buffer
@@ -395,12 +310,6 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		break;
 		default:
 			break;
-		}
-
-
-		if (m_pPerObjectCallback != nullptr)
-		{
-			m_pPerObjectCallback->OnPerObject(*this, pObj);
 		}
 	}
 
@@ -713,14 +622,6 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet); // _uLastSet + 1 ?
 	hlx::Hasher uHash = 0u;
 
-	// free previous descriptorsets
-	for(auto& kv : m_DescriptorSets)
-	{
-		DescriptorSetContainer& OldContainer = kv.second;
-		OldContainer.uNextIndex = 0u;
-		VKDevice().freeDescriptorSets(m_DescriptorPool, OldContainer.Sets);
-	}
-
 	for (uint32_t uSet = 0u; uSet < _uLastSet; ++uSet)
 	{
 		const TVarSet& Vars = _Sets[uSet];
@@ -730,7 +631,6 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 			const size_t uSetHash = CreateDescriptorSetLayoutBindings(Vars, Bindings);
 			uHash += uSetHash;
 
-			const uint32_t uCount = m_DescriptorSetRates[uSet];
 			DescriptorSetContainer* pContainer = nullptr;
 			
 			auto it = m_DescriptorSets.find(uSetHash);
@@ -740,34 +640,22 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 			}
 			else // create new set container & layout
 			{
-				// add descriptor set container
-				pContainer = &m_DescriptorSets.emplace(uSetHash, uCount).first->second;
-
 				// create layout
 				vk::DescriptorSetLayoutCreateInfo LayoutInfo{};
 				LayoutInfo.bindingCount = static_cast<uint32_t>(Bindings.size());
 				LayoutInfo.pBindings = Bindings.data();
 
-				pContainer->Layout = m_Device.createDescriptorSetLayout(LayoutInfo);
-			}
-
-			Layouts[uSet] = pContainer->Layout;
-			m_ActiveDescriptorSets[uSet] = pContainer;
-
-			{ // allocate a batch of descriptor sets of the same layout
-				std::vector<vk::DescriptorSetLayout> SetsToAllocate(uCount, pContainer->Layout); //copy the layout
-
-				vk::DescriptorSetAllocateInfo Info{};
-				Info.descriptorPool = m_DescriptorPool;
-				Info.descriptorSetCount = uCount;
-				Info.pSetLayouts = SetsToAllocate.data();
-
-				// allocate batch in once call
-				if (LogVKErrorBool(VKDevice().allocateDescriptorSets(&Info, pContainer->Sets.data())) == false)
+				// add descriptor set container
+				pContainer = &m_DescriptorSets.emplace(uSetHash, m_Device.createDescriptorSetLayout(LayoutInfo)).first->second;
+				pContainer->uSlot = uSet;
+				for (const VariableInfo& var : Vars)
 				{
-					return false;
+					pContainer->Bindings.push_back(var);
 				}
 			}
+
+			Layouts[uSet] = pContainer->hLayout;
+			m_ActiveDescriptorSets[uSet] = pContainer;
 		}
 		else // empty set (not sure if that works)
 		{
@@ -804,6 +692,89 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 	_uOutHash = uHash;
 
 	return true;
+}
+
+//---------------------------------------------------------------------------------------------------
+
+bool VulkanRenderPass::FindBinding(const uint64_t& _uNameHash, InputMapping& _OutMapping) const
+{
+	uint32_t uSet = 0u;
+	for (DescriptorSetContainer* pSet : m_ActiveDescriptorSets)
+	{
+		if (uint32_t uBinding; uBinding = pSet->FindBinding(_uNameHash))
+		{
+			_OutMapping.uBindingIndex = uBinding;
+			_OutMapping.uSet = uSet;
+			return true;
+		}
+		++uSet;
+	}
+
+	return false;
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::DigestImages(const ImageSource& Src)
+{
+	ResourceMapping& Mapping = m_ImageMappings[Src.GetID()];
+	const std::vector<ImageSource::Image>& Images = Src.GetImages();
+
+	if (Mapping.bInitialized == false)
+	{
+		Mapping.Resource.resize(0);
+		uint32_t uSourceIndex = 0u;
+		for (const ImageSource::Image& Img : Images)
+		{
+			InputMapping in;
+			in.uSourceIndex = uSourceIndex;
+			if (FindBinding(Img.uHash, in))
+			{
+				Mapping.Resource.push_back(in);
+			}
+		}
+
+		Mapping.bInitialized = true;
+	}
+
+	// transfer images
+	for (const InputMapping& Input : Mapping.Resource)
+	{
+		const ImageSource::Image& Source = Images[Input.uSourceIndex];
+		m_ActiveDescriptorSets[Input.uSet]->Bindings[Input.uBindingIndex].Set(Source.Img);
+	}
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::DigestBuffer(const BufferSource & Src)
+{
+	ResourceMapping& Mapping = m_BufferMappings[Src.GetID()];
+	const std::vector<BufferSource::Var>& Vars = Src.GetVars();
+
+	if (Mapping.bInitialized == false)
+	{
+		Mapping.Resource.resize(0);
+		uint32_t uSourceIndex = 0u;
+		for (const BufferSource::Var& Var : Vars)
+		{
+			InputMapping in;
+			in.uSourceIndex = uSourceIndex;
+			if (FindBinding(Var.uHash, in))
+			{
+				Mapping.Resource.push_back(in);
+			}
+		}
+
+		Mapping.bInitialized = true;
+	}
+
+	// transfer images
+	for (const InputMapping& Input : Mapping.Resource)
+	{
+		const BufferSource::Var& Source = Vars[Input.uSourceIndex];
+
+		// todo: create buffer etc
+		//m_ActiveDescriptorSets[Input.uSet]->Bindings[Input.uBindingIndex].Set()
+	}
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -875,37 +846,116 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 
 	return bSuccess;
 }
+
 //---------------------------------------------------------------------------------------------------
-bool VulkanRenderPass::CreateDescriptorPool(const DescriptorPoolDesc& _Desc)
+
+void VulkanRenderPass::Binding::Set(const Texture& _Texture)
 {
-	HASSERT(!m_DescriptorPool, "Descriptor pool already exists!");
-	if (m_DescriptorPool)
-		return false;
-
-	vk::DescriptorPoolCreateInfo Info{};
-	std::vector<vk::DescriptorPoolSize> PoolSizes;
-
-	auto AddSize = [&PoolSizes](vk::DescriptorType kType, uint32_t uCount)
+	const VkTexData& Tex = VKTexture(_Texture);
+	if (uImageId != _Texture.GetIdentifier())
 	{
-		PoolSizes.push_back(vk::DescriptorPoolSize(kType, uCount));
-	};
+		uImageId = _Texture.GetIdentifier();
+		Image.imageLayout = Tex.hLayout;
+		Image.imageView = Tex.Views[kViewType_ShaderResource];
+		//Image.sampler TODO: use immutable samplers in PSO object instead
 
-	AddSize(vk::DescriptorType::eCombinedImageSampler, _Desc.uCombinedImageSampler);
-	AddSize(vk::DescriptorType::eInputAttachment, _Desc.uInputAttachment);
-	AddSize(vk::DescriptorType::eSampledImage, _Desc.uSampledImage);
-	AddSize(vk::DescriptorType::eSampler, _Desc.uSampler);
-	AddSize(vk::DescriptorType::eStorageBuffer, _Desc.uStorageBuffer);
-	AddSize(vk::DescriptorType::eStorageBufferDynamic, _Desc.uStorageBufferDynamic);
-	AddSize(vk::DescriptorType::eStorageImage, _Desc.uStorageImage);
-	AddSize(vk::DescriptorType::eStorageTexelBuffer, _Desc.uStorageTexelBuffer);
-	AddSize(vk::DescriptorType::eUniformBuffer, _Desc.uUniformBuffer);
-	AddSize(vk::DescriptorType::eUniformBufferDynamic, _Desc.uUniformBufferDynamic);
-	AddSize(vk::DescriptorType::eUniformTexelBuffer, _Desc.uUniformTexelBuffer);
+		uHash = hlx::Hash(uImageId, Var.uBinding, kType);
+	}
+}
+//---------------------------------------------------------------------------------------------------
 
-	Info.maxSets = _Desc.uMaxSets;
-	Info.poolSizeCount = static_cast<uint32_t>(PoolSizes.size());
-	Info.pPoolSizes = PoolSizes.data();
+void VulkanRenderPass::Binding::Set(const GPUBuffer& _Buffer)
+{
+	const VkBufferData& Buf = VKBuffer(_Buffer);
+	if (uBufferId != _Buffer.GetIdentifier())
+	{
+		uBufferId = _Buffer.GetIdentifier();
+		Buffer.buffer = Buf.hBuffer;
+		//Buffer.offset = Var.uMemberOffset;
+		//Buffer.range = Var.Type.GetSize();
 
-	return LogVKErrorBool(m_Device.createDescriptorPool(&Info, nullptr, &m_DescriptorPool));
+		uHash = hlx::Hash(uBufferId, Var.uBinding, kType);
+	}
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t VulkanRenderPass::DescriptorSetContainer::FindBinding(const uint64_t& _uNameHash) const
+{
+	const size_t length = Bindings.size();
+	for (uint32_t i = 0; i < length; ++i)
+	{
+		if (Bindings[i].uNameHash == _uNameHash)
+			return i;
+	}
+	return HUNDEFINED32;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool VulkanRenderPass::DescriptorSetContainer::Update(VulkanDevice & _Device)
+{
+	uint64_t uNewHash = 0u;
+	for (const Binding& b : Bindings)
+	{
+		uNewHash = hlx::CombineHashes(uNewHash, b.uHash);
+	}
+
+	if (uHash != uNewHash)
+	{
+		uHash = uNewHash;
+
+		auto it = UsedSets.find(uHash);
+
+		if (it != UsedSets.end())
+		{
+			hSet = it->second;
+		}
+		else
+		{
+			if (uNextFree < FreeSets.size())
+			{
+				hSet = FreeSets[uNextFree++];
+			}
+			else // no more free sets
+			{
+				auto&& NewSets = _Device.AllocateDescriptorSets(hLayout, 32u);
+
+				if (NewSets.empty() == false)
+				{
+					FreeSets.insert(FreeSets.end(), std::make_move_iterator(NewSets.begin()), std::make_move_iterator(NewSets.end()));
+					hSet = FreeSets[uNextFree++];
+				}
+				else
+				{
+					hSet = nullptr;
+				}
+			}
+
+			if (hSet)
+			{
+				UsedSets.insert({ uHash, hSet });
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::DescriptorSetContainer::AddDescriptorWrites(std::vector<vk::WriteDescriptorSet>& _OutWrites) const
+{
+	for (const Binding& bind : Bindings)
+	{
+		vk::WriteDescriptorSet& write = _OutWrites.emplace_back();
+		write.descriptorCount = 1u;
+		write.descriptorType = bind.kType;
+		write.dstArrayElement = 0u; // no array support for now
+		write.dstBinding = bind.Var.uBinding;
+		write.dstSet = hSet;
+		write.pBufferInfo = &bind.Buffer;
+		write.pImageInfo = &bind.Image;
+		write.pTexelBufferView = nullptr;
+	}
 }
 //---------------------------------------------------------------------------------------------------

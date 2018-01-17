@@ -9,6 +9,10 @@ namespace Tracy
 	// forward decl
 	class Camera;
 	class RenderObject;
+	class Texture;
+	class GPUBuffer;
+	class ImageSource;
+	class BufferSource;
 
 	class VulkanRenderPass : public IShaderFactoryConsumer
 	{
@@ -47,24 +51,6 @@ namespace Tracy
 			std::vector<vk::Viewport> Viewports;
 			std::vector<vk::Rect2D> Scissors;
 		};
-
-		struct DescriptorPoolDesc
-		{
-			void Reset() { memset(this, 0, sizeof(DescriptorPoolDesc)); }
-			uint32_t uCombinedImageSampler = 64u;
-			uint32_t uInputAttachment = 8u;
-			uint32_t uSampledImage = 64u;
-			uint32_t uSampler = 64u;
-			uint32_t uStorageBuffer = 64u;
-			uint32_t uStorageBufferDynamic = 64u;
-			uint32_t uStorageImage = 64u;
-			uint32_t uStorageTexelBuffer = 64u;
-			uint32_t uUniformBuffer = 64u;
-			uint32_t uUniformBufferDynamic = 64u;
-			uint32_t uUniformTexelBuffer = 64u;
-
-			uint32_t uMaxSets = 1024;
-		};
 #pragma endregion
 
 		VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
@@ -87,6 +73,58 @@ namespace Tracy
 		void SetChangePipelineCallback(IOnChangePipeline* _pCallback);
 
 	private:
+		struct InputMapping
+		{
+			uint32_t uSourceIndex;
+			uint32_t uSet;
+			uint32_t uBindingIndex;
+		};
+
+		struct ResourceMapping
+		{
+			std::vector<InputMapping> Resource; // index into source
+			bool bInitialized = false;
+		};
+
+		struct Binding
+		{
+			Binding(const VariableInfo& _Var) : 
+				Var(_Var), kType(GetDescriptorType(_Var)), uNameHash(hlx::Hash(_Var.sName)){}
+
+			void Set(const Texture& _Texture);
+			void Set(const GPUBuffer& _Buffer);
+
+		//private:
+			vk::DescriptorImageInfo Image;
+			uint64_t uImageId = HUNDEFINED64;
+			vk::DescriptorBufferInfo Buffer;
+			uint64_t uBufferId = HUNDEFINED64;
+			uint64_t uHash = HUNDEFINED64;
+
+			const uint64_t uNameHash;
+			const VariableInfo Var;
+			const vk::DescriptorType kType;
+		};
+
+		struct DescriptorSetContainer
+		{
+			DescriptorSetContainer(const vk::DescriptorSetLayout& _hLayout) : hLayout(_hLayout) {}
+			const vk::DescriptorSetLayout hLayout;
+
+			std::vector<vk::DescriptorSet> FreeSets;
+			std::unordered_map<uint64_t, vk::DescriptorSet> UsedSets;
+			uint32_t uNextFree = 0u;
+			uint32_t uSlot = 0u;
+			std::vector<Binding> Bindings;
+			vk::DescriptorSet hSet;
+			uint64_t uHash = 0u;
+
+			// returns index
+			uint32_t FindBinding(const uint64_t& _uNameHash) const;
+			bool Update(VulkanDevice& _Device);
+			void AddDescriptorWrites(std::vector<vk::WriteDescriptorSet>& _OutWrites) const;
+		};
+
 		void OnFactoryLoaded() final;
 		void OnFactoryUnloaded() final;
 
@@ -111,23 +149,16 @@ namespace Tracy
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
 
-		bool CreateDescriptorPool(const DescriptorPoolDesc& _Desc);
-
 		const vk::CommandBuffer& GetCommandBuffer() const;
+
+		// find binding in current descriptor sets
+		bool FindBinding(const uint64_t& _uNameHash, InputMapping& _OutMapping) const;
+
+		void DigestImages(const ImageSource& Src);
+		void DigestBuffer(const BufferSource& Src);
 
 	private:
 		VulkanRenderPass* m_pParent = nullptr;
-
-		struct DescriptorSetContainer
-		{
-			DescriptorSetContainer(uint32_t _uCount) : uCount(_uCount), Sets(uCount, nullptr){}
-
-			const uint32_t uCount;
-			uint32_t uNextIndex = 0u;
-			vk::DescriptorSetLayout Layout;
-			std::vector<vk::DescriptorSet> Sets;
-			TVarSet Variables;
-		};
 		
 		RenderPassDesc m_Description;
 		// index relative to parent pass or rendergraph (index into vector)
@@ -143,18 +174,18 @@ namespace Tracy
 		std::vector<VulkanRenderPass> m_SubPasses;
 		std::vector<Dependence> m_Dependencies;
 
+		std::vector<ResourceMapping> m_ImageMappings;
+		std::vector<ResourceMapping> m_BufferMappings;
+
 		// identifies the current pipeline
 		uint64_t m_uPipelineHash = HUNDEFINED64;
+		vk::Pipeline m_BasePipeline = nullptr;
 		vk::Pipeline m_ActivePipeline = nullptr;
 		vk::PipelineLayout m_ActivePipelineLayout = nullptr;
 		PipelineDesc m_ActivePipelineDesc;
 
-		std::array<uint32_t, kMaxDescriptorSets> m_DescriptorSetRates;
-		std::array<DescriptorSetContainer*, kMaxDescriptorSets> m_ActiveDescriptorSets;
-		vk::Pipeline m_BasePipeline = nullptr;
-
 		std::unordered_map<uint64_t, DescriptorSetContainer> m_DescriptorSets;
-		vk::DescriptorPool m_DescriptorPool;
+		std::array<DescriptorSetContainer*, kMaxDescriptorSets> m_ActiveDescriptorSets;
 
 		std::unordered_map<uint64_t, vk::PipelineLayout> m_PipelineLayouts;
 

@@ -17,6 +17,25 @@ namespace Tracy
 {
 	constexpr uint32_t kInvalidQueueIndex = UINT32_MAX;
 
+	struct DescriptorPoolDesc
+	{
+		DescriptorPoolDesc() {}
+		//void Reset() { memset(this, 0, sizeof(DescriptorPoolDesc)); }
+		uint32_t uCombinedImageSampler = 64u;
+		uint32_t uInputAttachment = 8u;
+		uint32_t uSampledImage = 64u;
+		uint32_t uSampler = 64u;
+		uint32_t uStorageBuffer = 64u;
+		uint32_t uStorageBufferDynamic = 64u;
+		uint32_t uStorageImage = 64u;
+		uint32_t uStorageTexelBuffer = 64u;
+		uint32_t uUniformBuffer = 64u;
+		uint32_t uUniformBufferDynamic = 64u;
+		uint32_t uUniformTexelBuffer = 64u;
+
+		uint32_t uMaxSets = 1024;
+	};
+
 	class VulkanDevice : public IDevice
 	{
 		friend class VulkanInstance;
@@ -55,7 +74,7 @@ namespace Tracy
 #ifndef DeviceFunc
 #define DeviceFunc(_funcName) \
 		template <class ...Args> \
-		inline auto _funcName(Args ... _Args) { return make_task([&]() { std::lock_guard<std::mutex> lock(m_Mutex); return m_Device._funcName(_Args...); }); }
+		inline auto _funcName(Args ... _Args) { return make_task([&]() { std::lock_guard<std::mutex> lock(m_DeviceMutex); return m_Device._funcName(_Args...); }); }
 #endif
 
 		DeviceFunc(createDescriptorPool)
@@ -63,6 +82,8 @@ namespace Tracy
 
 		DeviceFunc(createDescriptorSetLayout)
 		DeviceFunc(destroyDescriptorSetLayout)
+
+		DeviceFunc(updateDescriptorSets)
 
 		DeviceFunc(createPipelineLayout)
 		DeviceFunc(destroyPipelineLayout)
@@ -92,6 +113,11 @@ namespace Tracy
 
 		const bool CreateSampler(const SamplerDesc& _Desc, vk::Sampler& _OutSampler);
 
+		std::vector<vk::DescriptorSet> AllocateDescriptorSets(const vk::DescriptorSetLayout& _Layout, const uint32_t _uCount);
+		void FreeDescriptorSets(const std::vector<vk::DescriptorSet>& _Sets);
+
+		bool CreateDescriptorPool(const DescriptorPoolDesc& _Desc);
+
 	private:
 		struct QueueOffset
 		{
@@ -115,7 +141,9 @@ namespace Tracy
 			{}
 		};
 
-		std::mutex m_Mutex;
+		std::mutex m_DeviceMutex; //device mutex
+		std::mutex m_DescriptorPoolMutex;
+
 		std::atomic_uint64_t m_uBufferIdentifier = 0u;
 		std::atomic_uint64_t m_uTextureIdentifier = 0u;
 
@@ -131,6 +159,8 @@ namespace Tracy
 		};
 
 		std::vector<CommandPoolEntry> m_CommandPools; // one for each family index
+
+		vk::DescriptorPool m_DescriptorPool;
 
 		// Allocator
 		VulkanMemoryAllocator* m_pAllocator;

@@ -32,6 +32,57 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
+	inline vk::DescriptorType GetDescriptorType(const VariableInfo& _Var)
+	{
+		// Missing: CombinedImageSampler
+		switch (_Var.Type.GetType())
+		{
+		case spv::OpTypeSampler:
+			return vk::DescriptorType::eSampler;
+		case spv::OpTypeImage:
+			switch (_Var.Type.GetDimension())
+			{
+			case spv::DimSubpassData:
+				return vk::DescriptorType::eInputAttachment;
+				break;
+			case spv::DimBuffer:
+				// TODO: texel buffers
+				break;
+			default: // dim1d 2d 3d etc
+				switch (_Var.Type.GetTexSamplerAccess())
+				{
+				case kTexSamplerAccess_Runtime:
+					return _Var.bTexSampled ? vk::DescriptorType::eSampledImage : vk::DescriptorType::eStorageImage;
+					break;
+				case kTexSamplerAccess_Sampled:
+					return vk::DescriptorType::eSampledImage;
+					break;
+				case kTexSamplerAccess_Storage:
+					return vk::DescriptorType::eStorageImage;
+				}
+				break;
+			}
+			break;
+		case spv::OpTypeSampledImage:
+			return vk::DescriptorType::eSampledImage;
+		default: // assume this is a buffer
+			switch (_Var.kStorageClass)
+			{
+			case spv::StorageClassUniform:
+			case spv::StorageClassUniformConstant:
+				return vk::DescriptorType::eUniformBuffer;
+			case spv::StorageClassStorageBuffer:
+				return vk::DescriptorType::eStorageBuffer;
+			default:
+				break;
+			}
+			break;
+		}
+
+		HFATAL("Unsupported descriptor type");
+		return vk::DescriptorType::eSampler;
+	}
+
 	// Element of a descriptor set (input)
 	inline vk::DescriptorSetLayoutBinding CreateDescriptorSetLayoutBinding(const VariableInfo& _InputVar)
 	{
@@ -39,55 +90,7 @@ namespace Tracy
 		Binding.stageFlags = static_cast<vk::ShaderStageFlagBits>(_InputVar.uStageFlags);
 		Binding.binding = _InputVar.uBinding;
 		Binding.descriptorCount = _InputVar.Type.GetType() == spv::OpTypeArray ? _InputVar.Type.GetDimension() : 1u;
-		// Missing: CombinedImageSampler
-		switch (_InputVar.Type.GetType())
-		{
-		case spv::OpTypeSampler:
-			Binding.descriptorType = vk::DescriptorType::eSampler;
-			break;
-		case spv::OpTypeImage:
-			switch (_InputVar.Type.GetDimension())
-			{
-			case spv::DimSubpassData:
-				Binding.descriptorType = vk::DescriptorType::eInputAttachment;
-				break;
-			case spv::DimBuffer:
-				// TODO: texel buffers
-				break;
-			default: // dim1d 2d 3d etc
-				switch (_InputVar.Type.GetTexSamplerAccess())
-				{
-				case kTexSamplerAccess_Runtime:
-					Binding.descriptorType = _InputVar.bTexSampled ? vk::DescriptorType::eSampledImage : vk::DescriptorType::eStorageImage;
-					break;
-				case kTexSamplerAccess_Sampled:
-					Binding.descriptorType = vk::DescriptorType::eSampledImage;
-					break;
-				case kTexSamplerAccess_Storage:
-					Binding.descriptorType = vk::DescriptorType::eStorageImage;
-					break;
-				}
-				break;
-			}
-			break;
-		case spv::OpTypeSampledImage:
-			break; // skip
-		default: // assume this is a buffer
-			switch (_InputVar.kStorageClass)
-			{
-			case spv::StorageClassUniform:
-			case spv::StorageClassUniformConstant:
-				Binding.descriptorType = vk::DescriptorType::eUniformBuffer;
-				break;
-			case spv::StorageClassStorageBuffer:
-				Binding.descriptorType = vk::DescriptorType::eStorageBuffer;
-				break;
-			default:
-				HFATAL("Unsupported storage class");
-				break;
-			}
-			break;
-		}
+		Binding.descriptorType = GetDescriptorType(_InputVar);
 
 		return Binding;
 	}

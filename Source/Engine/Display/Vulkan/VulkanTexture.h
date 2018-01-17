@@ -14,7 +14,7 @@ namespace Tracy
 		const THandle hDevice;
 		vk::Image hImage;
 		// todo: get image into desired layout
-		//vk::ImageLayout hLayout;
+		vk::ImageLayout hLayout;
 		VulkanAllocation Allocation;
 		std::array<vk::ImageView, kViewType_NumOf> Views;
 	};

@@ -32,6 +32,11 @@ VulkanDevice::~VulkanDevice()
 {
 	HSAFE_DELETE(m_pAllocator);
 
+	if (m_DescriptorPool)
+	{
+		m_Device.destroyDescriptorPool(m_DescriptorPool);	
+	}
+
 	for (const CommandPoolEntry& Pool : m_CommandPools)
 	{
 		if (Pool.ResetPool)
@@ -201,7 +206,11 @@ bool VulkanDevice::Initialize()
 		}
 	}
 
-	return true;
+	// Create descriptor pool
+	DescriptorPoolDesc Desc{}; // we default if for now until we have mechanic to configure the device
+	Desc.uSampledImage = 8192u;
+
+	return CreateDescriptorPool(Desc);
 }
 //---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::QueueFlagBits _QueueType) const
@@ -316,6 +325,68 @@ const bool VulkanDevice::CreateSampler(const SamplerDesc& _Desc, vk::Sampler& _O
 {
 	vk::SamplerCreateInfo Info = GetSamplerDesc(_Desc);
 	return LogVKErrorBool(m_Device.createSampler(&Info, nullptr, &_OutSampler));
+}
+
+//---------------------------------------------------------------------------------------------------
+
+std::vector<vk::DescriptorSet> VulkanDevice::AllocateDescriptorSets(const vk::DescriptorSetLayout& _Layout, const uint32_t _uCount)
+{
+	std::vector<vk::DescriptorSet> Sets(_uCount);
+	std::vector<vk::DescriptorSetLayout> SetsToAllocate(_uCount, _Layout); //copy the layout
+
+	std::lock_guard<std::mutex> lock(m_DescriptorPoolMutex);
+
+	// allocate a batch of descriptor sets of the same layout
+	vk::DescriptorSetAllocateInfo Info{};
+	Info.descriptorPool = m_DescriptorPool;
+	Info.descriptorSetCount = _uCount;
+	Info.pSetLayouts = SetsToAllocate.data();
+
+	// allocate batch
+	LogVKError(m_Device.allocateDescriptorSets(&Info, Sets.data()));
+
+	return Sets;
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanDevice::FreeDescriptorSets(const std::vector<vk::DescriptorSet>& _Sets)
+{
+	std::lock_guard<std::mutex> lock(m_DescriptorPoolMutex);
+	m_Device.freeDescriptorSets(m_DescriptorPool, _Sets);
+}
+
+//---------------------------------------------------------------------------------------------------
+bool VulkanDevice::CreateDescriptorPool(const DescriptorPoolDesc& _Desc)
+{
+	HASSERT(!m_DescriptorPool, "Descriptor pool already exists!");
+	if (m_DescriptorPool)
+		return false;
+
+	vk::DescriptorPoolCreateInfo Info{};
+	std::vector<vk::DescriptorPoolSize> PoolSizes;
+
+	auto AddSize = [&PoolSizes](vk::DescriptorType kType, uint32_t uCount)
+	{
+		PoolSizes.push_back(vk::DescriptorPoolSize(kType, uCount));
+	};
+
+	AddSize(vk::DescriptorType::eCombinedImageSampler, _Desc.uCombinedImageSampler);
+	AddSize(vk::DescriptorType::eInputAttachment, _Desc.uInputAttachment);
+	AddSize(vk::DescriptorType::eSampledImage, _Desc.uSampledImage);
+	AddSize(vk::DescriptorType::eSampler, _Desc.uSampler);
+	AddSize(vk::DescriptorType::eStorageBuffer, _Desc.uStorageBuffer);
+	AddSize(vk::DescriptorType::eStorageBufferDynamic, _Desc.uStorageBufferDynamic);
+	AddSize(vk::DescriptorType::eStorageImage, _Desc.uStorageImage);
+	AddSize(vk::DescriptorType::eStorageTexelBuffer, _Desc.uStorageTexelBuffer);
+	AddSize(vk::DescriptorType::eUniformBuffer, _Desc.uUniformBuffer);
+	AddSize(vk::DescriptorType::eUniformBufferDynamic, _Desc.uUniformBufferDynamic);
+	AddSize(vk::DescriptorType::eUniformTexelBuffer, _Desc.uUniformTexelBuffer);
+
+	Info.maxSets = _Desc.uMaxSets;
+	Info.poolSizeCount = static_cast<uint32_t>(PoolSizes.size());
+	Info.pPoolSizes = PoolSizes.data();
+
+	return LogVKErrorBool(m_Device.createDescriptorPool(&Info, nullptr, &m_DescriptorPool));
 }
 
 //---------------------------------------------------------------------------------------------------
