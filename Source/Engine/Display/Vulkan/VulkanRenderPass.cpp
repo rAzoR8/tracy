@@ -195,14 +195,6 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 	{
 		const RenderNode& Node = pObj->GetNode();
 
-		for (const BufferSource* pSrc : pObj->GetBufferSources())
-		{
-			if (pSrc != nullptr)
-			{
-				DigestBuffer(*pSrc);
-			}
-		}
-
 		if (Node.Material)
 		{
 			const MaterialRefEntry& Mat = Node.Material.Get();
@@ -219,7 +211,27 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			// check if shader changed and update the pipeline
 			if (bShaderChanged && ActivatePipeline(m_ActivePipelineDesc))
 			{
+				for (ResourceMapping& Mapping : m_BufferMappings)
+				{
+					Mapping.Reset();
+				}
+				for (ResourceMapping& Mapping : m_ImageMappings)
+				{
+					Mapping.Reset();
+				}
+
+				// camera needs to be remapped
+				DigestBuffer(_Camera);
+
 				m_CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
+			}
+
+			for (const BufferSource* pSrc : pObj->GetBufferSources())
+			{
+				if (pSrc != nullptr)
+				{
+					DigestBuffer(*pSrc);
+				}
 			}
 
 			DigestBuffer(Mat.Values); // material values

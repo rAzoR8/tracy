@@ -82,6 +82,7 @@ namespace Tracy
 
 		struct ResourceMapping
 		{
+			inline void Reset() { bInitialized = false; Resource.resize(0); }
 			std::vector<InputMapping> Resource; // index into source
 			bool bInitialized = false;
 		};
