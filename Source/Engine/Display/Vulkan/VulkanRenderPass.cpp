@@ -1,24 +1,24 @@
 #include "VulkanRenderPass.h"
+#include "VulkanRenderGraph.h"
 #include "FileStream.h"
 #include "VulkanTypeConversion.h"
 #include "Display\Camera.h"
 #include "Display\RenderObject.h"
-#include "VulkanTexture.h"
-#include "VulkanBuffer.h"
 
 using namespace Tracy;
 
 //---------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice) :
+VulkanRenderPass::VulkanRenderPass(VulkanRenderGraph& _Graph, VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice) :
 	IShaderFactoryConsumer(_Desc.sLibName, _hDevice),
+	m_RenderGraph(_Graph),
 	m_Description(_Desc),
 	m_uPassIndex(_uPassIndex),
 	m_pParent(_pParent)
 {
 	for (const RenderPassDesc& SubPass : m_Description.SubPasses)
 	{
-		m_SubPasses.emplace_back(this, SubPass, static_cast<uint32_t>(m_SubPasses.size()), _hDevice);
+		m_SubPasses.emplace_back(_Graph, this, SubPass, static_cast<uint32_t>(m_SubPasses.size()), _hDevice);
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -70,6 +70,14 @@ bool VulkanRenderPass::Initialize()
 		InitPipeline(m_Description.DefaultPipelines.front());
 	}
 
+	// we assume that rendertargets stay the same for all shaders & permutations
+
+	if (m_pParent == nullptr)
+	{
+		if (CreateRenderPass() == false)
+			return false;
+	}
+
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
 		if (SubPass.Initialize() == false)
@@ -79,30 +87,46 @@ bool VulkanRenderPass::Initialize()
 	if (m_pParent != nullptr) // subpass
 	{
 		// take parent command buffer
-		m_CommandBuffer = m_pParent->m_CommandBuffer;
-		return m_CommandBuffer;
+		m_hCommandBuffer = m_pParent->m_hCommandBuffer;
+		return m_hCommandBuffer;
 	}
 	else
 	{
 		// create command buffer
-		return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::eSecondary, &m_CommandBuffer);
+		return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::eSecondary, &m_hCommandBuffer);
 	}
 }
 //---------------------------------------------------------------------------------------------------
 
 void VulkanRenderPass::Uninitialize()
 {
-	// todo: wait for commandbuffer to finish processing
-	if (m_pParent == nullptr)
-	{
-		m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_CommandBuffer);
-	}
-
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
 		SubPass.Uninitialize();
 	}
 
+	// todo: wait for commandbuffer to finish processing
+	if (m_pParent == nullptr)
+	{
+		m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_hCommandBuffer);
+		m_hCommandBuffer = nullptr;
+	}
+
+	// Renderpass
+	if (m_hRenderPass)
+	{
+		VKDevice().destroyRenderPass(m_hRenderPass);
+		m_hRenderPass = nullptr;
+	}
+
+	// Framebuffer
+	for (Framebuffer::Attachment& Att : m_Framebuffer.Attachments)
+	{
+		Att.Texture.Reset();
+	}
+	m_Framebuffer.Attachments.clear();
+
+	// Samplers
 	for (auto& kv : m_Samplers)
 	{
 		m_Device.DestroySampler(kv.second);
@@ -110,22 +134,31 @@ void VulkanRenderPass::Uninitialize()
 	m_Samplers.clear();
 	m_MappedSamplers.clear();
 
+	// Descriptorsets
 	for (auto& kv : m_DescriptorSets)
 	{
-		m_Device.destroyDescriptorSetLayout(kv.second.hLayout);
+		DescriptorSetContainer& Container = kv.second;
+		m_Device.FreeDescriptorSets(Container.FreeSets);
+		m_Device.destroyDescriptorSetLayout(Container.hLayout);
 	}
 	m_DescriptorSets.clear();
 
+	// pipeline cache
 	StorePipelineCache(m_Description.sPassName + L"_pipeline.cache");
-	m_Device.destroyPipelineCache(m_PipelineCache);
-	m_PipelineCache = nullptr;
+	if (m_hPipelineCache)
+	{
+		m_Device.destroyPipelineCache(m_hPipelineCache);
+		m_hPipelineCache = nullptr;
+	}
 
+	// pipeline layouts
 	for (auto& kv : m_PipelineLayouts)
 	{
 		m_Device.destroyPipelineLayout(kv.second);
 	}
 	m_PipelineLayouts.clear();
 
+	// pipelines
 	for (auto& kv : m_Pipelines)
 	{
 		m_Device.destroyPipeline(kv.second);
@@ -143,6 +176,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 {
 	// TODO: wait for previous passes to finish work on dependencies
 
+	// reset descriptor sets
 	for (auto& kv : m_DescriptorSets)
 	{
 		DescriptorSetContainer& Container = kv.second;
@@ -165,17 +199,17 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		ResetMappings();
 
 		// TODO: get ViewportState from pipleine desc m_ActivePipelineDesc
-		m_CommandBuffer.setViewport(0, m_ViewportState.Viewports);
-		m_CommandBuffer.setScissor(0, m_ViewportState.Scissors);
+		m_hCommandBuffer.setViewport(0, m_ViewportState.Viewports);
+		m_hCommandBuffer.setScissor(0, m_ViewportState.Scissors);
 
 		if (m_ActivePipelineDesc.kFillMode == kPolygonFillMode_Line)
 		{
-			m_CommandBuffer.setLineWidth(m_ActivePipelineDesc.fLineWidth);
+			m_hCommandBuffer.setLineWidth(m_ActivePipelineDesc.fLineWidth);
 		}
 
 		if (m_ActivePipelineDesc.bDepthBiasEnabled)
 		{
-			m_CommandBuffer.setDepthBias(
+			m_hCommandBuffer.setDepthBias(
 				m_ActivePipelineDesc.fDepthBiasConstFactor,
 				m_ActivePipelineDesc.fDepthBiasClamp,
 				m_ActivePipelineDesc.fDepthBiasSlopeFactor);
@@ -183,9 +217,9 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		if (m_ActivePipelineDesc.DepthStencilState.bStencilTestEnabled)
 		{
-			m_CommandBuffer.setStencilReference(vk::StencilFaceFlagBits::eFront, m_ActivePipelineDesc.DepthStencilState.uStencilReference);
-			//m_CommandBuffer.setStencilCompareMask()
-			//m_CommandBuffer.setStencilWriteMask()
+			m_hCommandBuffer.setStencilReference(vk::StencilFaceFlagBits::eFront, m_ActivePipelineDesc.DepthStencilState.uStencilReference);
+			//m_hCommandBuffer.setStencilCompareMask()
+			//m_hCommandBuffer.setStencilWriteMask()
 		}
 	}
 	
@@ -197,6 +231,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		m_pPerCameraCallback->OnPerCamera(*this, _Camera);
 	}
 
+	// object render loop
 	for (RenderObject* pObj : _Camera.GetObjects())
 	{
 		const RenderNode& Node = pObj->GetNode();
@@ -222,9 +257,10 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 				// camera needs to be remapped
 				DigestBuffer(_Camera);
 
-				m_CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
+				m_hCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
 			}
 
+			// custom buffer sources
 			for (const BufferSource* pSrc : pObj->GetBufferSources())
 			{
 				if (pSrc != nullptr)
@@ -263,7 +299,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 				if (m_ActiveDescriptorSets.empty() == false)
 				{
-					m_CommandBuffer.bindDescriptorSets(
+					m_hCommandBuffer.bindDescriptorSets(
 						vk::PipelineBindPoint::eGraphics,
 						m_ActivePipelineLayout,
 						uFirstSet,
@@ -289,7 +325,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		{
 		case kDrawMode_VertexCount:
 		{
-			m_CommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
+			m_hCommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
 		}
 		break;
 		case kDrawMode_VertexData:
@@ -298,8 +334,8 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			{
 				vk::DeviceSize offset = mesh.GetVertexOffset();
 				const auto& Entry = VKBuffer(vertexBuffer);
-				m_CommandBuffer.bindVertexBuffers(0u, 1u, &Entry.hBuffer, &offset);
-				m_CommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
+				m_hCommandBuffer.bindVertexBuffers(0u, 1u, &Entry.hBuffer, &offset);
+				m_hCommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
 			}
 		}
 		break;
@@ -313,9 +349,9 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 				vk::DeviceSize indexOffset = mesh.GetIndexOffset();
 				const auto& indexEntry = VKBuffer(indexBuffer);
 
-				m_CommandBuffer.bindVertexBuffers(0u, 1u, &vertEntry.hBuffer, &vertOffset);
-				m_CommandBuffer.bindIndexBuffer(indexEntry.hBuffer, indexOffset, GetIndexType(mesh.GetIndexType()));
-				m_CommandBuffer.drawIndexed(mesh.GetIndexCount(), mesh.GetInstanceCount(), mesh.GetFirstIndex(), mesh.GetVertexOffset(), mesh.GetFirstInstance());
+				m_hCommandBuffer.bindVertexBuffers(0u, 1u, &vertEntry.hBuffer, &vertOffset);
+				m_hCommandBuffer.bindIndexBuffer(indexEntry.hBuffer, indexOffset, GetIndexType(mesh.GetIndexType()));
+				m_hCommandBuffer.drawIndexed(mesh.GetIndexCount(), mesh.GetInstanceCount(), mesh.GetFirstIndex(), mesh.GetVertexOffset(), mesh.GetFirstInstance());
 			}
 		}
 		break;
@@ -377,12 +413,12 @@ bool VulkanRenderPass::BeginPass()
 	BeginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
 	BeginInfo.pInheritanceInfo = &BufferInfo;
 
-	//m_CommandBuffer.reset(0) //vk::CommandBufferResetFlagBits::eReleaseResources
-	if (LogVKErrorBool(m_CommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
+	//m_hCommandBuffer.reset(0) //vk::CommandBufferResetFlagBits::eReleaseResources
+	if (LogVKErrorBool(m_hCommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
 		return false;
 	
 	//vk::RenderPassBeginInfo RenderPassInfo;
-	//m_CommandBuffer.beginRenderPass()
+	//m_hCommandBuffer.beginRenderPass()
 	// first recorded cmd should be the PipelineBarriers for all m_Dependencies elements
 	// vk::CmdPipelineBarrier
 
@@ -391,8 +427,8 @@ bool VulkanRenderPass::BeginPass()
 //---------------------------------------------------------------------------------------------------
 bool VulkanRenderPass::EndPass()
 {
-	m_CommandBuffer.endRenderPass();
-	m_CommandBuffer.end();
+	m_hCommandBuffer.endRenderPass();
+	m_hCommandBuffer.end();
 
 	return true;
 }
@@ -408,7 +444,7 @@ bool VulkanRenderPass::BeginSubPass()
 	//VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
 	// specifies that the contents are recorded in secondary command buffers that will be called from the primary command buffer, and vkCmdExecuteCommands is the only valid command on the command buffer until vkCmdNextSubpass or vkCmdEndRenderPass.
 
-	m_CommandBuffer.nextSubpass(vk::SubpassContents::eSecondaryCommandBuffers);
+	m_hCommandBuffer.nextSubpass(vk::SubpassContents::eSecondaryCommandBuffers);
 
 	return true;
 }
@@ -631,7 +667,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 		{
 			m_ActivePipelineDesc = _Desc;
 			
-			if (LogVKErrorBool(m_Device.createGraphicsPipelines(m_PipelineCache, 1u, &PipelineInfo, nullptr, &m_ActivePipeline)) == false)
+			if (LogVKErrorBool(m_Device.createGraphicsPipelines(m_hPipelineCache, 1u, &PipelineInfo, nullptr, &m_ActivePipeline)) == false)
 			{
 				return nullptr;
 			}
@@ -852,7 +888,7 @@ void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 		// buffer content changed
 		if (Binding.Set(Source.pData, Source.uSize))
 		{
-			m_CommandBuffer.updateBuffer(Binding.BufferInfo.buffer, 0, Source.uSize, Source.pData);
+			m_hCommandBuffer.updateBuffer(Binding.BufferInfo.buffer, 0, Source.uSize, Source.pData);
 		}
 	}
 }
@@ -860,7 +896,7 @@ void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 
 bool VulkanRenderPass::LoadPipelineCache(const std::wstring& _sPath)
 {		
-	if (!m_PipelineCache)
+	if (!m_hPipelineCache)
 	{
 		hlx::fbytestream stream(_sPath, std::ios_base::in);
 		hlx::bytes buffer;
@@ -881,7 +917,7 @@ bool VulkanRenderPass::LoadPipelineCache(const std::wstring& _sPath)
 			HERROR("Failed to load file %s", _sPath.c_str());
 		}
 
-		return LogVKErrorBool(m_Device.createPipelineCache(&Info, nullptr, &m_PipelineCache));
+		return LogVKErrorBool(m_Device.createPipelineCache(&Info, nullptr, &m_hPipelineCache));
 	}
 	else
 	{
@@ -896,7 +932,7 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 {
 	bool bSuccess = false;
 
-	if (m_PipelineCache)
+	if (m_hPipelineCache)
 	{
 		hlx::fbytestream stream(_sPath, std::ios_base::out);
 
@@ -904,11 +940,11 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 		{
 			size_t uSize = 0u;
 			
-			if (LogVKErrorBool(m_Device.getPipelineCacheData(m_PipelineCache, &uSize, nullptr)) && uSize > 0)
+			if (LogVKErrorBool(m_Device.getPipelineCacheData(m_hPipelineCache, &uSize, nullptr)) && uSize > 0)
 			{
 				hlx::bytes buffer(uSize);
 
-				if (LogVKErrorBool(m_Device.getPipelineCacheData(m_PipelineCache, &uSize, &buffer.front())))
+				if (LogVKErrorBool(m_Device.getPipelineCacheData(m_hPipelineCache, &uSize, &buffer.front())))
 				{
 					stream.put(buffer);
 					bSuccess = true;
@@ -925,6 +961,110 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 	}
 
 	return bSuccess;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool VulkanRenderPass::CreateRenderPass()
+{
+	HASSERT(m_hRenderPass.operator bool() == false, "Renderpass is already initialized");
+	if(m_hRenderPass)
+		return false;
+
+	vk::RenderPassCreateInfo Info{};
+	std::vector<vk::AttachmentDescription> AttachmentDescs;
+
+	// setup framebuffer
+	for (const FramebufferDesc::Attachment& Desc : m_Description.Framebuffer.Attachments)
+	{
+		Framebuffer::Attachment& Attachment = m_Framebuffer.Attachments.emplace_back();
+
+		Attachment.kType = Desc.kType;
+		Attachment.sName = Desc.sName;
+
+		if (Desc.kSource == kAttachmentSourceType_New)
+		{
+			TextureDesc TexDesc{};
+			TexDesc.kType = kTextureType_Texture2D;
+			TexDesc.kFormat = Desc.kFormat;
+			TexDesc.hDevice = m_Device.GetHandle();
+			TexDesc.kUsageFlag = Desc.kType == kAttachmentType_Color ? kTextureUsage_RenderTarget : kTextureUsage_DepthStencil;
+			TexDesc.uHeight = Desc.uInitialHeight;
+			TexDesc.uWidth = Desc.uInitialWidth;
+			TexDesc.uLayerCount = 1u;
+
+			Attachment.Texture = std::move(VulkanTexture(TexDesc));
+
+			TextureViewDesc ViewDesc{};
+			ViewDesc.kFormat = Desc.kFormat;
+
+			if (Desc.kType == kAttachmentType_Color)
+			{
+				ViewDesc.kType = kViewType_RenderTarget;
+			}
+			else if (Desc.kType == kAttachmentType_DepthStencil)
+			{
+				ViewDesc.kType = kViewType_DepthStencil;
+			}
+
+			if (Attachment.Texture.AddView(ViewDesc) == false)
+				return false;
+		}
+		else if (Desc.kSource == kAttachmentSourceType_Use)
+		{
+			// search for source texture in previous passes
+			for (VulkanRenderPass& Pass : m_RenderGraph.m_RenderPasses)
+			{
+				if (Pass.m_Description.sPassName == Desc.sSourcePassName)
+				{
+					for (const Framebuffer::Attachment& Src : Pass.m_Framebuffer.Attachments)
+					{
+						if (Src.sName == Desc.sName)
+						{
+							Attachment.Texture = Src.Texture; // found tex, copy reference
+							break;
+						}
+					}
+					break;
+				}
+			}
+		}
+		else if (Desc.kSource == kAttachmentSourceType_Backbuffer)
+		{
+			// TODO: get backbuffer
+			//Attachment.Texture = m_RenderGraph.Backbuffer; or something like that
+		}
+
+		if (Attachment.Texture.IsValidVkTex() == false)
+			return false;
+
+		vk::AttachmentDescription& AttDesc = AttachmentDescs.emplace_back();
+		AttDesc.format = GetResourceFormat(Desc.kFormat);
+		AttDesc.samples = vk::SampleCountFlagBits::e1;
+		//AttDesc.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
+		AttDesc.initialLayout = VKTexture(Attachment.Texture).hLayout;
+		//AttDesc.finalLayout = VKTexture(Attachment.Texture).hLayout; dont know yet
+	
+		//AttDesc.
+	}
+
+	Info.attachmentCount = static_cast<uint32_t>(AttachmentDescs.size());
+	Info.pAttachments = AttachmentDescs.data();
+
+	// setup subpasses
+	std::vector<vk::SubpassDescription> SubPassDescs;
+
+	for (VulkanRenderPass& SubPass : m_SubPasses)
+	{
+		vk::SubpassDescription& SubDesc = SubPassDescs.emplace_back();
+		SubDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+		
+		// TODO: fill out rest
+	}
+
+	Info.subpassCount = static_cast<uint32_t>(SubPassDescs.size());
+	Info.pSubpasses = SubPassDescs.data();
+
+	return LogVKErrorBool(VKDevice().createRenderPass(&Info, nullptr, &m_hRenderPass));
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -1003,16 +1143,6 @@ bool VulkanRenderPass::Binding::Set(const void* _pData, const size_t _uSize)
 	}
 
 	return false;
-
-	//if (_uSize <= ProxyMemory.size() && _pData != nullptr)
-	//{
-	//	// check if data changed
-	//	if (std::memcmp(_pData, ProxyMemory.data(), _uSize) != 0)
-	//	{
-	//		ProxyMemory.assign(reinterpret_cast<const uint8_t*>(_pData), _uSize);
-	//		return true;
-	//	}
-	//}
 }
 
 //---------------------------------------------------------------------------------------------------

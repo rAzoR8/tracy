@@ -82,8 +82,15 @@ namespace Tracy
 	enum EAttachmentSourceType : uint32_t
 	{
 		kAttachmentSourceType_New = 0, // create new
-		kAttachmentSourceType_Copy, // copy the resource (pixel data)
-		kAttachmentSourceType_Use // donno yet
+		//kAttachmentSourceType_Copy, // copy the resource (pixel data)
+		kAttachmentSourceType_Use, // reference output of prev pass
+		kAttachmentSourceType_Backbuffer
+	};
+
+	enum EAttachmentType : uint32_t
+	{
+		kAttachmentType_Color = 0,
+		kAttachmentType_DepthStencil,
 	};
 
 	// default events
@@ -95,31 +102,45 @@ namespace Tracy
 		// use this to describe renderagets and usage
 		struct Attachment
 		{
+			EAttachmentType kType = kAttachmentType_Color;
+			std::string sName; // for mapping into the shader and between passes
+
 			EResizeEventType kResizeType = kResizeEvent_None;
 			std::string sResizeEventName;
 
 			EAttachmentSourceType kSource = kAttachmentSourceType_New;
+			std::wstring sSourcePassName; // if Use or Copy
+
+			EFormat kFormat = kFormat_Undefined;
 
 			// only used when kSource == kAttachmentSourceType_New
-			uint32_t uInitialHeight = 0u;
-			uint32_t uInitialWidth = 0u;
+			uint32_t uInitialWidth = 1920u;
+			uint32_t uInitialHeight = 1080u;
+
+			// clear values
+			bool bClearTarget = true; // use clear values
+			std::array<float, 4> vClearColor = {0.f,0.f,0.f,0.f};
+			float fClearDepth = 1.f;
+			uint32_t uClearStencil = 0u;
+
 			// Initial format
 		};
 
+		std::vector<Attachment> Attachments;
 	};
 
-	struct DescriptorSetRate
-	{
-		uint32_t uSet = 0u;
-		uint32_t uCount = 0u; // number of unique sets to pre allocate for uSet
-	};
+	//struct DescriptorSetRate
+	//{
+	//	uint32_t uSet = 0u;
+	//	uint32_t uCount = 0u; // number of unique sets to pre allocate for uSet
+	//};
 
 	struct RenderPassDesc
 	{
 		std::wstring sPassName; // name of this pass
 		std::wstring sLibName; // dll that contains the shader factory
 		
-		std::vector<DescriptorSetRate> DescriptorSetRates;
+		//std::vector<DescriptorSetRate> DescriptorSetRates;
 
 		FramebufferDesc Framebuffer; 
 

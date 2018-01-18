@@ -991,7 +991,7 @@ struct TextureDesc
 	EFormat kFormat = kFormat_Undefined;
 	ETextureUsage kUsageFlag = kTextureUsage_None;
 	ETextureType kType = kTextureType_Invalid;
-	std::string sName = "NewTexture";
+	//std::string sName = "NewTexture";
 };
 
 struct BufferDesc

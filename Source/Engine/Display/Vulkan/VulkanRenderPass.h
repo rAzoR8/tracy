@@ -4,13 +4,14 @@
 #include "IShaderFactoryConsumer.h"
 #include "..\RenderPassDescription.h"
 #include "VulkanBuffer.h"
+#include "VulkanTexture.h"
 
 namespace Tracy
 {
 	// forward decl
 	class Camera;
 	class RenderObject;
-	class Texture;
+	//class Texture;
 	//class GPUBuffer;
 	class ImageSource;
 	class BufferSource;
@@ -19,7 +20,7 @@ namespace Tracy
 	{
 		friend class VulkanRenderGraph;
 	public:
-#pragma region Types
+#pragma region types
 		struct IOnPerObject
 		{
 			virtual bool OnPerObject(VulkanRenderPass& _Pass, RenderObject* _pObject) = 0;
@@ -52,9 +53,22 @@ namespace Tracy
 			std::vector<vk::Viewport> Viewports;
 			std::vector<vk::Rect2D> Scissors;
 		};
+
+		// maybe put this into a different header
+		struct Framebuffer
+		{
+			struct Attachment
+			{
+				std::string sName;
+				EAttachmentType kType;
+				VulkanTexture Texture;
+			};
+
+			std::vector<Attachment> Attachments;
+		};
 #pragma endregion
 
-		VulkanRenderPass(VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
+		VulkanRenderPass(VulkanRenderGraph& _Graph, VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
 		~VulkanRenderPass();
 
 		bool Initialize();
@@ -74,6 +88,7 @@ namespace Tracy
 		void SetChangePipelineCallback(IOnChangePipeline* _pCallback);
 
 	private:
+#pragma region internal_types
 		struct InputMapping
 		{
 			uint32_t uSourceIndex;
@@ -100,7 +115,6 @@ namespace Tracy
 
 		//private:
 			VulkanBuffer Buffer;
-			//hlx::bytes ProxyMemory;
 			vk::DescriptorImageInfo ImageInfo;
 			uint64_t uImageId = HUNDEFINED64;
 			vk::DescriptorBufferInfo BufferInfo;
@@ -131,6 +145,14 @@ namespace Tracy
 			void AddDescriptorWrites(std::vector<vk::WriteDescriptorSet>& _OutWrites) const;
 		};
 
+		struct MappedSampler
+		{
+			uint64_t uDescHash;
+			vk::Sampler hSampler;
+		};
+
+#pragma endregion
+
 		void OnFactoryLoaded() final;
 		void OnFactoryUnloaded() final;
 
@@ -155,6 +177,8 @@ namespace Tracy
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
 
+		bool CreateRenderPass();
+
 		const vk::CommandBuffer& GetCommandBuffer() const;
 
 		void ResetMappings();
@@ -166,6 +190,7 @@ namespace Tracy
 		void DigestBuffer(const BufferSource& Src);
 
 	private:
+		VulkanRenderGraph& m_RenderGraph;
 		VulkanRenderPass* m_pParent = nullptr;
 		
 		RenderPassDesc m_Description;
@@ -181,6 +206,9 @@ namespace Tracy
 
 		std::vector<VulkanRenderPass> m_SubPasses;
 		std::vector<Dependence> m_Dependencies;
+
+		vk::RenderPass m_hRenderPass = nullptr;
+		Framebuffer m_Framebuffer;
 
 		std::vector<ResourceMapping> m_ImageMappings;
 		std::vector<ResourceMapping> m_BufferMappings;
@@ -199,16 +227,9 @@ namespace Tracy
 
 		// pipeline description hash -> pipeline
 		std::unordered_map<uint64_t, vk::Pipeline> m_Pipelines;
-		vk::PipelineCache m_PipelineCache = nullptr;
-
+		vk::PipelineCache m_hPipelineCache = nullptr;
+		
 		// desc hash -> sampler
-
-		struct MappedSampler
-		{
-			uint64_t uDescHash;
-			vk::Sampler hSampler;
-		};
-
 		std::unordered_map<uint64_t, vk::Sampler> m_Samplers;
 
 		// name hash -> sampler
@@ -216,7 +237,7 @@ namespace Tracy
 
 		// todo: make a ringbuffer of commanbuffers that can be pre recorded with static objects
 		// and replayed when the are visible (again)
-		vk::CommandBuffer m_CommandBuffer;
+		vk::CommandBuffer m_hCommandBuffer = nullptr;
 	};
 
 	inline uint32_t VulkanRenderPass::GetPassIndex() const{	return m_uPassIndex;}
@@ -230,7 +251,7 @@ namespace Tracy
 
 	inline const vk::CommandBuffer& Tracy::VulkanRenderPass::GetCommandBuffer() const
 	{
-		return m_CommandBuffer;
+		return m_hCommandBuffer;
 	}
 
 	inline const RenderPassDesc& VulkanRenderPass::GetDescription() const {return m_Description;	}

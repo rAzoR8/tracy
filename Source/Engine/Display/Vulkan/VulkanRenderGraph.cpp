@@ -14,7 +14,7 @@ VulkanRenderGraph::VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle
 {
 	for (const RenderPassDesc& Pass : m_Description.Passes)
 	{
-		m_RenderPasses.emplace_back(nullptr, Pass, static_cast<uint32_t>(m_RenderPasses.size()), _hDevice);
+		m_RenderPasses.emplace_back(*this, nullptr, Pass, static_cast<uint32_t>(m_RenderPasses.size()), _hDevice);
 	}
 }
 //---------------------------------------------------------------------------------------------------

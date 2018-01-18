@@ -7,6 +7,7 @@ namespace Tracy
 {
 	class VulkanRenderGraph
 	{
+		friend class VulkanRenderPass;
 	public:
 		VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle _hDevice = 0u);
 		~VulkanRenderGraph();
