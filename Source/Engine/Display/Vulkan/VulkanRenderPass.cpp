@@ -71,7 +71,6 @@ bool VulkanRenderPass::Initialize()
 	}
 
 	// we assume that rendertargets stay the same for all shaders & permutations
-
 	if (m_pParent == nullptr)
 	{
 		if (CreateRenderPass() == false)
@@ -126,6 +125,12 @@ void VulkanRenderPass::Uninitialize()
 	}
 	m_Framebuffer.Attachments.clear();
 
+	if (m_hFramebuffer)
+	{
+		VKDevice().destroyFramebuffer(m_hFramebuffer);
+		m_hFramebuffer = nullptr;
+	}
+
 	// Samplers
 	for (auto& kv : m_Samplers)
 	{
@@ -174,6 +179,7 @@ void VulkanRenderPass::Uninitialize()
 
 bool VulkanRenderPass::Record(const Camera& _Camera)
 {
+	const uint64_t uPassID = 1ull << (m_pParent != nullptr ? m_pParent->m_uPassIndex : m_uPassIndex);
 	// TODO: wait for previous passes to finish work on dependencies
 
 	// reset descriptor sets
@@ -239,6 +245,10 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		if (Node.Material)
 		{
 			const MaterialRefEntry& Mat = Node.Material.Get();
+			// skip object
+			if ((Mat.uPassIds & uPassID) == 0)
+				continue;
+
 			bool bShaderChanged = false;
 
 			for (const ShaderID& id : Mat.Shaders)
@@ -385,28 +395,11 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 //---------------------------------------------------------------------------------------------------
 // prepares command buffer & dynamic state for recording
 // called for each batch of objects that use a different shader
-bool VulkanRenderPass::BeginPass()
+bool VulkanRenderPass::BeginCommandbuffer()
 {
-	//vk::ClearValue clearValues[2];
-	//clearValues[0].color = { { 0.1f, 0.1f, 0.1f, 1.0f } };
-	//clearValues[1].depthStencil = { 1.0f, 0 };
-
-	//vk::RenderPassBeginInfo renderPassBeginInfo{};
-	//renderPassBeginInfo.renderPass = renderPass;
-	//renderPassBeginInfo.renderArea.offset.x = 0;
-	//renderPassBeginInfo.renderArea.offset.y = 0;
-	//renderPassBeginInfo.renderArea.extent.width = width;
-	//renderPassBeginInfo.renderArea.extent.height = height;
-	//renderPassBeginInfo.clearValueCount = 2;
-	//renderPassBeginInfo.pClearValues = clearValues;
-	//renderPassBeginInfo.framebuffer = framebuffer;
-
 	vk::CommandBufferInheritanceInfo BufferInfo{};
 
 	BufferInfo.occlusionQueryEnable = VK_FALSE;
-	//PassInfo.renderPass = m_Renderpass;
-	//PassInfo.framebuffer = m_FrameBuffer;
-
 	BufferInfo.subpass = m_pParent != nullptr ? m_uPassIndex : 0;
 
 	vk::CommandBufferBeginInfo BeginInfo{};
@@ -425,9 +418,9 @@ bool VulkanRenderPass::BeginPass()
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanRenderPass::EndPass()
+bool VulkanRenderPass::EndCommandbuffer()
 {
-	m_hCommandBuffer.endRenderPass();
+	//m_hCommandBuffer.endRenderPass();
 	m_hCommandBuffer.end();
 
 	return true;
@@ -966,16 +959,18 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 
 bool VulkanRenderPass::CreateRenderPass()
 {
-	HASSERT(m_hRenderPass.operator bool() == false, "Renderpass is already initialized");
-	if(m_hRenderPass)
-		return false;
+	HASSERT(m_hRenderPass.operator bool() == false && m_pParent == nullptr, "Renderpass is already initialized");
 
-	vk::RenderPassCreateInfo Info{};
 	std::vector<vk::AttachmentDescription> AttachmentDescs;
+	std::vector<vk::ImageView> ImageViews;
 
 	// setup framebuffer
 	for (const FramebufferDesc::Attachment& Desc : m_Description.Framebuffer.Attachments)
 	{
+		vk::ClearValue& cv = m_Framebuffer.ClearValues.emplace_back();
+		cv.color = Desc.vClearColor;
+		cv.depthStencil = { Desc.fClearDepth, Desc.uClearStencil };
+
 		Framebuffer::Attachment& Attachment = m_Framebuffer.Attachments.emplace_back();
 
 		Attachment.kType = Desc.kType;
@@ -988,8 +983,8 @@ bool VulkanRenderPass::CreateRenderPass()
 			TexDesc.kFormat = Desc.kFormat;
 			TexDesc.hDevice = m_Device.GetHandle();
 			TexDesc.kUsageFlag = Desc.kType == kAttachmentType_Color ? kTextureUsage_RenderTarget : kTextureUsage_DepthStencil;
-			TexDesc.uHeight = Desc.uInitialHeight;
-			TexDesc.uWidth = Desc.uInitialWidth;
+			TexDesc.uHeight = m_Description.Framebuffer.uHeight;
+			TexDesc.uWidth = m_Description.Framebuffer.uWidth;
 			TexDesc.uLayerCount = 1u;
 
 			Attachment.Texture = std::move(VulkanTexture(TexDesc));
@@ -1037,6 +1032,8 @@ bool VulkanRenderPass::CreateRenderPass()
 		if (Attachment.Texture.IsValidVkTex() == false)
 			return false;
 
+		ImageViews.push_back(VKTexture(Attachment.Texture).Views[Desc.kType]);
+
 		vk::AttachmentDescription& AttDesc = AttachmentDescs.emplace_back();
 		AttDesc.format = GetResourceFormat(Desc.kFormat);
 		AttDesc.samples = vk::SampleCountFlagBits::e1;
@@ -1047,8 +1044,9 @@ bool VulkanRenderPass::CreateRenderPass()
 		//AttDesc.
 	}
 
-	Info.attachmentCount = static_cast<uint32_t>(AttachmentDescs.size());
-	Info.pAttachments = AttachmentDescs.data();
+	vk::RenderPassCreateInfo PassInfo{};
+	PassInfo.attachmentCount = static_cast<uint32_t>(AttachmentDescs.size());
+	PassInfo.pAttachments = AttachmentDescs.data();
 
 	// setup subpasses
 	std::vector<vk::SubpassDescription> SubPassDescs;
@@ -1061,10 +1059,34 @@ bool VulkanRenderPass::CreateRenderPass()
 		// TODO: fill out rest
 	}
 
-	Info.subpassCount = static_cast<uint32_t>(SubPassDescs.size());
-	Info.pSubpasses = SubPassDescs.data();
+	PassInfo.subpassCount = static_cast<uint32_t>(SubPassDescs.size());
+	PassInfo.pSubpasses = SubPassDescs.data();
 
-	return LogVKErrorBool(VKDevice().createRenderPass(&Info, nullptr, &m_hRenderPass));
+	if (LogVKErrorBool(VKDevice().createRenderPass(&PassInfo, nullptr, &m_hRenderPass)) == false)
+		return false;
+
+	vk::FramebufferCreateInfo FrameInfo{};
+	FrameInfo.height = m_Description.Framebuffer.uHeight;
+	FrameInfo.width = m_Description.Framebuffer.uWidth;
+	FrameInfo.layers = m_Description.Framebuffer.uLayers;
+	FrameInfo.renderPass = m_hRenderPass;
+	FrameInfo.pAttachments = ImageViews.data();
+	FrameInfo.attachmentCount = static_cast<uint32_t>(ImageViews.size());
+
+	if (LogVKErrorBool(VKDevice().createFramebuffer(&FrameInfo, nullptr, &m_hFramebuffer)) == false)
+		return false;
+
+	vk::RenderPassBeginInfo renderPassBeginInfo{};
+	renderPassBeginInfo.renderPass = m_hRenderPass;
+	renderPassBeginInfo.framebuffer = m_hFramebuffer;
+	renderPassBeginInfo.renderArea.offset.x = m_ViewportState.ReanderArea.uOffsetX;
+	renderPassBeginInfo.renderArea.offset.y = m_ViewportState.ReanderArea.uOffsetY;
+	renderPassBeginInfo.renderArea.extent.width = m_ViewportState.ReanderArea.uExtentX;
+	renderPassBeginInfo.renderArea.extent.height = m_ViewportState.ReanderArea.uExtentY;
+	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(m_Framebuffer.ClearValues.size());
+	renderPassBeginInfo.pClearValues = m_Framebuffer.ClearValues.data();
+
+	return true;
 }
 
 //---------------------------------------------------------------------------------------------------

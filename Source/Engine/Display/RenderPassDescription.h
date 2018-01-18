@@ -113,10 +113,6 @@ namespace Tracy
 
 			EFormat kFormat = kFormat_Undefined;
 
-			// only used when kSource == kAttachmentSourceType_New
-			uint32_t uInitialWidth = 1920u;
-			uint32_t uInitialHeight = 1080u;
-
 			// clear values
 			bool bClearTarget = true; // use clear values
 			std::array<float, 4> vClearColor = {0.f,0.f,0.f,0.f};
@@ -127,6 +123,10 @@ namespace Tracy
 		};
 
 		std::vector<Attachment> Attachments;
+
+		uint32_t uWidth = 1920u;
+		uint32_t uHeight = 1080u;
+		uint32_t uLayers = 1u;
 	};
 
 	//struct DescriptorSetRate

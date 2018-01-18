@@ -52,6 +52,16 @@ namespace Tracy
 		{
 			std::vector<vk::Viewport> Viewports;
 			std::vector<vk::Rect2D> Scissors;
+
+			struct RenderArea
+			{
+				uint32_t uOffsetX = 0u;
+				uint32_t uOffsetY = 0u;
+				uint32_t uExtentX = 1920u;
+				uint32_t uExtentY = 1080u;
+			};
+
+			RenderArea ReanderArea;
 		};
 
 		// maybe put this into a different header
@@ -65,6 +75,7 @@ namespace Tracy
 			};
 
 			std::vector<Attachment> Attachments;
+			std::vector<vk::ClearValue> ClearValues;
 		};
 #pragma endregion
 
@@ -159,8 +170,8 @@ namespace Tracy
 		void AddDependency(const Dependence& _Dependency);
 
 		// prepares command buffer & dynamic state for recording
-		bool BeginPass();
-		bool EndPass();
+		bool BeginCommandbuffer();
+		bool EndCommandbuffer();
 
 		bool BeginSubPass();
 		bool EndSubPass();
@@ -207,8 +218,11 @@ namespace Tracy
 		std::vector<VulkanRenderPass> m_SubPasses;
 		std::vector<Dependence> m_Dependencies;
 
+		vk::RenderPassBeginInfo m_BeginInfo;
+
 		vk::RenderPass m_hRenderPass = nullptr;
 		Framebuffer m_Framebuffer;
+		vk::Framebuffer m_hFramebuffer = nullptr;
 
 		std::vector<ResourceMapping> m_ImageMappings;
 		std::vector<ResourceMapping> m_BufferMappings;
