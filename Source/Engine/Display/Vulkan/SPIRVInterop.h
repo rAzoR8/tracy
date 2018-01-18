@@ -82,15 +82,18 @@ namespace Tracy
 		HFATAL("Unsupported descriptor type");
 		return vk::DescriptorType::eSampler;
 	}
+	//---------------------------------------------------------------------------------------------------
+
 
 	// Element of a descriptor set (input)
 	inline vk::DescriptorSetLayoutBinding CreateDescriptorSetLayoutBinding(const VariableInfo& _InputVar)
 	{
-		vk::DescriptorSetLayoutBinding Binding;
+		vk::DescriptorSetLayoutBinding Binding{};
 		Binding.stageFlags = static_cast<vk::ShaderStageFlagBits>(_InputVar.uStageFlags);
 		Binding.binding = _InputVar.uBinding;
 		Binding.descriptorCount = _InputVar.Type.GetType() == spv::OpTypeArray ? _InputVar.Type.GetDimension() : 1u;
 		Binding.descriptorType = GetDescriptorType(_InputVar);
+		Binding.pImmutableSamplers = nullptr;
 
 		return Binding;
 	}
@@ -113,18 +116,19 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
-	// returns hash (pImmutableSamplers excluded)
-	inline size_t CreateDescriptorSetLayoutBindings(const std::vector<VariableInfo>& _SetVars, std::vector<vk::DescriptorSetLayoutBinding>& _OutBindings)
+	// returns hash (pImmutableSamplers excluded by default)
+	inline size_t CreateDescriptorSetLayoutBindings(const std::vector<VariableInfo>& _SetVars, std::vector<vk::DescriptorSetLayoutBinding>& _OutBindings, const bool _bHashSamplerName = false)
 	{
-		size_t uHash = 0u;
+		hlx::Hasher uHash = 0u;
 		for (const VariableInfo& Var : _SetVars)
 		{
 			vk::DescriptorSetLayoutBinding Binding = CreateDescriptorSetLayoutBinding(Var);
 
-			uHash = hlx::AddHash(uHash, Binding.binding);
-			uHash = hlx::AddHash(uHash, Binding.descriptorCount);
-			uHash = hlx::AddHash(uHash, Binding.descriptorType);
-			uHash = hlx::AddHash(uHash, (uint32_t)Binding.stageFlags);
+			uHash << Binding.binding << Binding.descriptorCount << Binding.descriptorType << (uint32_t)Binding.stageFlags;
+			if (_bHashSamplerName && Var.Type.IsSampler() && Var.sName.empty() == false)
+			{
+				uHash << Var.sName;
+			}
 
 			_OutBindings.push_back(Binding);
 		}

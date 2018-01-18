@@ -103,6 +103,13 @@ void VulkanRenderPass::Uninitialize()
 		SubPass.Uninitialize();
 	}
 
+	for (auto& kv : m_Samplers)
+	{
+		m_Device.DestroySampler(kv.second);
+	}
+	m_Samplers.clear();
+	m_MappedSamplers.clear();
+
 	for (auto& kv : m_DescriptorSets)
 	{
 		m_Device.destroyDescriptorSetLayout(kv.second.hLayout);
@@ -142,6 +149,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		//m_Device.FreeDescriptorSets(Container.Sets);
 		//Container.Sets.resize(0);
 		Container.uNextFree = 0u;
+		Container.UsedSets.clear();
 	}
 
 	// Upate pipeline
@@ -153,6 +161,8 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		if (ActivatePipeline(m_ActivePipelineDesc).operator bool() == false)
 			return false;
+
+		ResetMappings();
 
 		// TODO: get ViewportState from pipleine desc m_ActivePipelineDesc
 		m_CommandBuffer.setViewport(0, m_ViewportState.Viewports);
@@ -178,10 +188,6 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			//m_CommandBuffer.setStencilWriteMask()
 		}
 	}
-
-	// make member
-	m_BufferMappings.resize(BufferSource::GetInstanceCount());
-	m_ImageMappings.resize(ImageSource::GetInstanceCount());
 	
 	// set camera sources
 	DigestBuffer(_Camera);
@@ -211,14 +217,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			// check if shader changed and update the pipeline
 			if (bShaderChanged && ActivatePipeline(m_ActivePipelineDesc))
 			{
-				for (ResourceMapping& Mapping : m_BufferMappings)
-				{
-					Mapping.Reset();
-				}
-				for (ResourceMapping& Mapping : m_ImageMappings)
-				{
-					Mapping.Reset();
-				}
+				ResetMappings();
 
 				// camera needs to be remapped
 				DigestBuffer(_Camera);
@@ -458,6 +457,37 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 	PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStages.size());
 
 	//---------------------------------------------------------------------------------------------------
+	// IMMUTABLE SAMPLERS
+	//---------------------------------------------------------------------------------------------------
+
+	for (const PipelineDesc::MappedSampler& Sampler : _Desc.Samplers)
+	{
+		const uint64_t uDescHash = hlx::Hash(Sampler.Desc);
+		auto it = m_Samplers.find(uDescHash);
+
+		vk::Sampler vkSampler{};
+		if (it != m_Samplers.end()) 
+		{
+			vkSampler = it->second;
+		}
+		else
+		{
+			if (m_Device.CreateSampler(Sampler.Desc, vkSampler) == false)
+			{
+				return nullptr;
+			}
+			m_Samplers.insert({ uDescHash, vkSampler });
+		}
+
+		MappedSampler mSamp;
+		mSamp.uDescHash = uDescHash;
+		mSamp.hSampler = vkSampler;
+
+		const uint64_t uNameHash = hlx::Hash(Sampler.sName);
+		m_MappedSamplers.insert_or_assign(uNameHash, mSamp);
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// PIPELINE LAYOUT
 	//---------------------------------------------------------------------------------------------------
 
@@ -639,8 +669,41 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 		const TVarSet& Vars = _Sets[uSet];
 		if (Vars.empty() == false)
 		{
+			hlx::Hasher uSetHash = 0u;
 			std::vector<vk::DescriptorSetLayoutBinding> Bindings;
-			const size_t uSetHash = CreateDescriptorSetLayoutBindings(Vars, Bindings);
+
+			// lookup and assign immutable samplers
+			for (const VariableInfo& var : Vars)
+			{
+				// create binding form variable
+				vk::DescriptorSetLayoutBinding Binding = CreateDescriptorSetLayoutBinding(var);
+				uSetHash << Binding.binding << Binding.descriptorCount << Binding.descriptorType << (uint32_t)Binding.stageFlags;
+
+				if (var.sName.empty())
+				{
+					HWARNING("Unnamed variable at binding %u", Binding.binding);
+				}
+
+				if (var.Type.IsSampler())
+				{
+					HASSERT(var.sName.empty() == false, "Unnamed sampler at binding %u", Binding.binding);
+					uint64_t uNameHash = hlx::Hash(var.sName);
+					auto it = m_MappedSamplers.find(uNameHash);
+					
+					HASSERT(it != m_MappedSamplers.end(), "No sampler found for %s", WCSTR(var.sName));
+					if (it != m_MappedSamplers.end())
+					{
+						// add hash based on both name and desc
+						const MappedSampler& Sampler = it->second;
+						uSetHash += uNameHash;
+						uSetHash += Sampler.uDescHash;
+						Binding.pImmutableSamplers = &Sampler.hSampler;
+					}
+				}
+
+				Bindings.push_back(Binding);
+			}
+
 			uHash += uSetHash;
 
 			DescriptorSetContainer* pContainer = nullptr;
@@ -656,6 +719,8 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 				vk::DescriptorSetLayoutCreateInfo LayoutInfo{};
 				LayoutInfo.bindingCount = static_cast<uint32_t>(Bindings.size());
 				LayoutInfo.pBindings = Bindings.data();
+
+				//for()
 
 				// add descriptor set container
 				pContainer = &m_DescriptorSets.emplace(uSetHash, m_Device.createDescriptorSetLayout(LayoutInfo)).first->second;
@@ -860,7 +925,21 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 }
 
 //---------------------------------------------------------------------------------------------------
+void VulkanRenderPass::ResetMappings()
+{
+	m_BufferMappings.resize(BufferSource::GetInstanceCount());
+	m_ImageMappings.resize(ImageSource::GetInstanceCount());
 
+	for (ResourceMapping& Mapping : m_BufferMappings)
+	{
+		Mapping.Reset();
+	}
+	for (ResourceMapping& Mapping : m_ImageMappings)
+	{
+		Mapping.Reset();
+	}
+}
+//---------------------------------------------------------------------------------------------------
 void VulkanRenderPass::Binding::Set(const Texture& _Texture)
 {
 	const VkTexData& Tex = VKTexture(_Texture);

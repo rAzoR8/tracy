@@ -323,8 +323,17 @@ const bool VulkanDevice::DestroyCommandBuffers(const vk::QueueFlagBits _kQueueTy
 
 const bool VulkanDevice::CreateSampler(const SamplerDesc& _Desc, vk::Sampler& _OutSampler)
 {
+	std::lock_guard<std::mutex> lock(m_DeviceMutex); // really needed?
+
 	vk::SamplerCreateInfo Info = GetSamplerDesc(_Desc);
 	return LogVKErrorBool(m_Device.createSampler(&Info, nullptr, &_OutSampler));
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanDevice::DestroySampler(const vk::Sampler& _Sampler)
+{
+	std::lock_guard<std::mutex> lock(m_DeviceMutex);
+	m_Device.destroySampler(_Sampler);
 }
 
 //---------------------------------------------------------------------------------------------------

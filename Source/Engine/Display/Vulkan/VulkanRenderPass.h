@@ -152,6 +152,8 @@ namespace Tracy
 
 		const vk::CommandBuffer& GetCommandBuffer() const;
 
+		void ResetMappings();
+
 		// find binding in current descriptor sets
 		bool FindBinding(const uint64_t& _uNameHash, InputMapping& _OutMapping) const;
 
@@ -194,8 +196,18 @@ namespace Tracy
 		std::unordered_map<uint64_t, vk::Pipeline> m_Pipelines;
 		vk::PipelineCache m_PipelineCache = nullptr;
 
+		// desc hash -> sampler
+
+		struct MappedSampler
+		{
+			uint64_t uDescHash;
+			vk::Sampler hSampler;
+		};
+
+		std::unordered_map<uint64_t, vk::Sampler> m_Samplers;
+
 		// name hash -> sampler
-		std::unordered_map<uint64_t, vk::Sampler> m_MappedSamplers;
+		std::unordered_map<uint64_t, MappedSampler> m_MappedSamplers;
 
 		// todo: make a ringbuffer of commanbuffers that can be pre recorded with static objects
 		// and replayed when the are visible (again)

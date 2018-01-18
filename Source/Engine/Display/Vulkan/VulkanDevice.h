@@ -112,6 +112,7 @@ namespace Tracy
 		const bool DestroyCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, vk::CommandBuffer* _pBuffers, const uint32_t _uCount = 1u);
 
 		const bool CreateSampler(const SamplerDesc& _Desc, vk::Sampler& _OutSampler);
+		void DestroySampler(const vk::Sampler& _Sampler);
 
 		std::vector<vk::DescriptorSet> AllocateDescriptorSets(const vk::DescriptorSetLayout& _Layout, const uint32_t _uCount);
 		void FreeDescriptorSets(const std::vector<vk::DescriptorSet>& _Sets);
