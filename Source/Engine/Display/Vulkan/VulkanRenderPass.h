@@ -3,6 +3,7 @@
 
 #include "IShaderFactoryConsumer.h"
 #include "..\RenderPassDescription.h"
+#include "VulkanBuffer.h"
 
 namespace Tracy
 {
@@ -10,7 +11,7 @@ namespace Tracy
 	class Camera;
 	class RenderObject;
 	class Texture;
-	class GPUBuffer;
+	//class GPUBuffer;
 	class ImageSource;
 	class BufferSource;
 
@@ -89,17 +90,21 @@ namespace Tracy
 
 		struct Binding
 		{
-			Binding(const VariableInfo& _Var) : 
-				Var(_Var), kType(GetDescriptorType(_Var)), uNameHash(hlx::Hash(_Var.sName)){}
+			Binding(const VariableInfo& _Var, const THandle _hDevice);
+			~Binding();
 
 			void Set(const Texture& _Texture);
-			void Set(const GPUBuffer& _Buffer);
+
+			// return true if data changed
+			bool Set(const void* _pData, const size_t _uSize);
 
 		//private:
-			vk::DescriptorImageInfo Image;
+			VulkanBuffer Buffer;
+			//hlx::bytes ProxyMemory;
+			vk::DescriptorImageInfo ImageInfo;
 			uint64_t uImageId = HUNDEFINED64;
-			vk::DescriptorBufferInfo Buffer;
-			uint64_t uBufferId = HUNDEFINED64;
+			vk::DescriptorBufferInfo BufferInfo;
+			uint32_t uBufferHash = HUNDEFINED32;
 			uint64_t uHash = HUNDEFINED64;
 
 			const uint64_t uNameHash;

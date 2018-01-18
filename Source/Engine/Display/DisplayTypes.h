@@ -999,9 +999,9 @@ struct BufferDesc
 	THandle hDevice = 0u;
 	uint64_t uIdentifier = HUNDEFINED64; // filled by device
 	size_t uSize = 0u;
-	EFormat kFormat = kFormat_Undefined;
+	//EFormat kFormat = kFormat_Undefined;
 	EBufferUsage kUsageFlag = kBufferUsage_None;
-	std::string sName = "NewBuffer";
+	//std::string sName = "NewBuffer";
 };
 
 } // Tracy

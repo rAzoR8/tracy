@@ -720,14 +720,12 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 				LayoutInfo.bindingCount = static_cast<uint32_t>(Bindings.size());
 				LayoutInfo.pBindings = Bindings.data();
 
-				//for()
-
 				// add descriptor set container
 				pContainer = &m_DescriptorSets.emplace(uSetHash, m_Device.createDescriptorSetLayout(LayoutInfo)).first->second;
 				pContainer->uSlot = uSet;
 				for (const VariableInfo& var : Vars)
 				{
-					pContainer->Bindings.push_back(var);
+					pContainer->Bindings.emplace_back(var, m_Device.GetHandle());
 				}
 			}
 
@@ -778,7 +776,8 @@ bool VulkanRenderPass::FindBinding(const uint64_t& _uNameHash, InputMapping& _Ou
 	uint32_t uSet = 0u;
 	for (DescriptorSetContainer* pSet : m_ActiveDescriptorSets)
 	{
-		if (uint32_t uBinding; uBinding = pSet->FindBinding(_uNameHash))
+		uint32_t uBinding = pSet->FindBinding(_uNameHash);
+		if (uBinding != HUNDEFINED32)
 		{
 			_OutMapping.uBindingIndex = uBinding;
 			_OutMapping.uSet = uSet;
@@ -822,7 +821,7 @@ void VulkanRenderPass::DigestImages(const ImageSource& Src)
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderPass::DigestBuffer(const BufferSource & Src)
+void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 {
 	ResourceMapping& Mapping = m_BufferMappings[Src.GetID()];
 	const std::vector<BufferSource::Var>& Vars = Src.GetVars();
@@ -844,13 +843,17 @@ void VulkanRenderPass::DigestBuffer(const BufferSource & Src)
 		Mapping.bInitialized = true;
 	}
 
-	// transfer images
+	// transfer variables
 	for (const InputMapping& Input : Mapping.Resource)
 	{
 		const BufferSource::Var& Source = Vars[Input.uSourceIndex];
+		Binding& Binding = m_ActiveDescriptorSets[Input.uSet]->Bindings[Input.uBindingIndex];
 
-		// todo: create buffer etc
-		//m_ActiveDescriptorSets[Input.uSet]->Bindings[Input.uBindingIndex].Set()
+		// buffer content changed
+		if (Binding.Set(Source.pData, Source.uSize))
+		{
+			m_CommandBuffer.updateBuffer(Binding.BufferInfo.buffer, 0, Source.uSize, Source.pData);
+		}
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -940,34 +943,78 @@ void VulkanRenderPass::ResetMappings()
 	}
 }
 //---------------------------------------------------------------------------------------------------
+
+VulkanRenderPass::Binding::Binding(const VariableInfo& _Var, const THandle _hDevice) :
+	Var(_Var), kType(GetDescriptorType(_Var)), uNameHash(hlx::Hash(_Var.sName))
+{
+	if (kType == vk::DescriptorType::eUniformBuffer)
+	{
+		BufferDesc Desc{};
+		Desc.hDevice = _hDevice;
+		Desc.uSize = Var.Type.GetSize();
+		Desc.kUsageFlag = kBufferUsage_Uniform;
+
+		Buffer = std::move(VulkanBuffer(Desc));
+
+		if (Buffer)
+		{
+			//ProxyMemory.resize(Desc.uSize);
+			const VkBufferData& Buf = VKBuffer(Buffer);
+
+			BufferInfo.buffer = Buf.hBuffer;
+			BufferInfo.offset = Var.uMemberOffset; // 0
+			BufferInfo.range = Desc.uSize; // VK_WHOLE_SIZE
+
+			uHash = hlx::Hash(Buffer.GetIdentifier(), Var.uBinding, kType);
+		}
+	}
+}
+//---------------------------------------------------------------------------------------------------
+
+VulkanRenderPass::Binding::~Binding()
+{
+	Buffer.Reset();
+}
+//---------------------------------------------------------------------------------------------------
 void VulkanRenderPass::Binding::Set(const Texture& _Texture)
 {
 	const VkTexData& Tex = VKTexture(_Texture);
 	if (uImageId != _Texture.GetIdentifier())
 	{
 		uImageId = _Texture.GetIdentifier();
-		Image.imageLayout = Tex.hLayout;
-		Image.imageView = Tex.Views[kViewType_ShaderResource];
-		//Image.sampler TODO: use immutable samplers in PSO object instead
+		ImageInfo.imageLayout = Tex.hLayout;
+		ImageInfo.imageView = Tex.Views[kViewType_ShaderResource];
+		ImageInfo.sampler = nullptr; // we only use immutable samplers
 
 		uHash = hlx::Hash(uImageId, Var.uBinding, kType);
 	}
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderPass::Binding::Set(const GPUBuffer& _Buffer)
+bool VulkanRenderPass::Binding::Set(const void* _pData, const size_t _uSize)
 {
-	const VkBufferData& Buf = VKBuffer(_Buffer);
-	if (uBufferId != _Buffer.GetIdentifier())
-	{
-		uBufferId = _Buffer.GetIdentifier();
-		Buffer.buffer = Buf.hBuffer;
-		//Buffer.offset = Var.uMemberOffset;
-		//Buffer.range = Var.Type.GetSize();
+	// use crc because its faster
+	const uint32_t uCRC = hlx::CRC32(_pData, _uSize);
 
-		uHash = hlx::Hash(uBufferId, Var.uBinding, kType);
+	if (uCRC != uBufferHash)
+	{
+		uBufferHash = uCRC;
+		return true;
 	}
+
+	return false;
+
+	//if (_uSize <= ProxyMemory.size() && _pData != nullptr)
+	//{
+	//	// check if data changed
+	//	if (std::memcmp(_pData, ProxyMemory.data(), _uSize) != 0)
+	//	{
+	//		ProxyMemory.assign(reinterpret_cast<const uint8_t*>(_pData), _uSize);
+	//		return true;
+	//	}
+	//}
 }
+
 //---------------------------------------------------------------------------------------------------
 
 uint32_t VulkanRenderPass::DescriptorSetContainer::FindBinding(const uint64_t& _uNameHash) const
@@ -1044,8 +1091,8 @@ void VulkanRenderPass::DescriptorSetContainer::AddDescriptorWrites(std::vector<v
 		write.dstArrayElement = 0u; // no array support for now
 		write.dstBinding = bind.Var.uBinding;
 		write.dstSet = hSet;
-		write.pBufferInfo = &bind.Buffer;
-		write.pImageInfo = &bind.Image;
+		write.pBufferInfo = &bind.BufferInfo;
+		write.pImageInfo = &bind.ImageInfo;
 		write.pTexelBufferView = nullptr;
 	}
 }

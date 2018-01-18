@@ -104,11 +104,11 @@ namespace Tracy
 		// Textures
 		const bool CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
 		void DestroyTexture(VulkanAllocation& _Allocation, vk::Image& _Image);
+
 		const bool CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
 		void DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
 
 		const bool CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount = 1u);
-
 		const bool DestroyCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, vk::CommandBuffer* _pBuffers, const uint32_t _uCount = 1u);
 
 		const bool CreateSampler(const SamplerDesc& _Desc, vk::Sampler& _OutSampler);
@@ -117,6 +117,7 @@ namespace Tracy
 		std::vector<vk::DescriptorSet> AllocateDescriptorSets(const vk::DescriptorSetLayout& _Layout, const uint32_t _uCount);
 		void FreeDescriptorSets(const std::vector<vk::DescriptorSet>& _Sets);
 
+		// maybe move back to renderpass
 		bool CreateDescriptorPool(const DescriptorPoolDesc& _Desc);
 
 	private:
