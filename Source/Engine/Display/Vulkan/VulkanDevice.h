@@ -67,6 +67,9 @@ namespace Tracy
 			return m_Device && m_PhysicalDevice;
 		}
 
+		auto WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount = 1u, const bool _bWaitAll = true, const uint64_t _uTimeOutMs = 60u)
+		{ return make_task([&]() { std::lock_guard<std::mutex> lock(m_DeviceMutex); return m_Device.waitForFences(_uFenceCount, _pFences, _bWaitAll, _uTimeOutMs); }); }
+
 		//---------------------------------------------------------------------------------------------------
 		// DEVICE CALLS
 
@@ -119,6 +122,8 @@ namespace Tracy
 
 		// maybe move back to renderpass
 		bool CreateDescriptorPool(const DescriptorPoolDesc& _Desc);
+
+		vk::Queue GetQueue(const vk::QueueFlagBits _kFlags) const;
 
 	private:
 		struct QueueOffset

@@ -224,8 +224,8 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		if (m_ActivePipelineDesc.DepthStencilState.bStencilTestEnabled)
 		{
 			m_hCommandBuffer.setStencilReference(vk::StencilFaceFlagBits::eFront, m_ActivePipelineDesc.DepthStencilState.uStencilReference);
-			//m_hCommandBuffer.setStencilCompareMask()
-			//m_hCommandBuffer.setStencilWriteMask()
+			m_hCommandBuffer.setStencilCompareMask(vk::StencilFaceFlagBits::eFront, m_ActivePipelineDesc.DepthStencilState.uStencilCompareMask);
+			m_hCommandBuffer.setStencilWriteMask(vk::StencilFaceFlagBits::eFront, m_ActivePipelineDesc.DepthStencilState.uStencilWriteMask);
 		}
 	}
 	

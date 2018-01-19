@@ -333,6 +333,8 @@ namespace Tracy
 		StencilOpDesc BackFace;
 
 		uint32_t uStencilReference = 0u;
+		uint32_t uStencilCompareMask = 0xffffffff;
+		uint32_t uStencilWriteMask = 0u;
 		// todo: depthBoundsTestEnable etc
 	};
 	//---------------------------------------------------------------------------------------------------

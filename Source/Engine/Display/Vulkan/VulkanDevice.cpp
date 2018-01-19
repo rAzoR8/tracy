@@ -397,5 +397,17 @@ bool VulkanDevice::CreateDescriptorPool(const DescriptorPoolDesc& _Desc)
 
 	return LogVKErrorBool(m_Device.createDescriptorPool(&Info, nullptr, &m_DescriptorPool));
 }
+//---------------------------------------------------------------------------------------------------
+
+vk::Queue VulkanDevice::GetQueue(const vk::QueueFlagBits _kFlags) const
+{
+	auto it = m_Queues.find(_kFlags);
+	if (it != m_Queues.end())
+	{
+		return it->second.Handle;
+	}
+
+	return nullptr;
+}
 
 //---------------------------------------------------------------------------------------------------

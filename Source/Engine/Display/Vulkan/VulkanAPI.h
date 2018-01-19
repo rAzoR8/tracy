@@ -26,4 +26,10 @@ inline bool LogVKErrorBool(const vk::Result _kResult, const wchar_t* _pFormat = 
 	return LogVKError(_kResult, _pFormat, _Args...) == vk::Result::eSuccess;
 }
 
+template <class ...Args>
+inline bool LogVKErrorFailed(const vk::Result _kResult, const wchar_t* _pFormat = nullptr, Args&& ..._Args)
+{
+	return LogVKError(_kResult, _pFormat, _Args...) != vk::Result::eSuccess;
+}
+
 #endif // !VULKANAPI_H

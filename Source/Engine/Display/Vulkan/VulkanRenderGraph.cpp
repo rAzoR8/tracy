@@ -131,6 +131,27 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 	}
 
 	// submit	
+	vk::Queue gfxQueue = m_Device.GetQueue(vk::QueueFlagBits::eGraphics);
+
+	if (gfxQueue)
+	{
+		vk::SubmitInfo Info{};
+		Info.commandBufferCount = 1u;
+		Info.pCommandBuffers = &m_PrimaryGfxCmdBuffer;
+		
+		vk::FenceCreateInfo FenceInfo{};
+		vk::Fence renderFence;
+		if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &renderFence)))
+		{
+			return;
+		}
+
+		gfxQueue.submit(Info, renderFence);
+
+		LogVKError(m_Device.WaitForFences(&renderFence));
+
+		m_Device.GetDevice().destroyFence(renderFence);
+	}
 }
 //---------------------------------------------------------------------------------------------------
 
