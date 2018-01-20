@@ -95,6 +95,7 @@ const VulkanDevice& VulkanInstance::GetDevice(const THandle _hDevice) const
 
 	return DeviceIt->second;
 }
+//---------------------------------------------------------------------------------------------------
 
 VulkanDevice& VulkanInstance::GetDevice(const THandle _hDevice)
 {
@@ -106,6 +107,15 @@ VulkanDevice& VulkanInstance::GetDevice(const THandle _hDevice)
 
 //---------------------------------------------------------------------------------------------------
 const VulkanWindow& VulkanInstance::GetWindow(const THandle _hWindow) const
+{
+	const auto& WindowIt = m_Windows.find(_hWindow);
+	HASSERT(WindowIt != m_Windows.end(), "Invalid window handle: %d", _hWindow);
+
+	return WindowIt->second;
+}
+//---------------------------------------------------------------------------------------------------
+
+VulkanWindow& VulkanInstance::GetWindow(const THandle _hWindow)
 {
 	const auto& WindowIt = m_Windows.find(_hWindow);
 	HASSERT(WindowIt != m_Windows.end(), "Invalid window handle: %d", _hWindow);

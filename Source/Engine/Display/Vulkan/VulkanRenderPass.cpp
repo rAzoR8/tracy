@@ -87,7 +87,9 @@ bool VulkanRenderPass::Initialize()
 	{
 		// take parent command buffer
 		m_hCommandBuffer = m_pParent->m_hCommandBuffer;
-		return m_hCommandBuffer;
+		m_hFramebuffer = m_pParent->m_hFramebuffer;
+		m_hRenderPass = m_pParent->m_hRenderPass;
+		return true;
 	}
 	else
 	{
@@ -105,7 +107,7 @@ void VulkanRenderPass::Uninitialize()
 	}
 
 	// todo: wait for commandbuffer to finish processing
-	if (m_pParent == nullptr)
+	if (m_pParent == nullptr && m_hCommandBuffer)
 	{
 		m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_hCommandBuffer);
 		m_hCommandBuffer = nullptr;
@@ -399,8 +401,10 @@ bool VulkanRenderPass::BeginCommandbuffer()
 {
 	vk::CommandBufferInheritanceInfo BufferInfo{};
 
+	BufferInfo.renderPass = m_hRenderPass;
+	BufferInfo.framebuffer = m_hFramebuffer;
 	BufferInfo.occlusionQueryEnable = VK_FALSE;
-	BufferInfo.subpass = m_pParent != nullptr ? m_uPassIndex : 0;
+	BufferInfo.subpass = 0u; //m_pParent != nullptr ? m_uPassIndex : 0;
 
 	vk::CommandBufferBeginInfo BeginInfo{};
 	BeginInfo.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
@@ -445,7 +449,7 @@ bool VulkanRenderPass::BeginSubPass()
 
 bool VulkanRenderPass::EndSubPass()
 {
-	return false;
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)

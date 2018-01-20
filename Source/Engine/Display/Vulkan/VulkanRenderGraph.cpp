@@ -8,13 +8,14 @@ using namespace Tracy;
 
 //---------------------------------------------------------------------------------------------------
 
-VulkanRenderGraph::VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle _hDevice) :
-	m_Device(GetDevice(_hDevice)),
+VulkanRenderGraph::VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle _hWindow) :
+	m_Window(GetWindow(_hWindow)),
+	m_Device(GetDevice(m_Window.GetDeviceHandle())),
 	m_Description(_Desc)
 {
 	for (const RenderPassDesc& Pass : m_Description.Passes)
 	{
-		m_RenderPasses.emplace_back(*this, nullptr, Pass, static_cast<uint32_t>(m_RenderPasses.size()), _hDevice);
+		m_RenderPasses.emplace_back(*this, nullptr, Pass, static_cast<uint32_t>(m_RenderPasses.size()), m_Device.GetHandle());
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -71,15 +72,39 @@ bool VulkanRenderGraph::Initialize()
 		m_MaterialIds.insert({ Desc.sPassName, Pass.GetMaterialID() });
 	}
 
+	m_hGfxQueue = m_Device.GetQueue(vk::QueueFlagBits::eGraphics);
+
+	if (m_hGfxQueue.operator bool() == false)
+		return false;
+
+	vk::FenceCreateInfo FenceInfo{};
+	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hRenderFence)))
+	{
+		return false;
+	}
+
+	m_hSwapchain = m_Window.GetSwapchain();
+	if (m_hSwapchain.operator bool() == false)
+		return false;
+
 	// create command buffer
-	return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::ePrimary, &m_PrimaryGfxCmdBuffer);
+	return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::ePrimary, &m_hPrimaryGfxCmdBuffer);
 }
 //---------------------------------------------------------------------------------------------------
 
 void VulkanRenderGraph::Uninitialze()
 {
-	m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_PrimaryGfxCmdBuffer);
-	m_PrimaryGfxCmdBuffer = nullptr;
+	if (m_hPrimaryGfxCmdBuffer)
+	{
+		m_Device.DestroyCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, &m_hPrimaryGfxCmdBuffer);
+		m_hPrimaryGfxCmdBuffer = nullptr;
+	}
+
+	if (m_hRenderFence)
+	{
+		m_Device.GetDevice().destroyFence(m_hRenderFence);
+		m_hRenderFence = nullptr;
+	}
 
 	m_MaterialIds.clear();
 
@@ -97,7 +122,7 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 {
 	std::for_each(std::execution::par, m_RenderPasses.begin(), m_RenderPasses.end(), [&](VulkanRenderPass& Pass)
 	{
-		Pass.BeginCommandbuffer(); // begin commandbuffer recording, maybe rename to begin command buffer
+		Pass.BeginCommandbuffer(); // begin commandbuffer recording
 
 		for (Camera* pCamera : _Cameras)
 		{
@@ -107,12 +132,11 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 				{
 					Pass.Record(*pCamera);
 
-					// todo: m_PrimaryGfxCmdBuffer.nextSubpass()
 					for (VulkanRenderPass& SubPass : Pass.GetSubPasses())
 					{
-						SubPass.BeginSubPass();
+						SubPass.BeginSubPass(); // calls nextSubpass()
 						SubPass.Record(*pCamera);
-						SubPass.EndSubPass();
+						SubPass.EndSubPass(); // does nothing atm
 					}
 				}
 			}
@@ -125,32 +149,46 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 
 	for (VulkanRenderPass& Pass : m_RenderPasses)
 	{
-		m_PrimaryGfxCmdBuffer.beginRenderPass(Pass.m_BeginInfo, vk::SubpassContents::eSecondaryCommandBuffers);
-		m_PrimaryGfxCmdBuffer.executeCommands({ Pass.GetCommandBuffer() });
-		m_PrimaryGfxCmdBuffer.endRenderPass();
+		m_hPrimaryGfxCmdBuffer.beginRenderPass(Pass.m_BeginInfo, vk::SubpassContents::eSecondaryCommandBuffers);
+		m_hPrimaryGfxCmdBuffer.executeCommands({ Pass.GetCommandBuffer() });
+		m_hPrimaryGfxCmdBuffer.endRenderPass();
 	}
 
-	// submit	
-	vk::Queue gfxQueue = m_Device.GetQueue(vk::QueueFlagBits::eGraphics);
-
-	if (gfxQueue)
+	// submit
 	{
 		vk::SubmitInfo Info{};
 		Info.commandBufferCount = 1u;
-		Info.pCommandBuffers = &m_PrimaryGfxCmdBuffer;
+		Info.pCommandBuffers = &m_hPrimaryGfxCmdBuffer;
 		
-		vk::FenceCreateInfo FenceInfo{};
-		vk::Fence renderFence;
-		if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &renderFence)))
-		{
+		m_hGfxQueue.submit(Info, m_hRenderFence);
+
+		LogVKError(m_Device.WaitForFences(&m_hRenderFence));
+		if (LogVKErrorFailed(m_Device.GetDevice().resetFences(1u, &m_hRenderFence)))
 			return;
+
+	}
+
+	// present
+	{
+		uint32_t uImageIndex = 0u;
+		vk::Semaphore Sem;
+		// todo: init vk::Semaphore, make it a member etc
+
+		// get next image
+		if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, Sem, vk::Fence(nullptr), &uImageIndex)))
+			return;
+
+		//const std::vector<vk::ImageView>& Backbuffer = m_Window.GetBackuffer();
+		//if (uImageIndex < Backbuffer.size())
+		{
+			// TODO: get image to right layout
+
 		}
 
-		gfxQueue.submit(Info, renderFence);
-
-		LogVKError(m_Device.WaitForFences(&renderFence));
-
-		m_Device.GetDevice().destroyFence(renderFence);
+		vk::PresentInfoKHR Info{};
+		Info.swapchainCount = 1u;
+		Info.pSwapchains = &m_hSwapchain;
+		Info.pImageIndices = &uImageIndex;
 	}
 }
 //---------------------------------------------------------------------------------------------------

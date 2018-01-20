@@ -5,11 +5,14 @@
 
 namespace Tracy
 {
+	// forward decls
+	class VulkanWindow;
+
 	class VulkanRenderGraph
 	{
 		friend class VulkanRenderPass;
 	public:
-		VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle _hDevice = 0u);
+		VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle _hWindowHandle = 0u);
 		~VulkanRenderGraph();
 
 		bool Initialize();
@@ -24,6 +27,7 @@ namespace Tracy
 		uint64_t GetMaterialIds(const std::vector<std::wstring>& _Passes);
 
 	private:
+		VulkanWindow & m_Window;
 		VulkanDevice& m_Device;
 		RenderGraphDesc m_Description;
 		std::unordered_map<std::wstring, uint64_t> m_MaterialIds;
@@ -32,7 +36,10 @@ namespace Tracy
 		std::vector<VulkanRenderPass> m_RenderPasses;
 
 		//collects renderpass buffers
-		vk::CommandBuffer m_PrimaryGfxCmdBuffer;
+		vk::CommandBuffer m_hPrimaryGfxCmdBuffer = nullptr;
+		vk::Queue m_hGfxQueue = nullptr; // owned by the device
+		vk::Fence m_hRenderFence = nullptr;
+		vk::SwapchainKHR m_hSwapchain = nullptr; // owned by the window
 	};
 
 	template<class ...TStrings>

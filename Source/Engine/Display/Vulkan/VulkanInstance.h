@@ -34,11 +34,13 @@ namespace Tracy
 		VulkanDevice& GetDevice(const THandle _hDevice);
 
 		const VulkanWindow& GetWindow(const THandle _hWindow) const;
+		VulkanWindow& GetWindow(const THandle _hWindow);
 
 #if defined(_WIN32) || defined(WIN32)
 		const THandle MakeWindow(const THandle _hPresentDeviceHandle, const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance) final;
 #endif
 
+		// move those functions to the device
 		void Destroy(vk::SurfaceKHR& _Surface) const;
 		void Destroy(vk::SwapchainKHR& _Swapchain, const THandle _hDevice) const;
 		void Destroy(vk::ImageView& _View, const THandle _hDevice) const;
@@ -54,6 +56,8 @@ namespace Tracy
 		std::unordered_map<THandle, VulkanWindow> m_Windows;
 	};
 
-	inline static VulkanDevice& GetDevice(const THandle _hDevice = 0u) { return VulkanInstance::GetInstance().GetDevice(_hDevice); }
+	inline static auto& GetDevice(const THandle _hDevice = 0u) { return VulkanInstance::GetInstance().GetDevice(_hDevice); }
+	inline static auto& GetWindow(const THandle _hWindow = 0u) { return VulkanInstance::GetInstance().GetWindow(_hWindow); }
+
 }; // Tracy
 #endif // !VULKANINITIALIZER_H

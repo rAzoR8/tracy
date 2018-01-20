@@ -10,6 +10,7 @@ namespace Tracy
 	// Handles screen resize and present
 	class VulkanWindow
 	{
+		friend class VulkanRenderGraph;
 	public:
 #if defined(WIN32) || defined(_WIN32)
 		explicit VulkanWindow(const vk::Instance& _Instance, const THandle _uHandle, const HWND _hWnd, const HINSTANCE _hInstance);
@@ -25,6 +26,7 @@ namespace Tracy
 		~VulkanWindow();
 
 		const THandle GetHandle() const;
+		const THandle GetDeviceHandle() const;
 
 		// Validate present capabilities of a device and gather needed data
 		const bool Init(const VulkanDevice& _Device, const uint32_t _uWidth, const uint32_t _uHeight);
@@ -34,6 +36,10 @@ namespace Tracy
 	private:
 		void ReloadSurfaceInfo();
 		void CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight);
+
+		const vk::SwapchainKHR& GetSwapchain() const;
+		const vk::SurfaceKHR& GetSurface() const;
+		const std::vector<vk::ImageView>& GetBackuffer() const;
 
 	private:
 		vk::SwapchainKHR m_Swapchain = nullptr;
@@ -54,6 +60,23 @@ namespace Tracy
 	inline const THandle VulkanWindow::GetHandle() const
 	{
 		return m_hThis;
+	}
+	inline const THandle VulkanWindow::GetDeviceHandle() const
+	{
+		return m_hPresentDevice;
+	}
+
+	inline const vk::SwapchainKHR& VulkanWindow::GetSwapchain() const
+	{
+		return m_Swapchain;
+	}
+	inline const vk::SurfaceKHR& VulkanWindow::GetSurface() const
+	{
+		return m_Surface;
+	}
+	inline const std::vector<vk::ImageView>& VulkanWindow::GetBackuffer() const
+	{
+		return m_Backbuffer;
 	}
 }
 
