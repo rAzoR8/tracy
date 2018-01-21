@@ -4,6 +4,7 @@
 #include "VulkanAPI.h"
 #include "StandardDefines.h"
 #include "VulkanDevice.h"
+#include "VulkanTexture.h"
 
 namespace Tracy
 {
@@ -39,11 +40,11 @@ namespace Tracy
 
 		const vk::SwapchainKHR& GetSwapchain() const;
 		const vk::SurfaceKHR& GetSurface() const;
-		const std::vector<vk::ImageView>& GetBackuffer() const;
+		const std::vector<VulkanTexture>& GetBackuffer() const;
 
 	private:
 		vk::SwapchainKHR m_Swapchain = nullptr;
-		std::vector<vk::ImageView> m_Backbuffer;
+		std::vector<VulkanTexture> m_Backbuffer;
 		
 		vk::SurfaceKHR m_Surface = nullptr;
 		vk::SurfaceCapabilitiesKHR m_Capabilities;
@@ -74,7 +75,7 @@ namespace Tracy
 	{
 		return m_Surface;
 	}
-	inline const std::vector<vk::ImageView>& VulkanWindow::GetBackuffer() const
+	inline const std::vector<VulkanTexture>& VulkanWindow::GetBackuffer() const
 	{
 		return m_Backbuffer;
 	}

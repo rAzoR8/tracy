@@ -7,27 +7,47 @@ using namespace Tracy;
 
 //---------------------------------------------------------------------------------------------------
 
-VkTexData::VkTexData(TextureDesc& _Desc) : hDevice(_Desc.hDevice)
+VkTexData::VkTexData(TextureDesc& _Desc) : hDevice(_Desc.hDevice), bOwnsResource(true)
 {
 	GetDevice(hDevice).CreateTexture(_Desc, Allocation, hImage);
 
 	// TODO: layout
 }
 //---------------------------------------------------------------------------------------------------
+VkTexData::VkTexData(const THandle& _hDevice, const vk::Image& _hImage, const vk::ImageLayout& _hLayout, const TImageViews& _Views) :
+	bOwnsResource(false),
+	hDevice(_hDevice),
+	hImage(_hImage),
+	hLayout(_hLayout),
+	Views(_Views)
+{
+}
+//---------------------------------------------------------------------------------------------------
 
 VkTexData::~VkTexData()
 {
+	if (bOwnsResource == false)
+		return;
 	// TODO: destroy views first
 	GetDevice(hDevice).DestroyTexture(Allocation, hImage);
 }
 //---------------------------------------------------------------------------------------------------
-
+// has ownershipt
 VulkanTexture::VulkanTexture(const TextureDesc& _Desc) :
 	Texture(_Desc)
 {
 	if (IsValidRef())
 	{
 		Ref.ConstructAPIData<VkTexData>(Ref.Data); // deleted by RefCounted	
+	}
+}
+//---------------------------------------------------------------------------------------------------
+
+VulkanTexture::VulkanTexture(const THandle& _hDevice, const vk::Image& _hImage, const vk::ImageLayout& _hLayout, const TImageViews& _Views) : Texture(DefaultInit)
+{
+	if (IsValidRef())
+	{
+		Ref.ConstructAPIData<VkTexData>(_hDevice, _hImage, _hLayout, _Views);
 	}
 }
 

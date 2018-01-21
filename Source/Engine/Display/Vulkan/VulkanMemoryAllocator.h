@@ -74,11 +74,11 @@ namespace Tracy
 		vk::Result AllocateBufferMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
 
 		// Materialize memory virtual allocation
-		void BindImageMemory(VulkanAllocation& _Allocation, vk::Image& _Image);
-		void BindBufferMemory(VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
+		void BindImageMemory(const VulkanAllocation& _Allocation, const vk::Image& _Image);
+		void BindBufferMemory(const VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
 
-		void DestroyImage(VulkanAllocation& _Allocation, vk::Image& _Image);
-		void DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
+		void DestroyImage(const VulkanAllocation& _Allocation, const vk::Image& _Image);
+		void DestroyBuffer(const VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
 
 		// Retrieve device memory info
 		const vk::DeviceSize& GetTotalDeviceMemory() const;

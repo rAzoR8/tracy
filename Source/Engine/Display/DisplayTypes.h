@@ -993,7 +993,10 @@ struct TextureDesc
 	EFormat kFormat = kFormat_Undefined;
 	ETextureUsage kUsageFlag = kTextureUsage_None;
 	ETextureType kType = kTextureType_Invalid;
-	//std::string sName = "NewTexture";
+
+	const void* pInitialData = nullptr;
+	const size_t uInitialDataOffset = 0u;
+	const size_t uInitialDataSize = 0u; // must be in bounds with uSize
 };
 
 struct BufferDesc

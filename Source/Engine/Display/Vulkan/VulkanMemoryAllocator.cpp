@@ -170,24 +170,26 @@ vk::Result Tracy::VulkanMemoryAllocator::AllocateBufferMemory(const VulkanAlloca
 	return vk::Result::eErrorInitializationFailed;
 }
 //---------------------------------------------------------------------------------------------------
-void Tracy::VulkanMemoryAllocator::BindImageMemory(VulkanAllocation& _Allocation, vk::Image& _Image)
+void Tracy::VulkanMemoryAllocator::BindImageMemory(const VulkanAllocation& _Allocation,const vk::Image& _Image)
 {
 	m_Device.bindImageMemory(_Image, _Allocation.Memory, _Allocation.uOffset);
 }
 //---------------------------------------------------------------------------------------------------
-void Tracy::VulkanMemoryAllocator::BindBufferMemory(VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
+void Tracy::VulkanMemoryAllocator::BindBufferMemory(const VulkanAllocation& _Allocation,const vk::Buffer& _Buffer)
 {
 	m_Device.bindBufferMemory(_Buffer, _Allocation.Memory, _Allocation.uOffset);
 }
 //---------------------------------------------------------------------------------------------------
-void Tracy::VulkanMemoryAllocator::DestroyImage(VulkanAllocation& _Allocation, vk::Image& _Image)
+void Tracy::VulkanMemoryAllocator::DestroyImage(const VulkanAllocation& _Allocation, const  vk::Image& _Image)
 {
 	// TODO : check if nullcheck is necessary before destroy
 	// https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#vkFreeMemory
 	m_Device.destroyImage(_Image);
 	m_Device.freeMemory(_Allocation.Memory);
 }
-void Tracy::VulkanMemoryAllocator::DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
+//---------------------------------------------------------------------------------------------------
+
+void Tracy::VulkanMemoryAllocator::DestroyBuffer(const VulkanAllocation& _Allocation, const  vk::Buffer& _Buffer)
 {
 	// TODO : check if nullcheck is necessary before destroy
 	m_Device.destroyBuffer(_Buffer);

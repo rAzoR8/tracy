@@ -127,9 +127,25 @@ void VulkanRenderGraph::Uninitialze()
 
 void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool _bParallelRecord)
 {
+	uint32_t uImageIndex = 0u;
+	const std::vector<VulkanTexture>& Backbuffer = m_Window.GetBackuffer();
+
+	// get next image
+	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, vk::Semaphore(nullptr), m_hBackbufferImageFence, &uImageIndex)))
+		return;
+
+	if (LogVKErrorFailed(m_Device.WaitForFences(&m_hBackbufferImageFence)))
+		return;
+
+	if (uImageIndex >= Backbuffer.size())
+		return;
+
+	const VulkanTexture& CurrentBackbuffer = Backbuffer[uImageIndex];
+
 	const auto RecordFN = [&](VulkanRenderPass& Pass)
 	{
-		Pass.BeginCommandbuffer(); // begin commandbuffer recording
+		if (Pass.BeginCommandbuffer(CurrentBackbuffer) == false) // begin commandbuffer recording
+			return;
 
 		for (Camera* pCamera : _Cameras)
 		{
@@ -137,13 +153,14 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 			{
 				if ((pCamera->GetPassIDs() & Pass.GetMaterialID()) == Pass.GetMaterialID())
 				{
-					Pass.Record(*pCamera);
+					if (Pass.Record(*pCamera) == false)
+						return;
 
 					for (VulkanRenderPass& SubPass : Pass.GetSubPasses())
 					{
-						SubPass.BeginSubPass(); // calls nextSubpass()
-						SubPass.Record(*pCamera);
-						SubPass.EndSubPass(); // does nothing atm
+						SubPass.NextSubPass();
+						if (SubPass.Record(*pCamera) == false)
+							return;
 					}
 				}
 			}
@@ -163,12 +180,16 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 
 	// TODO: dependencies and shit
 
+	//m_hPrimaryGfxCmdBuffer.begin()
+
 	for (VulkanRenderPass& Pass : m_RenderPasses)
 	{
 		m_hPrimaryGfxCmdBuffer.beginRenderPass(Pass.m_BeginInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 		m_hPrimaryGfxCmdBuffer.executeCommands({ Pass.GetCommandBuffer() });
 		m_hPrimaryGfxCmdBuffer.endRenderPass();
 	}
+
+	m_hPrimaryGfxCmdBuffer.end();
 
 	// submit
 	{
@@ -184,17 +205,6 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 
 	// present
 	{
-		uint32_t uImageIndex = 0u;
-
-		// get next image
-		if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, vk::Semaphore(nullptr), m_hBackbufferImageFence, &uImageIndex)))
-			return;
-
-		if (LogVKErrorFailed(m_Device.WaitForFences(&m_hBackbufferImageFence)))
-			return;
-
-		//const std::vector<vk::ImageView>& Backbuffer = m_Window.GetBackuffer();
-		//if (uImageIndex < Backbuffer.size())
 		{
 			// TODO: get image to right layout
 

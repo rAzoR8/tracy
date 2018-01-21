@@ -170,12 +170,11 @@ namespace Tracy
 		void AddDependency(const Dependence& _Dependency);
 
 		// prepares command buffer & dynamic state for recording
-		bool BeginCommandbuffer();
-		bool EndCommandbuffer();
+		bool BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffer);
+		void EndCommandbuffer();
 
-		bool BeginSubPass();
-		bool EndSubPass();
-
+		void NextSubPass();
+		
 		// called before draw or after shader has been selected
 		vk::Pipeline ActivatePipeline(const PipelineDesc& _Desc);
 		const bool ActivatePipelineLayout(
@@ -188,7 +187,9 @@ namespace Tracy
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
 
-		bool CreateRenderPass();
+		// called from begin commandbuffer
+		bool CreateRenderPass(const VulkanTexture& _CurrentBackbuffer);
+		void ResetRenderPassAndFramebuffer();
 
 		const vk::CommandBuffer& GetCommandBuffer() const;
 

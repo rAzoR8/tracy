@@ -7,3 +7,8 @@ Texture::Texture(const TextureDesc& _Desc) : RefCountedType(CreateRefCountedTag{
 {
 }
 //---------------------------------------------------------------------------------------------------
+
+Texture::Texture(DefaultInitializerType) : RefCountedType(CreateRefCountedTag{})
+{
+}
+//---------------------------------------------------------------------------------------------------

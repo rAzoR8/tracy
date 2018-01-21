@@ -73,9 +73,13 @@ VulkanWindow& Tracy::VulkanWindow::operator=(VulkanWindow&& _Other)
 //---------------------------------------------------------------------------------------------------
 Tracy::VulkanWindow::~VulkanWindow()
 {
-	for (auto& BufferView : m_Backbuffer)
+	for (VulkanTexture& Tex : m_Backbuffer)
 	{
-		VulkanInstance::GetInstance().Destroy(BufferView, m_hPresentDevice);
+		for (const vk::ImageView& view : VKTexture(Tex).Views)
+		{
+			if (view)
+				GetDevice(m_hPresentDevice).GetDevice().destroyImageView(view);
+		}
 	}
 
 	VulkanInstance::GetInstance().Destroy(m_Swapchain, m_hPresentDevice);
@@ -300,10 +304,16 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	if (OldSwapchain)
 	{
-		for (auto& BufferView : m_Backbuffer)
+		for (VulkanTexture& Tex : m_Backbuffer)
 		{
-			VulkanInstance::GetInstance().Destroy(BufferView, m_hPresentDevice);
+			for (const vk::ImageView& view : VKTexture(Tex).Views)
+			{
+				if (view)
+					Device.destroyImageView(view);
+			} 
 		}
+
+		m_Backbuffer.resize(0);
 		Device.destroySwapchainKHR(OldSwapchain);
 	}
 
@@ -311,7 +321,6 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	// Get Swapchain images
 	//
 	std::vector<vk::Image>&& SwapchainImages = Device.getSwapchainImagesKHR(m_Swapchain);
-	m_Backbuffer.reserve(SwapchainImages.size());
 
 	uint32_t uBaseMipLevel = 0u;
 	uint32_t uMipLevelCount = 1u;
@@ -325,10 +334,11 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	ColorView.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, uBaseMipLevel, uMipLevelCount, uBaseArrayLayer, uArrayLayerCount);
 	ColorView.viewType = vk::ImageViewType::e2D;
 
+	TImageViews Views;
 	for (const vk::Image& Image : SwapchainImages)
-	{
-		ColorView.image = Image;
-
-		m_Backbuffer.push_back(Device.createImageView(ColorView));
+	{		
+		Views[kViewType_RenderTarget] = Device.createImageView(ColorView);
+		m_Backbuffer.emplace_back(m_hPresentDevice, Image, vk::ImageLayout::eUndefined, Views);
 	}
 }
+//---------------------------------------------------------------------------------------------------

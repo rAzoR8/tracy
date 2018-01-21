@@ -33,6 +33,7 @@ namespace Tracy
 
 	protected:
 		Texture(const TextureDesc& _Desc);
+		Texture(DefaultInitializerType); // creates initialized ref
 
 		virtual bool Resize(const uint32_t _uWidth, const uint32_t _uHeight, const uint32_t _uDepth) { return false; };
 		virtual bool AddView(const TextureViewDesc& _Desc) { return false; };

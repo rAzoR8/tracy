@@ -242,6 +242,8 @@ AsyncTask<vk::Result> Tracy::VulkanDevice::WaitForFences(const vk::Fence* _pFenc
 //---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
 {
+	//std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed
+	
 	vk::ImageCreateInfo Info{};
 	Info.extent = vk::Extent3D(_Desc.uWidth, _Desc.uHeight, std::max(static_cast<uint32_t>(_Desc.uDepth), 1u));
 	Info.imageType = GetTextureType(_Desc.kType);
@@ -255,11 +257,28 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 
 	_Desc.uIdentifier = m_uTextureIdentifier.fetch_add(1u);
 
-	return m_pAllocator->CreateImage(AllocInfo, _Allocation, Info, _Image);
+	if (LogVKErrorFailed(m_pAllocator->CreateImageAllocation(Info, _Image)))
+		return false;
+
+	if (LogVKErrorFailed(m_pAllocator->AllocateImageMemory(AllocInfo, _Allocation, _Image)))
+		return false;
+
+	if (_Desc.pInitialData != nullptr && (_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= _Allocation.uSize)
+	{
+		vk::MemoryMapFlags flags{};
+		void* pDeviceMem = nullptr;
+		if (LogVKErrorBool(m_Device.mapMemory(_Allocation.Memory, _Desc.uInitialDataOffset, _Desc.uInitialDataSize, flags, &pDeviceMem)))
+		{
+			std::memcmp(pDeviceMem, _Desc.pInitialData, _Desc.uInitialDataSize);
+			m_Device.unmapMemory(_Allocation.Memory);
+		}
+	}
+
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanDevice::DestroyTexture(VulkanAllocation& _Allocation, vk::Image& _Image)
+void VulkanDevice::DestroyTexture(const VulkanAllocation& _Allocation, const vk::Image& _Image)
 {
 	m_pAllocator->DestroyImage(_Allocation, _Image);
 }
@@ -298,7 +317,7 @@ const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allo
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
-void VulkanDevice::DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
+void VulkanDevice::DestroyBuffer(const VulkanAllocation& _Allocation, const vk::Buffer& _Buffer)
 {
 	m_pAllocator->DestroyBuffer(_Allocation, _Buffer);
 }

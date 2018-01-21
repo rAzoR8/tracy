@@ -6,24 +6,32 @@
 
 namespace Tracy
 {
+
+	using TImageViews = std::array<vk::ImageView, kViewType_NumOf>;
 	struct VkTexData : public APIData
 	{
+		// creates resources
 		VkTexData(TextureDesc& _Desc);
+		// uses passes resources (does not destory)
+		VkTexData(const THandle& _hDevice, const vk::Image& _hImage, const vk::ImageLayout& _hLayout, const TImageViews& _Views);
+
 		~VkTexData();
 
 		const THandle hDevice;
+		const bool bOwnsResource;
 		vk::Image hImage;
-		// todo: get image into desired layout
 		vk::ImageLayout hLayout;
 		VulkanAllocation Allocation;
-		std::array<vk::ImageView, kViewType_NumOf> Views;
+		TImageViews Views;
 	};
 
 	// Textures are created by the device that acts as factory
 	class VulkanTexture : public Texture
 	{
 	public:
-		VulkanTexture(const TextureDesc& _Desc);
+		VulkanTexture(const TextureDesc& _Desc);// creates resources
+		VulkanTexture(const THandle& _hDevice, const vk::Image& _hImage, const vk::ImageLayout& _hLayout, const TImageViews& _Views);// uses passes resources (does not destory)
+
 		virtual ~VulkanTexture();
 
 		inline const bool IsValidVkTex() const { return IsValidTex() && API.hImage; }

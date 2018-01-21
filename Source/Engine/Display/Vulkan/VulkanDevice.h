@@ -67,10 +67,11 @@ namespace Tracy
 			return m_Device && m_PhysicalDevice;
 		}
 
-		AsyncTask<vk::Result> WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount = 1u, const bool _bRestFence = true, const bool _bWaitAll = true, const uint64_t _uTimeOutNanoSec = 60000u);
 
 		//---------------------------------------------------------------------------------------------------
 		// DEVICE CALLS
+
+		AsyncTask<vk::Result> WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount = 1u, const bool _bRestFence = true, const bool _bWaitAll = true, const uint64_t _uTimeOutNanoSec = 60000u);
 
 		// any overload
 #ifndef DeviceFunc
@@ -105,10 +106,10 @@ namespace Tracy
 
 		// Textures
 		const bool CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
-		void DestroyTexture(VulkanAllocation& _Allocation, vk::Image& _Image);
+		void DestroyTexture(const VulkanAllocation& _Allocation, const vk::Image& _Image);
 
 		const bool CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
-		void DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
+		void DestroyBuffer(const VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
 
 		const bool CreateCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, const vk::CommandBufferLevel _kLevel, vk::CommandBuffer* _pOutBuffers, const uint32_t _uCount = 1u);
 		const bool DestroyCommandBuffers(const vk::QueueFlagBits _kQueueType, const vk::CommandPoolCreateFlagBits _kBufferType, vk::CommandBuffer* _pBuffers, const uint32_t _uCount = 1u);

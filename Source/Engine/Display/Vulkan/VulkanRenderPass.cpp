@@ -70,13 +70,6 @@ bool VulkanRenderPass::Initialize()
 		InitPipeline(m_Description.DefaultPipelines.front());
 	}
 
-	// we assume that rendertargets stay the same for all shaders & permutations
-	if (m_pParent == nullptr)
-	{
-		if (CreateRenderPass() == false)
-			return false;
-	}
-
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
 		if (SubPass.Initialize() == false)
@@ -87,8 +80,6 @@ bool VulkanRenderPass::Initialize()
 	{
 		// take parent command buffer
 		m_hCommandBuffer = m_pParent->m_hCommandBuffer;
-		m_hFramebuffer = m_pParent->m_hFramebuffer;
-		m_hRenderPass = m_pParent->m_hRenderPass;
 		return true;
 	}
 	else
@@ -97,6 +88,35 @@ bool VulkanRenderPass::Initialize()
 		return m_Device.CreateCommandBuffers(vk::QueueFlagBits::eGraphics, vk::CommandPoolCreateFlagBits::eResetCommandBuffer, vk::CommandBufferLevel::eSecondary, &m_hCommandBuffer);
 	}
 }
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::ResetRenderPassAndFramebuffer()
+{
+	if (m_pParent == nullptr) // if this is the parent pass
+	{
+		// Renderpass
+		if (m_hRenderPass)
+		{
+			VKDevice().destroyRenderPass(m_hRenderPass);
+		}
+
+		// Framebuffer
+		for (Framebuffer::Attachment& Att : m_Framebuffer.Attachments)
+		{
+			Att.Texture.Reset();
+		}
+		m_Framebuffer.Attachments.clear();
+
+		if (m_hFramebuffer)
+		{
+			VKDevice().destroyFramebuffer(m_hFramebuffer);
+		}
+	}
+
+	m_hFramebuffer = nullptr;
+	m_hRenderPass = nullptr;
+}
+
 //---------------------------------------------------------------------------------------------------
 
 void VulkanRenderPass::Uninitialize()
@@ -113,25 +133,7 @@ void VulkanRenderPass::Uninitialize()
 		m_hCommandBuffer = nullptr;
 	}
 
-	// Renderpass
-	if (m_hRenderPass)
-	{
-		VKDevice().destroyRenderPass(m_hRenderPass);
-		m_hRenderPass = nullptr;
-	}
-
-	// Framebuffer
-	for (Framebuffer::Attachment& Att : m_Framebuffer.Attachments)
-	{
-		Att.Texture.Reset();
-	}
-	m_Framebuffer.Attachments.clear();
-
-	if (m_hFramebuffer)
-	{
-		VKDevice().destroyFramebuffer(m_hFramebuffer);
-		m_hFramebuffer = nullptr;
-	}
+	ResetRenderPassAndFramebuffer();
 
 	// Samplers
 	for (auto& kv : m_Samplers)
@@ -397,8 +399,11 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 //---------------------------------------------------------------------------------------------------
 // prepares command buffer & dynamic state for recording
 // called for each batch of objects that use a different shader
-bool VulkanRenderPass::BeginCommandbuffer()
+bool VulkanRenderPass::BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffer)
 {
+	if (CreateRenderPass(_CurrentBackbuffer) == false)
+		return false;
+
 	vk::CommandBufferInheritanceInfo BufferInfo{};
 
 	BufferInfo.renderPass = m_hRenderPass;
@@ -414,24 +419,16 @@ bool VulkanRenderPass::BeginCommandbuffer()
 	if (LogVKErrorBool(m_hCommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
 		return false;
 	
-	//vk::RenderPassBeginInfo RenderPassInfo;
-	//m_hCommandBuffer.beginRenderPass()
-	// first recorded cmd should be the PipelineBarriers for all m_Dependencies elements
-	// vk::CmdPipelineBarrier
-
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanRenderPass::EndCommandbuffer()
+void VulkanRenderPass::EndCommandbuffer()
 {
-	//m_hCommandBuffer.endRenderPass();
 	m_hCommandBuffer.end();
-
-	return true;
 }
 //---------------------------------------------------------------------------------------------------
 
-bool VulkanRenderPass::BeginSubPass()
+void VulkanRenderPass::NextSubPass()
 {
 	HASSERT(m_pParent != nullptr, "Pass %s is not a SubPass", m_Description.sPassName);
 
@@ -442,15 +439,8 @@ bool VulkanRenderPass::BeginSubPass()
 	// specifies that the contents are recorded in secondary command buffers that will be called from the primary command buffer, and vkCmdExecuteCommands is the only valid command on the command buffer until vkCmdNextSubpass or vkCmdEndRenderPass.
 
 	m_hCommandBuffer.nextSubpass(vk::SubpassContents::eSecondaryCommandBuffers);
-
-	return true;
 }
-//---------------------------------------------------------------------------------------------------
 
-bool VulkanRenderPass::EndSubPass()
-{
-	return true;
-}
 //---------------------------------------------------------------------------------------------------
 vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 {
@@ -961,9 +951,17 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 }
 //---------------------------------------------------------------------------------------------------
 
-bool VulkanRenderPass::CreateRenderPass()
+bool VulkanRenderPass::CreateRenderPass(const VulkanTexture& _CurrentBackbuffer)
 {
-	HASSERT(m_hRenderPass.operator bool() == false && m_pParent == nullptr, "Renderpass is already initialized");
+	// we assume that rendertargets stay the same for all shaders & permutations
+	if (m_pParent != nullptr)
+	{
+		m_hFramebuffer = m_pParent->m_hFramebuffer;
+		m_hRenderPass = m_pParent->m_hRenderPass;
+		return true;
+	}
+
+	ResetRenderPassAndFramebuffer();
 
 	std::vector<vk::AttachmentDescription> AttachmentDescs;
 	std::vector<vk::ImageView> ImageViews;
@@ -1030,7 +1028,7 @@ bool VulkanRenderPass::CreateRenderPass()
 		else if (Desc.kSource == kAttachmentSourceType_Backbuffer)
 		{
 			// TODO: get backbuffer
-			//Attachment.Texture = m_RenderGraph.Backbuffer; or something like that
+			Attachment.Texture = _CurrentBackbuffer;
 		}
 
 		if (Attachment.Texture.IsValidVkTex() == false)
