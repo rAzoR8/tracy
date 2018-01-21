@@ -139,8 +139,8 @@ namespace Tracy
 
 		struct DescriptorSetContainer
 		{
-			DescriptorSetContainer(const vk::DescriptorSetLayout& _hLayout) : hLayout(_hLayout) {}
-			const vk::DescriptorSetLayout hLayout;
+			DescriptorSetContainer(const vk::DescriptorSetLayout& _hLayout) : kLayout(_hLayout) {}
+			const vk::DescriptorSetLayout kLayout;
 
 			std::vector<vk::DescriptorSet> FreeSets;
 			std::unordered_map<uint64_t, vk::DescriptorSet> UsedSets;

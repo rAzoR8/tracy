@@ -148,7 +148,7 @@ void VulkanRenderPass::Uninitialize()
 	{
 		DescriptorSetContainer& Container = kv.second;
 		m_Device.FreeDescriptorSets(Container.FreeSets);
-		m_Device.destroyDescriptorSetLayout(Container.hLayout);
+		m_Device.destroyDescriptorSetLayout(Container.kLayout);
 	}
 	m_DescriptorSets.clear();
 
@@ -752,7 +752,7 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 				}
 			}
 
-			Layouts[uSet] = pContainer->hLayout;
+			Layouts[uSet] = pContainer->kLayout;
 			m_ActiveDescriptorSets[uSet] = pContainer;
 		}
 		else // empty set (not sure if that works)
@@ -1027,7 +1027,6 @@ bool VulkanRenderPass::CreateRenderPass(const VulkanTexture& _CurrentBackbuffer)
 		}
 		else if (Desc.kSource == kAttachmentSourceType_Backbuffer)
 		{
-			// TODO: get backbuffer
 			Attachment.Texture = _CurrentBackbuffer;
 		}
 
@@ -1040,8 +1039,8 @@ bool VulkanRenderPass::CreateRenderPass(const VulkanTexture& _CurrentBackbuffer)
 		AttDesc.format = GetResourceFormat(Desc.kFormat);
 		AttDesc.samples = vk::SampleCountFlagBits::e1;
 		//AttDesc.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
-		AttDesc.initialLayout = VKTexture(Attachment.Texture).hLayout;
-		//AttDesc.finalLayout = VKTexture(Attachment.Texture).hLayout; dont know yet
+		AttDesc.initialLayout = VKTexture(Attachment.Texture).kLayout;
+		//AttDesc.finalLayout = VKTexture(Attachment.Texture).kLayout; dont know yet
 	
 		//AttDesc.
 	}
@@ -1146,7 +1145,7 @@ void VulkanRenderPass::Binding::Set(const Texture& _Texture)
 	if (uImageId != _Texture.GetIdentifier())
 	{
 		uImageId = _Texture.GetIdentifier();
-		ImageInfo.imageLayout = Tex.hLayout;
+		ImageInfo.imageLayout = Tex.kLayout;
 		ImageInfo.imageView = Tex.Views[kViewType_ShaderResource];
 		ImageInfo.sampler = nullptr; // we only use immutable samplers
 
@@ -1209,7 +1208,7 @@ bool VulkanRenderPass::DescriptorSetContainer::Update(VulkanDevice & _Device)
 			}
 			else // no more free sets
 			{
-				auto&& NewSets = _Device.AllocateDescriptorSets(hLayout, 32u);
+				auto&& NewSets = _Device.AllocateDescriptorSets(kLayout, 32u);
 
 				if (NewSets.empty() == false)
 				{

@@ -18,7 +18,7 @@ VkTexData::VkTexData(const THandle& _hDevice, const vk::Image& _hImage, const vk
 	bOwnsResource(false),
 	hDevice(_hDevice),
 	hImage(_hImage),
-	hLayout(_hLayout),
+	kLayout(_hLayout),
 	Views(_Views)
 {
 }

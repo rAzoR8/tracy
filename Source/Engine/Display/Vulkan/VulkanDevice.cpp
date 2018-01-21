@@ -265,6 +265,9 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 
 	if (_Desc.pInitialData != nullptr && (_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= _Allocation.uSize)
 	{
+		// TODO: https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#resources-image-layouts
+		//Host access to image memory is only well - defined for images created with VK_IMAGE_TILING_LINEAR tiling and for image subresources of those images which are currently in either the VK_IMAGE_LAYOUT_PREINITIALIZED or VK_IMAGE_LAYOUT_GENERAL layout
+
 		vk::MemoryMapFlags flags{};
 		void* pDeviceMem = nullptr;
 		if (LogVKErrorBool(m_Device.mapMemory(_Allocation.Memory, _Desc.uInitialDataOffset, _Desc.uInitialDataSize, flags, &pDeviceMem)))

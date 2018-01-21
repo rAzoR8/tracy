@@ -6,7 +6,6 @@
 
 namespace Tracy
 {
-
 	using TImageViews = std::array<vk::ImageView, kViewType_NumOf>;
 	struct VkTexData : public APIData
 	{
@@ -20,7 +19,7 @@ namespace Tracy
 		const THandle hDevice;
 		const bool bOwnsResource;
 		vk::Image hImage;
-		vk::ImageLayout hLayout;
+		vk::ImageLayout kLayout;
 		VulkanAllocation Allocation;
 		TImageViews Views;
 	};
