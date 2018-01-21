@@ -78,7 +78,8 @@ bool VulkanRenderGraph::Initialize()
 		return false;
 
 	vk::FenceCreateInfo FenceInfo{};
-	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hRenderFence)))
+	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)) ||
+		LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hBackbufferImageFence)))
 	{
 		return false;
 	}
@@ -100,10 +101,16 @@ void VulkanRenderGraph::Uninitialze()
 		m_hPrimaryGfxCmdBuffer = nullptr;
 	}
 
-	if (m_hRenderFence)
+	if (m_hSubmitFence)
 	{
-		m_Device.GetDevice().destroyFence(m_hRenderFence);
-		m_hRenderFence = nullptr;
+		m_Device.GetDevice().destroyFence(m_hSubmitFence);
+		m_hSubmitFence = nullptr;
+	}
+
+	if (m_hBackbufferImageFence)
+	{
+		m_Device.GetDevice().destroyFence(m_hBackbufferImageFence);
+		m_hBackbufferImageFence = nullptr;
 	}
 
 	m_MaterialIds.clear();
@@ -118,9 +125,9 @@ void VulkanRenderGraph::Uninitialze()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
+void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool _bParallelRecord)
 {
-	std::for_each(std::execution::par, m_RenderPasses.begin(), m_RenderPasses.end(), [&](VulkanRenderPass& Pass)
+	const auto RecordFN = [&](VulkanRenderPass& Pass)
 	{
 		Pass.BeginCommandbuffer(); // begin commandbuffer recording
 
@@ -143,7 +150,16 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 		}
 
 		Pass.EndCommandbuffer();
-	});
+	};
+
+	if (_bParallelRecord)
+	{
+		std::for_each(std::execution::par, m_RenderPasses.begin(), m_RenderPasses.end(), RecordFN);
+	}
+	else
+	{
+		std::for_each(std::execution::seq, m_RenderPasses.begin(), m_RenderPasses.end(), RecordFN);
+	}
 
 	// TODO: dependencies and shit
 
@@ -160,22 +176,21 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras)
 		Info.commandBufferCount = 1u;
 		Info.pCommandBuffers = &m_hPrimaryGfxCmdBuffer;
 		
-		m_hGfxQueue.submit(Info, m_hRenderFence);
+		m_hGfxQueue.submit(Info, m_hSubmitFence);
 
-		LogVKError(m_Device.WaitForFences(&m_hRenderFence));
-		if (LogVKErrorFailed(m_Device.GetDevice().resetFences(1u, &m_hRenderFence)))
+		if (LogVKErrorFailed(m_Device.WaitForFences(&m_hSubmitFence)))
 			return;
-
 	}
 
 	// present
 	{
 		uint32_t uImageIndex = 0u;
-		vk::Semaphore Sem;
-		// todo: init vk::Semaphore, make it a member etc
 
 		// get next image
-		if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, Sem, vk::Fence(nullptr), &uImageIndex)))
+		if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, vk::Semaphore(nullptr), m_hBackbufferImageFence, &uImageIndex)))
+			return;
+
+		if (LogVKErrorFailed(m_Device.WaitForFences(&m_hBackbufferImageFence)))
 			return;
 
 		//const std::vector<vk::ImageView>& Backbuffer = m_Window.GetBackuffer();

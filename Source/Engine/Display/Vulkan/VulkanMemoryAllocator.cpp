@@ -72,30 +72,32 @@ const vk::MemoryPropertyFlags Tracy::VulkanMemoryAllocator::GetMemoryProperties(
 	return vk::MemoryPropertyFlags();
 }
 //---------------------------------------------------------------------------------------------------
-vk::Result Tracy::VulkanMemoryAllocator::CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image)
+bool Tracy::VulkanMemoryAllocator::CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image)
 {
 	if (LogVKErrorBool(CreateImageAllocation(_Info, _Image)))
 	{
 		if (LogVKErrorBool(AllocateImageMemory(_AllocInfo, _Allocation, _Image)))
 		{
 			BindImageMemory(_Allocation, _Image);
+			return true;
 		}
 	}
 
-	return vk::Result::eSuccess;
+	return false;
 }
 //---------------------------------------------------------------------------------------------------
-vk::Result Tracy::VulkanMemoryAllocator::CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer)
+bool Tracy::VulkanMemoryAllocator::CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer)
 {
 	if (LogVKErrorBool(CreateBufferAllocation(_Info, _Buffer)))
 	{
 		if (LogVKErrorBool(AllocateBufferMemory(_AllocInfo, _Allocation, _Buffer)))
 		{
 			BindBufferMemory(_Allocation, _Buffer);
+			return true;
 		}
 	}
 
-	return vk::Result::eSuccess;
+	return false;
 }
 //---------------------------------------------------------------------------------------------------
 vk::Result Tracy::VulkanMemoryAllocator::CreateImageAllocation(const vk::ImageCreateInfo& _Info, vk::Image& _Image)

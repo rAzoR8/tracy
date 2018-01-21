@@ -19,7 +19,7 @@ namespace Tracy
 
 		void Uninitialze();
 
-		void Render(const std::vector<Camera*>& _Cameras);
+		void Render(const std::vector<Camera*>& _Cameras, const bool _bParallelRecord = false);
 
 		template <class ... TStrings>
 		uint64_t GetMaterialIds(const std::wstring _sPassName, const TStrings& ..._Strings);
@@ -38,8 +38,9 @@ namespace Tracy
 		//collects renderpass buffers
 		vk::CommandBuffer m_hPrimaryGfxCmdBuffer = nullptr;
 		vk::Queue m_hGfxQueue = nullptr; // owned by the device
-		vk::Fence m_hRenderFence = nullptr;
 		vk::SwapchainKHR m_hSwapchain = nullptr; // owned by the window
+		vk::Fence m_hSubmitFence = nullptr;
+		vk::Fence m_hBackbufferImageFence = nullptr;
 	};
 
 	template<class ...TStrings>

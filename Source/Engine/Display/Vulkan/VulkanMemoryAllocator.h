@@ -62,8 +62,8 @@ namespace Tracy
 		~VulkanMemoryAllocator();
 
 		// Create, Allocate and Bind resource
-		vk::Result CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image);
-		vk::Result CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
+		bool CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image);
+		bool CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
 
 		// Create Virtual Image Memory Allocation
 		vk::Result CreateImageAllocation(const vk::ImageCreateInfo& _Info, vk::Image& _Image);

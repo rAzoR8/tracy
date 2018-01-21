@@ -225,6 +225,21 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
+
+AsyncTask<vk::Result> Tracy::VulkanDevice::WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount, const bool _bRestFence, const bool _bWaitAll, const uint64_t _uTimeOutNanoSec)
+{
+	return make_task([&]()
+	{ 
+		std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed
+		vk::Result res = m_Device.waitForFences(_uFenceCount, _pFences, _bWaitAll, _uTimeOutNanoSec);
+		if (LogVKErrorBool(res) && _bRestFence)
+		{
+			return LogVKError(m_Device.resetFences(_uFenceCount, _pFences));
+		}
+		return res;
+	});
+}
+//---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
 {
 	vk::ImageCreateInfo Info{};
@@ -240,7 +255,7 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 
 	_Desc.uIdentifier = m_uTextureIdentifier.fetch_add(1u);
 
-	return LogVKErrorBool(m_pAllocator->CreateImage(AllocInfo, _Allocation, Info, _Image));
+	return m_pAllocator->CreateImage(AllocInfo, _Allocation, Info, _Image);
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -251,6 +266,8 @@ void VulkanDevice::DestroyTexture(VulkanAllocation& _Allocation, vk::Image& _Ima
 //---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
 {
+	//std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed
+
 	vk::BufferCreateInfo Info{};
 	Info.size = _Desc.uSize;
 	Info.usage = GetBufferUsage(_Desc.kUsageFlag);
@@ -260,7 +277,25 @@ const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allo
 
 	_Desc.uIdentifier = m_uBufferIdentifier.fetch_add(1u);
 
-	return LogVKErrorBool(m_pAllocator->CreateBuffer(AllocInfo, _Allocation, Info, _Buffer));
+	if (LogVKErrorFailed(m_pAllocator->CreateBufferAllocation(Info, _Buffer)))
+		return false;
+
+	if (LogVKErrorFailed(m_pAllocator->AllocateBufferMemory(AllocInfo, _Allocation, _Buffer)))
+		return false;
+
+	if (_Desc.pInitialData != nullptr && (_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= Info.size)
+	{
+		vk::MemoryMapFlags flags{};
+		void* pDeviceMem = nullptr;
+		if (LogVKErrorBool(m_Device.mapMemory(_Allocation.Memory, _Desc.uInitialDataOffset, _Desc.uInitialDataSize, flags, &pDeviceMem)))
+		{
+			std::memcmp(pDeviceMem, _Desc.pInitialData, _Desc.uInitialDataSize);
+			m_Device.unmapMemory(_Allocation.Memory);
+		}
+	}
+
+	m_pAllocator->BindBufferMemory(_Allocation, _Buffer);
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
 void VulkanDevice::DestroyBuffer(VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
