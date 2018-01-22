@@ -42,8 +42,6 @@ namespace Tracy
 
 		// move those functions to the device
 		void Destroy(vk::SurfaceKHR& _Surface) const;
-		void Destroy(vk::SwapchainKHR& _Swapchain, const THandle _hDevice) const;
-		void Destroy(vk::ImageView& _View, const THandle _hDevice) const;
 
 	private:
 		VulkanInstance();

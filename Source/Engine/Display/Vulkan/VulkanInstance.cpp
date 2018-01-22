@@ -144,6 +144,8 @@ const THandle VulkanInstance::MakeWindow(const THandle _hPresentDeviceHandle, co
 	return ResultHandle;
 }
 
+#endif // !WIN
+
 //---------------------------------------------------------------------------------------------------
 void VulkanInstance::Destroy(vk::SurfaceKHR& _Surface) const
 {
@@ -153,28 +155,4 @@ void VulkanInstance::Destroy(vk::SurfaceKHR& _Surface) const
 		_Surface = nullptr;
 	}
 }
-
 //---------------------------------------------------------------------------------------------------
-void VulkanInstance::Destroy(vk::SwapchainKHR& _Swapchain, const THandle _hDevice) const
-{
-	if (_Swapchain)
-	{
-		const VulkanDevice& Device = GetDevice(_hDevice);
-		
-		Device.m_Device.destroySwapchainKHR(_Swapchain);
-		_Swapchain = nullptr;
-	}
-}
-//---------------------------------------------------------------------------------------------------
-void VulkanInstance::Destroy(vk::ImageView& _View, const THandle _hDevice) const
-{
-	if (_View)
-	{
-		const VulkanDevice& Device = GetDevice(_hDevice);
-		
-		Device.m_Device.destroyImageView(_View);
-		_View = nullptr;
-	}
-
-}
-#endif

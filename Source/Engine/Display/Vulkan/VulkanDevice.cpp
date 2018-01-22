@@ -286,6 +286,11 @@ void VulkanDevice::DestroyTexture(const VulkanAllocation& _Allocation, const vk:
 	m_pAllocator->DestroyImage(_Allocation, _Image);
 }
 //---------------------------------------------------------------------------------------------------
+void VulkanDevice::DestroyTextureView(const vk::ImageView & _View)
+{
+	m_Device.destroyImageView(_View);
+}
+//---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer)
 {
 	//std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed

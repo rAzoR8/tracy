@@ -66,8 +66,7 @@ namespace Tracy
 		{
 			return m_Device && m_PhysicalDevice;
 		}
-
-
+		
 		//---------------------------------------------------------------------------------------------------
 		// DEVICE CALLS
 
@@ -107,6 +106,8 @@ namespace Tracy
 		// Textures
 		const bool CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);
 		void DestroyTexture(const VulkanAllocation& _Allocation, const vk::Image& _Image);
+
+		void DestroyTextureView(const vk::ImageView& _View);
 
 		const bool CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allocation, vk::Buffer& _Buffer);
 		void DestroyBuffer(const VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);

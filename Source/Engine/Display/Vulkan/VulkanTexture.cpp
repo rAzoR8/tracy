@@ -28,8 +28,19 @@ VkTexData::~VkTexData()
 {
 	if (bOwnsResource == false)
 		return;
-	// TODO: destroy views first
-	GetDevice(hDevice).DestroyTexture(Allocation, hImage);
+
+	for (vk::ImageView view : Views) 
+	{
+		if (view) 
+		{
+			GetDevice(hDevice).DestroyTextureView(view);
+		}
+	}
+
+	if (hImage)
+	{
+		GetDevice(hDevice).DestroyTexture(Allocation, hImage);
+	}
 }
 //---------------------------------------------------------------------------------------------------
 // has ownershipt
@@ -83,11 +94,8 @@ bool VulkanTexture::AddView(const TextureViewDesc& _Desc)
 		Info.subresourceRange.baseArrayLayer = _Desc.Subresource.uBaseArrayLayer;
 		Info.subresourceRange.layerCount = _Desc.Subresource.uArrayLayerCount;
 		Info.subresourceRange.aspectMask = GetAspectMask(_Desc.Subresource.kAspect);
-
-		auto& APIData = GetAPIData();
-		GetDevice(APIData.hDevice).createImageView(&Info, nullptr, &APIData.Views[_Desc.kType]);
-
-		return true;
+		
+		return LogVKErrorBool(GetDevice(Ref.Data.hDevice).createImageView(&Info, nullptr, &API.Views[_Desc.kType]));
 	}
 
 	return false;

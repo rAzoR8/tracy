@@ -20,7 +20,7 @@ VulkanWindow::VulkanWindow(const vk::Instance& _Instance, const THandle _uHandle
 #endif
 
 //---------------------------------------------------------------------------------------------------
-Tracy::VulkanWindow::VulkanWindow(VulkanWindow&& _Other) :
+VulkanWindow::VulkanWindow(VulkanWindow&& _Other) :
 	m_Surface(nullptr),
 	m_Swapchain(nullptr),
 	m_uWidth(0u),
@@ -48,7 +48,7 @@ VulkanWindow& Tracy::VulkanWindow::operator=(VulkanWindow&& _Other)
 	if (this != &_Other)
 	{
 		// Cleanup old-data
-		VulkanInstance::GetInstance().Destroy(m_Swapchain, m_hPresentDevice);
+		GetDevice(m_hPresentDevice).GetDevice().destroySwapchainKHR(m_Swapchain);
 		VulkanInstance::GetInstance().Destroy(m_Surface);
 
 		// move
@@ -71,7 +71,7 @@ VulkanWindow& Tracy::VulkanWindow::operator=(VulkanWindow&& _Other)
 }
 
 //---------------------------------------------------------------------------------------------------
-Tracy::VulkanWindow::~VulkanWindow()
+VulkanWindow::~VulkanWindow()
 {
 	for (VulkanTexture& Tex : m_Backbuffer)
 	{
@@ -82,13 +82,19 @@ Tracy::VulkanWindow::~VulkanWindow()
 		}
 	}
 
-	VulkanInstance::GetInstance().Destroy(m_Swapchain, m_hPresentDevice);
+	if (m_Swapchain) 
+	{
+		GetDevice(m_hPresentDevice).GetDevice().destroySwapchainKHR(m_Swapchain);
+	}
 
-	VulkanInstance::GetInstance().Destroy(m_Surface);
+	if (m_Surface) 
+	{
+		VulkanInstance::GetInstance().Destroy(m_Surface);
+	}
 }
 
 //---------------------------------------------------------------------------------------------------
-const bool Tracy::VulkanWindow::Init(const VulkanDevice& _Device, const uint32_t _uWidth, const uint32_t _uHeight)
+const bool VulkanWindow::Init(const VulkanDevice& _Device, const uint32_t _uWidth, const uint32_t _uHeight)
 {
 	// Check if the device can present to surface
 	if (_Device.PresentSupport(m_Surface) == false)
@@ -109,7 +115,7 @@ const bool Tracy::VulkanWindow::Init(const VulkanDevice& _Device, const uint32_t
 }
 
 //---------------------------------------------------------------------------------------------------
-const bool Tracy::VulkanWindow::OnResize(const uint32_t _uWidth, const uint32_t _uHeight)
+const bool VulkanWindow::OnResize(const uint32_t _uWidth, const uint32_t _uHeight)
 {
 	CreateSwapchain(_uWidth, _uHeight);
 
@@ -117,7 +123,7 @@ const bool Tracy::VulkanWindow::OnResize(const uint32_t _uWidth, const uint32_t 
 }
 
 //---------------------------------------------------------------------------------------------------
-void Tracy::VulkanWindow::ReloadSurfaceInfo()
+void VulkanWindow::ReloadSurfaceInfo()
 {
 	const vk::PhysicalDevice& DeviceHandle = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetAdapter();
 
