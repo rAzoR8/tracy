@@ -958,7 +958,7 @@ bool VulkanRenderPass::CreateRenderPass(const VulkanTexture& _CurrentBackbuffer)
 	{
 		m_hFramebuffer = m_pParent->m_hFramebuffer;
 		m_hRenderPass = m_pParent->m_hRenderPass;
-		return true;
+		return m_hFramebuffer && m_hRenderPass;
 	}
 
 	ResetRenderPassAndFramebuffer();
@@ -1034,15 +1034,32 @@ bool VulkanRenderPass::CreateRenderPass(const VulkanTexture& _CurrentBackbuffer)
 			return false;
 
 		ImageViews.push_back(VKTexture(Attachment.Texture).Views[Desc.kType]);
-
+		
 		vk::AttachmentDescription& AttDesc = AttachmentDescs.emplace_back();
 		AttDesc.format = GetResourceFormat(Desc.kFormat);
 		AttDesc.samples = vk::SampleCountFlagBits::e1;
+		AttDesc.loadOp = vk::AttachmentLoadOp::eDontCare;
+		AttDesc.storeOp = Desc.kType == kAttachmentType_Color ? vk::AttachmentStoreOp::eStore : vk::AttachmentStoreOp::eDontCare;
+		AttDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare; // not supported atm
+		AttDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare; // not supported atm
+		AttDesc.initialLayout = vk::ImageLayout::eUndefined; // VKTexture(Attachment.Texture).kLayout
 		//AttDesc.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
-		AttDesc.initialLayout = VKTexture(Attachment.Texture).kLayout;
-		//AttDesc.finalLayout = VKTexture(Attachment.Texture).kLayout; dont know yet
-	
-		//AttDesc.
+		
+		if (Desc.kSource == kAttachmentSourceType_Backbuffer)
+		{
+			AttDesc.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		}
+		else
+		{
+			if (Desc.kType == kAttachmentType_Color)
+			{
+				AttDesc.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+			}
+			else if (Desc.kType == kAttachmentType_DepthStencil)
+			{
+				AttDesc.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+			}
+		}	
 	}
 
 	vk::RenderPassCreateInfo PassInfo{};
@@ -1077,17 +1094,16 @@ bool VulkanRenderPass::CreateRenderPass(const VulkanTexture& _CurrentBackbuffer)
 	if (LogVKErrorBool(VKDevice().createFramebuffer(&FrameInfo, nullptr, &m_hFramebuffer)) == false)
 		return false;
 
-	vk::RenderPassBeginInfo renderPassBeginInfo{};
-	renderPassBeginInfo.renderPass = m_hRenderPass;
-	renderPassBeginInfo.framebuffer = m_hFramebuffer;
-	renderPassBeginInfo.renderArea.offset.x = m_ViewportState.ReanderArea.uOffsetX;
-	renderPassBeginInfo.renderArea.offset.y = m_ViewportState.ReanderArea.uOffsetY;
-	renderPassBeginInfo.renderArea.extent.width = m_ViewportState.ReanderArea.uExtentX;
-	renderPassBeginInfo.renderArea.extent.height = m_ViewportState.ReanderArea.uExtentY;
-	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(m_Framebuffer.ClearValues.size());
-	renderPassBeginInfo.pClearValues = m_Framebuffer.ClearValues.data();
+	m_BeginInfo.renderPass = m_hRenderPass;
+	m_BeginInfo.framebuffer = m_hFramebuffer;
+	m_BeginInfo.renderArea.offset.x = m_ViewportState.ReanderArea.uOffsetX;
+	m_BeginInfo.renderArea.offset.y = m_ViewportState.ReanderArea.uOffsetY;
+	m_BeginInfo.renderArea.extent.width = m_ViewportState.ReanderArea.uExtentX;
+	m_BeginInfo.renderArea.extent.height = m_ViewportState.ReanderArea.uExtentY;
+	m_BeginInfo.clearValueCount = static_cast<uint32_t>(m_Framebuffer.ClearValues.size());
+	m_BeginInfo.pClearValues = m_Framebuffer.ClearValues.data();
 
-	return true;
+	return m_hFramebuffer && m_hRenderPass;
 }
 
 //---------------------------------------------------------------------------------------------------
