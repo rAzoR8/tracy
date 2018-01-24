@@ -343,6 +343,7 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	TImageViews Views;
 	for (const vk::Image& Image : SwapchainImages)
 	{		
+		ColorView.image = Image;
 		Views[kViewType_RenderTarget] = Device.createImageView(ColorView);
 		m_Backbuffer.emplace_back(m_hPresentDevice, Image, vk::ImageLayout::eUndefined, Views);
 	}

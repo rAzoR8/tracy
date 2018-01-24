@@ -69,8 +69,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)boost\bin\debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;libboost_system-vc141-mt-gd-x64-1_67.lib;libboost_filesystem-vc141-mt-gd-x64-1_67.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -94,8 +94,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)boost\bin\release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;libboost_system-vc141-mt-x64-1_67.lib;libboost_filesystem-vc141-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -121,6 +121,7 @@
     <ClInclude Include="Display\ImageSource.h" />
     <ClInclude Include="Display\Material.h" />
     <ClInclude Include="Display\Mesh.h" />
+    <ClInclude Include="Display\Renderer.h" />
     <ClInclude Include="Display\RenderObject.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
     <ClInclude Include="Display\Texture.h" />
@@ -132,6 +133,7 @@
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
     <ClInclude Include="Display\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Display\Vulkan\VulkanInstance.h" />
+    <ClInclude Include="Display\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderGraph.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderPass.h" />
     <ClInclude Include="Display\Vulkan\VulkanTexture.h" />
@@ -147,21 +149,25 @@
   <ItemGroup>
     <ClCompile Include="Datastructures\BinaryKeyValueBufferSource.cpp" />
     <ClCompile Include="Datastructures\BinaryKeyValueStore.cpp" />
+    <ClCompile Include="Datastructures\BufferSource.cpp" />
     <ClCompile Include="Display\DX12\DX12Device.cpp" />
     <ClCompile Include="Display\DX12\DX12Instance.cpp" />
     <ClCompile Include="Display\GPUBuffer.cpp" />
     <ClCompile Include="Display\IDevice.cpp" />
+    <ClCompile Include="Display\ImageSource.cpp" />
     <ClCompile Include="Display\RenderObject.cpp" />
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp" />
     <ClCompile Include="Display\Texture.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderGraph.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderPass.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanMemoryAllocator.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanWindow.cpp" />
+    <ClCompile Include="Platform\IApplication.cpp" />
     <ClCompile Include="Platform\Win32\Win32Application.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

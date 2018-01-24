@@ -4,6 +4,7 @@
 #include "DisplayTypes.h"
 //#include "Bytes.h"
 #include <vector>
+#include <array>
 
 // platform independant description needed to create/load a renderpass
 namespace Tracy

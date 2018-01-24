@@ -191,7 +191,7 @@ bool VulkanDevice::Initialize()
 			queuePair.first->second.Handle = m_Device.getQueue(QueueOffsets[uQueueFlagIndex].uFamilyIndex, QueueOffsets[uQueueFlagIndex].uOffset);
 
 			// create commandbuffer pools
-			CommandPoolEntry& Pool = m_CommandPools[(uint32_t)QueueFlags[uQueueFlagIndex]];
+			CommandPoolEntry& Pool = m_CommandPools[uQueueFlagIndex];
 
 			vk::CommandPoolCreateInfo Info{};
 			Info.queueFamilyIndex = QueueOffsets[uQueueFlagIndex].uFamilyIndex;

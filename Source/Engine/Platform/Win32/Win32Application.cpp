@@ -1,16 +1,77 @@
 #include "Win32Application.h"
+#include "Display\Vulkan\VulkanRenderer.h"
 
+using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
-Tracy::Win32Application::Win32Application(const HINSTANCE _hInstance) :
+Win32Application::Win32Application(const HINSTANCE _hInstance) :
 	m_hInstance(_hInstance)
 {
 }
 
 //---------------------------------------------------------------------------------------------------
-Tracy::Win32Application::~Win32Application()
+Win32Application::~Win32Application()
 {
 }
+//---------------------------------------------------------------------------------------------------
 
+std::unique_ptr<Renderer> Win32Application::OnInit(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _kAPI, const RenderGraphDesc& _RenderDesc)
+{
+	HASSERT(m_hInstance != nullptr, "Invalid Instance handle.");
+
+	WNDCLASSEX WndClass{};
+	WndClass.cbSize = sizeof(WNDCLASSEX);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	WndClass.lpfnWndProc = WindowProc;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hInstance = m_hInstance;
+	WndClass.hIcon = LoadIcon(m_hInstance, (LPCTSTR)IDI_APPLICATION);
+	WndClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);//(HBRUSH)(COLOR_WINDOW + 1);
+	WndClass.lpszMenuName = nullptr;
+	WndClass.lpszClassName = L"TracyAppClass";
+	WndClass.hIconSm = LoadIcon(m_hInstance, (LPCTSTR)IDI_APPLICATION);
+	if (!RegisterClassEx(&WndClass))
+		return false;
+
+	RECT WndRect = { 0u, 0u, static_cast<LONG>(_uWidth), static_cast<LONG>(_uHeight) };
+	AdjustWindowRect(&WndRect, WS_OVERLAPPEDWINDOW, FALSE);
+
+	m_hWnd = CreateWindow(
+		WndClass.lpszClassName,
+		L"Tracy Playground",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		WndRect.right - WndRect.left,
+		WndRect.bottom - WndRect.top,
+		nullptr,
+		nullptr,
+		m_hInstance,
+		nullptr
+	);
+
+	if (m_hWnd == nullptr)
+	{
+		return nullptr;
+	}
+
+	// Init API
+	if (_kAPI == EGraphicsAPI::eVulkan)
+	{
+		VulkanInstance& Gfx = VulkanInstance::GetInstance();
+		const std::vector<DeviceInfo> Devices = Gfx.Init();
+		HASSERT(Devices.size() > 0u, "No compatible graphics adapter found");
+
+		m_hVkWindow = Gfx.MakeWindow(Devices[0u].hHandle, _uWidth, _uHeight, m_hWnd, m_hInstance);
+		HASSERT(m_hVkWindow != kUndefinedSizeT, "Failed to create default window");
+
+		ShowWindow(m_hWnd, SW_SHOW);
+		return std::make_unique<VulkanRenderer>(_RenderDesc, m_hVkWindow);
+	}
+
+	return nullptr;
+}
 //---------------------------------------------------------------------------------------------------
 LRESULT Tracy::Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {

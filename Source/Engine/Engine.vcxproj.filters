@@ -162,6 +162,12 @@
       <Filter>Display\Vulkan\Resource</Filter>
     </ClInclude>
     <ClInclude Include="Display\Mesh.h" />
+    <ClInclude Include="Display\Renderer.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanRenderer.h">
+      <Filter>Display\Vulkan\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -217,6 +223,18 @@
     </ClCompile>
     <ClCompile Include="Display\Vulkan\VulkanBuffer.cpp">
       <Filter>Display\Vulkan\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\IApplication.cpp">
+      <Filter>Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanRenderer.cpp">
+      <Filter>Display\Vulkan\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Datastructures\BufferSource.cpp">
+      <Filter>Datastructures</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\ImageSource.cpp">
+      <Filter>Display</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
