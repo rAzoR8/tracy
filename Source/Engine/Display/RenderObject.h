@@ -4,6 +4,7 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "MathTypes.h"
+#include "Scene\AABB.h"
 
 namespace Tracy
 {
@@ -11,8 +12,6 @@ namespace Tracy
 	{
 		Material Material;
 		Mesh Mesh;
-
-		// todo: vertex count for drawing without mesh etc...
 	};
 
 	class RenderObject : public BufferSource
@@ -28,8 +27,12 @@ namespace Tracy
 		// needs to be called before rendering
 		const float4x4_t& ComputeTransform();
 
-		const RenderNode& GetNode() const;
+		const std::vector<RenderNode>& GetNodes() const;
 
+		inline const AABB& GetAABB() const;
+
+		// returns true if any material targets this pass
+		bool CheckPass(const uint64_t& _uPassId) const;
 	private:
 		float3_t m_vPosition;
 		float3_t m_vScale;
@@ -44,10 +47,26 @@ namespace Tracy
 
 		std::vector<BufferSource*> m_BufferSources;
 
-		RenderNode m_Node;
+		std::vector<RenderNode> m_Nodes;
+
+		AABB m_AABB;
 	};
 
-	inline const RenderNode& RenderObject::GetNode() const { return m_Node; }
+	inline const std::vector<RenderNode>& RenderObject::GetNodes() const { return m_Nodes; }
+	inline const AABB& RenderObject::GetAABB() const{return m_AABB;}
+	inline bool RenderObject::CheckPass(const uint64_t& _uPassId) const
+	{
+		for (const RenderNode& Node : m_Nodes)
+		{
+			if (Node.Material)
+			{
+				if (Node.Material.Get().uPassId & _uPassId)
+					return true;
+			}
+		}
+
+		return false;
+	}
 	inline const std::vector<BufferSource*>& RenderObject::GetBufferSources() const {return m_BufferSources;}
 } // Tracy
 

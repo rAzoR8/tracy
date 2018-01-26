@@ -2,7 +2,7 @@
 #include "VulkanRenderGraph.h"
 #include "FileStream.h"
 #include "VulkanTypeConversion.h"
-#include "Display\Camera.h"
+#include "Scene\Camera.h"
 #include "Display\RenderObject.h"
 
 using namespace Tracy;
@@ -244,13 +244,14 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 	// object render loop
 	for (RenderObject* pObj : _Camera.GetObjects())
 	{
-		const RenderNode& Node = pObj->GetNode();
-
-		if (Node.Material)
+		for (const RenderNode& Node : pObj->GetNodes())
 		{
+			if (!Node.Material) // cant render without material
+				continue;
+
 			const MaterialRefEntry& Mat = Node.Material.Get();
 			// skip object
-			if ((Mat.uPassIds & uPassID) == 0)
+			if ((Mat.uPassId != uPassID) == 0)
 				continue;
 
 			bool bShaderChanged = false;
@@ -305,7 +306,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 				if (Writes.empty() == false)
 				{
-					VKDevice().updateDescriptorSets(Writes, {});				
+					VKDevice().updateDescriptorSets(Writes, {});
 				}
 
 				// TODO: fill for dynamic uniforms and storage buffers
@@ -321,58 +322,58 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 						DynamicOffsets);
 
 				} // else?
-			}
-		}
+			} // ! descriptorsets
 
-		if (m_pPerObjectCallback != nullptr)
-		{
-			m_pPerObjectCallback->OnPerObject(*this, pObj);
-		}
-
-		// set vertex & index buffer
-		const Mesh& mesh = Node.Mesh;
-		const GPUBuffer& vertexBuffer = mesh.GetVertexBuffer();
-		const GPUBuffer& indexBuffer = mesh.GetIndexBuffer();
-
-		// currently we only support one vertex / index stream and default them to binding 0
-		switch (mesh.GetDrawMode())
-		{
-		case kDrawMode_VertexCount:
-		{
-			m_hCommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
-		}
-		break;
-		case kDrawMode_VertexData:
-		{
-			if (vertexBuffer)
+			if (m_pPerObjectCallback != nullptr)
 			{
-				vk::DeviceSize offset = mesh.GetVertexOffset();
-				const auto& Entry = VKBuffer(vertexBuffer);
-				m_hCommandBuffer.bindVertexBuffers(0u, 1u, &Entry.hBuffer, &offset);
-				m_hCommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
+				m_pPerObjectCallback->OnPerObject(*this, pObj);
 			}
-		}
-		break;
-		case kDrawMode_IndexData:
-		{
-			if (vertexBuffer && indexBuffer)
+
+			// set vertex & index buffer
+			const Mesh& mesh = Node.Mesh;
+			const GPUBuffer& vertexBuffer = mesh.GetVertexBuffer();
+			const GPUBuffer& indexBuffer = mesh.GetIndexBuffer();
+
+			// currently we only support one vertex / index stream and default them to binding 0
+			switch (mesh.GetDrawMode())
 			{
-				vk::DeviceSize vertOffset = mesh.GetVertexOffset();
-				const auto& vertEntry = VKBuffer(vertexBuffer);
-
-				vk::DeviceSize indexOffset = mesh.GetIndexOffset();
-				const auto& indexEntry = VKBuffer(indexBuffer);
-
-				m_hCommandBuffer.bindVertexBuffers(0u, 1u, &vertEntry.hBuffer, &vertOffset);
-				m_hCommandBuffer.bindIndexBuffer(indexEntry.hBuffer, indexOffset, GetIndexType(mesh.GetIndexType()));
-				m_hCommandBuffer.drawIndexed(mesh.GetIndexCount(), mesh.GetInstanceCount(), mesh.GetFirstIndex(), mesh.GetVertexOffset(), mesh.GetFirstInstance());
+			case kDrawMode_VertexCount:
+			{
+				m_hCommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
 			}
-		}
-		break;
-		default:
 			break;
-		}
-	}
+			case kDrawMode_VertexData:
+			{
+				if (vertexBuffer)
+				{
+					vk::DeviceSize offset = mesh.GetVertexOffset();
+					const auto& Entry = VKBuffer(vertexBuffer);
+					m_hCommandBuffer.bindVertexBuffers(0u, 1u, &Entry.hBuffer, &offset);
+					m_hCommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
+				}
+			}
+			break;
+			case kDrawMode_IndexData:
+			{
+				if (vertexBuffer && indexBuffer)
+				{
+					vk::DeviceSize vertOffset = mesh.GetVertexOffset();
+					const auto& vertEntry = VKBuffer(vertexBuffer);
+
+					vk::DeviceSize indexOffset = mesh.GetIndexOffset();
+					const auto& indexEntry = VKBuffer(indexBuffer);
+
+					m_hCommandBuffer.bindVertexBuffers(0u, 1u, &vertEntry.hBuffer, &vertOffset);
+					m_hCommandBuffer.bindIndexBuffer(indexEntry.hBuffer, indexOffset, GetIndexType(mesh.GetIndexType()));
+					m_hCommandBuffer.drawIndexed(mesh.GetIndexCount(), mesh.GetInstanceCount(), mesh.GetFirstIndex(), mesh.GetVertexOffset(), mesh.GetFirstInstance());
+				}
+			}
+			break;
+			default:
+				break;
+			}
+		} // nodes
+	} // objects
 
 	return true;
 }

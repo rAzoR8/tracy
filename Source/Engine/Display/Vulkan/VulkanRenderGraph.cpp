@@ -1,6 +1,6 @@
 #include "VulkanRenderGraph.h"
 #include "VulkanInstance.h"
-#include "Display\Camera.h"
+#include "Scene\Camera.h"
 #include <algorithm>
 #include <execution>
 
@@ -78,11 +78,8 @@ bool VulkanRenderGraph::Initialize()
 		return false;
 
 	vk::FenceCreateInfo FenceInfo{};
-	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)) /*||
-		LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hBackbufferImageFence)*/)
-	{
+	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)))
 		return false;
-	}
 
 	vk::SemaphoreCreateInfo SemaphoreInfo{};
 	if (LogVKErrorFailed(m_Device.GetDevice().createSemaphore(&SemaphoreInfo, nullptr, &m_hImageAcquiredSemaphore)))
@@ -111,12 +108,6 @@ void VulkanRenderGraph::Uninitialze()
 		m_hSubmitFence = nullptr;
 	}
 
-	//if (m_hBackbufferImageFence)
-	//{
-	//	m_Device.GetDevice().destroyFence(m_hBackbufferImageFence);
-	//	m_hBackbufferImageFence = nullptr;
-	//}
-
 	if (m_hImageAcquiredSemaphore)
 	{
 		m_Device.GetDevice().destroySemaphore(m_hImageAcquiredSemaphore);
@@ -143,9 +134,6 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 	// get next image
 	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, m_hImageAcquiredSemaphore, nullptr, &uImageIndex)))
 		return;
-
-	//if (LogVKErrorFailed(m_Device.WaitForFences(&m_hBackbufferImageFence)))
-	//	return;
 
 	if (uImageIndex >= Backbuffer.size())
 		return;
@@ -231,6 +219,24 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 		if (LogVKErrorFailed(m_hGfxQueue.presentKHR(Info)))
 			return;
 	}
+}
+//---------------------------------------------------------------------------------------------------
+
+VulkanRenderPass* Tracy::VulkanRenderGraph::GetRenderpassByName(const std::wstring& _sName)
+{
+	for (VulkanRenderPass& Pass : m_RenderPasses)
+	{
+		if (Pass.m_Description.sPassName == _sName)
+			return &Pass;
+
+		for (VulkanRenderPass& SubPass : Pass.m_SubPasses)
+		{
+			if (SubPass.m_Description.sPassName == _sName)
+				return &SubPass;
+		}
+	}
+
+	return nullptr;
 }
 //---------------------------------------------------------------------------------------------------
 

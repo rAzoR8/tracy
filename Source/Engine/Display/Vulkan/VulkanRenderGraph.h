@@ -16,10 +16,12 @@ namespace Tracy
 		~VulkanRenderGraph();
 
 		bool Initialize();
-
 		void Uninitialze();
 
 		void Render(const std::vector<Camera*>& _Cameras, const bool _bParallelRecord = false);
+
+		// returns nullptr if not found
+		VulkanRenderPass* GetRenderpassByName(const std::wstring& _sName);
 
 		template <class ... TStrings>
 		uint64_t GetMaterialIds(const std::wstring _sPassName, const TStrings& ..._Strings);
@@ -40,7 +42,6 @@ namespace Tracy
 		vk::Queue m_hGfxQueue = nullptr; // owned by the device
 		vk::SwapchainKHR m_hSwapchain = nullptr; // owned by the window
 		vk::Fence m_hSubmitFence = nullptr;
-		//vk::Fence m_hBackbufferImageFence = nullptr;
 		vk::Semaphore m_hImageAcquiredSemaphore = nullptr;
 	};
 

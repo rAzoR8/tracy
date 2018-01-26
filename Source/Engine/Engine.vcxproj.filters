@@ -34,6 +34,9 @@
     <Filter Include="Plugin">
       <UniqueIdentifier>{46dcf5ef-5c6b-4ac3-adcd-30150658ec89}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{b136ddd6-256d-4cac-a2d4-1ba46b13d0c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
@@ -109,9 +112,6 @@
     <ClInclude Include="Display\RenderObject.h">
       <Filter>Display</Filter>
     </ClInclude>
-    <ClInclude Include="Display\Camera.h">
-      <Filter>Display</Filter>
-    </ClInclude>
     <ClInclude Include="MathTypes.h" />
     <ClInclude Include="Display\Material.h">
       <Filter>Display</Filter>
@@ -167,6 +167,21 @@
     </ClInclude>
     <ClInclude Include="Display\Vulkan\VulkanRenderer.h">
       <Filter>Display\Vulkan\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Camera.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\AABB.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Frustum.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Intersection.h">
+      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -235,6 +250,9 @@
     </ClCompile>
     <ClCompile Include="Display\ImageSource.cpp">
       <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

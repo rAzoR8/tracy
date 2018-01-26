@@ -109,7 +109,6 @@
     <ClInclude Include="Datastructures\ConditionalAtomic.h" />
     <ClInclude Include="Datastructures\RefCounted.h" />
     <ClInclude Include="Datastructures\SmallObjectPool.h" />
-    <ClInclude Include="Display\Camera.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
     <ClInclude Include="Display\DisplayTypes.h" />
     <ClInclude Include="Display\DX12\DX12API.h" />
@@ -145,6 +144,11 @@
     <ClInclude Include="Platform\Win32\Win32Application.h" />
     <ClInclude Include="Plugin\IPlugin.h" />
     <ClInclude Include="Plugin\PluginLoader.h" />
+    <ClInclude Include="Scene\AABB.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Frustum.h" />
+    <ClInclude Include="Scene\Intersection.h" />
+    <ClInclude Include="Scene\Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Datastructures\BinaryKeyValueBufferSource.cpp" />
@@ -169,6 +173,7 @@
     <ClCompile Include="Display\Vulkan\VulkanWindow.cpp" />
     <ClCompile Include="Platform\IApplication.cpp" />
     <ClCompile Include="Platform\Win32\Win32Application.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

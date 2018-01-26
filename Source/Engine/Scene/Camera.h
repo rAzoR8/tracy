@@ -3,6 +3,7 @@
 
 #include "Datastructures\BufferSource.h"
 #include "MathTypes.h"
+#include "Frustum.h"
 
 namespace Tracy
 {
@@ -17,6 +18,8 @@ namespace Tracy
 
 		const std::vector<RenderObject*>& GetObjects() const;
 		const uint64_t& GetPassIDs() const;
+
+		const Frustum& GetFrustum() const;
 	private:
 		uint64_t m_uPassIds; // renderpasses this camera renders to
 		// only objects that match the m_uPassIds mask will be gathered into m_Objects
@@ -38,7 +41,7 @@ namespace Tracy
 		float m_fNearWindowHeight;
 		float m_fFarWindowHeight;
 
-		// TODO frustum for culling
+		Frustum m_Frustum;
 	};
 
 	inline const std::vector<RenderObject*>& Camera::GetObjects() const
@@ -48,6 +51,10 @@ namespace Tracy
 	inline const uint64_t& Camera::GetPassIDs() const
 	{
 		return m_uPassIds;
+	}
+	inline const Frustum& Camera::GetFrustum() const
+	{
+		return m_Frustum;
 	}
 } // Tracy
 
