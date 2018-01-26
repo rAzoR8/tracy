@@ -78,11 +78,15 @@ bool VulkanRenderGraph::Initialize()
 		return false;
 
 	vk::FenceCreateInfo FenceInfo{};
-	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)) ||
-		LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hBackbufferImageFence)))
+	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)) /*||
+		LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hBackbufferImageFence)*/)
 	{
 		return false;
 	}
+
+	vk::SemaphoreCreateInfo SemaphoreInfo{};
+	if (LogVKErrorFailed(m_Device.GetDevice().createSemaphore(&SemaphoreInfo, nullptr, &m_hImageAcquiredSemaphore)))
+		return false;
 
 	m_hSwapchain = m_Window.GetSwapchain();
 	if (m_hSwapchain.operator bool() == false)
@@ -107,10 +111,16 @@ void VulkanRenderGraph::Uninitialze()
 		m_hSubmitFence = nullptr;
 	}
 
-	if (m_hBackbufferImageFence)
+	//if (m_hBackbufferImageFence)
+	//{
+	//	m_Device.GetDevice().destroyFence(m_hBackbufferImageFence);
+	//	m_hBackbufferImageFence = nullptr;
+	//}
+
+	if (m_hImageAcquiredSemaphore)
 	{
-		m_Device.GetDevice().destroyFence(m_hBackbufferImageFence);
-		m_hBackbufferImageFence = nullptr;
+		m_Device.GetDevice().destroySemaphore(m_hImageAcquiredSemaphore);
+		m_hImageAcquiredSemaphore = nullptr;
 	}
 
 	m_MaterialIds.clear();
@@ -131,22 +141,26 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 	const std::vector<VulkanTexture>& Backbuffer = m_Window.GetBackuffer();
 
 	// get next image
-	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, vk::Semaphore(nullptr), m_hBackbufferImageFence, &uImageIndex)))
+	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, m_hImageAcquiredSemaphore, nullptr, &uImageIndex)))
 		return;
 
-	if (LogVKErrorFailed(m_Device.WaitForFences(&m_hBackbufferImageFence)))
-		return;
+	//if (LogVKErrorFailed(m_Device.WaitForFences(&m_hBackbufferImageFence)))
+	//	return;
 
 	if (uImageIndex >= Backbuffer.size())
 		return;
 
 	const VulkanTexture& CurrentBackbuffer = Backbuffer[uImageIndex];
 
-	const auto RecordFN = [&](VulkanRenderPass& Pass)
+	// prepare passes
+	for (VulkanRenderPass& Pass : m_RenderPasses)
 	{
 		if (Pass.BeginCommandbuffer(CurrentBackbuffer) == false) // begin commandbuffer recording
 			return;
+	}
 
+	const auto RecordFN = [&](VulkanRenderPass& Pass)
+	{
 		for (Camera* pCamera : _Cameras)
 		{
 			if (pCamera != nullptr)
@@ -194,9 +208,13 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 	// submit
 	{
 		vk::SubmitInfo Info{};
+		const vk::PipelineStageFlags kMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 		Info.commandBufferCount = 1u;
 		Info.pCommandBuffers = &m_hPrimaryGfxCmdBuffer;
-		
+		Info.waitSemaphoreCount = 1u;
+		Info.pWaitSemaphores = &m_hImageAcquiredSemaphore;
+		Info.pWaitDstStageMask = &kMask;
+
 		m_hGfxQueue.submit(Info, m_hSubmitFence);
 
 		if (LogVKErrorFailed(m_Device.WaitForFences(&m_hSubmitFence)))
@@ -205,15 +223,13 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 
 	// present
 	{
-		{
-			// TODO: get image to right layout
-
-		}
-
 		vk::PresentInfoKHR Info{};
 		Info.swapchainCount = 1u;
 		Info.pSwapchains = &m_hSwapchain;
 		Info.pImageIndices = &uImageIndex;
+
+		if (LogVKErrorFailed(m_hGfxQueue.presentKHR(Info)))
+			return;
 	}
 }
 //---------------------------------------------------------------------------------------------------
