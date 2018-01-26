@@ -254,5 +254,8 @@
     <ClCompile Include="Scene\Scene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\Camera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

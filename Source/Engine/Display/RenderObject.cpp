@@ -1,6 +1,9 @@
 #include "RenderObject.h"
 #include "..\SPIRVShaderFactory\CommonBufferSourceNames.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/transform.hpp>
+
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
@@ -28,16 +31,12 @@ void RenderObject::AddBufferSource(BufferSource* _pSource)
 
 const float4x4_t& RenderObject::ComputeTransform()
 {
-	// check if transform changed, skip computation otherwise
-
-	//m_mTransform = Identity
+	m_mTransform = glm::translate(m_vPosition) * glm::mat4_cast(m_vOrientation) * glm::scale(m_vScale);	
 
 	if (m_pParent != nullptr)
 	{
 		m_mTransform *= m_pParent->ComputeTransform();
 	}
-
-	// construct own tranfrom using m_vPosition, m_vScale, m_vOrientation
 
 	return m_mTransform;
 }

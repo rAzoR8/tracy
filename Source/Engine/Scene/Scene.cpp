@@ -24,6 +24,7 @@ bool Scene::Initialize(const SceneDesc & _Desc)
 
 void Scene::Gather(Camera& _Camera)
 {
+	_Camera.ClearObjects();
 	// for testing
 
 	for (RenderObject* pObject : m_Objects)

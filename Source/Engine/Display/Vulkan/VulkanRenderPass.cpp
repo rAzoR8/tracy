@@ -244,135 +244,134 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 	// object render loop
 	for (RenderObject* pObj : _Camera.GetObjects())
 	{
-		for (const RenderNode& Node : pObj->GetNodes())
+		const RenderNode& Node = pObj->GetNode();
+
+		if (!Node.Material) // cant render without material
+			continue;
+
+		const MaterialRefEntry& Mat = Node.Material.Get();
+		// skip object
+		if ((Mat.uPassId != uPassID) == 0)
+			continue;
+
+		bool bShaderChanged = false;
+
+		for (const ShaderID& id : Mat.Shaders)
 		{
-			if (!Node.Material) // cant render without material
-				continue;
-
-			const MaterialRefEntry& Mat = Node.Material.Get();
-			// skip object
-			if ((Mat.uPassId != uPassID) == 0)
-				continue;
-
-			bool bShaderChanged = false;
-
-			for (const ShaderID& id : Mat.Shaders)
+			if (id.Valid())
 			{
-				if (id.Valid())
-				{
-					bShaderChanged |= SelectShader(id); // todo: userdata
-				}
+				bShaderChanged |= SelectShader(id); // todo: userdata
 			}
+		}
 
-			// check if shader changed and update the pipeline
-			if (bShaderChanged && ActivatePipeline(m_ActivePipelineDesc))
+		// check if shader changed and update the pipeline
+		if (bShaderChanged && ActivatePipeline(m_ActivePipelineDesc))
+		{
+			ResetMappings();
+
+			// camera needs to be remapped
+			DigestBuffer(_Camera);
+
+			m_hCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
+		}
+
+		// custom buffer sources
+		for (const BufferSource* pSrc : pObj->GetBufferSources())
+		{
+			if (pSrc != nullptr)
 			{
-				ResetMappings();
-
-				// camera needs to be remapped
-				DigestBuffer(_Camera);
-
-				m_hCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
+				DigestBuffer(*pSrc);
 			}
+		}
 
-			// custom buffer sources
-			for (const BufferSource* pSrc : pObj->GetBufferSources())
+		DigestBuffer(Mat.Values); // material values
+		DigestImages(Mat.Images); // textures
+
+		// bind descriptor sets
+		{
+			std::vector<vk::WriteDescriptorSet> Writes;
+			std::vector<vk::DescriptorSet> DescriporSets;
+
+			uint32_t uFirstSet = UINT32_MAX;
+			for (DescriptorSetContainer* pSet : m_ActiveDescriptorSets)
 			{
-				if (pSrc != nullptr)
+				if (pSet->Update(m_Device))
 				{
-					DigestBuffer(*pSrc);
-				}
-			}
-
-			DigestBuffer(Mat.Values); // material values
-			DigestImages(Mat.Images); // textures
-
-			// bind descriptor sets
-			{
-				std::vector<vk::WriteDescriptorSet> Writes;
-				std::vector<vk::DescriptorSet> DescriporSets;
-
-				uint32_t uFirstSet = UINT32_MAX;
-				for (DescriptorSetContainer* pSet : m_ActiveDescriptorSets)
-				{
-					if (pSet->Update(m_Device))
-					{
-						pSet->AddDescriptorWrites(Writes);
-					}
-
-					DescriporSets.push_back(pSet->hSet);
-					uFirstSet = std::min(uFirstSet, pSet->uSlot);
+					pSet->AddDescriptorWrites(Writes);
 				}
 
-				if (Writes.empty() == false)
-				{
-					VKDevice().updateDescriptorSets(Writes, {});
-				}
-
-				// TODO: fill for dynamic uniforms and storage buffers
-				std::vector<uint32_t> DynamicOffsets;
-
-				if (m_ActiveDescriptorSets.empty() == false)
-				{
-					m_hCommandBuffer.bindDescriptorSets(
-						vk::PipelineBindPoint::eGraphics,
-						m_ActivePipelineLayout,
-						uFirstSet,
-						DescriporSets,
-						DynamicOffsets);
-
-				} // else?
-			} // ! descriptorsets
-
-			if (m_pPerObjectCallback != nullptr)
-			{
-				m_pPerObjectCallback->OnPerObject(*this, pObj);
+				DescriporSets.push_back(pSet->hSet);
+				uFirstSet = std::min(uFirstSet, pSet->uSlot);
 			}
 
-			// set vertex & index buffer
-			const Mesh& mesh = Node.Mesh;
-			const GPUBuffer& vertexBuffer = mesh.GetVertexBuffer();
-			const GPUBuffer& indexBuffer = mesh.GetIndexBuffer();
-
-			// currently we only support one vertex / index stream and default them to binding 0
-			switch (mesh.GetDrawMode())
+			if (Writes.empty() == false)
 			{
-			case kDrawMode_VertexCount:
-			{
-				m_hCommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
+				VKDevice().updateDescriptorSets(Writes, {});
 			}
+
+			// TODO: fill for dynamic uniforms and storage buffers
+			std::vector<uint32_t> DynamicOffsets;
+
+			if (m_ActiveDescriptorSets.empty() == false)
+			{
+				m_hCommandBuffer.bindDescriptorSets(
+					vk::PipelineBindPoint::eGraphics,
+					m_ActivePipelineLayout,
+					uFirstSet,
+					DescriporSets,
+					DynamicOffsets);
+
+			} // else?
+		} // ! descriptorsets
+
+		if (m_pPerObjectCallback != nullptr)
+		{
+			m_pPerObjectCallback->OnPerObject(*this, pObj);
+		}
+
+		// set vertex & index buffer
+		const Mesh& mesh = Node.Mesh;
+		const GPUBuffer& vertexBuffer = mesh.GetVertexBuffer();
+		const GPUBuffer& indexBuffer = mesh.GetIndexBuffer();
+
+		// currently we only support one vertex / index stream and default them to binding 0
+		switch (mesh.GetDrawMode())
+		{
+		case kDrawMode_VertexCount:
+		{
+			m_hCommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
+		}
+		break;
+		case kDrawMode_VertexData:
+		{
+			if (vertexBuffer)
+			{
+				vk::DeviceSize offset = mesh.GetVertexOffset();
+				const auto& Entry = VKBuffer(vertexBuffer);
+				m_hCommandBuffer.bindVertexBuffers(0u, 1u, &Entry.hBuffer, &offset);
+				m_hCommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
+			}
+		}
+		break;
+		case kDrawMode_IndexData:
+		{
+			if (vertexBuffer && indexBuffer)
+			{
+				vk::DeviceSize vertOffset = mesh.GetVertexOffset();
+				const auto& vertEntry = VKBuffer(vertexBuffer);
+
+				vk::DeviceSize indexOffset = mesh.GetIndexOffset();
+				const auto& indexEntry = VKBuffer(indexBuffer);
+
+				m_hCommandBuffer.bindVertexBuffers(0u, 1u, &vertEntry.hBuffer, &vertOffset);
+				m_hCommandBuffer.bindIndexBuffer(indexEntry.hBuffer, indexOffset, GetIndexType(mesh.GetIndexType()));
+				m_hCommandBuffer.drawIndexed(mesh.GetIndexCount(), mesh.GetInstanceCount(), mesh.GetFirstIndex(), mesh.GetVertexOffset(), mesh.GetFirstInstance());
+			}
+		}
+		break;
+		default:
 			break;
-			case kDrawMode_VertexData:
-			{
-				if (vertexBuffer)
-				{
-					vk::DeviceSize offset = mesh.GetVertexOffset();
-					const auto& Entry = VKBuffer(vertexBuffer);
-					m_hCommandBuffer.bindVertexBuffers(0u, 1u, &Entry.hBuffer, &offset);
-					m_hCommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
-				}
-			}
-			break;
-			case kDrawMode_IndexData:
-			{
-				if (vertexBuffer && indexBuffer)
-				{
-					vk::DeviceSize vertOffset = mesh.GetVertexOffset();
-					const auto& vertEntry = VKBuffer(vertexBuffer);
-
-					vk::DeviceSize indexOffset = mesh.GetIndexOffset();
-					const auto& indexEntry = VKBuffer(indexBuffer);
-
-					m_hCommandBuffer.bindVertexBuffers(0u, 1u, &vertEntry.hBuffer, &vertOffset);
-					m_hCommandBuffer.bindIndexBuffer(indexEntry.hBuffer, indexOffset, GetIndexType(mesh.GetIndexType()));
-					m_hCommandBuffer.drawIndexed(mesh.GetIndexCount(), mesh.GetInstanceCount(), mesh.GetFirstIndex(), mesh.GetVertexOffset(), mesh.GetFirstInstance());
-				}
-			}
-			break;
-			default:
-				break;
-			}
-		} // nodes
+		}
 	} // objects
 
 	return true;

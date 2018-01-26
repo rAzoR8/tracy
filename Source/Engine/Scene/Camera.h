@@ -17,6 +17,9 @@ namespace Tracy
 		virtual ~Camera() {};
 
 		const std::vector<RenderObject*>& GetObjects() const;
+		void ClearObjects();
+		void SortObjects();
+
 		const uint64_t& GetPassIDs() const;
 
 		const Frustum& GetFrustum() const;
@@ -47,6 +50,10 @@ namespace Tracy
 	inline const std::vector<RenderObject*>& Camera::GetObjects() const
 	{
 		return m_Objects;
+	}
+	inline void Camera::ClearObjects()
+	{
+		m_Objects.resize(0);
 	}
 	inline const uint64_t& Camera::GetPassIDs() const
 	{

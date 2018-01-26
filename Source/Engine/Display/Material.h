@@ -30,7 +30,7 @@ namespace Tracy
 		
 	};
 
-	inline bool MaterialEntryCompare(const MaterialRefEntry& l, const MaterialRefEntry& r)
+	inline bool MaterialEntryCompare(const MaterialRefEntry& l, const float& _fLDist, const MaterialRefEntry& r, const float& _fRDist)
 	{
 		if (l.uPassId == r.uPassId)
 		{
@@ -40,18 +40,18 @@ namespace Tracy
 					return true;
 			}
 
-			return false;
+			return _fLDist < _fRDist;
 		}
 
 		return l.uPassId < r.uPassId;
 	}
 
 	//default compare
-	inline bool MaterialCompare(const Material& l, const Material& r)
+	inline bool MaterialCompare(const Material& l, const float& _fLDist, const Material& r, const float& _fRDist)
 	{
 		if (l && r)
 		{
-			return MaterialEntryCompare(l.Get(), r.Get());
+			return MaterialEntryCompare(l.Get(), _fLDist, r.Get(), _fRDist);
 		}
 
 		// l is leser if r is valid but l is not

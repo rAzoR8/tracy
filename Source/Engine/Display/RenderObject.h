@@ -27,12 +27,18 @@ namespace Tracy
 		// needs to be called before rendering
 		const float4x4_t& ComputeTransform();
 
-		const std::vector<RenderNode>& GetNodes() const;
+		const RenderNode& GetNode() const;
 
 		inline const AABB& GetAABB() const;
 
 		// returns true if any material targets this pass
 		bool CheckPass(const uint64_t& _uPassId) const;
+
+		// all in local space!
+		const float3_t& GetPosition() const;
+		const float3_t& GetScale() const;
+		const quaternion_t& GetOrientation() const;
+
 	private:
 		float3_t m_vPosition;
 		float3_t m_vScale;
@@ -47,25 +53,34 @@ namespace Tracy
 
 		std::vector<BufferSource*> m_BufferSources;
 
-		std::vector<RenderNode> m_Nodes;
+		RenderNode m_Node;
 
 		AABB m_AABB;
 	};
 
-	inline const std::vector<RenderNode>& RenderObject::GetNodes() const { return m_Nodes; }
+	inline const RenderNode& RenderObject::GetNode() const { return m_Node; }
 	inline const AABB& RenderObject::GetAABB() const{return m_AABB;}
 	inline bool RenderObject::CheckPass(const uint64_t& _uPassId) const
 	{
-		for (const RenderNode& Node : m_Nodes)
+		if (m_Node.Material)
 		{
-			if (Node.Material)
-			{
-				if (Node.Material.Get().uPassId & _uPassId)
-					return true;
-			}
+			if (m_Node.Material.Get().uPassId & _uPassId)
+				return true;
 		}
 
 		return false;
+	}
+	inline const float3_t& RenderObject::GetPosition() const
+	{
+		return m_vPosition;
+	}
+	inline const float3_t& RenderObject::GetScale() const
+	{
+		return m_vScale;
+	}
+	inline const quaternion_t& RenderObject::GetOrientation() const
+	{
+		return m_vOrientation;
 	}
 	inline const std::vector<BufferSource*>& RenderObject::GetBufferSources() const {return m_BufferSources;}
 } // Tracy

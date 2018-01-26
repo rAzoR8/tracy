@@ -173,6 +173,7 @@
     <ClCompile Include="Display\Vulkan\VulkanWindow.cpp" />
     <ClCompile Include="Platform\IApplication.cpp" />
     <ClCompile Include="Platform\Win32\Win32Application.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
