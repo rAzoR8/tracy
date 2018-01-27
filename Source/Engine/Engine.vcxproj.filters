@@ -183,6 +183,9 @@
     <ClInclude Include="Scene\Intersection.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Scene\Transform.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">

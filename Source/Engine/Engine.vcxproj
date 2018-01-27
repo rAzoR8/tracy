@@ -149,6 +149,7 @@
     <ClInclude Include="Scene\Frustum.h" />
     <ClInclude Include="Scene\Intersection.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Scene\Transform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Datastructures\BinaryKeyValueBufferSource.cpp" />

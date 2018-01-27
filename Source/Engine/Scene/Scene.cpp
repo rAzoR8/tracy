@@ -59,7 +59,8 @@ void Scene::Gather(Camera& _Camera)
 {
 	// if we want multiple scenes to be gathered in one camera, this needs to be removed
 	_Camera.ClearObjects();
-	
+	_Camera.Update(); // generates frustum
+
 	// for testing
 	for (RenderObject* pObject : m_Objects)
 	{
