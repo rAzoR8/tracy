@@ -3,6 +3,7 @@
 #include <algorithm>
 
 using namespace Tracy;
+//---------------------------------------------------------------------------------------------------
 
 void Camera::SortObjects()
 {
@@ -14,3 +15,10 @@ void Camera::SortObjects()
 		return MaterialCompare(pObj1->GetNode().Material, fD1, pObj2->GetNode().Material, fD2);
 	});
 }
+//---------------------------------------------------------------------------------------------------
+
+void Camera::AddObject(RenderObject* _pObject)
+{
+	m_Objects.push_back(_pObject);
+}
+//---------------------------------------------------------------------------------------------------

@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "MathTypes.h"
 #include "Scene\AABB.h"
+#include "Flag.h"
 
 namespace Tracy
 {
@@ -14,24 +15,31 @@ namespace Tracy
 		Mesh Mesh;
 	};
 
-	class RenderObject : public BufferSource
+	enum ERenderObjectFlag
+	{
+		kRenderObjectFlag_None = 0,
+		kRenderObjectFlag_StaticTransform = 1 << 0,
+		kRenderObjectFlag_Invisible = 1 << 1,
+	};
+
+	using TRenderObjectFlags = hlx::Flag<ERenderObjectFlag>;
+
+	class RenderObject : public BufferSource, public TRenderObjectFlags
 	{
 	public:
-		RenderObject(RenderObject* _pParent = nullptr);
+		RenderObject(const TRenderObjectFlags _kFlags = kRenderObjectFlag_None);
 		virtual ~RenderObject();
 
 		const std::vector<BufferSource*>& GetBufferSources() const;
-
 		void AddBufferSource(BufferSource* _pSource);
 
 		// needs to be called before rendering
-		const float4x4_t& ComputeTransform();
+		void ComputeTransform();
 
 		const RenderNode& GetNode() const;
-
 		inline const AABB& GetAABB() const;
 
-		// returns true if any material targets this pass
+		// returns true if the material targets this pass
 		bool CheckPass(const uint64_t& _uPassId) const;
 
 		// all in local space!
@@ -39,17 +47,21 @@ namespace Tracy
 		const float3_t& GetScale() const;
 		const quaternion_t& GetOrientation() const;
 
+		void AddChild(RenderObject* _pObject);
+		const std::vector<RenderObject*>& GetChildren() const;
+
 	private:
+		void SetParent(RenderObject* _pObject);
+
+	private:
+		RenderObject* m_pParent = nullptr; // use for transform hierarchy
+		std::vector<RenderObject*> m_Children;
+
 		float3_t m_vPosition;
 		float3_t m_vScale;
 		quaternion_t m_vOrientation;
 
 		float4x4_t m_mTransform;
-
-		// todo: if object is in any frustum (gathered for rendering) ComputeTransform must be called
-		bool m_bVisible = false;
-
-		RenderObject* m_pParent = nullptr; // use for transform hierarchy (maybe make BufferSource Transform as a member to RenderObject instead of deriving)
 
 		std::vector<BufferSource*> m_BufferSources;
 
@@ -58,6 +70,7 @@ namespace Tracy
 		AABB m_AABB;
 	};
 
+	inline const std::vector<RenderObject*>& Tracy::RenderObject::GetChildren() const{return m_Children;}
 	inline const RenderNode& RenderObject::GetNode() const { return m_Node; }
 	inline const AABB& RenderObject::GetAABB() const{return m_AABB;}
 	inline bool RenderObject::CheckPass(const uint64_t& _uPassId) const

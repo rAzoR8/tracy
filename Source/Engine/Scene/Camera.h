@@ -19,9 +19,9 @@ namespace Tracy
 		const std::vector<RenderObject*>& GetObjects() const;
 		void ClearObjects();
 		void SortObjects();
+		void AddObject(RenderObject* _pObject);
 
 		const uint64_t& GetPassIDs() const;
-
 		const Frustum& GetFrustum() const;
 	private:
 		uint64_t m_uPassIds; // renderpasses this camera renders to

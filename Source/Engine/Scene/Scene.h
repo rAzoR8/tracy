@@ -21,7 +21,14 @@ namespace Tracy
 
 		bool Initialize(const SceneDesc& _Desc);
 
+		void Update();
+
 		void Gather(Camera& _Camera);
+
+	private:
+		void UpdateTransforms(const bool _bSkipStaticTransforms = true);
+
+		void AddObject(RenderObject* _pObject, Camera& _Camera, const bool _bAddChildObjects = true);
 
 	private:
 		// todo Octree or some BVH
