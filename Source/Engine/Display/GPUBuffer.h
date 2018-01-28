@@ -15,17 +15,13 @@ namespace Tracy
 
 		virtual ~GPUBuffer() {}
 
-		const uint64_t& GetIdentifier() const;
-
-		GPUBuffer(const BufferDesc& _Desc);
+		const uint64_t& GetIdentifier() const;		
 
 		inline const bool IsValidBuffer() const { return IsValidRef() && Ref.HasAPIData(); }
 		inline explicit operator bool() const { return IsValidBuffer(); }
 
 	protected:
-
-	private:
-
+		GPUBuffer(const BufferDesc& _Desc);
 	};
 
 	inline const uint64_t& GPUBuffer::GetIdentifier() const

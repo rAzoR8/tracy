@@ -9,7 +9,105 @@ namespace Tracy
 	class Mesh
 	{
 	public:
-		Mesh() {};
+		// default constructor
+		Mesh(
+			const EDrawMode _kDrawMode = kDrawMode_VertexData,
+			const uint32_t _uVertexCount = 0u,
+			const GPUBuffer& _VertexBuffer = nullptr,
+			const uint32_t _uFirstVertex = 0u,
+			const uint32_t _uVertexOffset = 0u,
+
+			const uint32_t _uIndexCount = 0u,
+			const GPUBuffer& _IndexBuffer = nullptr,
+			const EIndexType _kIndexType = kIndexType_UInt32,
+			const uint32_t _uFirstIndex = 0u,
+			const uint32_t _uIndexOffset = 0u,
+
+			const uint32_t _uInstanceCount = 1u,
+			const uint32_t _uFirstInstance = 0u) :
+
+			m_kDrawMode(_kDrawMode),
+			m_uVertexCount(_uVertexCount),
+			m_VertexBuffer(_VertexBuffer),
+			m_uFirstVertex(_uFirstVertex),
+			m_uVertexOffset(_uVertexOffset),
+
+			m_uIndexCount(_uIndexCount),
+			m_IndexBuffer(_IndexBuffer),
+			m_kIndexType(_kIndexType),
+			m_uFirstIndex(_uFirstIndex),
+			m_uIndexOffset(_uIndexOffset),
+
+			m_uInstanceCount(_uInstanceCount),
+			m_uFirstInstance(_uFirstInstance)
+		{};
+
+		// vertexbuffer move
+		Mesh(
+			GPUBuffer&& _VertexBuffer,
+			const uint32_t _uVertexCount = 0u,
+			const EDrawMode _kDrawMode = kDrawMode_VertexData,
+			const uint32_t _uFirstVertex = 0u,
+			const uint32_t _uVertexOffset = 0u,
+
+			const uint32_t _uIndexCount = 0u,
+			const GPUBuffer& _IndexBuffer = nullptr,
+			const EIndexType _kIndexType = kIndexType_UInt32,
+			const uint32_t _uFirstIndex = 0u,
+			const uint32_t _uIndexOffset = 0u,
+
+			const uint32_t _uInstanceCount = 1u,
+			const uint32_t _uFirstInstance = 0u) :
+
+			m_kDrawMode(_kDrawMode),
+			m_uVertexCount(_uVertexCount),
+			m_VertexBuffer(std::forward<GPUBuffer>(_VertexBuffer)),
+			m_uFirstVertex(_uFirstVertex),
+			m_uVertexOffset(_uVertexOffset),
+
+			m_uIndexCount(_uIndexCount),
+			m_IndexBuffer(_IndexBuffer),
+			m_kIndexType(_kIndexType),
+			m_uFirstIndex(_uFirstIndex),
+			m_uIndexOffset(_uIndexOffset),
+
+			m_uInstanceCount(_uInstanceCount),
+			m_uFirstInstance(_uFirstInstance)
+		{};
+
+		// move buffer constructor
+		Mesh(
+			GPUBuffer&& _VertexBuffer,
+			GPUBuffer&& _IndexBuffer,
+			const EDrawMode _kDrawMode = kDrawMode_VertexData,
+			const uint32_t _uVertexCount = 0u,
+			const uint32_t _uFirstVertex = 0u,
+			const uint32_t _uVertexOffset = 0u,
+
+			const uint32_t _uIndexCount = 0u,
+			const EIndexType _kIndexType = kIndexType_UInt32,
+			const uint32_t _uFirstIndex = 0u,
+			const uint32_t _uIndexOffset = 0u,
+
+			const uint32_t _uInstanceCount = 1u,
+			const uint32_t _uFirstInstance = 0u) :
+
+			m_kDrawMode(_kDrawMode),
+			m_uVertexCount(_uVertexCount),
+			m_VertexBuffer(std::forward<GPUBuffer>(_VertexBuffer)),
+			m_uFirstVertex(_uFirstVertex),
+			m_uVertexOffset(_uVertexOffset),
+
+			m_uIndexCount(_uIndexCount),
+			m_IndexBuffer(std::forward<GPUBuffer>(_IndexBuffer)),
+			m_kIndexType(_kIndexType),
+			m_uFirstIndex(_uFirstIndex),
+			m_uIndexOffset(_uIndexOffset),
+
+			m_uInstanceCount(_uInstanceCount),
+			m_uFirstInstance(_uFirstInstance)
+		{};
+
 		virtual ~Mesh() {};
 
 		const GPUBuffer& GetVertexBuffer() const;
@@ -31,9 +129,9 @@ namespace Tracy
 		EDrawMode m_kDrawMode = kDrawMode_VertexData;
 
 		GPUBuffer m_VertexBuffer;
+		uint32_t m_uVertexCount = 0u;
 		uint32_t m_uFirstVertex = 0u;
 		uint32_t m_uVertexOffset = 0u;
-		uint32_t m_uVertexCount = 0u;
 
 		GPUBuffer m_IndexBuffer;
 		uint32_t m_uIndexCount = 0u;
@@ -44,6 +142,7 @@ namespace Tracy
 		uint32_t m_uInstanceCount = 1u;
 		uint32_t m_uFirstInstance = 0u;
 	};
+	//---------------------------------------------------------------------------------------------------
 
 	inline const GPUBuffer& Mesh::GetVertexBuffer() const
 	{

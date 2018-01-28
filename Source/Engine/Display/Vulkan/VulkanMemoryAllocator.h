@@ -70,8 +70,8 @@ namespace Tracy
 		vk::Result CreateBufferAllocation(const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
 
 		// Allocate resouce memory
-		vk::Result AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image);
-		vk::Result AllocateBufferMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
+		bool AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image);
+		bool AllocateBufferMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
 
 		// Materialize memory virtual allocation
 		void BindImageMemory(const VulkanAllocation& _Allocation, const vk::Image& _Image);

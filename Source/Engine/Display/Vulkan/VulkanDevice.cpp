@@ -260,7 +260,7 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 	if (LogVKErrorFailed(m_pAllocator->CreateImageAllocation(Info, _Image)))
 		return false;
 
-	if (LogVKErrorFailed(m_pAllocator->AllocateImageMemory(AllocInfo, _Allocation, _Image)))
+	if (m_pAllocator->AllocateImageMemory(AllocInfo, _Allocation, _Image) == false)
 		return false;
 
 	if (_Desc.pInitialData != nullptr && (_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= _Allocation.uSize)
@@ -276,6 +276,8 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 			m_Device.unmapMemory(_Allocation.Memory);
 		}
 	}
+
+	m_pAllocator->BindImageMemory(_Allocation, _Image);
 
 	return true;
 }
@@ -300,17 +302,19 @@ const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allo
 	Info.usage = GetBufferUsage(_Desc.kUsageFlag);
 
 	VulkanAllocationInfo AllocInfo{};
-	AllocInfo.kType = kAllocationType_GPU_Only;
+	AllocInfo.kType = kAllocationType_GPU_Only; // TODO: move this to the buffer desc & think about staging buffers
 
 	_Desc.uIdentifier = m_uBufferIdentifier.fetch_add(1u);
 
 	if (LogVKErrorFailed(m_pAllocator->CreateBufferAllocation(Info, _Buffer)))
 		return false;
 
-	if (LogVKErrorFailed(m_pAllocator->AllocateBufferMemory(AllocInfo, _Allocation, _Buffer)))
+	if (m_pAllocator->AllocateBufferMemory(AllocInfo, _Allocation, _Buffer) == false)
 		return false;
 
-	if (_Desc.pInitialData != nullptr && (_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= Info.size)
+	if (AllocInfo.kType == kAllocationType_CPU_Only &&
+		_Desc.pInitialData != nullptr &&
+		(_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= Info.size)
 	{
 		vk::MemoryMapFlags flags{};
 		void* pDeviceMem = nullptr;

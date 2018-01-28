@@ -7,7 +7,7 @@
 
 namespace Tracy
 {
-	enum class EGraphicsAPI
+	enum EGraphicsAPI
 	{
 		eVulkan = 0,
 		eD3D12

@@ -161,7 +161,6 @@
     <ClInclude Include="Display\Vulkan\VulkanBuffer.h">
       <Filter>Display\Vulkan\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="Display\Mesh.h" />
     <ClInclude Include="Display\Renderer.h">
       <Filter>Display</Filter>
     </ClInclude>
@@ -185,6 +184,18 @@
     </ClInclude>
     <ClInclude Include="Scene\Transform.h">
       <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Mesh.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\PrimitiveMeshGenerator.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\PrimitiveVertices.h">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.h">
+      <Filter>Display\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -260,5 +271,6 @@
     <ClCompile Include="Scene\Camera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.cpp" />
   </ItemGroup>
 </Project>

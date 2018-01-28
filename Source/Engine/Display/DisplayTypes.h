@@ -1005,8 +1005,8 @@ struct BufferDesc
 	uint64_t uIdentifier = HUNDEFINED64; // filled by device
 	size_t uSize = 0u;
 	const void* pInitialData = nullptr;
-	const size_t uInitialDataOffset = 0u;
-	const size_t uInitialDataSize = 0u; // must be in bounds with uSize
+	size_t uInitialDataOffset = 0u;
+	size_t uInitialDataSize = 0u; // must be in bounds with uSize
 	EBufferUsage kUsageFlag = kBufferUsage_None;
 };
 

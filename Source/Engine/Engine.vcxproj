@@ -120,6 +120,8 @@
     <ClInclude Include="Display\ImageSource.h" />
     <ClInclude Include="Display\Material.h" />
     <ClInclude Include="Display\Mesh.h" />
+    <ClInclude Include="Display\PrimitiveMeshGenerator.h" />
+    <ClInclude Include="Display\PrimitiveVertices.h" />
     <ClInclude Include="Display\Renderer.h" />
     <ClInclude Include="Display\RenderObject.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
@@ -132,6 +134,7 @@
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
     <ClInclude Include="Display\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Display\Vulkan\VulkanInstance.h" />
+    <ClInclude Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderGraph.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderPass.h" />
@@ -166,6 +169,7 @@
     <ClCompile Include="Display\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderGraph.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderPass.cpp" />
