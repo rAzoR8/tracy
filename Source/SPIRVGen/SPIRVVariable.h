@@ -9,6 +9,13 @@
 
 namespace Tracy
 {
+	enum EOpTypeBase : uint32_t
+	{
+		kOpTypeBase_Result,
+		kOpTypeBase_Operand1,
+		kOpTypeBase_Operand2,
+	};
+
 	constexpr uint32_t kAlignmentSize = 16u;
 
 	template <bool Assemble>
@@ -535,6 +542,25 @@ namespace Tracy
 		return spv::OpNop;
 	}
 
+	template <class Result, class Operand1 = Result, class Operand2 = Result, class ...Ops>
+	uint32_t OpTypeDeciderEx(const EOpTypeBase _kOpBase, const Ops ..._Ops)
+	{
+		if constexpr(sizeof...(_Ops) == 1)
+		{
+			return OpTypeDecider<base_type_t<Result>>(_Ops...);
+		}
+		else
+		{
+			switch (_kOpBase)
+			{
+			case kOpTypeBase_Result: return OpTypeDecider<base_type_t<Result>>(_Ops...);
+			case kOpTypeBase_Operand1: return OpTypeDecider<base_type_t<Operand1>>(_Ops...);
+			case kOpTypeBase_Operand2: return OpTypeDecider<base_type_t<Operand2>>(_Ops...);
+			default: return spv::OpNop;
+			}
+		}
+	}
+
 	//---------------------------------------------------------------------------------------------------
 
 	template <class U, class V, spv::StorageClass C1, spv::StorageClass C2>
@@ -557,10 +583,10 @@ namespace Tracy
 		{
 			LoadVariables(*this, _Other);
 
-			spv::Op kType = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+			spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kType, uTypeId, // result type
+			SPIRVOperation Op(kOpCode, uTypeId, // result type
 			{
 				SPIRVOperand(kOperandType_Intermediate, uResultId),
 				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
@@ -590,11 +616,11 @@ namespace Tracy
 		{
 			Load();
 
-			spv::Op kType = OpTypeDecider<BaseType>(_Ops...);
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+			spv::Op kOpCode = OpTypeDecider<BaseType>(_Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 			HASSERT(uTypeId != HUNDEFINED32, "Invalid type");
 
-			SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
+			SPIRVOperation Op(kOpCode, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
 			var.uResultId = GlobalAssembler.AddOperation(Op);
 		}
 
@@ -613,10 +639,10 @@ namespace Tracy
 		{
 			Load();
 
-			spv::Op kType = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
-			HASSERT(kType != spv::OpNop, "Invalid variable base type!");
+			spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
+			SPIRVOperation Op(kOpCode, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
 
 			uResultId = GlobalAssembler.AddOperation(Op);
 

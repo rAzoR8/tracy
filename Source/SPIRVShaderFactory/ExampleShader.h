@@ -61,7 +61,8 @@ namespace Tracy
 			//	OutputColor.a = length(OutputColor.rgb);
 			//});
 
-			OutputColor = float4(1.f, 0.f, 0.0f, 0.f);
+			//OutputColor = float4(1.f, 0.f, 0.0f, 0.f);
+			OutputColor.x = 1.f;
 		};
 	private:
 	};
