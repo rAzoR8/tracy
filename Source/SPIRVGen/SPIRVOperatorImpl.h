@@ -25,8 +25,8 @@ namespace Tracy
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
 			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
-			Op.AddIntermediate(l.uResultId);
-			Op.AddIntermediate(r.uResultId);
+			Op.AddIntermediate(l.uResultId); // operand1
+			Op.AddIntermediate(r.uResultId); // operand2
 
 			var.uResultId = GlobalAssembler.AddOperation(Op);
 		}
