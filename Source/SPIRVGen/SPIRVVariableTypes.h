@@ -455,6 +455,7 @@ namespace Tracy
 	template <class L, class R, class ElseT> // L * R
 	using conc_vm_t = cond_t<is_vector<L> && is_matrix<R>, vecxmat_t<R>, ElseT>;
 
+	// TODO: exclude quaternion to disable standard Mul overload
 	template <class L, class R> // L * R
 	using mul_result_t = cond_mm_t<L, R, cond_mv_t<L, R, conc_vm_t<L, R, longer_type_t<L, R>>>>;
 #pragma endregion

@@ -14,6 +14,7 @@ namespace Tracy
 		kOpTypeBase_Result,
 		kOpTypeBase_Operand1,
 		kOpTypeBase_Operand2,
+		kOpTypeBase_Operand3
 	};
 
 	constexpr uint32_t kAlignmentSize = 16u;
@@ -542,7 +543,7 @@ namespace Tracy
 		return spv::OpNop;
 	}
 
-	template <class Result, class Operand1 = Result, class Operand2 = Result, class ...Ops>
+	template <class Result, class Operand1 = Result, class Operand2 = Result, class Operand3 = Result, class ...Ops>
 	uint32_t OpTypeDeciderEx(const EOpTypeBase _kOpBase, const Ops ..._Ops)
 	{
 		if constexpr(sizeof...(_Ops) == 1)
@@ -556,6 +557,7 @@ namespace Tracy
 			case kOpTypeBase_Result: return OpTypeDecider<base_type_t<Result>>(_Ops...);
 			case kOpTypeBase_Operand1: return OpTypeDecider<base_type_t<Operand1>>(_Ops...);
 			case kOpTypeBase_Operand2: return OpTypeDecider<base_type_t<Operand2>>(_Ops...);
+			case kOpTypeBase_Operand3: return OpTypeDecider<base_type_t<Operand3>>(_Ops...);
 			default: return spv::OpNop;
 			}
 		}
@@ -563,10 +565,15 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	template <class U, class V, spv::StorageClass C1, spv::StorageClass C2>
-	inline void LoadVariables(const var_t<U, true, C1>& l, const var_t<V, true, C2>& r)
+	template <class U, spv::StorageClass C1, class ...Ts>
+	inline void LoadVariables(const var_t<U, true, C1>& var, const Ts& ... vars)
 	{
-		l.Load(); r.Load();
+		var.Load();
+
+		if constexpr(sizeof...(vars) > 0)
+		{
+			LoadVariables(vars...);
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------

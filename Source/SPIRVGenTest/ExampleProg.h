@@ -44,11 +44,14 @@ namespace Tracy
 			For(u32 e = 0u, e < size, ++e)
 			{
 				auto elem = TestArray[e];
-				sum += length(elem);
+				sum += Length(elem);
 			});
 
 			float3x4 m34;
 			float3 v3;
+			float3 a, b, c;
+			v3 = Fma(a,b,c);
+			v3 = Cross(a, b) * Dot(a, c);
 			//quaternion q1;// = { 1.f, 2.f, 3.f };
 			//quaternion q2;
 
@@ -57,13 +60,13 @@ namespace Tracy
 			auto sp = SpecConst<float>(2.f);
 
 			auto res = m34 * v3 * sp; // instead of using mul
-			auto k = length(res.xyz);
+			auto k = Length(res.xyz);
 
 			float2 offset = BufferBlock->Offset;
 			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)
 			{
 				OutputColor.rgb = InputImg.Sample(Sampler, BufferBlock->UVCoord + offset);
-				OutputColor.a = length(OutputColor.rgb);
+				OutputColor.a = Length(OutputColor.rgb);
 			});
 		};
 	private:

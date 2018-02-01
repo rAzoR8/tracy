@@ -103,6 +103,46 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// extension operation with three operands
+	template <class U, class V, class W, class OpFunc, bool Assemble,
+		spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3,
+		class T = std::invoke_result_t<OpFunc, const U&, const V&, const W&>, class ...Ops>
+	inline var_t<T, Assemble, spv::StorageClassFunction> make_ext_op3(
+		const var_t<U, Assemble, C1>& v1,
+		const var_t<V, Assemble, C2>& v2,
+		const var_t<W, Assemble, C3>& v3,
+		const OpFunc& _OpFunc, const std::string& _sExt, const EOpTypeBase _kOpTypeBase, const Ops ..._Ops)
+	{
+		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc(v1.Value, v2.Value, v3);
+		}
+		else
+		{
+			LoadVariables(v1, v2, v3);
+
+			spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V, W>(_kOpTypeBase, _Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
+
+			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
+			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
+
+			SPIRVOperation Op(spv::OpExtInst, var.uTypeId); // result type
+			Op.AddIntermediate(uExtId);
+			Op.AddLiteral(kOpCode); // instr opcode
+			Op.AddIntermediate(v1.uResultId);
+			Op.AddIntermediate(v2.uResultId);
+			Op.AddIntermediate(v3.uResultId);
+
+			var.uResultId = GlobalAssembler.AddOperation(Op);
+		}
+
+		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// OPERATOR IMPLEMENTATIONS
 	//---------------------------------------------------------------------------------------------------
 
@@ -154,7 +194,7 @@ namespace Tracy
 		else if constexpr(is_vector<V> && is_scalar<U>)
 			return make_op(r, l, [](const V& v1, const U& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpVectorTimesScalar);
 		else if constexpr(is_matrix<V> || is_matrix<U>)
-			return mul(l, r); // implementation below
+			return Mul(l, r); // implementation below
 		else
 			return make_op(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpFMul, spv::OpIMul);
 	}
@@ -352,133 +392,151 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// DOT
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_float<T>>>
+	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Dot(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const T& u, const T& v)-> base_type_t<T> {return glm::dot(u, v); }, kOpTypeBase_Result, spv::OpDot);
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// GLSLstd450 EXTENSION
 	//---------------------------------------------------------------------------------------------------
+	// https://www.khronos.org/registry/spir-v/specs/unified1/GLSL.std.450.pdf
 
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> radians(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Radians(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::radians(v1); }, ExtGLSL450, GLSLstd450Radians);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> degrees(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Degrees(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::degrees(v1); }, ExtGLSL450, GLSLstd450Degrees);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> sin(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Sin(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::sin(v1); }, ExtGLSL450, GLSLstd450Sin);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> cos(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Cos(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::cos(v1); }, ExtGLSL450, GLSLstd450Cos);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> tan(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Tan(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::tan(v1); }, ExtGLSL450, GLSLstd450Tan);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> asin(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Asin(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::asin(v1); }, ExtGLSL450, GLSLstd450Asin);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> acos(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Acos(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::acos(v1); }, ExtGLSL450, GLSLstd450Acos);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> atan(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Atan(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::atan(v1); }, ExtGLSL450, GLSLstd450Atan);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> sinh(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Sinh(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::sinh(v1); }, ExtGLSL450, GLSLstd450Sinh);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> cosh(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Cosh(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::cos(v1); }, ExtGLSL450, GLSLstd450Cosh);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> tanh(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Tanh(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::tan(v1); }, ExtGLSL450, GLSLstd450Tanh);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> asinh(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Asinh(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::asinh(v1); }, ExtGLSL450, GLSLstd450Asinh);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> acosh(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Acosh(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::acosh(v1); }, ExtGLSL450, GLSLstd450Acosh);
 	}
 	//---------------------------------------------------------------------------------------------------
 	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> atanh(const var_t<T, Assemble, C1>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Atanh(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::atanh(v1); }, ExtGLSL450, GLSLstd450Atanh);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// TODO: atan2
+	// TODO: atan2 etc
 
 	template <class T, bool Assemble, spv::StorageClass Class>
-	inline var_t<T, Assemble, spv::StorageClassFunction> sqrt(const var_t<T, Assemble, Class>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Sqrt(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::sqrt(v1); }, ExtGLSL450, GLSLstd450Sqrt);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// NORMALIZE
 	template <class T, bool Assemble, spv::StorageClass Class>
-	inline var_t<T, Assemble, spv::StorageClassFunction> normalize(const var_t<T, Assemble, Class>& l)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Normalize(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::normalize(v1); }, ExtGLSL450, GLSLstd450Normalize);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// LENGTH
 	template <class T, bool Assemble, spv::StorageClass Class>
-	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> length(const var_t<T, Assemble, Class>& l)
+	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Length(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::length(v1); }, ExtGLSL450, GLSLstd450Length);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// DISTANCE
-	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<float, Assemble, spv::StorageClassFunction> distance(const var_t<U, Assemble, C1>& l, const var_t<U, Assemble, C2>& r)
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Distance(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_ext_op2(l, r, [](const U& v1, const V& v2) {return glm::distance(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Distance);
+		return make_ext_op2(l, r, [](const T& v1, const T& v2) {return glm::distance(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Distance);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// CROSS
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2/*, class T = vec_type_t<FloatT, 3>*/>
-	inline var_t<T, Assemble, spv::StorageClassFunction> cross(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	inline var_t<T, Assemble, spv::StorageClassFunction> Cross(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
 		return make_ext_op2(l, r, [](const T& v1, const T& v2) -> T{return glm::cross(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Cross);
 	}
 	//---------------------------------------------------------------------------------------------------
+	// FMA
+	template <class A, class B, class C, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3,
+		typename = std::enable_if_t<is_base_float<A> && is_base_float<B> && is_base_float<C>>>
+	inline auto Fma(const var_t<A, Assemble, C1>& va, const var_t<B, Assemble, C2>& vb, const var_t<C, Assemble, C3>& vc)
+	{
+		return make_ext_op3(va, vb, vc, [](const A& a, const B& b, const C& c) {return a * b + c; }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Fma);
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// MUL
 	// vector * matrix
 	template <class M, bool Assemble,spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
-		inline var_t<row_type_t<M>, Assemble, spv::StorageClassFunction> mul(
+		inline var_t<row_type_t<M>, Assemble, spv::StorageClassFunction> Mul(
 			const var_t<col_type_t<M>, Assemble, C1>& l,
 			const var_t<M, Assemble, C2>& r)
 	{
@@ -487,7 +545,7 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// matrix * vector
 	template <class M, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
-		inline var_t<col_type_t<M>, Assemble, spv::StorageClassFunction> mul(
+		inline var_t<col_type_t<M>, Assemble, spv::StorageClassFunction> Mul(
 			const var_t<M, Assemble, C1>& l,
 			const var_t<row_type_t<M>, Assemble, C2>& r)
 	{
@@ -506,19 +564,11 @@ namespace Tracy
 		class R = mat_type_t<NRow, MCol>,
 		typename = std::enable_if_t<std::is_same_v<MRow, NCol>>
 		>
-		inline var_t<R, Assemble, spv::StorageClassFunction> mul(
+		inline var_t<R, Assemble, spv::StorageClassFunction> Mul(
 			const var_t<M, Assemble, C1>& l,
 			const var_t<N, Assemble, C2>& r)
 	{
 		return make_op(l, r, [](const M& m, const N& n)-> R {return m * n; }, kOpTypeBase_Result, spv::OpMatrixTimesMatrix);
-	}
-	//---------------------------------------------------------------------------------------------------
-	// DOT
-
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_float<T>>>
-	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> dot(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
-	{
-		return make_op(l, r, [](const T& u, const T& v)-> base_type_t<T> {return glm::dot(u, v); }, kOpTypeBase_Result, spv::OpDot);
 	}
 
 	//---------------------------------------------------------------------------------------------------
