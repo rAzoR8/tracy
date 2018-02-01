@@ -9,7 +9,7 @@ void GenerateSwizzleHeader()
 	std::string ups[4] = { "X", "Y", "Z", "W" };
 	char lows[2][4] = { { 'x', 'y', 'z', 'w' },{ 'r', 'g', 'b', 'a' } };
 
-	std::ofstream out("..\\SPIRVGen\\SPIRVVectorComponentAccess.h");
+	std::ofstream out("SPIRVVectorComponentAccess.h");
 
 	if (out.is_open())
 	{
@@ -27,7 +27,7 @@ void GenerateSwizzleHeader()
 		auto GetSet = [&]() {
 			// getter
 			out << sExtractType << " "
-				<< sFuncName << "() { return " << sExtract << "(); } " << std::endl;
+				<< sFuncName << "() const { return " << sExtract << "(); } " << std::endl;
 
 			// setter var
 			out << "template <spv::StorageClass C1> void "
