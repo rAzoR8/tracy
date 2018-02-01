@@ -48,7 +48,11 @@ namespace Tracy
 			});
 
 			float3x4 m34;
-			float3 v3;// = { 1.f, 2.f, 3.f };
+			float3 v3;
+			//quaternion q1;// = { 1.f, 2.f, 3.f };
+			//quaternion q2;
+
+			//auto q = q1 * q2;
 
 			auto sp = SpecConst<float>(2.f);
 

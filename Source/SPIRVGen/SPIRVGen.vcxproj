@@ -93,6 +93,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="SPIRVInlineAssembler.h" />
+    <ClInclude Include="SPIRVQuaternion.h" />
     <ClInclude Include="SPIRVVariableTypes.h" />
     <ClInclude Include="SPIRVAssembler.h" />
     <ClInclude Include="SPIRVBranchNode.h" />

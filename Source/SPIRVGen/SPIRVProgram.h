@@ -2,8 +2,10 @@
 #define TRACY_SPIRVPROGRAM_H
 
 #include "SPIRVOperatorImpl.h"
+//#include "SPIRVQuaternion.h"
 #include "SPIRVBranchNode.h"
 #include "glm\glm.hpp"
+#include <glm/gtc/quaternion.hpp>
 
 namespace Tracy
 {
@@ -63,6 +65,7 @@ namespace Tracy
 		using float2 = var<float2_t>;
 		using float3 = var<float3_t>;
 		using float4 = var<float4_t>;
+		//using quaternion = SPIRVQuaternion<Assemble, spv::StorageClassFunction>;
 
 		using float2x2 = var<float2x2_t>;
 		using float3x3 = var<float3x3_t>;

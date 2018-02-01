@@ -447,25 +447,35 @@ namespace Tracy
 		return make_ext_op1(l, [](const T& v1) {return glm::sqrt(v1); }, ExtGLSL450, GLSLstd450Sqrt);
 	}
 	//---------------------------------------------------------------------------------------------------
+	// NORMALIZE
 	template <class T, bool Assemble, spv::StorageClass Class>
 	inline var_t<T, Assemble, spv::StorageClassFunction> normalize(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::normalize(v1); }, ExtGLSL450, GLSLstd450Normalize);
 	}
 	//---------------------------------------------------------------------------------------------------
+	// LENGTH
 	template <class T, bool Assemble, spv::StorageClass Class>
 	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> length(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::length(v1); }, ExtGLSL450, GLSLstd450Length);
 	}
 	//---------------------------------------------------------------------------------------------------
+	// DISTANCE
 	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<float, Assemble, spv::StorageClassFunction> distance(const var_t<U, Assemble, C1>& l, const var_t<U, Assemble, C2>& r)
 	{
 		return make_ext_op2(l, r, [](const U& v1, const V& v2) {return glm::distance(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Distance);
 	}
 	//---------------------------------------------------------------------------------------------------
-
+	// CROSS
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2/*, class T = vec_type_t<FloatT, 3>*/>
+	inline var_t<T, Assemble, spv::StorageClassFunction> cross(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_ext_op2(l, r, [](const T& v1, const T& v2) -> T{return glm::cross(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Cross);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// MUL
 	// vector * matrix
 	template <class M, bool Assemble,spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
 		inline var_t<row_type_t<M>, Assemble, spv::StorageClassFunction> mul(
@@ -502,6 +512,15 @@ namespace Tracy
 	{
 		return make_op(l, r, [](const M& m, const N& n)-> R {return m * n; }, kOpTypeBase_Result, spv::OpMatrixTimesMatrix);
 	}
+	//---------------------------------------------------------------------------------------------------
+	// DOT
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_float<T>>>
+	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> dot(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const T& u, const T& v)-> base_type_t<T> {return glm::dot(u, v); }, kOpTypeBase_Result, spv::OpDot);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 
 }; //!Tracy

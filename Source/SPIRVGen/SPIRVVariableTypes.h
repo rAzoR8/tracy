@@ -214,6 +214,9 @@ namespace Tracy
 	struct base_type<float4_t> { typedef float type; };
 
 	template <>
+	struct base_type<quaternion_t> { typedef float type; };
+
+	template <>
 	struct base_type<int32_t> { typedef int32_t type; };
 
 	template <>
@@ -273,13 +276,39 @@ namespace Tracy
 		hlx::is_of_type<T,
 		int2_t, int3_t, int4_t,
 		uint2_t, uint3_t, uint4_t,
-		float2_t, float3_t, float4_t>();
+		float2_t, float3_t, float4_t,
+		quaternion_t>();
+
+	template <class T>
+	constexpr bool is_vector_float = hlx::is_of_type<T, float2_t, float3_t, float4_t, quaternion_t>();
+
+	template <class T>
+	constexpr bool is_vector_int = hlx::is_of_type<T, int2_t, int3_t, int4_t>();
+
+	template <class T>
+	constexpr bool is_vector_uint = hlx::is_of_type<T, uint2_t, uint3_t, uint4_t>();
+
+	template <class T>
+	constexpr bool is_vector_integer = hlx::is_of_type<T, int2_t, int3_t, int4_t, uint2_t, uint3_t, uint4_t();
 
 	template <class T>
 	constexpr bool is_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float3x4_t, float4x3_t, float4x4_t>();
 
 	template <class T>
 	constexpr bool is_square_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float4x4_t>();
+
+	// TODO: half & unorm etc
+	template <class T>
+	constexpr bool is_base_float = hlx::is_of_type<base_type_t<T>, float, double>();
+
+	template <class T>
+	constexpr bool is_base_int = hlx::is_of_type<base_type_t<T>, int32_t, int64_t>();
+
+	template <class T>
+	constexpr bool is_base_uint = hlx::is_of_type<base_type_t<T>, uint32_t, uint64_t>();
+
+	template <class T>
+	constexpr bool is_base_integer = is_base_int<T>() || is_base_uint<T>();
 
 #pragma region texture_types
 
@@ -396,6 +425,7 @@ namespace Tracy
 	template <class T>
 	constexpr bool is_valid_type = !std::is_same_v<std::false_type, T>;
 
+	// // why is there a float again? better rename to numeric type
 	template <class T>
 	constexpr bool is_base_integral_type = hlx::is_of_type<T, int32_t, uint32_t, float>();
 
