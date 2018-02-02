@@ -287,6 +287,9 @@ namespace Tracy
 	inline SPIRVType SPIRVType::FromBaseType<float4_t>() { return SPIRVType::Vec<float, 4>(); }
 
 	template<>
+	inline SPIRVType SPIRVType::FromBaseType<quaternion_t>() { return SPIRVType::Vec<float, 4>(); }
+
+	template<>
 	inline SPIRVType SPIRVType::FromBaseType<float4x4_t>() { return SPIRVType::Mat<float, 4, 4>(); }
 
 	template<>

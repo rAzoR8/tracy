@@ -31,11 +31,11 @@ void GenerateSwizzleHeader()
 
 			// setter var
 			out << "template <spv::StorageClass C1> void "
-				<< sFuncName << "(" + sInsertValue + " _var) { " + sInsert + "(_var);}" << std::endl;
+				<< sFuncName << "(" + sInsertValue + " _var) const { " + sInsert + "(_var);}" << std::endl;
 
 			// setter const
 			out << "void "
-				<< sFuncName << "(const " + sInsertConst + "& _var) { " + sInsert + "(var_t<"+ sInsertConst +", Assemble, spv::StorageClassFunction>(_var));}" << std::endl;
+				<< sFuncName << "(const " + sInsertConst + "& _var) const { " + sInsert + "(var_t<"+ sInsertConst +", Assemble, spv::StorageClassFunction>(_var));}" << std::endl;
 		};
 
 		for (uint32_t x = 0; x < 4; ++x)

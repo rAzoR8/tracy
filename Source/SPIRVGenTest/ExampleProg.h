@@ -52,10 +52,11 @@ namespace Tracy
 			float3 a, b, c;
 			v3 = Fma(a,b,c);
 			v3 = Cross(a, b) * Dot(a, c);
-			//quaternion q1;// = { 1.f, 2.f, 3.f };
-			//quaternion q2;
+			quaternion q1;// = { 1.f, 2.f, 3.f };
+			quaternion q2;
 
-			//auto q = q1 * q2;
+			auto q = q1 * q2;
+			q *= q2;
 
 			auto sp = SpecConst<float>(2.f);
 

@@ -8,7 +8,8 @@ using namespace Tracy;
 int main(int argc, char* argv[])
 {
 	//GenerateSwizzleHeader();
-
+	//ExampleProg<false> prog;
+	//prog();
 	GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
 	system("spirv-dis test.spv");
 	system("pause");

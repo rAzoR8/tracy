@@ -117,7 +117,7 @@ namespace Tracy
 
 		if constexpr(Assemble == false)
 		{
-			var.Value = _OpFunc(v1.Value, v2.Value, v3);
+			var.Value = _OpFunc(v1.Value, v2.Value, v3.Value);
 		}
 		else
 		{

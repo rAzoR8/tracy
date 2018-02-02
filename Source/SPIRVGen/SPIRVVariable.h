@@ -25,10 +25,14 @@ namespace Tracy
 	template <>
 	struct var_decoration<false>
 	{
-		template <class... Ts>
-		var_decoration(Ts&& ... _args) noexcept {} // consume arguments
-		//var_decoration(const var_decoration& _Other) {}
-		//var_decoration(var_decoration&& _Other) noexcept {}
+		//template <class... Ts>
+		//var_decoration(Ts&& ... _args) noexcept {} // consume arguments
+		var_decoration() noexcept {}
+		var_decoration(const var_decoration& _Other) noexcept {}
+		var_decoration(var_decoration&& _Other) noexcept {}
+		var_decoration(const spv::StorageClass _kStorageClass) noexcept {};
+		virtual ~var_decoration() {};
+
 		inline const var_decoration& operator=(var_decoration&& _Other) const noexcept { return *this; }
 		inline const var_decoration& operator=(const var_decoration& _Other) const noexcept { return *this; }
 		template <class T>
@@ -42,6 +46,7 @@ namespace Tracy
 		inline void SetLocation(const uint32_t _uLocation) noexcept {}
 		inline void SetIdentifier(const uint32_t _uIdentifier) noexcept {}
 		inline void MaterializeDecorations() const noexcept {};
+		inline void SetName(const std::string& _sName) noexcept {};
 	};
 
 	template <>
