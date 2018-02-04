@@ -31,165 +31,6 @@ namespace Tracy
 	using float4x3_t = glm::mat4x3; // transposed wrt to open gl
 	using float4x4_t = glm::mat4x4;
 	using matrix_t = glm::mat4x4;
-	
-#pragma region col_type
-	template <class MatrixT>
-	struct col_type { typedef std::false_type type; };
-
-	template<>
-	struct col_type<float2x2_t> { typedef float2_t type; };
-
-	template<>
-	struct col_type<float3x3_t> { typedef float3_t type; };
-
-	template<>
-	struct col_type<float3x4_t> { typedef float4_t type; };
-
-	template<>
-	struct col_type<float4x3_t> { typedef float3_t type; };
-
-	template<>
-	struct col_type<float4x4_t> { typedef float4_t type; };
-
-	template <class T>
-	using col_type_t = typename col_type<T>::type;
-#pragma endregion
-
-#pragma region row_type
-	template <class MatrixT>
-	struct row_type { typedef std::false_type type; };
-
-	template<>
-	struct row_type<float2x2_t> { typedef float2_t type; };
-
-	template<>
-	struct row_type<float3x3_t> { typedef float3_t type; };
-
-	template<>
-	struct row_type<float3x4_t> { typedef float3_t type; };
-
-	template<>
-	struct row_type<float4x3_t> { typedef float4_t type; };
-
-	template<>
-	struct row_type<float4x4_t> { typedef float4_t type; };
-
-	template <class T>
-	using row_type_t = typename row_type<T>::type;
-#pragma endregion
-
-#pragma region mat_type
-	template <class Row, class Col>
-	struct mat_type { typedef std::false_type type; };
-
-	template <>
-	struct mat_type<float2_t, float2_t> { typedef float2x2_t type; };
-
-	template <>
-	struct mat_type<float3_t, float3_t> { typedef float3x3_t type; };
-
-	template <>
-	struct mat_type<float4_t, float3_t> { typedef float4x3_t type; };
-
-	template <>
-	struct mat_type<float3_t, float4_t> { typedef float3x4_t type; };
-
-	template <>
-	struct mat_type<float4_t, float4_t> { typedef float4x4_t type; };
-
-	template <class Row, class Col>
-	using mat_type_t = typename mat_type<Row, Col>::type;
-#pragma endregion
-
-#pragma region va_type
-	// create type from typelist
-	template <class ...Ts>
-	struct va_type { typedef std::false_type type; };
-
-	template <>
-	struct va_type<bool> { typedef bool type; };
-
-	template <>
-	struct va_type<float> { typedef float type; };
-	template <>
-	struct va_type<float, float> { typedef float2_t type; };
-	template <>
-	struct va_type<float, float, float> { typedef float3_t type; };
-	template <>
-	struct va_type<float, float, float, float> { typedef float4_t type; };
-	template <>
-	struct va_type<double> { typedef double type; };
-
-	template <>
-	struct va_type<int32_t> { typedef int32_t type; };
-	template <>
-	struct va_type<int32_t, int32_t> { typedef int2_t type; };
-	template <>
-	struct va_type<int32_t, int32_t, int32_t> { typedef int3_t type; };
-	template <>
-	struct va_type<int32_t, int32_t, int32_t, int32_t> { typedef int4_t type; };
-	template <>
-	struct va_type<int64_t> { typedef int64_t type; };
-
-	template <>
-	struct va_type<uint32_t> { typedef uint32_t type; };
-	template <>
-	struct va_type<uint32_t, uint32_t> { typedef uint2_t type; };
-	template <>
-	struct va_type<uint32_t, uint32_t, uint32_t> { typedef uint3_t type; };
-	template <>
-	struct va_type<uint32_t, uint32_t, uint32_t, uint32_t> { typedef uint4_t type; };
-	template <>
-	struct va_type<uint64_t> { typedef uint64_t type; };
-
-	template <class ...Ts>
-	using va_type_t = typename va_type<typename std::decay_t<Ts>...>::type;
-#pragma endregion
-
-#pragma region vec_type
-	// create vector type from base type and dimension
-	template <class T, size_t Dim>
-	struct vec_type { typedef std::false_type type; }; // could also use glm::vec<Dim, T, highpr> but then dim == 1 is not a base type
-
-	template<>
-	struct vec_type<float, 1> { typedef float type; };
-
-	template<>
-	struct vec_type<float, 2> { typedef float2_t type; };
-
-	template<>
-	struct vec_type<float, 3> { typedef float3_t type; };
-
-	template<>
-	struct vec_type<float, 4> { typedef float4_t type; };
-
-	template<>
-	struct vec_type<int32_t, 1> { typedef int32_t type; };
-
-	template<>
-	struct vec_type<int32_t, 2> { typedef int2_t type; };
-
-	template<>
-	struct vec_type<int32_t, 3> { typedef int3_t type; };
-
-	template<>
-	struct vec_type<int32_t, 4> { typedef int4_t type; };
-
-	template<>
-	struct vec_type<uint32_t, 1> { typedef uint32_t type; };
-
-	template<>
-	struct vec_type<uint32_t, 2> { typedef uint2_t type; };
-
-	template<>
-	struct vec_type<uint32_t, 3> { typedef uint3_t type; };
-
-	template<>
-	struct vec_type<uint32_t, 4> { typedef uint4_t type; };
-
-	template <class T, size_t Dim>
-	using vec_type_t = typename vec_type<T, Dim>::type;
-#pragma endregion
 
 #pragma region base_type
 	template <class VecT>
@@ -260,13 +101,276 @@ namespace Tracy
 
 	template <>
 	struct base_type<float4x4_t> { typedef float type; };
-	
+
 	template <class VecT>
 	using base_type_t = typename base_type<VecT>::type;
 #pragma endregion
 
 	template <class T>
 	constexpr size_t Dimmension = sizeof(T) / sizeof(base_type_t<T>);
+
+#pragma region primitive_type
+
+	// TODO: half, unorm etc
+	template <class T>
+	struct primitive_type { typedef std::false_type type; };
+
+	template <>
+	struct primitive_type<bool> { typedef bool type; };
+
+	template <>
+	struct primitive_type<float> { typedef float type; };
+
+	template <>
+	struct primitive_type<double> { typedef double type; };
+
+	template <>
+	struct primitive_type<int16_t> { typedef int16_t type; };
+
+	template <>
+	struct primitive_type<int32_t> { typedef int32_t type; };
+
+	template <>
+	struct primitive_type<int64_t> { typedef int64_t type; };
+
+	template <>
+	struct primitive_type<uint16_t> { typedef uint16_t type; };
+
+	template <>
+	struct primitive_type<uint32_t> { typedef uint32_t type; };
+
+	template <>
+	struct primitive_type<uint64_t> { typedef uint64_t type; };
+
+	template <class T>
+	using primitive_type_t = typename primitive_type<T>::type; //typename std::decay_t<T>
+#pragma endregion
+
+#pragma region col_type
+	template <class MatrixT>
+	struct col_type { typedef std::false_type type; };
+
+	template<>
+	struct col_type<float2x2_t> { typedef float2_t type; };
+
+	template<>
+	struct col_type<float3x3_t> { typedef float3_t type; };
+
+	template<>
+	struct col_type<float3x4_t> { typedef float4_t type; };
+
+	template<>
+	struct col_type<float4x3_t> { typedef float3_t type; };
+
+	template<>
+	struct col_type<float4x4_t> { typedef float4_t type; };
+
+	template <class T>
+	using col_type_t = typename col_type<T>::type;
+#pragma endregion
+
+#pragma region row_type
+	template <class MatrixT>
+	struct row_type { typedef std::false_type type; };
+
+	template<>
+	struct row_type<float2x2_t> { typedef float2_t type; };
+
+	template<>
+	struct row_type<float3x3_t> { typedef float3_t type; };
+
+	template<>
+	struct row_type<float3x4_t> { typedef float3_t type; };
+
+	template<>
+	struct row_type<float4x3_t> { typedef float4_t type; };
+
+	template<>
+	struct row_type<float4x4_t> { typedef float4_t type; };
+
+	template <class T>
+	using row_type_t = typename row_type<T>::type;
+#pragma endregion
+
+#pragma region mat_type
+	template <class Row, class Col>
+	struct mat_type { typedef std::false_type type; };
+
+	template <>
+	struct mat_type<float2_t, float2_t> { typedef float2x2_t type; };
+
+	template <>
+	struct mat_type<float3_t, float3_t> { typedef float3x3_t type; };
+
+	template <>
+	struct mat_type<float4_t, float3_t> { typedef float4x3_t type; };
+
+	template <>
+	struct mat_type<float3_t, float4_t> { typedef float3x4_t type; };
+
+	template <>
+	struct mat_type<float4_t, float4_t> { typedef float4x4_t type; };
+
+	template <class Row, class Col>
+	using mat_type_t = typename mat_type<Row, Col>::type;
+#pragma endregion
+
+#pragma region mat_type_dim
+	template <class T, size_t Row, size_t Col>
+	struct mat_type_dim { typedef std::false_type type; };
+
+	template <>
+	struct mat_type_dim<float, 2, 2> { typedef float2x2_t type; };
+
+	template <>
+	struct mat_type_dim<float, 3, 3> { typedef float3x3_t type; };
+
+	template <>
+	struct mat_type_dim<float, 3, 4> { typedef float3x4_t type; };
+
+	template <>
+	struct mat_type_dim<float, 4, 3> { typedef float4x3_t type; };
+
+	template <>
+	struct mat_type_dim<float, 4, 4> { typedef float4x4_t type; };
+
+	template <class T, size_t Row, size_t Col>
+	using mat_type_dim_t = typename mat_type_dim<T, Row, Col>::type;
+#pragma endregion
+
+#pragma region mat_dims
+	template <class T, class Row = row_type_t<T>, class Col = col_type_t<T>>
+	struct mat_dim { static constexpr uint32_t Rows = Dimmension<Row>; static constexpr uint32_t Cols = Dimmension<Col>; };
+#pragma endregion
+
+#pragma region va_type
+	// create type from typelist
+	template <class ...Ts>
+	struct va_type { typedef std::false_type type; };
+
+	template <>
+	struct va_type<bool> { typedef bool type; };
+
+	template <>
+	struct va_type<float> { typedef float type; };
+	template <>
+	struct va_type<float, float> { typedef float2_t type; };
+	template <>
+	struct va_type<float, float, float> { typedef float3_t type; };
+	template <>
+	struct va_type<float, float, float, float> { typedef float4_t type; };
+
+	template <>
+	struct va_type<float2_t> { typedef float2_t type; };
+	template <>
+	struct va_type<float3_t> { typedef float3_t type; };
+	template <>
+	struct va_type<float4_t> { typedef float4_t type; };
+
+	template <>
+	struct va_type<double> { typedef double type; };
+
+	template <>
+	struct va_type<int32_t> { typedef int32_t type; };
+	template <>
+	struct va_type<int32_t, int32_t> { typedef int2_t type; };
+	template <>
+	struct va_type<int32_t, int32_t, int32_t> { typedef int3_t type; };
+	template <>
+	struct va_type<int32_t, int32_t, int32_t, int32_t> { typedef int4_t type; };
+
+	template <>
+	struct va_type<int2_t> { typedef int2_t type; };
+	template <>
+	struct va_type<int3_t> { typedef int3_t type; };
+	template <>
+	struct va_type<int4_t> { typedef int4_t type; };
+
+	template <>
+	struct va_type<int64_t> { typedef int64_t type; };
+
+	template <>
+	struct va_type<uint32_t> { typedef uint32_t type; };
+	template <>
+	struct va_type<uint32_t, uint32_t> { typedef uint2_t type; };
+	template <>
+	struct va_type<uint32_t, uint32_t, uint32_t> { typedef uint3_t type; };
+	template <>
+	struct va_type<uint32_t, uint32_t, uint32_t, uint32_t> { typedef uint4_t type; };
+
+	template <>
+	struct va_type<uint2_t> { typedef uint2_t type; };
+	template <>
+	struct va_type<uint3_t> { typedef uint3_t type; };
+	template <>
+	struct va_type<uint4_t> { typedef uint4_t type; };
+
+	template <>
+	struct va_type<uint64_t> { typedef uint64_t type; };
+
+	template <>
+	struct va_type<float2x2_t> { typedef float2x2_t type; };
+	template <>
+	struct va_type<float3x3_t> { typedef float3x3_t type; };
+	template <>
+	struct va_type<float3x4_t> { typedef float3x4_t type; };
+	template <>
+	struct va_type<float4x3_t> { typedef float4x3_t type; };
+	template <>
+	struct va_type<float4x4_t> { typedef float4x4_t type; };
+
+	template <class ...Ts>
+	using va_type_t = typename va_type<typename std::decay_t<Ts>...>::type;
+
+	template <class ...Ts, class Ret = va_type_t<Ts...>>
+	inline Ret va_type_var(const Ts&... _args) { return Ret{ _args... }; }
+
+#pragma endregion
+
+#pragma region vec_type
+	// create vector type from base type and dimension
+	template <class T, size_t Dim>
+	struct vec_type { typedef std::false_type type; }; // could also use glm::vec<Dim, T, highpr> but then dim == 1 is not a base type
+
+	template<>
+	struct vec_type<float, 1> { typedef float type; };
+
+	template<>
+	struct vec_type<float, 2> { typedef float2_t type; };
+
+	template<>
+	struct vec_type<float, 3> { typedef float3_t type; };
+
+	template<>
+	struct vec_type<float, 4> { typedef float4_t type; };
+
+	template<>
+	struct vec_type<int32_t, 1> { typedef int32_t type; };
+
+	template<>
+	struct vec_type<int32_t, 2> { typedef int2_t type; };
+
+	template<>
+	struct vec_type<int32_t, 3> { typedef int3_t type; };
+
+	template<>
+	struct vec_type<int32_t, 4> { typedef int4_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 1> { typedef uint32_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 2> { typedef uint2_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 3> { typedef uint3_t type; };
+
+	template<>
+	struct vec_type<uint32_t, 4> { typedef uint4_t type; };
+
+	template <class T, size_t Dim>
+	using vec_type_t = typename vec_type<T, Dim>::type;
+#pragma endregion
 
 	template <class T>
 	constexpr bool is_scalar = std::is_same_v<T, base_type_t<T>>;

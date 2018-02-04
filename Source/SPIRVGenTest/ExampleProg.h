@@ -48,11 +48,11 @@ namespace Tracy
 			});
 
 			float3x4 m34;
-			float3 v3;
+			float3 v3 = { 1.f, 2.f, 3.f };
 			float3 a, b, c;
-			v3 = Fma(a,b,c);
-			v3 = Cross(a, b) * Dot(a, c);
-			quaternion q1;// = { 1.f, 2.f, 3.f };
+			v3 = Fma(a, float3{ 1.f, 2.f, 3.f }, c);
+			//v3 = Cross(a, b) * Dot(a, c);
+			quaternion q1 = quaternion(v3, sum);
 			quaternion q2;
 
 			auto q = q1 * q2;

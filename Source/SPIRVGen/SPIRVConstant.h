@@ -20,11 +20,14 @@ namespace Tracy
 			const SPIRVType& _CompositeType,
 			const std::vector<SPIRVConstant>& _Components);
 
-		~SPIRVConstant();
-		
-		// composite & scalar constructor
-		template<bool Spec, class T, class ...Ts>
-		static SPIRVConstant Make(T&& first, Ts&& ..._args);
+		~SPIRVConstant();		
+
+		// null
+		inline static SPIRVConstant Make() { return SPIRVConstant(spv::OpConstantNull); };
+
+		// primitive
+		template<class T>
+		static SPIRVConstant Make(const T& _const, const bool _bSpec = false);
 
 		SPIRVConstant(const SPIRVConstant& _Other);
 
@@ -56,7 +59,6 @@ namespace Tracy
 	{
 		return m_Constants;
 	}
-
 	inline const std::vector<SPIRVConstant>& SPIRVConstant::GetComponents() const noexcept
 	{
 		return m_Components;
@@ -106,7 +108,7 @@ namespace Tracy
 	
 	// Helper
 	template<class T, class ...Ts>
-	inline std::vector<uint32_t> MakeLiterals(T&& _Constant, Ts&& ..._args)
+	inline std::vector<uint32_t> MakeLiterals(const T& _Constant, const Ts& ..._args)
 	{
 		// compute number of uint32_t chunks needed to represent the constants
 		const size_t uCount = std::max<size_t>(LiteralCount(sizeof(T)), 1ull);
@@ -115,7 +117,7 @@ namespace Tracy
 
 		if constexpr(sizeof...(_args) > 0u)
 		{
-			auto&& vec = MakeLiterals(std::forward<Ts>(_args)...);
+			auto&& vec = MakeLiterals(_args...);
 			ConstData.insert(ConstData.end(), vec.begin(), vec.end());
 		}
 
@@ -124,73 +126,58 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-	template<bool Spec, class T, class ...Ts>
-	inline SPIRVConstant SPIRVConstant::Make(T&& first, Ts && ..._args)
+	template<class T>
+	inline SPIRVConstant SPIRVConstant::Make(const T& _const, const bool _bSpec)
 	{
-		constexpr size_t uSize = sizeof ...(_args)+1u;
-		constexpr bool bIsBool = std::is_same_v<T, bool> && uSize == 1u;
+		constexpr bool SupportedType = std::is_same_v<T, bool> || is_scalar<T> || is_vector<T> || is_matrix<T>;
+		static_assert(SupportedType, "Type not supported for spirv constant");
 
-		static_assert(std::is_arithmetic<std::decay_t<T>>::value || bIsBool, "Invalid composite type!");
-		static_assert(hlx::is_same_type<T, Ts...>() || bIsBool, "Composite types mismatch!");
-
-		if constexpr(bIsBool)
+		if constexpr(std::is_same_v<T, bool>)
 		{
-			if constexpr(Spec)
-				return SPIRVConstant(first ? spv::OpSpecConstantTrue : spv::OpSpecConstantFalse);
+			if (_bSpec)
+				return SPIRVConstant(_const ? spv::OpSpecConstantTrue : spv::OpSpecConstantFalse);
 			else
-				return SPIRVConstant(first ? spv::OpConstantTrue : spv::OpConstantFalse);
+				return SPIRVConstant(_const ? spv::OpConstantTrue : spv::OpConstantFalse);
 		}
-		else if constexpr (1u == uSize)
+		else if constexpr(is_scalar<T>)
 		{
 			return SPIRVConstant(
-				Spec ? spv::OpSpecConstant : spv::OpConstant,
-				SPIRVType::Primitive<T>(),
-				MakeLiterals(std::forward<T>(first)));
+				_bSpec ? spv::OpSpecConstant : spv::OpConstant,
+				SPIRVType::FromType<T>(),
+				MakeLiterals(_const));
 		}
-		else if constexpr(uSize < 5u) // 2-4
+		else if constexpr(is_vector<T>)
 		{
-			return SPIRVConstant(
-				Spec ? spv::OpSpecConstantComposite : spv::OpConstantComposite,
-				SPIRVType::Vec<T, uSize>(),
-				{
-					Make<Spec>(std::forward<T>(first)),
-					Make<Spec>(std::forward<Ts>(_args))...
-				});
-		}
-		else if constexpr (uSize >= 5u)// matrix
-		{
-			uint32_t uRow = 0;
-			uint32_t uCol = 0;
-
-			switch (uSize)
+			constexpr uint32_t N{ Dimmension<T> };
+			std::vector<SPIRVConstant> Components; // elements
+			for (uint32_t i = 0; i < N; ++i)
 			{
-			//case 4u:
-			//	uRow = uCol = 2;
-			//	break;
-			case 9u:
-				uRow = uCol = 3;
-				break;
-			case 12u:
-				uRow = 4; uCol = 3; // always assuming 4x3 matrix
-				break;
-			case 16u:
-				uRow = 4; uCol = 4;
-				break;
-			default:
-				HFATAL("Unsuppored number of arguments for constant");
-				break;
+				Components.emplace_back(Make(_const[i], _bSpec)); // not sure if spec needs to be propagated
 			}
 
 			return SPIRVConstant(
-				spv::OpConstantComposite,
-				SPIRVType::Mat<T>(uRow, uCol),
-				{
-					Make<Spec>(std::forward<T>(first)),
-					Make<Spec>(std::forward<Ts>(_args))...
-				});
+				_bSpec ? spv::OpSpecConstantComposite : spv::OpConstantComposite,
+				SPIRVType::FromType<T>(),
+				Components);
 		}
+		else if constexpr(is_matrix<T>)
+		{
+			constexpr uint32_t N = mat_dim<T>::Rows;
+			std::vector<SPIRVConstant> Components; // cols
+			for (uint32_t i = 0; i < N; ++i)
+			{
+				Components.emplace_back(Make(_const[i], _bSpec)); // not sure if spec needs to be propagated
+			}
 
-		return SPIRVConstant(spv::OpConstantNull);
+			return SPIRVConstant(
+				_bSpec ? spv::OpSpecConstantComposite : spv::OpConstantComposite,
+				SPIRVType::FromType<T>(),
+				Components);
+		}
+		else
+		{		
+			return SPIRVConstant(spv::OpConstantNull);
+		}
 	}
 
 }; // Tracy

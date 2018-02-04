@@ -79,7 +79,7 @@ uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
 
 		for (const uint32_t& uMemberIdx : AccessChain)
 		{
-			OpAccessChain.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make<false>(uMemberIdx)));
+			OpAccessChain.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(uMemberIdx)));
 		}
 
 		uVarId = GlobalAssembler.AddOperation(OpAccessChain);

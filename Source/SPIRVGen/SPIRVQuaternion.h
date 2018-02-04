@@ -2,7 +2,7 @@
 #define TRACY_SPIRVQUATERNION_H
 
 #include "SPIRVOperatorImpl.h"
-
+//http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
 namespace Tracy
 {
 	template <bool Assemble = true, spv::StorageClass Class = spv::StorageClassFunction>
@@ -10,9 +10,42 @@ namespace Tracy
 	{
 		using var_t::var_t;
 
+		SPIRVQuaternion() {};
+
+		//template <spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, spv::StorageClass C4>
+		//SPIRVQuaternion(const var_t<float, Assemble, C1>& x, const var_t<float, Assemble, C2>& y, const var_t<float, Assemble, C3>& z, const var_t<float, Assemble, C3>& w);
+
+		// construct from rotation axis & radian angle
+		template <spv::StorageClass C1, spv::StorageClass C2>
+		SPIRVQuaternion(const var_t<float3_t, Assemble, C1>& _vAxis, const var_t<float, Assemble, C2>& _fAngleRad);
+
 		template <spv::StorageClass C1>
 		const SPIRVQuaternion& operator*=(const SPIRVQuaternion<Assemble, C1>& _Other) const;
 	};
+
+	//template<bool Assemble, spv::StorageClass Class>
+	//template<spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, spv::StorageClass C4>
+	//inline SPIRVQuaternion<Assemble, Class>::SPIRVQuaternion(const var_t<float, Assemble, C1>& x, const var_t<float, Assemble, C2>& y, const var_t<float, Assemble, C3>& z, const var_t<float, Assemble, C3>& w) :
+	//{
+	//}
+
+	//---------------------------------------------------------------------------------------------------
+	template<bool Assemble, spv::StorageClass Class>
+	template<spv::StorageClass C1, spv::StorageClass C2>
+	inline SPIRVQuaternion<Assemble, Class>::SPIRVQuaternion(const var_t<float3_t, Assemble, C1>& _vAxis, const var_t<float, Assemble, C2>& _fAngleRad)
+	{
+		if constexpr(Assemble == false)
+		{
+			Value = glm::angleAxis(_fAngleRad, _vAxis); //glm::degrees(_fAngleRad)
+		}
+		else
+		{
+			auto a = _fAngleRad * 0.5f;
+			xyz = _vAxis * Sin(a);
+			w = Cos(a);
+		}
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// Helper function
 

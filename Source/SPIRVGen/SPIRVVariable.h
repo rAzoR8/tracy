@@ -223,7 +223,7 @@ namespace Tracy
 
 				for (const uint32_t& uMemberIdx : AccessChain)
 				{
-					OpAccessChain.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make<false>(uMemberIdx)));
+					OpAccessChain.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(uMemberIdx)));
 				}
 
 				OpAccessChain.AddIntermediate(uIndexId);
@@ -816,7 +816,7 @@ namespace Tracy
 
 				if constexpr(uArgs > 0)
 				{
-					SPIRVConstant Constant = SPIRVConstant::Make<true>(_args...);
+					SPIRVConstant Constant = SPIRVConstant::Make(va_type_var(_args...), true);
 					uResultId = GlobalAssembler.AddConstant(Constant);
 
 					uSpecConstId = (SpecId != HUNDEFINED32) ? SpecId : GlobalAssembler.GetCurrentSpecConstId();
@@ -950,7 +950,7 @@ namespace Tracy
 		else
 		{
 			// create component constant
-			SPIRVConstant Constant = SPIRVConstant::Make<false>(_First);
+			SPIRVConstant Constant = SPIRVConstant::Make(_First);
 			const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
 			_Op.AddIntermediate(uConstId);
 		}
@@ -983,7 +983,7 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class ...Ts>
-	inline void var_t<T, Assemble, Class>::InitVar(const Ts & ..._args)
+	inline void var_t<T, Assemble, Class>::InitVar(const Ts& ..._args)
 	{
 		constexpr size_t uArgs = sizeof...(_args);
 		if constexpr(Assemble)
@@ -1037,7 +1037,7 @@ namespace Tracy
 
 				if constexpr(uArgs > 0u)
 				{
-					SPIRVConstant Constant = SPIRVConstant::Make<false>(_args...);
+					SPIRVConstant Constant = SPIRVConstant::Make(va_type_var(_args...));
 					const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
 					OpCreateVar.AddIntermediate(uConstId);
 				}
