@@ -19,7 +19,7 @@ namespace Tracy
 
 		inline bool Decrement()
 		{
-			if ((uRefCount--) == 0u)
+			if ((uRefCount--) == 1u) // this was the last instance
 			{
 				if (pData != nullptr)
 				{

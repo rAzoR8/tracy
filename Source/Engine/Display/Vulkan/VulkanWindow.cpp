@@ -15,35 +15,35 @@ VulkanWindow::VulkanWindow(const vk::Instance& _Instance, const THandle _uHandle
 	SurfaceDesc.hwnd = _hWnd;
 	SurfaceDesc.hinstance = _hInstance;
 
-	HASSERT(_Instance.createWin32SurfaceKHR(&SurfaceDesc, nullptr, &m_Surface) == vk::Result::eSuccess, "Failed to create Win32 Surface");
+	if (LogVKErrorFailed(_Instance.createWin32SurfaceKHR(&SurfaceDesc, nullptr, &m_Surface)))
+	{
+		HFATALD("Failed to create Win32 Surface");	
+	}
 }
 #endif
 
 //---------------------------------------------------------------------------------------------------
 VulkanWindow::VulkanWindow(VulkanWindow&& _Other) :
-	m_Surface(nullptr),
-	m_Swapchain(nullptr),
-	m_uWidth(0u),
-	m_uHeight(0u),
-	m_hThis(kUndefinedSizeT),
-	m_hPresentDevice(kUndefinedSizeT)
+	m_Surface(std::move(_Other.m_Surface)),
+	m_Swapchain(std::move(_Other.m_Swapchain)),
+	m_uWidth(_Other.m_uWidth),
+	m_uHeight(_Other.m_uHeight),
+	m_hThis(_Other.m_hThis),
+	m_hPresentDevice(_Other.m_hPresentDevice),
+	m_Backbuffer(std::move(_Other.m_Backbuffer)),
+	m_Capabilities(std::move(_Other.m_Capabilities)),
+	m_Formats(std::move(_Other.m_Formats)),
+	m_PresentModes(std::move(_Other.m_PresentModes))
 {
-	m_Surface = std::move(_Other.m_Surface);
-	m_Swapchain = std::move(_Other.m_Swapchain);
-	m_Capabilities = std::move(_Other.m_Capabilities);
-	m_Formats = std::move(_Other.m_Formats);
-	m_PresentModes = std::move(_Other.m_PresentModes);
-	m_uWidth = _Other.m_uWidth;
-	m_uHeight = _Other.m_uHeight;
-	m_hThis = _Other.m_hThis;
-	m_hPresentDevice = _Other.m_hPresentDevice;
+	_Other.m_hThis = kUndefinedSizeT;
+	_Other.m_hPresentDevice = kUndefinedSizeT;
 
 	_Other.m_Surface = nullptr;
 	_Other.m_Swapchain = nullptr;
 }
 
 //---------------------------------------------------------------------------------------------------
-VulkanWindow& Tracy::VulkanWindow::operator=(VulkanWindow&& _Other)
+VulkanWindow& VulkanWindow::operator=(VulkanWindow&& _Other)
 {
 	if (this != &_Other)
 	{
@@ -57,6 +57,7 @@ VulkanWindow& Tracy::VulkanWindow::operator=(VulkanWindow&& _Other)
 		m_Capabilities = std::move(_Other.m_Capabilities);
 		m_Formats = std::move(_Other.m_Formats);
 		m_PresentModes = std::move(_Other.m_PresentModes);
+		m_Backbuffer = std::move(_Other.m_Backbuffer);
 		m_uWidth = _Other.m_uWidth;
 		m_uHeight = _Other.m_uHeight;
 		m_hThis = _Other.m_hThis;
@@ -65,6 +66,9 @@ VulkanWindow& Tracy::VulkanWindow::operator=(VulkanWindow&& _Other)
 		// cleanup _Other
 		_Other.m_Surface = nullptr;
 		_Other.m_Swapchain = nullptr;
+
+		_Other.m_hThis = kUndefinedSizeT;
+		_Other.m_hPresentDevice = kUndefinedSizeT;
 	}
 
 	return *this;
@@ -96,6 +100,9 @@ VulkanWindow::~VulkanWindow()
 //---------------------------------------------------------------------------------------------------
 const bool VulkanWindow::Init(const VulkanDevice& _Device, const uint32_t _uWidth, const uint32_t _uHeight)
 {
+	if (!m_Surface)
+		return false;
+
 	// Check if the device can present to surface
 	if (_Device.PresentSupport(m_Surface) == false)
 	{
@@ -103,7 +110,6 @@ const bool VulkanWindow::Init(const VulkanDevice& _Device, const uint32_t _uWidt
 	}
 
 	// Get Physical device and store the handle of the device
-	const vk::PhysicalDevice& DeviceHandle = _Device.GetAdapter();
 	m_hPresentDevice = _Device.GetHandle();
 	HASSERT(m_hPresentDevice != kUndefinedSizeT, "Invalid present device handle");
 
@@ -117,32 +123,41 @@ const bool VulkanWindow::Init(const VulkanDevice& _Device, const uint32_t _uWidt
 //---------------------------------------------------------------------------------------------------
 const bool VulkanWindow::OnResize(const uint32_t _uWidth, const uint32_t _uHeight)
 {
-	CreateSwapchain(_uWidth, _uHeight);
+	return CreateSwapchain(_uWidth, _uHeight);
+}
+
+//---------------------------------------------------------------------------------------------------
+bool VulkanWindow::ReloadSurfaceInfo()
+{
+	const vk::PhysicalDevice& Device = GetDevice(m_hPresentDevice).GetAdapter();
+
+	// Fetch all useful data
+	if(LogVKErrorFailed(Device.getSurfaceCapabilitiesKHR(m_Surface, &m_Capabilities)))
+		return false;
+
+	m_Formats = Device.getSurfaceFormatsKHR(m_Surface);
+	if (m_Formats.empty())
+	{
+		HERROR("Failed to retrieve supported surface formats.");
+		return false;
+	}
+
+	m_PresentModes = Device.getSurfacePresentModesKHR(m_Surface);
+	if (m_PresentModes.empty())
+	{
+		HERROR("Failed to retrieve supported surface present modes.");
+		return false;
+	}
 
 	return true;
 }
 
 //---------------------------------------------------------------------------------------------------
-void VulkanWindow::ReloadSurfaceInfo()
-{
-	const vk::PhysicalDevice& DeviceHandle = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetAdapter();
-
-	// Fetch all useful data
-	vk::Result res = DeviceHandle.getSurfaceCapabilitiesKHR(m_Surface, &m_Capabilities);
-	HASSERT(res == vk::Result::eSuccess, "Failed to retrieve surface capabilities.");
-
-	m_Formats = DeviceHandle.getSurfaceFormatsKHR(m_Surface);
-	HASSERT(m_Formats.size() > 0u, "Failed to retrieve supported surface formats.");
-
-	m_PresentModes = DeviceHandle.getSurfacePresentModesKHR(m_Surface);
-	HASSERT(m_PresentModes.size() > 0u, "Failed to retrieve supported surface present modes.");
-}
-
-//---------------------------------------------------------------------------------------------------
-void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight)
+bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight)
 {
 	// Retrieve updated info from os layer
-	ReloadSurfaceInfo();
+	if (ReloadSurfaceInfo() == false)
+		return false;
 
 	// Cache old swapchain for release
 	vk::SwapchainKHR OldSwapchain = m_Swapchain;
@@ -302,8 +317,8 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	// Create Swapchain
 	//
 	const vk::Device& Device = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetDevice();
-	vk::Result Res = Device.createSwapchainKHR(&SwapchainDesc, nullptr, &m_Swapchain);
-	HASSERT(Res == vk::Result::eSuccess, "Failed to create swapchain");
+	if (LogVKErrorFailed(Device.createSwapchainKHR(&SwapchainDesc, nullptr, &m_Swapchain)))
+		return false;
 
 	//
 	// Clean-up old Swapchain if present
@@ -347,5 +362,7 @@ void VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 		Views[kViewType_RenderTarget] = Device.createImageView(ColorView);
 		m_Backbuffer.emplace_back(m_hPresentDevice, Image, vk::ImageLayout::eUndefined, Views);
 	}
+
+	return true;
 }
 //---------------------------------------------------------------------------------------------------

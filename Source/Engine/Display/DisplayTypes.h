@@ -2,6 +2,7 @@
 #define TRACY_DISPLAYTYPES_H
 
 #include "StandardDefines.h"
+#include "Flag.h"
 
 namespace Tracy
 {
@@ -18,6 +19,15 @@ namespace Tracy
 		kShaderType_NumOf,
 		kShaderType_Unknown = kShaderType_NumOf
 	};
+
+	enum EResourceAccess : uint32_t
+	{
+		kResourceAccess_None = 0,
+		kResourceAccess_CPUVisible = 1 << 0,
+		kResourceAccess_GPUVisible = 1 << 1,
+	};
+
+	using TResourceAccessFlag = hlx::Flag<EResourceAccess>;
 
 	struct ShaderID
 	{
@@ -993,6 +1003,7 @@ struct TextureDesc
 	EFormat kFormat = kFormat_Undefined;
 	ETextureUsage kUsageFlag = kTextureUsage_None;
 	ETextureType kType = kTextureType_Invalid;
+	TResourceAccessFlag kAccessFlag = kResourceAccess_GPUVisible;
 
 	const void* pInitialData = nullptr;
 	const size_t uInitialDataOffset = 0u;
@@ -1008,6 +1019,7 @@ struct BufferDesc
 	size_t uInitialDataOffset = 0u;
 	size_t uInitialDataSize = 0u; // must be in bounds with uSize
 	EBufferUsage kUsageFlag = kBufferUsage_None;
+	TResourceAccessFlag kAccessFlag = kResourceAccess_GPUVisible;
 };
 
 } // Tracy

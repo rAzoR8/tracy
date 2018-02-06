@@ -15,7 +15,9 @@ int main(int argc, char* argv[])
 
 	if (App.Initialize(1280u, 720u, Tracy::EGraphicsAPI::eVulkan, Desc))
 	{
-		Mesh m = VulkanPrimitiveMeshGenerator::TriangleVertPos();
+		{
+			Mesh m = VulkanPrimitiveMeshGenerator::TriangleVertPos();
+		}
 
 		return App.Run();
 	}

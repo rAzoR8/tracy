@@ -27,23 +27,12 @@ VulkanMemoryAllocator::~VulkanMemoryAllocator()
 	// TODO : We would like to release all resources that are still allocated
 }
 //---------------------------------------------------------------------------------------------------
-uint32_t VulkanMemoryAllocator::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties)
+bool VulkanMemoryAllocator::GetMemoryTypeIndex(const uint32_t _uRequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType)
 {
-	uint32_t uMemoryType = UINT32_MAX;
-
-	HASSERT(GetMemoryTypeIndex(_RequestedType, _RequestedProperties, uMemoryType), "Requested memory type %d is not available", _RequestedType);
-
-	return uMemoryType;
-}
-//---------------------------------------------------------------------------------------------------
-bool VulkanMemoryAllocator::GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType)
-{
-	//uint32_t Type = _RequestedType;
-
 	for (uint32_t uMemoryIndex = 0u; uMemoryIndex < m_MemoryProperties.memoryTypeCount; ++uMemoryIndex)
 	{
 		const uint32_t uMemoryTypeBits = (1u << uMemoryIndex);
-		const bool bIsRequestedMemoryType = _RequestedType & uMemoryTypeBits;
+		const bool bIsRequestedMemoryType = _uRequestedType & uMemoryTypeBits;
 
 		const bool bHasRequestedProperty = (m_MemoryProperties.memoryTypes[uMemoryIndex].propertyFlags & _RequestedProperties) == _RequestedProperties;
 
@@ -54,31 +43,29 @@ bool VulkanMemoryAllocator::GetMemoryTypeIndex(const uint32_t _RequestedType, co
 		}
 	}
 
+	HERROR("Requested memory type %d is not available", _uRequestedType);
+
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-const vk::MemoryPropertyFlags VulkanMemoryAllocator::GetMemoryProperties(const EVulkanAllocationType _AllocType) const
+const vk::MemoryPropertyFlags VulkanMemoryAllocator::GetMemoryProperties(const TResourceAccessFlag& _AccessFlag) const
 {
-	switch (_AllocType)
-	{
-	case kAllocationType_GPU_Only:
-		return vk::MemoryPropertyFlagBits::eDeviceLocal;
-	case kAllocationType_CPU_Only:
-		return vk::MemoryPropertyFlagBits::eHostVisible;
-	default:
-		HASSERT(false, "Unknown Allocation Type.");
-		break;
-	}
+	vk::MemoryPropertyFlags kFlag{};
 
-	// Never reached
-	return vk::MemoryPropertyFlags();
+	if (_AccessFlag.CheckFlag(kResourceAccess_CPUVisible))
+		kFlag |= vk::MemoryPropertyFlagBits::eHostVisible;
+
+	if (_AccessFlag.CheckFlag(kResourceAccess_GPUVisible))
+		kFlag |= vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+	return kFlag;
 }
 //---------------------------------------------------------------------------------------------------
-bool Tracy::VulkanMemoryAllocator::CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image)
+bool Tracy::VulkanMemoryAllocator::CreateImage(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image)
 {
 	if (LogVKErrorBool(CreateImageAllocation(_Info, _Image)))
 	{
-		if (AllocateImageMemory(_AllocInfo, _Allocation, _Image))
+		if (AllocateImageMemory(_AccessFlag, _Allocation, _Image))
 		{
 			BindImageMemory(_Allocation, _Image);
 			return true;
@@ -88,11 +75,11 @@ bool Tracy::VulkanMemoryAllocator::CreateImage(const VulkanAllocationInfo& _Allo
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-bool Tracy::VulkanMemoryAllocator::CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer)
+bool Tracy::VulkanMemoryAllocator::CreateBuffer(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer)
 {
 	if (LogVKErrorBool(CreateBufferAllocation(_Info, _Buffer)))
 	{
-		if (AllocateBufferMemory(_AllocInfo, _Allocation, _Buffer))
+		if (AllocateBufferMemory(_AccessFlag, _Allocation, _Buffer))
 		{
 			BindBufferMemory(_Allocation, _Buffer);
 			return true;
@@ -130,7 +117,7 @@ vk::Result VulkanMemoryAllocator::CreateBufferAllocation(const vk::BufferCreateI
 	return vk::Result::eErrorInitializationFailed;
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanMemoryAllocator::AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image)
+bool VulkanMemoryAllocator::AllocateImageMemory(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::Image& _Image)
 {
 	vk::MemoryRequirements MemReq = m_Device.getImageMemoryRequirements(_Image);
 	_Allocation.uSize = MemReq.size;
@@ -138,7 +125,9 @@ bool VulkanMemoryAllocator::AllocateImageMemory(const VulkanAllocationInfo& _All
 	vk::MemoryAllocateInfo MemInfo{};
 	MemInfo.pNext = nullptr;
 	MemInfo.allocationSize = MemReq.size;
-	MemInfo.memoryTypeIndex = GetMemoryTypeIndex(MemReq.memoryTypeBits, GetMemoryProperties(_AllocInfo.kType));
+
+	if (GetMemoryTypeIndex(MemReq.memoryTypeBits, GetMemoryProperties(_AccessFlag), MemInfo.memoryTypeIndex) == false)
+		return false;
 
 	if (LogVKErrorBool(m_Device.allocateMemory(&MemInfo, nullptr, &_Allocation.Memory)))
 	{
@@ -151,7 +140,7 @@ bool VulkanMemoryAllocator::AllocateImageMemory(const VulkanAllocationInfo& _All
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-bool VulkanMemoryAllocator::AllocateBufferMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer)
+bool VulkanMemoryAllocator::AllocateBufferMemory(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer)
 {
 	vk::MemoryRequirements MemReq = m_Device.getBufferMemoryRequirements(_Buffer);
 	_Allocation.uSize = MemReq.size;
@@ -159,7 +148,8 @@ bool VulkanMemoryAllocator::AllocateBufferMemory(const VulkanAllocationInfo& _Al
 	vk::MemoryAllocateInfo MemInfo{};
 	MemInfo.pNext = nullptr;
 	MemInfo.allocationSize = MemReq.size;
-	MemInfo.memoryTypeIndex = GetMemoryTypeIndex(MemReq.memoryTypeBits, GetMemoryProperties(_AllocInfo.kType));
+	if (GetMemoryTypeIndex(MemReq.memoryTypeBits, GetMemoryProperties(_AccessFlag), MemInfo.memoryTypeIndex) == false)
+		return false;
 
 	if (LogVKErrorBool(m_Device.allocateMemory(&MemInfo, nullptr, &_Allocation.Memory)))
 	{
