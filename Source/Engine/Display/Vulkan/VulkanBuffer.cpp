@@ -5,13 +5,15 @@ using namespace Tracy;
 
 VkBufferData::VkBufferData(BufferDesc& _Desc) : hDevice(_Desc.hDevice)
 {
-	GetDevice(hDevice).CreateBuffer(_Desc, Allocation, hBuffer);
+	if(hDevice != kUndefinedSizeT)
+		GetDevice(hDevice).CreateBuffer(_Desc, Allocation, hBuffer);
 }
 //---------------------------------------------------------------------------------------------------
 
 VkBufferData::~VkBufferData()
 {
-	GetDevice(hDevice).DestroyBuffer(Allocation, hBuffer);
+	if (hDevice != kUndefinedSizeT)
+		GetDevice(hDevice).DestroyBuffer(Allocation, hBuffer);
 }
 //---------------------------------------------------------------------------------------------------
 

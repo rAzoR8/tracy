@@ -41,6 +41,15 @@ namespace Tracy
 			u32 size = TestArray.Length();
 			f32 sum = 0.f;
 
+			If(sum < 2.f)
+			{
+				sum += 2.f;
+			}
+			Else
+			{
+				sum -= 1.f;
+			});
+
 			For(u32 e = 0u, e < size, ++e)
 			{
 				auto elem = TestArray[e];

@@ -132,9 +132,6 @@ namespace Tracy
 		template <class CondFunc, class LoopBody>
 		void WhileImpl(const CondFunc& _CondFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
 
-		template <class LambdaFunc, spv::StorageClass Class>
-		BranchNode<Assemble>& ConditonBranch(const var_t<bool, Assemble, Class>&, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask = spv::SelectionControlMaskNone);
-
 #ifndef While
 #define While(_cond) WhileImpl([=](){return _cond;}, [=]()
 #endif // !While
@@ -146,7 +143,7 @@ namespace Tracy
 #pragma region if_else
 		// renamed If and Else functions so that the macros are not part of the name
 #ifndef If
-#define If(_cond) ConditonBranch((_cond), [=]()
+#define If(_cond) IfNode((_cond), [=]()
 #endif // !If
 
 #ifndef Endif
@@ -154,11 +151,11 @@ namespace Tracy
 #endif // !Endif
 
 #ifndef Else
-#define Else ).AddBranch([=]()
+#define Else ).ElseNode([=]()
 #endif // !Else
 
 #ifndef IF
-#define IF(_cond) ConditonBranch((_cond), [=]() {
+#define IF(_cond) IfNode((_cond), [=]() {
 #endif // !If
 
 #ifndef ENDIF
@@ -166,23 +163,16 @@ namespace Tracy
 #endif // !Endif
 
 #ifndef ELSE
-#define ELSE }).AddBranch([=]() {
+#define ELSE }).ElseNode([=]() {
 #endif // !Else
 #pragma endregion
 		
-	private:
-		BranchNode<Assemble> m_BranchNode; //non assemble case
-		std::vector<BranchNode<Assemble>> m_BranchNodes;
 	};
 
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>
 	SPIRVProgram<Assemble>::SPIRVProgram()
 	{
-		if constexpr(Assemble)
-		{
-			m_BranchNodes.reserve(32u);
-		}
 	}
 
 	template <bool Assemble>
@@ -195,8 +185,6 @@ namespace Tracy
 	template <class TProg, class... Ts>
 	inline void SPIRVProgram<Assemble>::Execute(Ts&& ..._args)
 	{
-		m_BranchNodes.clear();
-
 		((TProg*)this)->operator()(std::forward<Ts>(_args)...);
 	}
 	//---------------------------------------------------------------------------------------------------
@@ -341,72 +329,6 @@ namespace Tracy
 
 			GlobalAssembler.ForceNextLoads(false);
 		}
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template<class LambdaFunc, spv::StorageClass Class>
-	inline BranchNode<Assemble>& SPIRVProgram<Assemble>::ConditonBranch(const var_t<bool, Assemble, Class>& _Cond, const LambdaFunc& _Func, const spv::SelectionControlMask _kMask)
-	{
-		if constexpr(Assemble)
-		{
-			_Cond.Load();
-			HASSERT(_Cond.uResultId != HUNDEFINED32, "Invalid condition variable");
-
-			m_BranchNodes.emplace_back();
-			BranchNode<Assemble>& Node(m_BranchNodes.back());
-
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpSelectionMerge,
-			{
-				SPIRVOperand(kOperandType_Intermediate, HUNDEFINED32), // merge id
-				SPIRVOperand(kOperandType_Literal, (const uint32_t)_kMask) // selection class
-			}),	&Node.pSelectionMerge);
-
-			GlobalAssembler.AddOperation(
-				SPIRVOperation(spv::OpBranchConditional, SPIRVOperand(kOperandType_Intermediate, _Cond.uResultId)),
-				&Node.pBranchConditional);
-		}
-		if constexpr(Assemble == false)
-		{
-			m_BranchNode.bCondition = _Cond.Value;
-		}
-
-		if (_Cond.Value || Assemble)
-		{
-			if constexpr(Assemble)
-			{
-				BranchNode<Assemble>& Node(m_BranchNodes.back());
-				const uint32_t uTrueLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-				Node.pBranchConditional->AddIntermediate(uTrueLableId);
-			}
-
-			_Func();
-
-			if constexpr(Assemble)
-			{
-				BranchNode<Assemble>& Node(m_BranchNodes.back());
-
-				// end of then block
-				GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &Node.pThenBranch);
-
-				const uint32_t uFalseLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-				Node.pThenBranch->AddIntermediate(uFalseLableId);
-
-				std::vector<SPIRVOperand>& Operands = Node.pSelectionMerge->GetOperands();
-				HASSERT(Operands.size() == 2u, "Invalid number of operands for selection merge");
-				Operands.front().uId = uFalseLableId; // use false label as merge label
-
-				Node.pBranchConditional->AddIntermediate(uFalseLableId);
-			}
-		}
-
-		if constexpr(Assemble)
-		{
-			return m_BranchNodes.back();
-		}
-
-		return m_BranchNode;
 	}
 
 	//---------------------------------------------------------------------------------------------------
