@@ -1,4 +1,5 @@
 #include "SPIRVInstruction.h"
+#include "SPIRVBinaryDefines.h" // for debug output
 
 using namespace Tracy;
 
@@ -36,3 +37,41 @@ uint32_t SPIRVInstruction::GetOpCode() const noexcept
 }
 //---------------------------------------------------------------------------------------------------
 
+std::string SPIRVInstruction::GetString() const
+{
+	std::string sOp;
+	if (m_uResultId != kInvalidId)
+	{
+		sOp = "%" + std::to_string(m_uResultId) + "=";
+	}
+
+	sOp = "\t" + GetOpCodeString(m_kOperation);
+
+	if (m_uTypeId != kInvalidId)
+	{
+		sOp += " type_" + std::to_string(m_uTypeId);
+	}
+
+	std::string sLiteralStr;
+	for (const uint32_t& uOperand : m_Operands)
+	{
+		if (uOperand < 127)
+		{
+			sOp += " op_"+  std::to_string(uOperand);
+		}
+		else
+		{
+			char* c = (char*)&uOperand;
+			for (uint32_t i = 0; i < 4 && *c != 0; i++, c++)
+			{
+				sLiteralStr += *c;
+			}			
+		}
+	}
+
+	if (sLiteralStr.empty() == false)
+		sOp += " " + sLiteralStr;
+
+	return sOp;
+}
+//---------------------------------------------------------------------------------------------------

@@ -39,8 +39,6 @@ namespace Tracy
 		// also check if TProg has a function operator / is callable
 		template <class TProg, class... Ts>
 		void InitializeProgram(
-			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
-			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
 			const std::string& _sEntryPoint = "main",
 			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 			Ts&& ..._args);
@@ -53,8 +51,6 @@ namespace Tracy
 		// calls InitializeProgram with Ts args, RecordInstructions without args and Assemble
 		template <class TProg, class... Ts>
 		SPIRVModule AssembleSimple(
-			const spv::ExecutionModel _kModel = spv::ExecutionModelFragment,
-			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
 			const bool _bUseDefaults = true,
 			const std::string& _sEntryPoint = "main",
 			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
@@ -238,8 +234,6 @@ namespace Tracy
 
 	template<class TProg, class ...Ts>
 	inline void SPIRVAssembler::InitializeProgram(
-		const spv::ExecutionModel _kModel,
-		const spv::ExecutionMode _kMode,
 		const std::string& _sEntryPoint,
 		const std::vector<std::string>& _Extensions,
 		Ts && ..._args)
@@ -252,7 +246,7 @@ namespace Tracy
 		if constexpr(bAssemble)
 		{
 			m_pAssembleProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
-			Init(_kModel, _kMode, _sEntryPoint, _Extensions);
+			Init(m_pAssembleProgram->GetExecutionModel(), m_pAssembleProgram->GetExecutionMode(), _sEntryPoint, _Extensions);
 		}
 		else if constexpr(bExecute)
 		{
@@ -279,8 +273,6 @@ namespace Tracy
 
 	template<class TProg, class ...Ts>
 	inline SPIRVModule SPIRVAssembler::AssembleSimple(
-		const spv::ExecutionModel _kModel,
-		const spv::ExecutionMode _kMode,
 		const bool _bUseDefaults,
 		const std::string& _sEntryPoint,
 		const std::vector<std::string>& _Extensions,
@@ -291,7 +283,7 @@ namespace Tracy
 			SetDefaults();
 		}
 
-		InitializeProgram<TProg>(_kModel, _kMode, _sEntryPoint,_Extensions, std::forward<Ts>(_args)...);
+		InitializeProgram<TProg>(_sEntryPoint, _Extensions, std::forward<Ts>(_args)...);
 		RecordInstructions<TProg>();
 
 		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;

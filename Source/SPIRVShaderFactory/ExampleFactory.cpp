@@ -37,10 +37,11 @@ void ExampleFactory::Release()
 
 SPIRVModule ExampleFactory::Compile(const ShaderID _ShaderIdentifier) const
 {
-	GlobalAssembler.UseDefaultSetLocation();
-	GlobalAssembler.UseDefaultSpecConstId();
-	GlobalAssembler.UseDefaultInputAttachmentIndex();
+	auto m = GlobalAssembler.AssembleSimple<ExampleShader>();
+	m.Save("test.spv");
+	system("spirv-dis test.spv");
+	system("spirv-val test.spv");
 
-	return GlobalAssembler.AssembleSimple<ExampleShader>();
+	return m;
 }
 //---------------------------------------------------------------------------------------------------

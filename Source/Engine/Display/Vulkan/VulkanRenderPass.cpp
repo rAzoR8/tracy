@@ -69,6 +69,10 @@ bool VulkanRenderPass::Initialize()
 	{
 		InitPipeline(m_Description.DefaultPipelines.front());
 	}
+	else if (m_Description.DefaultPipelines.empty())
+	{
+		HWARNING("No default pipeline found");
+	}
 
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
@@ -921,7 +925,7 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 
 	if (m_hPipelineCache)
 	{
-		hlx::fbytestream stream(_sPath, std::ios_base::out);
+		hlx::fbytestream stream(_sPath, std::ios::out | std::ios::binary);
 
 		if (stream.is_open())
 		{
@@ -931,7 +935,7 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 			{
 				hlx::bytes buffer(uSize);
 
-				if (LogVKErrorBool(m_Device.getPipelineCacheData(m_hPipelineCache, &uSize, &buffer.front())))
+				if (LogVKErrorBool(m_Device.getPipelineCacheData(m_hPipelineCache, &uSize, buffer.data())))
 				{
 					stream.put(buffer);
 					bSuccess = true;

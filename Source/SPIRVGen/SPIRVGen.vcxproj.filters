@@ -63,6 +63,9 @@
     <ClInclude Include="SPIRVQuaternion.h">
       <Filter>StandardLibrary</Filter>
     </ClInclude>
+    <ClInclude Include="SPIRVBinaryDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SPIRVAssembler.cpp">

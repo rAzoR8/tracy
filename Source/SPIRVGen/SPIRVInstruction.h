@@ -23,6 +23,8 @@ namespace Tracy
 		const uint32_t GetTypeId() const noexcept;
 		const uint32_t& GetResultId() const noexcept;
 		const std::vector<uint32_t>& GetOperands() const noexcept;
+		spv::Op GetOp() const noexcept;
+		std::string GetString() const;
 
 	private:
 		spv::Op m_kOperation;
@@ -42,6 +44,7 @@ namespace Tracy
 	inline const uint32_t Tracy::SPIRVInstruction::GetTypeId() const noexcept {return m_uTypeId;}
 	inline const uint32_t& SPIRVInstruction::GetResultId() const noexcept { return m_uResultId; }
 	inline const std::vector<uint32_t>& SPIRVInstruction::GetOperands() const noexcept {return m_Operands;}
+	inline spv::Op SPIRVInstruction::GetOp() const noexcept{return m_kOperation;}
 }; // Tracy
 
 #endif // !TRACY_SPIRVINSTRUCTION_H

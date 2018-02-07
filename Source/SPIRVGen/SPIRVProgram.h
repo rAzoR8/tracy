@@ -119,13 +119,20 @@ namespace Tracy
 		// TODO: array types
 
 #pragma endregion
-		SPIRVProgram();
+		SPIRVProgram(const spv::ExecutionModel _kExecutionModel = spv::ExecutionModelFragment,
+			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft);
 		virtual ~SPIRVProgram();
 
 		template <class TProg, class... Ts>
 		void Execute(Ts&& ..._args);
 
+		inline const spv::ExecutionModel GetExecutionModel() const { return m_kExecutionModel; }
+		inline const spv::ExecutionMode GetExecutionMode() const { return m_kExecutionMode; }
+
 	protected:
+		const spv::ExecutionModel m_kExecutionModel;
+		const spv::ExecutionMode m_kExecutionMode;
+
 		template <class CondFunc, class IncFunc, class LoopBody>
 		void ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
 
@@ -171,7 +178,8 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>
-	SPIRVProgram<Assemble>::SPIRVProgram()
+	SPIRVProgram<Assemble>::SPIRVProgram(const spv::ExecutionModel _kExecutionModel, const spv::ExecutionMode _kExecutionMode) :
+		m_kExecutionModel(_kExecutionModel), m_kExecutionMode(_kExecutionMode)
 	{
 	}
 
