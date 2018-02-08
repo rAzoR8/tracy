@@ -49,7 +49,7 @@ namespace Tracy
 		TPlugin* GetPlugin() const { return m_pPlugin; }
 
 	private:
-		const filesystem::path& m_LibPath;
+		const filesystem::path m_LibPath;
 		TPlugin* m_pPlugin = nullptr;
 	};
 	//---------------------------------------------------------------------------------------------------

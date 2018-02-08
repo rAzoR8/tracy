@@ -2,6 +2,7 @@
 #define TRACY_VULKANALLOCATORTYPES_H
 
 #include "VulkanAPI.h"
+#include "Display\DisplayTypes.h"
 
 namespace Tracy
 {
@@ -24,24 +25,24 @@ namespace Tracy
 	};*/
 
 	// Heap type flags
-	enum EVulkanAllocationType
-	{
-		kAllocationType_GPU_Only = 0,
-		kAllocationType_CPU_Only,
-		//kAllocationType_CPU_To_GPU,
-		//kAllocationType_GPU_To_CPU,
+	//enum EVulkanAllocationType
+	//{
+	//	kAllocationType_GPU_Only = 0,
+	//	kAllocationType_CPU_Only,
+	//	//kAllocationType_CPU_To_GPU,
+	//	//kAllocationType_GPU_To_CPU,
 
-		kAllocationType_NumOf
-	};
+	//	kAllocationType_NumOf
+	//};
 
-	// Hints for Heap selection.
-	struct VulkanAllocationInfo
-	{
-		//vk::DeviceSize uByteSize = 0ull;
-		EVulkanAllocationType kType = kAllocationType_GPU_Only;
-		//EVulkanAllocationFlags kFlags = kAllocationFlag_None;
-		//uint32_t uMemoryTypeBits = 0u;
-	};
+	//// Hints for Heap selection.
+	//struct VulkanAllocationInfo
+	//{
+	//	//vk::DeviceSize uByteSize = 0ull;
+	//	EVulkanAllocationType kType = kAllocationType_GPU_Only;
+	//	//EVulkanAllocationFlags kFlags = kAllocationFlag_None;
+	//	//uint32_t uMemoryTypeBits = 0u;
+	//};
 
 	// Contains all the info to retrieve a memory allocation for a resource.
 	// It should be a resource member.
@@ -62,16 +63,16 @@ namespace Tracy
 		~VulkanMemoryAllocator();
 
 		// Create, Allocate and Bind resource
-		bool CreateImage(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image);
-		bool CreateBuffer(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
+		bool CreateImage(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::ImageCreateInfo& _Info, vk::Image& _Image);
+		bool CreateBuffer(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
 
 		// Create Virtual Image Memory Allocation
 		vk::Result CreateImageAllocation(const vk::ImageCreateInfo& _Info, vk::Image& _Image);
 		vk::Result CreateBufferAllocation(const vk::BufferCreateInfo& _Info, vk::Buffer& _Buffer);
 
 		// Allocate resouce memory
-		bool AllocateImageMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Image& _Image);
-		bool AllocateBufferMemory(const VulkanAllocationInfo& _AllocInfo, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
+		bool AllocateImageMemory(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::Image& _Image);
+		bool AllocateBufferMemory(const TResourceAccessFlag& _AccessFlag, VulkanAllocation& _Allocation, const vk::Buffer& _Buffer);
 
 		// Materialize memory virtual allocation
 		void BindImageMemory(const VulkanAllocation& _Allocation, const vk::Image& _Image);
@@ -85,11 +86,10 @@ namespace Tracy
 
 	private:
 		// Select the flags used in memory allocation given a configuration for the resouce
-		uint32_t GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties);
 		bool GetMemoryTypeIndex(const uint32_t _RequestedType, const vk::MemoryPropertyFlags _RequestedProperties, uint32_t& _OutMemoryType);
 
 		// Maps our flags and types to vulkan flags
-		const vk::MemoryPropertyFlags GetMemoryProperties(const EVulkanAllocationType _AllocType) const;
+		const vk::MemoryPropertyFlags GetMemoryProperties(const TResourceAccessFlag& _AccessFlag) const;
 
 	private:
 		const vk::PhysicalDevice& m_PhysicalDevice;

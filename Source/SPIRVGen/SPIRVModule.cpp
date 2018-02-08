@@ -3,11 +3,21 @@
 #include "HashUtils.h"
 #include <fstream>
 
+#ifdef _DEBUG
+#include "Logger.h"
+#endif
+
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 SPIRVModule::SPIRVModule(const SPIRVModule& _Other) :
 	m_uBounds(_Other.m_uBounds),
-	m_InstructionStream(_Other.m_InstructionStream)
+	m_InstructionStream(_Other.m_InstructionStream),
+	m_Extensions(_Other.m_Extensions),
+	m_kMode(_Other.m_kMode),
+	m_kModel(_Other.m_kModel),
+	m_sEntryPoint(_Other.m_sEntryPoint),
+	m_uHash(_Other.m_uHash),
+	m_Variables(_Other.m_Variables)
 {
 }
 //---------------------------------------------------------------------------------------------------
@@ -39,6 +49,17 @@ void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 	{
 		Put(Instr);
 	}
+
+	// spirv module size must be multiple of 4
+	//if (m_InstructionStream.size() % 4 != 0)
+	//{
+	//	uint32_t uNewSize = static_cast<uint32_t>(std::ceilf(m_InstructionStream.size() / 4.f) * 4u);
+	//	const SPIRVInstruction Nop(spv::OpNop);
+	//	while (m_InstructionStream.size() < uNewSize)
+	//	{
+	//		Put(Nop);
+	//	}
+	//}
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -66,6 +87,11 @@ void SPIRVModule::Put(const uint32_t& _uWord)
 
 void SPIRVModule::Put(const SPIRVInstruction& _Instr)
 {
+#ifdef _DEBUG
+	const uint32_t uWord = static_cast<uint32_t>(m_InstructionStream.size());
+	HLOG("%u%s", uWord, WCSTR(_Instr.GetString()));
+#endif
+
 	Put(_Instr.GetOpCode());
 
 	const uint32_t& uTypeId(_Instr.GetTypeId());

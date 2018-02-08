@@ -37,7 +37,7 @@ void IShaderFactoryConsumer::OnPluginUnloaded()
 //---------------------------------------------------------------------------------------------------
 bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, const SpecConstFactory* _pSpecConstFactory, const void* _pUserData, const size_t _uSize)
 {
-	HASSERT(_ShaderIdentifier.kType < kShaderType_NumOf, "Invalid shader identifier");
+	HASSERT(_ShaderIdentifier.Valid(), "Invalid shader identifier");
 	const uint64_t uHash = m_ShaderHasher(_ShaderIdentifier, _pUserData, _uSize);
 	CompiledShader*& pActiveShader = m_ActiveShaders[_ShaderIdentifier.kType];
 

@@ -14,6 +14,7 @@ Mesh VulkanPrimitiveMeshGenerator::TriangleVertPos(const THandle _hDevice)
 	Desc.uSize = sizeof(TrianglePos);
 	Desc.uInitialDataSize = sizeof(TrianglePos);
 	Desc.pInitialData = TrianglePos;
+	Desc.kAccessFlag = kResourceAccess_CPUVisible;
 
 	return Mesh(std::move(VulkanBuffer(Desc)), 3u);
 }

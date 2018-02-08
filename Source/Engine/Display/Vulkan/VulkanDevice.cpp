@@ -252,18 +252,17 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 	Info.arrayLayers = std::max(_Desc.uLayerCount, 1u);
 	Info.usage = GetTextureUsage(_Desc.kUsageFlag);
 
-	VulkanAllocationInfo AllocInfo{};
-	AllocInfo.kType = kAllocationType_GPU_Only;
-
 	_Desc.uIdentifier = m_uTextureIdentifier.fetch_add(1u);
 
 	if (LogVKErrorFailed(m_pAllocator->CreateImageAllocation(Info, _Image)))
 		return false;
 
-	if (m_pAllocator->AllocateImageMemory(AllocInfo, _Allocation, _Image) == false)
+	if (m_pAllocator->AllocateImageMemory(_Desc.kAccessFlag, _Allocation, _Image) == false)
 		return false;
 
-	if (_Desc.pInitialData != nullptr && (_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= _Allocation.uSize)
+	if (_Desc.kAccessFlag.CheckFlag(kResourceAccess_CPUVisible) && 
+		_Desc.pInitialData != nullptr && 
+		(_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= _Allocation.uSize)
 	{
 		// TODO: https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#resources-image-layouts
 		//Host access to image memory is only well - defined for images created with VK_IMAGE_TILING_LINEAR tiling and for image subresources of those images which are currently in either the VK_IMAGE_LAYOUT_PREINITIALIZED or VK_IMAGE_LAYOUT_GENERAL layout
@@ -301,18 +300,15 @@ const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allo
 	Info.size = _Desc.uSize;
 	Info.usage = GetBufferUsage(_Desc.kUsageFlag);
 
-	VulkanAllocationInfo AllocInfo{};
-	AllocInfo.kType = kAllocationType_GPU_Only; // TODO: move this to the buffer desc & think about staging buffers
-
 	_Desc.uIdentifier = m_uBufferIdentifier.fetch_add(1u);
 
 	if (LogVKErrorFailed(m_pAllocator->CreateBufferAllocation(Info, _Buffer)))
 		return false;
 
-	if (m_pAllocator->AllocateBufferMemory(AllocInfo, _Allocation, _Buffer) == false)
+	if (m_pAllocator->AllocateBufferMemory(_Desc.kAccessFlag, _Allocation, _Buffer) == false)
 		return false;
 
-	if (AllocInfo.kType == kAllocationType_CPU_Only &&
+	if (_Desc.kAccessFlag.CheckFlag(kResourceAccess_CPUVisible) &&
 		_Desc.pInitialData != nullptr &&
 		(_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= Info.size)
 	{

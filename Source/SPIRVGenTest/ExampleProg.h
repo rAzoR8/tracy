@@ -45,6 +45,15 @@ namespace Tracy
 			complex z2(3.0f, -2.0f);
 
 			z1 *= z2;
+			
+			If(sum < 2.f)
+			{
+				sum += 2.f;
+			}
+			Else
+			{
+				sum -= 1.f;
+			});
 
 			For(u32 e = 0u, e < size, ++e)
 			{

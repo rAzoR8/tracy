@@ -12,6 +12,7 @@ int main(int argc, char* argv[])
 	//prog();
 	GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
 	system("spirv-dis test.spv");
+	system("spirv-val test.spv");
 	system("pause");
 
 	return 0;

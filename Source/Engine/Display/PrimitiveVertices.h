@@ -12,6 +12,7 @@ namespace Tracy
 		kVertexLayout_Tangent = 1 << 2,
 		kVertexLayout_UV = 1 << 3,
 
+		kVertexLayout_PosUV = kVertexLayout_Position | kVertexLayout_UV,
 		kVertexLayout_PosNorm = kVertexLayout_Position | kVertexLayout_Normal,
 		kVertexLayout_PosNormTan = kVertexLayout_PosNorm | kVertexLayout_Tangent,
 		kVertexLayout_PosNormTanUV = kVertexLayout_PosNormTan | kVertexLayout_UV

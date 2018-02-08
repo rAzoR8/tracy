@@ -26,7 +26,7 @@ VkTexData::VkTexData(const THandle& _hDevice, const vk::Image& _hImage, const vk
 
 VkTexData::~VkTexData()
 {
-	if (bOwnsResource == false)
+	if (bOwnsResource == false || hDevice != kUndefinedSizeT)
 		return;
 
 	for (vk::ImageView view : Views) 

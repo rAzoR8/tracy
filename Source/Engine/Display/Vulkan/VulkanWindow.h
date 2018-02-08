@@ -35,8 +35,8 @@ namespace Tracy
 		const bool OnResize(const uint32_t _uWidth, const uint32_t _uHeight);
 
 	private:
-		void ReloadSurfaceInfo();
-		void CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight);
+		bool ReloadSurfaceInfo();
+		bool CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight);
 
 		const vk::SwapchainKHR& GetSwapchain() const;
 		const vk::SurfaceKHR& GetSurface() const;
