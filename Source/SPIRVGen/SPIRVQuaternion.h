@@ -36,11 +36,11 @@ namespace Tracy
 	{
 		if constexpr(Assemble == false)
 		{
-			Value = glm::angleAxis(_fAngleRad, _vAxis); //glm::degrees(_fAngleRad)
+			Value = glm::angleAxis(_fAngleRad.Value, _vAxis.Value); //glm::degrees(_fAngleRad)
 		}
 		else
 		{
-			auto a = _fAngleRad * 0.5f;
+			const auto a = _fAngleRad * 0.5f;
 			xyz = _vAxis * Sin(a);
 			w = Cos(a);
 		}
@@ -62,8 +62,8 @@ namespace Tracy
 			//var.xyz = q2.xyz * q1.w + q1.xyz * q2.w + cross(q1.xyz, q2.xyz);
 			//var.w = q1.w * q2.w - dot(q1.xyz, q2.xyz);
 
-			auto q1axis = q1.xyz; auto q1angle = q1.w;
-			auto q2axis = q2.xyz; auto q2angle = q2.w;
+			const auto q1axis = q1.xyz; const auto q1angle = q1.w;
+			const auto q2axis = q2.xyz; const auto q2angle = q2.w;
 			qout.xyz = q2axis * q1angle + q1axis * q2angle + Cross(q1axis, q2axis);
 			qout.w = q1angle * q2angle - Dot(q1axis, q2axis);
 		}

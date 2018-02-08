@@ -41,6 +41,11 @@ namespace Tracy
 			u32 size = TestArray.Length();
 			f32 sum = 0.f;
 
+			complex z1(3.0f, 4.0f);
+			complex z2(3.0f, -2.0f);
+
+			z1 *= z2;
+
 			For(u32 e = 0u, e < size, ++e)
 			{
 				auto elem = TestArray[e];

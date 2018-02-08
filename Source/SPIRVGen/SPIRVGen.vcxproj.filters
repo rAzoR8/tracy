@@ -63,6 +63,9 @@
     <ClInclude Include="SPIRVQuaternion.h">
       <Filter>StandardLibrary</Filter>
     </ClInclude>
+    <ClInclude Include="SPIRVComplex.h">
+      <Filter>StandardLibrary</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SPIRVAssembler.cpp">
