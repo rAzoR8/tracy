@@ -540,8 +540,8 @@ namespace Tracy
 	{
 		vk::ShaderModuleCreateInfo Info(GetShaderModuleInfo(_Module));
 		vk::ShaderModule vkModule{};
-		vk::Result kResult = vk::Result::eSuccess;
-		if ((kResult = _hDevice.createShaderModule(&Info, _pAllocCallbacks, &vkModule)) != vk::Result::eSuccess)
+		const vk::Result kResult = _hDevice.createShaderModule(&Info, _pAllocCallbacks, &vkModule);
+		if (kResult != vk::Result::eSuccess)
 		{
 			HERROR("Failed to create shader module %s [%s]", _Module.GetEntryPoint().c_str(), vk::to_string(kResult).c_str());
 		}

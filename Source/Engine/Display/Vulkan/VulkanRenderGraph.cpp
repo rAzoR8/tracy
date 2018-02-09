@@ -13,8 +13,17 @@ VulkanRenderGraph::VulkanRenderGraph(const RenderGraphDesc& _Desc, const THandle
 	m_Device(GetDevice(m_Window.GetDeviceHandle())),
 	m_Description(_Desc)
 {
-	for (const RenderPassDesc& Pass : m_Description.Passes)
+	for (RenderPassDesc& Pass : m_Description.Passes)
 	{
+		// get backbuffer format form window
+		for (FramebufferDesc::Attachment& Att : Pass.Framebuffer.Attachments)
+		{
+			if (Att.kSource == kAttachmentSourceType_Backbuffer)
+			{
+				Att.kFormat = GetResourceFormat(m_Window.GetDescription().imageFormat);
+			}
+		}
+
 		m_RenderPasses.emplace_back(*this, nullptr, Pass, static_cast<uint32_t>(m_RenderPasses.size()), m_Device.GetHandle());
 	}
 }

@@ -34,6 +34,8 @@ namespace Tracy
 
 		const bool OnResize(const uint32_t _uWidth, const uint32_t _uHeight);
 
+		const vk::SwapchainCreateInfoKHR& GetDescription() const;
+
 	private:
 		bool ReloadSurfaceInfo();
 		bool CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight);
@@ -43,6 +45,7 @@ namespace Tracy
 		const std::vector<VulkanTexture>& GetBackuffer() const;
 
 	private:
+		vk::SwapchainCreateInfoKHR m_Description;
 		vk::SwapchainKHR m_Swapchain = nullptr;
 		std::vector<VulkanTexture> m_Backbuffer;
 		
@@ -57,6 +60,10 @@ namespace Tracy
 		THandle m_hThis = kUndefinedSizeT;
 		THandle m_hPresentDevice = kUndefinedSizeT;
 	};
+	inline const vk::SwapchainCreateInfoKHR& Tracy::VulkanWindow::GetDescription() const
+	{
+		return m_Description;
+	}
 
 	inline const THandle VulkanWindow::GetHandle() const
 	{

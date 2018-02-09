@@ -42,6 +42,11 @@ namespace Tracy
 		// DepthStencil State
 		DepthStencilStateDesc DepthStencilState;
 
+		// viewport
+		std::vector<Viewport> Viewports;
+		std::vector<Rect> Scissors;
+		RenderArea RenderArea;
+
 		struct MappedSampler
 		{
 			std::string sName;

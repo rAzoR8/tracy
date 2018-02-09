@@ -295,10 +295,10 @@ namespace Tracy
 
 	struct StencilOpDesc
 	{
-		EStencilOp kFailOp = kStencilOp_Unknown; // Stencil Fail op
-		EStencilOp kPassOp = kStencilOp_Unknown; // Stencil Pass op
-		EStencilOp kDepthFailOp = kStencilOp_Unknown;
-		EComparisonOp kStencilCompareOp = kComparisonOp_Unknown;
+		EStencilOp kFailOp = kStencilOp_Keep; // Stencil Fail op
+		EStencilOp kPassOp = kStencilOp_Keep; // Stencil Pass op
+		EStencilOp kDepthFailOp = kStencilOp_Keep;
+		EComparisonOp kStencilCompareOp = kComparisonOp_Never;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -337,7 +337,7 @@ namespace Tracy
 		bool bStencilTestEnabled = false;
 		bool bDepthTestEnabled = false;
 		bool bDepthWriteEnabled = false; //D3D12_DEPTH_WRITE_MASK
-		EComparisonOp kDepthCompareOp = kComparisonOp_Unknown;
+		EComparisonOp kDepthCompareOp = kComparisonOp_Never;
 
 		StencilOpDesc FrontFace;
 		StencilOpDesc BackFace;
@@ -411,11 +411,6 @@ namespace Tracy
 
 		kTextureType_NumOf,
 		kTextureType_Invalid = kTextureType_NumOf,
-	};
-
-	enum EBufferType : uint32_t
-	{
-		kBufferType_Invalid = 0u
 	};
 
 	/*VK_IMAGE_USAGE_TRANSFER_SRC_BIT = 0x00000001,
@@ -1020,6 +1015,32 @@ struct BufferDesc
 	size_t uInitialDataSize = 0u; // must be in bounds with uSize
 	EBufferUsage kUsageFlag = kBufferUsage_None;
 	TResourceAccessFlag kAccessFlag = kResourceAccess_GPUVisible;
+};
+
+struct Viewport
+{
+	float fX = 0.f;
+	float fY = 0.f;
+	float fWidth = 1600.f;
+	float fHeight = 900.f;
+	float fMinDepth = 0.f;
+	float fMaxDepth = 1.f;
+};
+
+struct RenderArea
+{
+	uint32_t uOffsetX = 0u;
+	uint32_t uOffsetY = 0u;
+	uint32_t uExtentX = 1920u;
+	uint32_t uExtentY = 1080u;
+};
+
+struct Rect
+{
+	int32_t iOffsetX = 0;
+	int32_t iOffsetY = 0;
+	uint32_t uExtentX = 0;
+	uint32_t uExtentY = 0;
 };
 
 } // Tracy

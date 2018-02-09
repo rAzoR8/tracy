@@ -87,10 +87,10 @@ void SPIRVModule::Put(const uint32_t& _uWord)
 
 void SPIRVModule::Put(const SPIRVInstruction& _Instr)
 {
-#ifdef _DEBUG
-	const uint32_t uWord = static_cast<uint32_t>(m_InstructionStream.size());
-	HLOG("%u%s", uWord, WCSTR(_Instr.GetString()));
-#endif
+//#ifdef _DEBUG
+//	const uint32_t uWord = static_cast<uint32_t>(m_InstructionStream.size());
+//	HLOG("%u%s", uWord, WCSTR(_Instr.GetString()));
+//#endif
 
 	Put(_Instr.GetOpCode());
 

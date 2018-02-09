@@ -87,6 +87,9 @@
     <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">
       <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\SPIRVShaderFactory\SPIRVShaderFactory.vcxproj">
+      <Project>{70859c6f-cbf5-4864-b5a9-77b0fe394cca}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

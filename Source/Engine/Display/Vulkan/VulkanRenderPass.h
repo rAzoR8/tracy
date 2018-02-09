@@ -47,23 +47,6 @@ namespace Tracy
 			// add pipeline barriers etc
 		};
 		
-		// TODO: abstract viewport into display types, add it to pipeline desc
-		struct ViewportState
-		{
-			std::vector<vk::Viewport> Viewports;
-			std::vector<vk::Rect2D> Scissors;
-
-			struct RenderArea
-			{
-				uint32_t uOffsetX = 0u;
-				uint32_t uOffsetY = 0u;
-				uint32_t uExtentX = 1920u;
-				uint32_t uExtentY = 1080u;
-			};
-
-			RenderArea ReanderArea;
-		};
-
 		// maybe put this into a different header
 		struct Framebuffer
 		{
@@ -73,6 +56,8 @@ namespace Tracy
 				EAttachmentType kType;
 				VulkanTexture Texture;
 			};
+
+			void Reset() { Attachments.resize(0); ClearValues.resize(0); }
 
 			std::vector<Attachment> Attachments;
 			std::vector<vk::ClearValue> ClearValues;
@@ -188,8 +173,11 @@ namespace Tracy
 		bool StorePipelineCache(const std::wstring& _sPath);
 
 		// called from begin commandbuffer
-		bool CreateRenderPass(const VulkanTexture& _CurrentBackbuffer);
-		void ResetRenderPassAndFramebuffer();
+		bool CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer);
+		bool CreateRenderPass();
+
+		void ResetFramebuffer();
+		void ResetRenderPass();
 
 		const vk::CommandBuffer& GetCommandBuffer() const;
 
@@ -213,8 +201,6 @@ namespace Tracy
 		IOnPerObject* m_pPerObjectCallback = nullptr;
 		IOnPerCamera* m_pPerCameraCallback = nullptr;
 		IOnChangePipeline* m_pOnChangePipeline = nullptr;
-
-		ViewportState m_ViewportState;
 
 		std::vector<VulkanRenderPass> m_SubPasses;
 		std::vector<Dependence> m_Dependencies;

@@ -498,6 +498,17 @@ namespace Tracy
 		return detail::g_VkFormatMapping.at(_kFormat);
 	}
 
+	inline const EFormat GetResourceFormat(const vk::Format _kFormat)
+	{
+		for (auto&[tracy_fmt, vk_fmt] : detail::g_VkFormatMapping)
+		{
+			if (vk_fmt == _kFormat)
+				return tracy_fmt;
+		}
+
+		return kFormat_Undefined;
+	}
+
 	static const vk::ImageAspectFlagBits g_VkAspectFlags[kAspect_NumOf] =
 	{
 		vk::ImageAspectFlagBits::eColor,
@@ -521,6 +532,16 @@ namespace Tracy
 		}
 
 		return Result;
+	}
+
+	inline vk::Viewport GetViewport(const Viewport& _Viewport)
+	{
+		return vk::Viewport(_Viewport.fX, _Viewport.fY, _Viewport.fWidth, _Viewport.fHeight, _Viewport.fMinDepth, _Viewport.fMaxDepth);
+	}
+
+	inline vk::Rect2D GetRect(const Rect& _Rect) // lol
+	{
+		return vk::Rect2D({ _Rect.iOffsetX, _Rect.iOffsetY }, { _Rect.uExtentX, _Rect.uExtentY });
 	}
 }
 

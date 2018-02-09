@@ -28,16 +28,14 @@ int main(int argc, char* argv[])
 	Pipeline.kFillMode = kPolygonFillMode_Solid;
 	Pipeline.kFrontFace = kFrontFace_CounterClockwise;
 	Pipeline.kPrimitiveTopology = kPrimitiveTopology_TriangleList;
+	Pipeline.Viewports.push_back(Viewport());
+	Pipeline.Scissors.push_back({0,0, 1600u, 900u});
 
 	PipelineDesc::ShaderDesc& Shader = Pipeline.Shaders.emplace_back();
 	Shader.Identifier = ShaderID(kShaderType_Fragment);
 
-	if (App.Initialize(1280u, 720u, Tracy::EGraphicsAPI::eVulkan, Desc))
+	if (App.Initialize(1600u, 900u, Tracy::EGraphicsAPI::eVulkan, Desc))
 	{
-		{
-			Mesh m = VulkanPrimitiveMeshGenerator::TriangleVertPos();
-		}
-
 		return App.Run();
 	}
 

@@ -43,6 +43,9 @@ bool VulkanRenderPass::Initialize()
 	if (LoadPipelineCache(m_Description.sPassName + L"_pipeline.cache") == false)
 		return false;
 
+	if (CreateRenderPass() == false)
+		return false;
+
 	auto InitPipeline = [&](const PipelineDesc& _Pipeline) -> bool
 	{
 		// load the shader
@@ -94,22 +97,233 @@ bool VulkanRenderPass::Initialize()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderPass::ResetRenderPassAndFramebuffer()
+bool VulkanRenderPass::CreateRenderPass()
+{
+	// we assume that rendertargets stay the same for all shaders & permutations
+	if (m_pParent != nullptr)
+	{
+		m_hRenderPass = m_pParent->m_hRenderPass;
+		return m_hRenderPass;
+	}
+
+	ResetRenderPass();
+
+	vk::RenderPassCreateInfo PassInfo{};
+	std::vector<vk::AttachmentDescription> AttachmentDescs;
+
+	// setup subpasses
+	std::vector<vk::SubpassDescription> SubPassDescs;
+
+	// default subpass
+	vk::SubpassDescription& FirstPass = SubPassDescs.emplace_back();
+	FirstPass.pInputAttachments = nullptr;
+	FirstPass.inputAttachmentCount = 0u;
+
+	for (const FramebufferDesc::Attachment& Desc : m_Description.Framebuffer.Attachments)
+	{
+		vk::AttachmentDescription& AttDesc = AttachmentDescs.emplace_back();
+		AttDesc.format = GetResourceFormat(Desc.kFormat);
+		AttDesc.samples = vk::SampleCountFlagBits::e1;
+		AttDesc.loadOp = vk::AttachmentLoadOp::eDontCare;
+		AttDesc.storeOp = Desc.kType == kAttachmentType_Color ? vk::AttachmentStoreOp::eStore : vk::AttachmentStoreOp::eDontCare;
+		AttDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare; // not supported atm
+		AttDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare; // not supported atm
+		AttDesc.initialLayout = vk::ImageLayout::eUndefined; // VKTexture(Attachment.Texture).kLayout
+		//AttDesc.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
+
+		if (Desc.kSource == kAttachmentSourceType_Backbuffer)
+		{
+			AttDesc.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		}
+		else
+		{
+			if (Desc.kType == kAttachmentType_Color)
+			{
+				AttDesc.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+
+			}
+			else if (Desc.kType == kAttachmentType_DepthStencil)
+			{
+				AttDesc.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+			}
+		}
+	}
+
+	std::vector<vk::AttachmentReference> ColorAttachments;
+	vk::AttachmentReference DepthAttachment{};
+
+	uint32_t uAttachment = 0u; // TODO: get from module
+	for (const vk::AttachmentDescription& AttDesc : AttachmentDescs)
+	{
+		switch (AttDesc.finalLayout)
+		{
+		case vk::ImageLayout::ePresentSrcKHR:
+		case vk::ImageLayout::eColorAttachmentOptimal:
+		{
+			vk::AttachmentReference& ColorAttachment = ColorAttachments.emplace_back();
+			ColorAttachment.attachment = uAttachment++;
+			ColorAttachment.layout = vk::ImageLayout::eColorAttachmentOptimal;
+		}
+			break;
+		case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+			DepthAttachment.attachment = uAttachment++;
+			FirstPass.pDepthStencilAttachment = &DepthAttachment;
+		default:
+			break;
+		}
+	}	
+
+	FirstPass.pColorAttachments = ColorAttachments.data();
+	FirstPass.colorAttachmentCount = static_cast<uint32_t>(ColorAttachments.size());
+	FirstPass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+
+	PassInfo.attachmentCount = static_cast<uint32_t>(AttachmentDescs.size());
+	PassInfo.pAttachments = AttachmentDescs.data();
+
+	for (VulkanRenderPass& SubPass : m_SubPasses)
+	{
+		vk::SubpassDescription& SubDesc = SubPassDescs.emplace_back();
+		SubDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+
+		// TODO: fill out rest
+	}
+
+	PassInfo.subpassCount = static_cast<uint32_t>(SubPassDescs.size());
+	PassInfo.pSubpasses = SubPassDescs.data();
+
+	return LogVKErrorBool(VKDevice().createRenderPass(&PassInfo, nullptr, &m_hRenderPass));
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::ResetRenderPass()
+{
+	if (m_pParent == nullptr && m_hRenderPass) // if this is the parent pass
+	{
+		VKDevice().destroyRenderPass(m_hRenderPass);
+	}
+
+	m_hRenderPass = nullptr;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer)
+{
+	// we assume that rendertargets stay the same for all shaders & permutations
+	if (m_pParent != nullptr)
+	{
+		m_hFramebuffer = m_pParent->m_hFramebuffer;
+		return m_hFramebuffer;
+	}
+
+	ResetFramebuffer();
+
+	std::vector<vk::ImageView> ImageViews;
+
+	// setup framebuffer
+	for (const FramebufferDesc::Attachment& Desc : m_Description.Framebuffer.Attachments)
+	{
+		vk::ClearValue& cv = m_Framebuffer.ClearValues.emplace_back();
+		cv.color = Desc.vClearColor;
+		cv.depthStencil = { Desc.fClearDepth, Desc.uClearStencil };
+
+		Framebuffer::Attachment& Attachment = m_Framebuffer.Attachments.emplace_back();
+
+		Attachment.kType = Desc.kType;
+		Attachment.sName = Desc.sName;
+
+		if (Desc.kSource == kAttachmentSourceType_New)
+		{
+			TextureDesc TexDesc{};
+			TexDesc.kType = kTextureType_Texture2D;
+			TexDesc.kFormat = Desc.kFormat;
+			TexDesc.hDevice = m_Device.GetHandle();
+			TexDesc.kUsageFlag = Desc.kType == kAttachmentType_Color ? kTextureUsage_RenderTarget : kTextureUsage_DepthStencil;
+			TexDesc.uHeight = m_Description.Framebuffer.uHeight;
+			TexDesc.uWidth = m_Description.Framebuffer.uWidth;
+			TexDesc.uLayerCount = 1u;
+
+			Attachment.Texture = std::move(VulkanTexture(TexDesc));
+
+			TextureViewDesc ViewDesc{};
+			ViewDesc.kFormat = Desc.kFormat;
+
+			if (Desc.kType == kAttachmentType_Color)
+			{
+				ViewDesc.kType = kViewType_RenderTarget;
+			}
+			else if (Desc.kType == kAttachmentType_DepthStencil)
+			{
+				ViewDesc.kType = kViewType_DepthStencil;
+			}
+
+			if (Attachment.Texture.AddView(ViewDesc) == false)
+				return false;
+		}
+		else if (Desc.kSource == kAttachmentSourceType_Use)
+		{
+			// search for source texture in previous passes
+			for (VulkanRenderPass& Pass : m_RenderGraph.m_RenderPasses)
+			{
+				if (Pass.m_Description.sPassName == Desc.sSourcePassName)
+				{
+					for (const Framebuffer::Attachment& Src : Pass.m_Framebuffer.Attachments)
+					{
+						if (Src.sName == Desc.sName)
+						{
+							Attachment.Texture = Src.Texture; // found tex, copy reference
+							break;
+						}
+					}
+					break;
+				}
+			}
+		}
+		else if (Desc.kSource == kAttachmentSourceType_Backbuffer)
+		{
+			Attachment.Texture = _CurrentBackbuffer;
+		}
+
+		if (Attachment.Texture.IsValidVkTex() == false)
+			return false;
+
+		ImageViews.push_back(VKTexture(Attachment.Texture).Views[Desc.kType]);
+	}
+
+	vk::FramebufferCreateInfo FrameInfo{};
+	FrameInfo.height = m_Description.Framebuffer.uHeight;
+	FrameInfo.width = m_Description.Framebuffer.uWidth;
+	FrameInfo.layers = m_Description.Framebuffer.uLayers;
+	FrameInfo.renderPass = m_hRenderPass;
+	FrameInfo.pAttachments = ImageViews.data();
+	FrameInfo.attachmentCount = static_cast<uint32_t>(ImageViews.size());
+
+	if (LogVKErrorBool(VKDevice().createFramebuffer(&FrameInfo, nullptr, &m_hFramebuffer)) == false)
+		return false;
+
+	m_BeginInfo.renderPass = m_hRenderPass;
+	m_BeginInfo.framebuffer = m_hFramebuffer;
+	m_BeginInfo.renderArea.offset.x = m_ActivePipelineDesc.RenderArea.uOffsetX;
+	m_BeginInfo.renderArea.offset.y = m_ActivePipelineDesc.RenderArea.uOffsetY;
+	m_BeginInfo.renderArea.extent.width = m_ActivePipelineDesc.RenderArea.uExtentX;
+	m_BeginInfo.renderArea.extent.height = m_ActivePipelineDesc.RenderArea.uExtentY;
+	m_BeginInfo.clearValueCount = static_cast<uint32_t>(m_Framebuffer.ClearValues.size());
+	m_BeginInfo.pClearValues = m_Framebuffer.ClearValues.data();
+
+	return m_hFramebuffer && m_hRenderPass;
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::ResetFramebuffer()
 {
 	if (m_pParent == nullptr) // if this is the parent pass
 	{
-		// Renderpass
-		if (m_hRenderPass)
-		{
-			VKDevice().destroyRenderPass(m_hRenderPass);
-		}
-
 		// Framebuffer
 		for (Framebuffer::Attachment& Att : m_Framebuffer.Attachments)
 		{
 			Att.Texture.Reset();
 		}
-		m_Framebuffer.Attachments.clear();
+		m_Framebuffer.Reset();
 
 		if (m_hFramebuffer)
 		{
@@ -118,7 +332,6 @@ void VulkanRenderPass::ResetRenderPassAndFramebuffer()
 	}
 
 	m_hFramebuffer = nullptr;
-	m_hRenderPass = nullptr;
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -137,7 +350,8 @@ void VulkanRenderPass::Uninitialize()
 		m_hCommandBuffer = nullptr;
 	}
 
-	ResetRenderPassAndFramebuffer();
+	ResetRenderPass();
+	ResetFramebuffer();
 
 	// Samplers
 	for (auto& kv : m_Samplers)
@@ -212,9 +426,8 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		ResetMappings();
 
-		// TODO: get ViewportState from pipleine desc m_ActivePipelineDesc
-		m_hCommandBuffer.setViewport(0, m_ViewportState.Viewports);
-		m_hCommandBuffer.setScissor(0, m_ViewportState.Scissors);
+		//m_hCommandBuffer.setViewport(0, m_ViewportState.Viewports);
+		//m_hCommandBuffer.setScissor(0, m_ViewportState.Scissors);
 
 		if (m_ActivePipelineDesc.kFillMode == kPolygonFillMode_Line)
 		{
@@ -405,7 +618,7 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 // called for each batch of objects that use a different shader
 bool VulkanRenderPass::BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffer)
 {
-	if (CreateRenderPass(_CurrentBackbuffer) == false)
+	if (CreateFramebuffer(_CurrentBackbuffer) == false)
 		return false;
 
 	vk::CommandBufferInheritanceInfo BufferInfo{};
@@ -452,6 +665,8 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 	vk::GraphicsPipelineCreateInfo PipelineInfo{};
 	PipelineInfo.basePipelineIndex = -1;
+
+	PipelineInfo.renderPass = m_hRenderPass;
 
 	// this is going to be the base pipeline, allow derivatives from this one
 	if (!m_BasePipeline && _Desc.bBasePipeline)
@@ -542,9 +757,9 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 	if (pVertexShader != nullptr)
 	{
 		VertexInputState = VLayout.GetVertexLayout(pVertexShader->Code.GetVariables());
-		PipelineInfo.pVertexInputState = &VertexInputState;
 		uHash += VLayout.ComputeHash();
 	}
+	PipelineInfo.pVertexInputState = &VertexInputState;
 
 	//---------------------------------------------------------------------------------------------------
 	// IA STAGE
@@ -621,14 +836,50 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 	PipelineInfo.pDepthStencilState = &DSInfo;
 
 	//---------------------------------------------------------------------------------------------------
+	// Viewport STATE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineViewportStateCreateInfo VPInfo{};
+	std::vector<vk::Viewport> Viewports;
+	std::vector<vk::Rect2D> Scissors;
+
+	// TODO: check for multiViewport feature
+
+	if (_Desc.Viewports.size() != _Desc.Scissors.size() || _Desc.Viewports.empty())
+	{
+		HERROR("Invalid number of viewports / scissorts");
+		return nullptr;
+	}
+
+	for (const Viewport& vp : _Desc.Viewports)
+	{
+		uHash << vp;
+		Viewports.push_back(GetViewport(vp));
+	}
+
+	VPInfo.pViewports = Viewports.data();
+	VPInfo.viewportCount = static_cast<uint32_t>(Viewports.size());
+
+	for (const Rect& s : _Desc.Scissors)
+	{
+		uHash << s;
+		Scissors.push_back(GetRect(s));
+	}
+
+	VPInfo.pScissors = Scissors.data();
+	VPInfo.scissorCount = static_cast<uint32_t>(Scissors.size());
+
+	PipelineInfo.pViewportState = &VPInfo;
+
+	//---------------------------------------------------------------------------------------------------
 	// DYNAMIC STATES
 	//---------------------------------------------------------------------------------------------------
 
 	vk::PipelineDynamicStateCreateInfo DynamicInfo{};
 
-	vk::DynamicState DynamicStates[]{ 
-		vk::DynamicState::eViewport,
-		vk::DynamicState::eScissor,
+	const vk::DynamicState DynamicStates[]{ 
+		//vk::DynamicState::eViewport,
+		//vk::DynamicState::eScissor,
 		vk::DynamicState::eLineWidth,
 		vk::DynamicState::eDepthBias,
 		vk::DynamicState::eBlendConstants,
@@ -957,162 +1208,6 @@ bool VulkanRenderPass::StorePipelineCache(const std::wstring& _sPath)
 	}
 
 	return bSuccess;
-}
-//---------------------------------------------------------------------------------------------------
-
-bool VulkanRenderPass::CreateRenderPass(const VulkanTexture& _CurrentBackbuffer)
-{
-	// we assume that rendertargets stay the same for all shaders & permutations
-	if (m_pParent != nullptr)
-	{
-		m_hFramebuffer = m_pParent->m_hFramebuffer;
-		m_hRenderPass = m_pParent->m_hRenderPass;
-		return m_hFramebuffer && m_hRenderPass;
-	}
-
-	ResetRenderPassAndFramebuffer();
-
-	std::vector<vk::AttachmentDescription> AttachmentDescs;
-	std::vector<vk::ImageView> ImageViews;
-
-	// setup framebuffer
-	for (const FramebufferDesc::Attachment& Desc : m_Description.Framebuffer.Attachments)
-	{
-		vk::ClearValue& cv = m_Framebuffer.ClearValues.emplace_back();
-		cv.color = Desc.vClearColor;
-		cv.depthStencil = { Desc.fClearDepth, Desc.uClearStencil };
-
-		Framebuffer::Attachment& Attachment = m_Framebuffer.Attachments.emplace_back();
-
-		Attachment.kType = Desc.kType;
-		Attachment.sName = Desc.sName;
-
-		if (Desc.kSource == kAttachmentSourceType_New)
-		{
-			TextureDesc TexDesc{};
-			TexDesc.kType = kTextureType_Texture2D;
-			TexDesc.kFormat = Desc.kFormat;
-			TexDesc.hDevice = m_Device.GetHandle();
-			TexDesc.kUsageFlag = Desc.kType == kAttachmentType_Color ? kTextureUsage_RenderTarget : kTextureUsage_DepthStencil;
-			TexDesc.uHeight = m_Description.Framebuffer.uHeight;
-			TexDesc.uWidth = m_Description.Framebuffer.uWidth;
-			TexDesc.uLayerCount = 1u;
-
-			Attachment.Texture = std::move(VulkanTexture(TexDesc));
-
-			TextureViewDesc ViewDesc{};
-			ViewDesc.kFormat = Desc.kFormat;
-
-			if (Desc.kType == kAttachmentType_Color)
-			{
-				ViewDesc.kType = kViewType_RenderTarget;
-			}
-			else if (Desc.kType == kAttachmentType_DepthStencil)
-			{
-				ViewDesc.kType = kViewType_DepthStencil;
-			}
-
-			if (Attachment.Texture.AddView(ViewDesc) == false)
-				return false;
-		}
-		else if (Desc.kSource == kAttachmentSourceType_Use)
-		{
-			// search for source texture in previous passes
-			for (VulkanRenderPass& Pass : m_RenderGraph.m_RenderPasses)
-			{
-				if (Pass.m_Description.sPassName == Desc.sSourcePassName)
-				{
-					for (const Framebuffer::Attachment& Src : Pass.m_Framebuffer.Attachments)
-					{
-						if (Src.sName == Desc.sName)
-						{
-							Attachment.Texture = Src.Texture; // found tex, copy reference
-							break;
-						}
-					}
-					break;
-				}
-			}
-		}
-		else if (Desc.kSource == kAttachmentSourceType_Backbuffer)
-		{
-			Attachment.Texture = _CurrentBackbuffer;
-		}
-
-		if (Attachment.Texture.IsValidVkTex() == false)
-			return false;
-
-		ImageViews.push_back(VKTexture(Attachment.Texture).Views[Desc.kType]);
-		
-		vk::AttachmentDescription& AttDesc = AttachmentDescs.emplace_back();
-		AttDesc.format = GetResourceFormat(Desc.kFormat);
-		AttDesc.samples = vk::SampleCountFlagBits::e1;
-		AttDesc.loadOp = vk::AttachmentLoadOp::eDontCare;
-		AttDesc.storeOp = Desc.kType == kAttachmentType_Color ? vk::AttachmentStoreOp::eStore : vk::AttachmentStoreOp::eDontCare;
-		AttDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare; // not supported atm
-		AttDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare; // not supported atm
-		AttDesc.initialLayout = vk::ImageLayout::eUndefined; // VKTexture(Attachment.Texture).kLayout
-		//AttDesc.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
-		
-		if (Desc.kSource == kAttachmentSourceType_Backbuffer)
-		{
-			AttDesc.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-		}
-		else
-		{
-			if (Desc.kType == kAttachmentType_Color)
-			{
-				AttDesc.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-			}
-			else if (Desc.kType == kAttachmentType_DepthStencil)
-			{
-				AttDesc.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-			}
-		}	
-	}
-
-	vk::RenderPassCreateInfo PassInfo{};
-	PassInfo.attachmentCount = static_cast<uint32_t>(AttachmentDescs.size());
-	PassInfo.pAttachments = AttachmentDescs.data();
-
-	// setup subpasses
-	std::vector<vk::SubpassDescription> SubPassDescs;
-
-	for (VulkanRenderPass& SubPass : m_SubPasses)
-	{
-		vk::SubpassDescription& SubDesc = SubPassDescs.emplace_back();
-		SubDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-		
-		// TODO: fill out rest
-	}
-
-	PassInfo.subpassCount = static_cast<uint32_t>(SubPassDescs.size());
-	PassInfo.pSubpasses = SubPassDescs.data();
-
-	if (LogVKErrorBool(VKDevice().createRenderPass(&PassInfo, nullptr, &m_hRenderPass)) == false)
-		return false;
-
-	vk::FramebufferCreateInfo FrameInfo{};
-	FrameInfo.height = m_Description.Framebuffer.uHeight;
-	FrameInfo.width = m_Description.Framebuffer.uWidth;
-	FrameInfo.layers = m_Description.Framebuffer.uLayers;
-	FrameInfo.renderPass = m_hRenderPass;
-	FrameInfo.pAttachments = ImageViews.data();
-	FrameInfo.attachmentCount = static_cast<uint32_t>(ImageViews.size());
-
-	if (LogVKErrorBool(VKDevice().createFramebuffer(&FrameInfo, nullptr, &m_hFramebuffer)) == false)
-		return false;
-
-	m_BeginInfo.renderPass = m_hRenderPass;
-	m_BeginInfo.framebuffer = m_hFramebuffer;
-	m_BeginInfo.renderArea.offset.x = m_ViewportState.ReanderArea.uOffsetX;
-	m_BeginInfo.renderArea.offset.y = m_ViewportState.ReanderArea.uOffsetY;
-	m_BeginInfo.renderArea.extent.width = m_ViewportState.ReanderArea.uExtentX;
-	m_BeginInfo.renderArea.extent.height = m_ViewportState.ReanderArea.uExtentY;
-	m_BeginInfo.clearValueCount = static_cast<uint32_t>(m_Framebuffer.ClearValues.size());
-	m_BeginInfo.pClearValues = m_Framebuffer.ClearValues.data();
-
-	return m_hFramebuffer && m_hRenderPass;
 }
 
 //---------------------------------------------------------------------------------------------------

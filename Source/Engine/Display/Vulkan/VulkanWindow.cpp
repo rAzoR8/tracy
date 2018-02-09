@@ -33,7 +33,8 @@ VulkanWindow::VulkanWindow(VulkanWindow&& _Other) :
 	m_Backbuffer(std::move(_Other.m_Backbuffer)),
 	m_Capabilities(std::move(_Other.m_Capabilities)),
 	m_Formats(std::move(_Other.m_Formats)),
-	m_PresentModes(std::move(_Other.m_PresentModes))
+	m_PresentModes(std::move(_Other.m_PresentModes)),
+	m_Description(std::move(_Other.m_Description))
 {
 	_Other.m_hThis = kUndefinedSizeT;
 	_Other.m_hPresentDevice = kUndefinedSizeT;
@@ -162,15 +163,15 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	// Cache old swapchain for release
 	vk::SwapchainKHR OldSwapchain = m_Swapchain;
 
-	vk::SwapchainCreateInfoKHR SwapchainDesc{};
-	SwapchainDesc.pNext = nullptr;
-	SwapchainDesc.surface = m_Surface;
-	SwapchainDesc.imageArrayLayers = 1u; // is the number of views in a multiview/stereo surface. For non-stereoscopic-3D applications, this value is 1.
-	SwapchainDesc.clipped = VK_TRUE;
-	SwapchainDesc.imageSharingMode = vk::SharingMode::eExclusive;
-	SwapchainDesc.queueFamilyIndexCount = 0u;
-	SwapchainDesc.pQueueFamilyIndices = nullptr;
-	SwapchainDesc.oldSwapchain = OldSwapchain;
+	m_Description = {};
+	m_Description.pNext = nullptr;
+	m_Description.surface = m_Surface;
+	m_Description.imageArrayLayers = 1u; // is the number of views in a multiview/stereo surface. For non-stereoscopic-3D applications, this value is 1.
+	m_Description.clipped = VK_TRUE;
+	m_Description.imageSharingMode = vk::SharingMode::eExclusive;
+	m_Description.queueFamilyIndexCount = 0u;
+	m_Description.pQueueFamilyIndices = nullptr;
+	m_Description.oldSwapchain = OldSwapchain;
 
 	//
 	// Select Color Space and Format
@@ -179,16 +180,16 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	// there is no preferered format, so we assume LDR_RENDER_FORMAT
 	if ((m_Formats.size() > 0u) && (m_Formats[0u].format == vk::Format::eUndefined))
 	{
-		SwapchainDesc.imageFormat = vk::Format::eB8G8R8A8Srgb;
-		SwapchainDesc.imageColorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
+		m_Description.imageFormat = vk::Format::eB8G8R8A8Srgb;
+		m_Description.imageColorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
 	}
 	else
 	{
 		// If we need a specific format (e.g. SRGB) we'd need to
 		// iterate over the list of available surface format and
 		// check for its presence
-		SwapchainDesc.imageFormat = m_Formats[0u].format;
-		SwapchainDesc.imageColorSpace = m_Formats[0u].colorSpace;
+		m_Description.imageFormat = m_Formats[0u].format;
+		m_Description.imageColorSpace = m_Formats[0u].colorSpace;
 	}
 
 	//
@@ -199,17 +200,17 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	{
 		// If the surface size is undefined, the size is set to
 		// the size of the image requested
-		SwapchainDesc.imageExtent.width = _uWidth;
-		SwapchainDesc.imageExtent.height = _uHeight;
+		m_Description.imageExtent.width = _uWidth;
+		m_Description.imageExtent.height = _uHeight;
 	}
 	else
 	{
 		// If the surface is defined, the swapchain size must match
-		SwapchainDesc.imageExtent.width = m_Capabilities.currentExtent.width;
-		SwapchainDesc.imageExtent.height = m_Capabilities.currentExtent.height;
+		m_Description.imageExtent.width = m_Capabilities.currentExtent.width;
+		m_Description.imageExtent.height = m_Capabilities.currentExtent.height;
 	}
-	m_uWidth = SwapchainDesc.imageExtent.width;
-	m_uHeight = SwapchainDesc.imageExtent.height;
+	m_uWidth = m_Description.imageExtent.width;
+	m_uHeight = m_Description.imageExtent.height;
 
 	//
 	// Setup V-Sync / Present Mode
@@ -220,7 +221,7 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	// New requests are appended to the end of the queue, and one request is removed from the beginning of the queue and 
 	// processed during each vertical blanking period in which the queue is non-empty. 
 	// This is the only value of presentMode that is REQUIRED to be supported.
-	SwapchainDesc.presentMode = vk::PresentModeKHR::eFifo;
+	m_Description.presentMode = vk::PresentModeKHR::eFifo;
 
 	bool bEnableVSync = false;	// TODO : should come from config
 	if (bEnableVSync)
@@ -235,7 +236,7 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 			// each vertical blanking period in which the queue is non-empty.
 			if (PresentMode == vk::PresentModeKHR::eMailbox)
 			{
-				SwapchainDesc.presentMode = PresentMode;
+				m_Description.presentMode = PresentMode;
 				break;
 			}
 		}
@@ -249,7 +250,7 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 			// No internal queuing of presentation requests is needed, as the requests are applied immediately.
 			if (PresentMode == vk::PresentModeKHR::eImmediate)
 			{
-				SwapchainDesc.presentMode = PresentMode;
+				m_Description.presentMode = PresentMode;
 				break;
 			}
 		}
@@ -260,11 +261,11 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	// Default is 1 image more than the minimum supported
 	// TODO : might want to use config to set double or triple buffering
-	SwapchainDesc.minImageCount = m_Capabilities.minImageCount + 1u;
+	m_Description.minImageCount = m_Capabilities.minImageCount + 1u;
 	// Ensure that we can allow this many images
 	if (m_Capabilities.maxImageCount > 0u)
 	{
-		SwapchainDesc.minImageCount = std::max(SwapchainDesc.minImageCount, m_Capabilities.maxImageCount);
+		m_Description.minImageCount = std::max(m_Description.minImageCount, m_Capabilities.maxImageCount);
 	}
 
 	//
@@ -272,11 +273,11 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	if (m_Capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity)
 	{
-		SwapchainDesc.preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity;
+		m_Description.preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity;
 	}
 	else
 	{
-		SwapchainDesc.preTransform = m_Capabilities.currentTransform;
+		m_Description.preTransform = m_Capabilities.currentTransform;
 	}
 
 	//
@@ -284,7 +285,7 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	// https://www.khronos.org/registry/vulkan/specs/1.0-extensions/html/vkspec.html#VkCompositeAlphaFlagBitsKHR
 	//
 	// We would like to ignore alpha blending of the os windowing system, unfortunately support is not granted.
-	SwapchainDesc.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+	m_Description.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 	std::vector<vk::CompositeAlphaFlagBitsKHR> CompositeAlphaFlags =
 	{
 		vk::CompositeAlphaFlagBitsKHR::eOpaque,
@@ -297,7 +298,7 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	{
 		if (AlphaMode & m_Capabilities.supportedCompositeAlpha)
 		{
-			SwapchainDesc.compositeAlpha = AlphaMode;
+			m_Description.compositeAlpha = AlphaMode;
 			break;
 		}
 	}
@@ -305,19 +306,19 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	//
 	// Image Usage
 	//
-	SwapchainDesc.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
+	m_Description.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
 	// Enable blit to backbuffer if supported, can be nice for postfx
-	const vk::FormatProperties& FormatProps = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetAdapter().getFormatProperties(SwapchainDesc.imageFormat);
+	const vk::FormatProperties& FormatProps = GetDevice(m_hPresentDevice).GetAdapter().getFormatProperties(m_Description.imageFormat);
 	if (FormatProps.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitDst)
 	{
-		SwapchainDesc.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
+		m_Description.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
 	}
 
 	//
 	// Create Swapchain
 	//
-	const vk::Device& Device = VulkanInstance::GetInstance().GetDevice(m_hPresentDevice).GetDevice();
-	if (LogVKErrorFailed(Device.createSwapchainKHR(&SwapchainDesc, nullptr, &m_Swapchain)))
+	const vk::Device& Device = GetDevice(m_hPresentDevice).GetDevice();
+	if (LogVKErrorFailed(Device.createSwapchainKHR(&m_Description, nullptr, &m_Swapchain)))
 		return false;
 
 	//
@@ -350,7 +351,7 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	
 	vk::ImageViewCreateInfo ColorView{};
 	ColorView.pNext = nullptr;
-	ColorView.format = SwapchainDesc.imageFormat;
+	ColorView.format = m_Description.imageFormat;
 	ColorView.components = vk::ComponentMapping();	// Set identity for all channels
 	ColorView.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, uBaseMipLevel, uMipLevelCount, uBaseArrayLayer, uArrayLayerCount);
 	ColorView.viewType = vk::ImageViewType::e2D;

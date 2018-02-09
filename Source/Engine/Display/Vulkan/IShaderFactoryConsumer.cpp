@@ -65,13 +65,27 @@ bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 
 			pActiveShader->Identifier = _ShaderIdentifier;
 
+			pActiveShader->StageCreateInfo  = {};
+			pActiveShader->StageCreateInfo.stage = GetShaderStage(pActiveShader->Code);
+			vk::ShaderModuleCreateInfo ModuleInfo(GetShaderModuleInfo(pActiveShader->Code));
+			pActiveShader->StageCreateInfo.pName = pActiveShader->Code.GetEntryPoint().c_str();
+
+			if (LogVKErrorFailed(VKDevice().createShaderModule(&ModuleInfo, nullptr, &pActiveShader->StageCreateInfo.module)))
+				return false;
+
 			if (_pSpecConstFactory != nullptr)
 			{
 				pActiveShader->SpecInfo = _pSpecConstFactory->GetInfo();
 				pActiveShader->uSpecConstHash = _pSpecConstFactory->ComputeHash();
+				pActiveShader->StageCreateInfo.pSpecializationInfo = &pActiveShader->SpecInfo;
 			}
 
-			pActiveShader->StageCreateInfo = CreateShaderStage(m_Device.GetDevice(), pActiveShader->Code, _pSpecConstFactory != nullptr ? &pActiveShader->SpecInfo : nullptr);
+			HLOGD("Shader %s [Type %u Shader %u Variant %u %uB] loaded",
+				WCSTR(pActiveShader->StageCreateInfo.pName),
+				_ShaderIdentifier.kType,
+				_ShaderIdentifier.uShader,
+				_ShaderIdentifier.uVariant,
+				ModuleInfo.codeSize);
 		}
 
 		return true;
