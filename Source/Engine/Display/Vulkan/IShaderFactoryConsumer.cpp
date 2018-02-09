@@ -55,6 +55,16 @@ bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 			HASSERT(GetPlugin() != nullptr, "Invalid ShaderFactory!");	
 			pActiveShader->Code = GetPlugin()->GetModule(_ShaderIdentifier, _pUserData, _uSize);
 
+			const EShaderType kType = static_cast<EShaderType>(pActiveShader->Code.GetExectionModel());
+			
+			if (_ShaderIdentifier.kType != kType) 
+			{
+				HERROR("ShaderType mismatch for module %u and identifier %u", kType, _ShaderIdentifier.kType);
+				return false;
+			}
+
+			pActiveShader->Identifier = _ShaderIdentifier;
+
 			if (_pSpecConstFactory != nullptr)
 			{
 				pActiveShader->SpecInfo = _pSpecConstFactory->GetInfo();

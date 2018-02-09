@@ -482,6 +482,11 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 	PipelineInfo.pStages = ShaderStages.data();
 	PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStages.size());
+	if (PipelineInfo.stageCount == 0)
+	{
+		HERROR("No shader supplied for pipeline creation");
+		return nullptr;
+	}
 
 	//---------------------------------------------------------------------------------------------------
 	// IMMUTABLE SAMPLERS

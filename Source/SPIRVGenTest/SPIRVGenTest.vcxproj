@@ -14,7 +14,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{C823E901-3678-4A54-8B2A-A622459AA818}</ProjectGuid>
     <RootNamespace>SPIRVGenTest</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

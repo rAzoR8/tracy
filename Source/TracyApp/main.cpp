@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 	Pipeline.kPrimitiveTopology = kPrimitiveTopology_TriangleList;
 
 	PipelineDesc::ShaderDesc& Shader = Pipeline.Shaders.emplace_back();
-	Shader.Identifier = 0u;
+	Shader.Identifier = ShaderID(kShaderType_Fragment);
 
 	if (App.Initialize(1280u, 720u, Tracy::EGraphicsAPI::eVulkan, Desc))
 	{
