@@ -16,6 +16,51 @@ SPIRVInstruction::SPIRVInstruction(
 	m_Operands(_Operands) 
 {
 }
+
+//---------------------------------------------------------------------------------------------------
+
+uint32_t Decode(const std::vector<uint32_t>& _Words, const uint32_t _uOffset, SPIRVInstruction& _OutInstr)
+{
+	uint32_t uWordCount = 1;
+	uint32_t uOffset = _uOffset;
+
+	auto GetWord = [&]() -> uint32_t
+	{
+		return (uOffset < _Words.size() && (--uWordCount > 0)) ? _Words[uOffset++] : SPIRVInstruction::kInvalidId;
+	};
+
+	const uint32_t& uOpCode = GetWord();
+
+	if (uOpCode != SPIRVInstruction::kInvalidId)
+	{
+		const spv::Op kOp = static_cast<spv::Op>(uOpCode & spv::OpCodeMask);
+		uWordCount = uOpCode & (spv::OpCodeMask << spv::WordCountShift);
+		uint32_t uTypeId = SPIRVInstruction::kInvalidId;
+		uint32_t uResultId = SPIRVInstruction::kInvalidId;
+		std::vector<uint32_t> Operands;
+
+		const TSPVArgFlag kArgs = GetOpCodeArgs(kOp);
+
+		if (kArgs.CheckFlag(kSPVOpArgs_TypeId))
+		{
+			uTypeId = GetWord();
+		}
+
+		if (kArgs.CheckFlag(kSPVOpArgs_ResultId))
+		{
+			uResultId = GetWord();
+		}
+
+		for (uint32_t uOperand = GetWord(); uOperand != SPIRVInstruction::kInvalidId; uOperand = GetWord())
+		{
+			Operands.push_back(uOperand);
+		}
+		
+		_OutInstr = SPIRVInstruction(kOp, uTypeId, uResultId, Operands);
+	}
+
+	return uOffset - _uOffset;
+}
 //---------------------------------------------------------------------------------------------------
 
 SPIRVInstruction::~SPIRVInstruction()

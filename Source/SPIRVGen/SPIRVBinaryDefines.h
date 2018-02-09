@@ -5,13 +5,26 @@
 #include <unordered_map>
 #include <vulkan\spirv.hpp>	
 
+#include "Flag.h"
+
 namespace Tracy
 {
+	enum ESPVOpArgs
+	{
+		kSPVOpArgs_None = 0,
+		kSPVOpArgs_TypeId = 1 << 0,
+		kSPVOpArgs_ResultId = 1 << 1,
+		kSPVOpArgs_TypeAndResultId = kSPVOpArgs_TypeId | kSPVOpArgs_ResultId,
+		kSPVOpArgs_Unknown = 0xff
+	};
+
+	using TSPVArgFlag = hlx::Flag<ESPVOpArgs>;
+
 	namespace detail
 	{
 		static const std::unordered_map<spv::Op, std::string> g_OpNames =
 		{
-			{ spv::OpNop, "OpNop" },
+		{ spv::OpNop, "OpNop" },
 		{ spv::OpUndef, "OpUndef" },
 		{ spv::OpSourceContinued, "OpSourceContinued" },
 		{ spv::OpSource, "OpSource" },
@@ -109,12 +122,64 @@ namespace Tracy
 		{ spv::OpImageQuerySamples, "OpImageQuerySamples" }
 
 		};
+
+		static const std::unordered_map<spv::Op, ESPVOpArgs> g_OpArgs =
+		{
+		{ spv::OpNop, kSPVOpArgs_None},
+		{ spv::OpUndef, kSPVOpArgs_TypeAndResultId },
+		{ spv::OpSourceContinued, kSPVOpArgs_None },
+		{ spv::OpSource, kSPVOpArgs_None },
+		{ spv::OpSourceExtension, kSPVOpArgs_None },
+		{ spv::OpName, kSPVOpArgs_None },
+		{ spv::OpMemberName, kSPVOpArgs_TypeId },
+		{ spv::OpString, kSPVOpArgs_ResultId },
+		{ spv::OpLine, kSPVOpArgs_None },
+		{ spv::OpExtension, kSPVOpArgs_None },
+		{ spv::OpExtInstImport, kSPVOpArgs_ResultId },
+		{ spv::OpExtInst, kSPVOpArgs_TypeAndResultId },
+		{ spv::OpMemoryModel, kSPVOpArgs_None },
+		{ spv::OpEntryPoint, kSPVOpArgs_None },
+		{ spv::OpExecutionMode, kSPVOpArgs_None },
+		{ spv::OpCapability, kSPVOpArgs_None },
+		{ spv::OpTypeVoid, kSPVOpArgs_ResultId },
+		{ spv::OpTypeVoid, kSPVOpArgs_ResultId },
+		{ spv::OpTypeBool, kSPVOpArgs_ResultId },
+		{ spv::OpTypeInt, kSPVOpArgs_ResultId },
+		{ spv::OpTypeFloat, kSPVOpArgs_ResultId },
+		{ spv::OpTypeVector, kSPVOpArgs_ResultId },
+		{ spv::OpTypeMatrix, kSPVOpArgs_ResultId },
+		{ spv::OpTypeImage, kSPVOpArgs_TypeAndResultId },
+		{ spv::OpTypeSampler, kSPVOpArgs_ResultId },
+		{ spv::OpTypeSampledImage, kSPVOpArgs_TypeAndResultId },
+		{ spv::OpTypeArray, kSPVOpArgs_TypeAndResultId },
+		{ spv::OpTypeRuntimeArray, kSPVOpArgs_TypeAndResultId },
+		{ spv::OpTypeStruct, kSPVOpArgs_ResultId },
+		{ spv::OpTypeOpaque, kSPVOpArgs_ResultId },
+		{ spv::OpTypeOpaque, kSPVOpArgs_ResultId },
+		{ spv::OpTypePointer, kSPVOpArgs_ResultId },
+		{ spv::OpTypeFunction, kSPVOpArgs_TypeAndResultId },
+		{ spv::OpTypeEvent, kSPVOpArgs_ResultId },
+		{ spv::OpTypeDeviceEvent, kSPVOpArgs_ResultId },
+		{ spv::OpTypeReserveId, kSPVOpArgs_ResultId },
+		{ spv::OpTypeQueue, kSPVOpArgs_ResultId },
+		{ spv::OpTypePipe, kSPVOpArgs_ResultId },
+		{ spv::OpTypeForwardPointer, kSPVOpArgs_TypeId },
+		{ spv::OpConstantTrue, kSPVOpArgs_ResultId },
+
+		};
+
 	} // detail
 
 	inline static std::string GetOpCodeString(const spv::Op _kOp)
 	{
 		auto it = detail::g_OpNames.find(_kOp);
 		return it != detail::g_OpNames.end() ? it->second : "Unknown [" + std::to_string(_kOp) + "]";
+	}
+
+	inline static ESPVOpArgs GetOpCodeArgs(const spv::Op _kOp)
+	{
+		auto it = detail::g_OpArgs.find(_kOp);
+		return it != detail::g_OpArgs.end() ? it->second : kSPVOpArgs_Unknown;
 	}
 	
 } // Tracy

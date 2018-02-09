@@ -17,6 +17,12 @@ namespace Tracy
 			const uint32_t _uTypeId = kInvalidId,
 			const uint32_t _uResultId = kInvalidId,
 			const std::vector<uint32_t>& _Operands = {}) noexcept;
+
+		//SPIRVInstruction(const std::vector<uint32_t>& _Words);
+
+		// raw instruction words to be decoded, returns number of consumed words, 0 if failed
+		static uint32_t Decode(const std::vector<uint32_t>& _Words, const uint32_t _uIndex, SPIRVInstruction& _OutInstr);
+
 		~SPIRVInstruction();
 
 		uint32_t GetOpCode() const noexcept;

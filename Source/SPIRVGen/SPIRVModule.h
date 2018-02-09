@@ -40,6 +40,7 @@ namespace Tracy
 		SPIRVModule(const uint32_t _uBounds = 4096) noexcept;
 		~SPIRVModule();
 
+		//bool Read(std::vector<uint32_t> _InstructionStream);
 		void Write(const std::vector<SPIRVInstruction>& _Instructions);
 		bool Save(const std::string& _sFilePath);
 
@@ -73,6 +74,9 @@ namespace Tracy
 
 	private:
 		uint32_t m_uBounds = std::numeric_limits<uint32_t>::max();
+		uint32_t m_uSchema = uSchema;
+		uint32_t m_uGenerator = uGenerator;
+
 		std::vector<uint32_t> m_InstructionStream;
 		std::vector<VariableInfo> m_Variables; // no function class variables (in out uniform etc)
 
