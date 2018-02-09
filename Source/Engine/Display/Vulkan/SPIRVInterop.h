@@ -531,7 +531,7 @@ namespace Tracy
 	inline vk::ShaderModuleCreateInfo GetShaderModuleInfo(const SPIRVModule& _Module)
 	{
 		vk::ShaderModuleCreateInfo Info{};
-		Info.codeSize = static_cast<uint32_t>(_Module.GetCode().size());
+		Info.codeSize = static_cast<uint32_t>(_Module.GetCode().size() * sizeof(uint32_t));
 		Info.pCode = _Module.GetCode().data();
 		return Info;
 	}
