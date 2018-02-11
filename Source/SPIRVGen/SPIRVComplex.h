@@ -22,8 +22,8 @@ namespace Tracy
 		//template <spv::StorageClass C1>
 		//SPRIVComplex(const var_t<float2_t, Assemble, C1>& _vComplex);
 
-		const float Conjugate() const;
-
+		float Conjugate() const;
+		float Norm() const;
 		SPIRVComplex<Assemble, spv::StorageClassFunction> Inverse() const;
 
 		// operators
@@ -51,10 +51,17 @@ namespace Tracy
 		y = _rImaginary;
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	template<bool Assemble, spv::StorageClass Class>
-	inline const float SPIRVComplex<Assemble, Class>::Conjugate() const
+	inline float SPIRVComplex<Assemble, Class>::Conjugate() const
 	{
 		return x*x + y*y;
+	}
+
+	template<bool Assemble, spv::StorageClass Class>
+	inline float SPIRVComplex<Assemble, Class>::Norm() const
+	{
+		return std::sqrtf(x*x + y*y);
 	}
 
 	template<bool Assemble, spv::StorageClass Class>
@@ -70,7 +77,7 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// Complex Multiplication
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
-	inline void CMul(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2, SPIRVComplex<Assemble, C3>& _cOut)
+	inline void CMul(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2, const SPIRVComplex<Assemble, C3>& _cOut)
 	{
 		// z1z2 = (a1 + b1i)(a2 + b2i) =
 		//		= (a1a2 - b1b2)(a1b2 + b1a2)i
