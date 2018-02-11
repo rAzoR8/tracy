@@ -855,6 +855,20 @@ namespace Tracy
 	};
 
 	//---------------------------------------------------------------------------------------------------
+	// builtin variables
+	template <spv::BuiltIn kBuiltIn, class T, bool Assemble = true>
+	struct var_builtin_t : public var_t<T, Assemble, spv::StorageClassInput>
+	{
+		var_builtin_t(const T& _DefaultValue = {}) : var_t<T, Assemble, spv::StorageClassInput>(_DefaultValue)
+		{
+			if constexpr(Assemble)
+			{
+				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, kBuiltIn));
+			}
+		}
+	};
+
+	//---------------------------------------------------------------------------------------------------
 	// re-initialize struct member variable
 	template <class T, spv::StorageClass Class>
 	void InitVar(var_t<T, true, Class>& _Member, SPIRVType& _Type, std::vector<uint32_t> _AccessChain, const spv::StorageClass _kStorageClass, uint32_t& _uCurOffset, uint32_t& _uCurBoundary)
