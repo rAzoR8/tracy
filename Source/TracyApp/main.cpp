@@ -1,5 +1,6 @@
 #include "..\Engine\Engine.hpp"
-#include "..\Engine\Display\Vulkan\VulkanPrimitiveMeshGenerator.h"
+//#include "..\Engine\Display\Vulkan\VulkanPrimitiveMeshGenerator.h"
+#include "..\SPIRVShaderFactory\DefaultShaderIdentifiers.h"
 
 using namespace Tracy;
 
@@ -31,8 +32,11 @@ int main(int argc, char* argv[])
 	Pipeline.Viewports.push_back(Viewport());
 	Pipeline.Scissors.push_back({0,0, 1600u, 900u});
 
-	PipelineDesc::ShaderDesc& Shader = Pipeline.Shaders.emplace_back();
-	Shader.Identifier = ShaderID(kShaderType_Fragment);
+	PipelineDesc::ShaderDesc& VertexShader = Pipeline.Shaders.emplace_back();
+	VertexShader.Identifier = kShader_ScreenSpaceTriangle;
+
+	PipelineDesc::ShaderDesc& PixelShader = Pipeline.Shaders.emplace_back();
+	PixelShader.Identifier = kShader_ClearColor;
 
 	if (App.Initialize(1600u, 900u, Tracy::EGraphicsAPI::eVulkan, Desc))
 	{

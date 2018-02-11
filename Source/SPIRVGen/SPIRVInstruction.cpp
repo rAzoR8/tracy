@@ -100,17 +100,13 @@ std::string SPIRVInstruction::GetString() const
 	std::string sLiteralStr;
 	for (const uint32_t& uOperand : m_Operands)
 	{
-		if (uOperand < 127)
+		if (uOperand < 255)
 		{
 			sOp += " op_"+  std::to_string(uOperand);
 		}
 		else
 		{
-			char* c = (char*)&uOperand;
-			for (uint32_t i = 0; i < 4 && *c != 0; i++, c++)
-			{
-				sLiteralStr += *c;
-			}			
+			sLiteralStr += LiteralToString(uOperand);
 		}
 	}
 

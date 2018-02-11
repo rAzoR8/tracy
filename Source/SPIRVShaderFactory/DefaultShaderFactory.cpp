@@ -1,21 +1,24 @@
-#include "ExampleFactory.h"
-#include "ExampleShader.h"
+#include "DefaultShaderFactory.h"
+#include "DefaultShaderIdentifiers.h"
+
+// shaders
+#include "ClearColor.h"
+#include "ScreenSpaceTriangle.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
-ExampleFactory::ExampleFactory()
+TracyDefaultShaderFactory::TracyDefaultShaderFactory()
 {
 }
 //---------------------------------------------------------------------------------------------------
 
-ExampleFactory::~ExampleFactory()
+TracyDefaultShaderFactory::~TracyDefaultShaderFactory()
 {
-	int i = 0;
 }
 //---------------------------------------------------------------------------------------------------
 
-SPIRVModule ExampleFactory::GetModule(const ShaderID _ShaderIdentifier, const void* _pUserData, const size_t _uSize)
+SPIRVModule TracyDefaultShaderFactory::GetModule(const ShaderID _ShaderIdentifier, const void* _pUserData, const size_t _uSize)
 {
 	// in this example we don't use the user data, but we could cast it so some structure to control compilation
 	auto it = m_Modules.find(_ShaderIdentifier);
@@ -29,19 +32,32 @@ SPIRVModule ExampleFactory::GetModule(const ShaderID _ShaderIdentifier, const vo
 }
 //---------------------------------------------------------------------------------------------------
 
-void ExampleFactory::Release()
+void TracyDefaultShaderFactory::Release()
 {
 	delete this;
 }
 //---------------------------------------------------------------------------------------------------
 
-SPIRVModule ExampleFactory::Compile(const ShaderID _ShaderIdentifier) const
+SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier) const
 {
-	auto m = GlobalAssembler.AssembleSimple<ExampleShader>();
-	//m.Save("test.spv");
-	//system("spirv-dis test.spv");
-	//system("spirv-val test.spv");
+	SPIRVModule Shader;
+	switch (_ShaderIdentifier.uShader)
+	{
+	case kDefaultShader_ClearColor:
+		Shader =  GlobalAssembler.AssembleSimple<ClearColor>();
+		break;
+	case kDefaultShader_ScreenSpaceTriangle:
+		Shader = GlobalAssembler.AssembleSimple<ScreenSpaceTriangle>();
+		break;
+	default:
+		HERROR("Unknown shader %s", WCSTR(_ShaderIdentifier.GetString()));
+		break;
+	}
 
-	return m;
+	Shader.Save("test.spv");
+	system("spirv-dis test.spv");
+	system("spirv-val test.spv");
+
+	return Shader;
 }
 //---------------------------------------------------------------------------------------------------

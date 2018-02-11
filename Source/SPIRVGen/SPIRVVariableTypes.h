@@ -607,9 +607,14 @@ namespace Tracy
 #pragma region variable traits
 	struct TSPVStructTag {};
 	struct TSPVVarTag {};
+	struct TSPVBuiltInTag {};
 
 #ifndef SPVStruct
 #define SPVStruct typedef Tracy::TSPVStructTag SPVStructTag;
+#endif
+
+#ifndef SPVBuiltIn
+#define SPVBuiltIn typedef Tracy::TSPVBuiltInTag SPVBuiltInTag;
 #endif
 
 	template< class, class = std::void_t<> >
@@ -620,6 +625,7 @@ namespace Tracy
 
 	template<class T>
 	constexpr bool is_struct = has_struct_tag<T>::value;
+	//---------------------------------------------------------------------------------------------------
 
 	template< class, class = std::void_t<> >
 	struct has_var_tag : std::false_type { };
@@ -629,6 +635,17 @@ namespace Tracy
 
 	template<class T>
 	constexpr bool is_var = has_var_tag<T>::value;
+	//---------------------------------------------------------------------------------------------------
+
+	template< class, class = std::void_t<> >
+	struct has_builtin_tag : std::false_type { };
+
+	template< class T >
+	struct has_builtin_tag<T, std::void_t<typename T::SPVBuiltInTag>> : std::true_type { };
+
+	template<class T>
+	constexpr bool is_builtin = has_builtin_tag<T>::value;
+	//---------------------------------------------------------------------------------------------------
 
 	template<class T>
 	using var_value_t = typename T::ValueType;

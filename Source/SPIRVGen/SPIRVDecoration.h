@@ -47,7 +47,7 @@ namespace Tracy
 
 		~SPIRVDecoration() {};
 
-		SPIRVOperation MakeOperation(const uint32_t _uTargetId = HUNDEFINED32) const;
+		SPIRVOperation MakeOperation(const uint32_t _uTargetId = HUNDEFINED32, const uint32_t _uMemberIndex = HUNDEFINED32) const;
 
 	private:
 		EDecorationType m_kType = kDecorationType_Default;

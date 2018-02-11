@@ -1,6 +1,7 @@
 #include "SPIRVAssembler.h"
 #include "SPIRVProgram.h"
 #include "SPIRVVariable.h"
+#include "SPIRVBinaryDefines.h"
 
 using namespace Tracy;
 
@@ -77,12 +78,14 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityShader)))));
+
+	// TODO: only add for fragment shaders!
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityInputAttachment)))));
 
 	// OpExtension (unused)
 
 	// OpExtInstImport
-	for(const std::string& sExt : _Extensions)
+	for (const std::string& sExt : _Extensions)
 	{
 		uint32_t uId = AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString(sExt)));
 		AddPreambleId(uId);
@@ -96,7 +99,10 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	// Op1: Execution model
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_kModel))), &m_pOpEntryPoint));
 
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode));
+	if (_kMode < spv::ExecutionModeMax)
+	{
+		AddPreambleId(AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode));
+	}
 
 	// add types for entry point function
 	const uint32_t uFunctionTypeId = AddType(SPIRVType(spv::OpTypeFunction, SPIRVType::Void()));
@@ -111,8 +117,11 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	AddPreambleId(uFuncId);
 
-	m_pOpExeutionMode->AddIntermediate(uFuncId);
-	m_pOpExeutionMode->AddLiteral(static_cast<uint32_t>(_kMode));
+	if (_kMode < spv::ExecutionModeMax)
+	{
+		m_pOpExeutionMode->AddIntermediate(uFuncId);
+		m_pOpExeutionMode->AddLiteral(static_cast<uint32_t>(_kMode));
+	}
 
 	// Op2: entry point id must be the result id of an OpFunction instruction
 	m_pOpEntryPoint->AddIntermediate(uFuncId);
@@ -122,6 +131,69 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	//OpFunctionParameter not needed since OpEntryPoint resolves them
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpLabel)));	
+}
+//---------------------------------------------------------------------------------------------------
+
+void SPIRVAssembler::FlagUnused()
+{
+	uint32_t uUnused = 0u;
+
+	const auto Consumed = [](const uint32_t& uId, const SPIRVOperation& _ConsumeOp) -> bool
+	{
+		if (_ConsumeOp.GetResultType() == uId)
+		{
+			return true;
+		}
+
+		for (const SPIRVOperand& Operand : _ConsumeOp.GetOperands())
+		{
+			if (Operand.kType == kOperandType_Intermediate && Operand.uId == uId)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	const auto Flag = [&](SPIRVOperation& _InOp)
+	{
+		if (CreatesResultId(_InOp.GetOpCode()) == false || _InOp.GetOpCode() == spv::OpLabel)
+		{
+			_InOp.m_bUsed = true;
+			return;
+		}
+
+		_InOp.m_bUsed = false;
+
+		// find any instruction that consumes this one
+		for (uint32_t i = 0u/*_InOp.m_uInstrId + 1*/; i < m_Operations.size() && _InOp.m_bUsed == false; i++)
+		{
+			if (i != _InOp.m_uInstrId)
+			{
+				_InOp.m_bUsed = Consumed(_InOp.m_uInstrId, m_Operations[i]);
+			}
+		}
+
+		if (_InOp.m_bUsed == false)
+		{
+			++uUnused;
+			HLOGD("Removed instruction %u %s", _InOp.m_uInstrId, WCSTR(GetOpCodeString(_InOp.GetOpCode())));
+		}
+	};
+
+	uint32_t uPrevCount;
+	do
+	{
+		uPrevCount = uUnused;
+		uUnused = 0u;
+
+		std::for_each(m_Operations.begin(), m_Operations.end(), Flag);
+	} while (uUnused > uPrevCount);
+
+	//std::for_each(m_Operations.begin(), m_Operations.end(), Flag);
+
+	HLOG("Removed %u unused operations from %u total", uUnused, m_uInstrId);
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -323,23 +395,26 @@ void SPIRVAssembler::Resolve()
 		}
 	};
 
-	// cleanup unused ops
-	//if (m_bRemoveUnused)
-	//{
-	//	RemoveUnused(); // removes entries from m_Constants & m_Types
-	//}
-
 	// close function body opend in init
 	AddOperation(SPIRVOperation(spv::OpReturn));
 	AddOperation(SPIRVOperation(spv::OpFunctionEnd));
 
+	// cleanup unused ops
+	if (m_bRemoveUnused)
+	{
+		FlagUnused(); // sets m_bUsed if consume by any other inst
+	}
+
 	// find input / output vars
 	ForEachOp([this](SPIRVOperation& Op)
 	{
-		const spv::StorageClass kClass = GetStorageClass(Op);
-		if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
+		if (Op.GetUsed())
 		{
-			m_pOpEntryPoint->AddIntermediate(Op.m_uInstrId);
+			const spv::StorageClass kClass = GetStorageClass(Op);
+			if (kClass == spv::StorageClassInput || kClass == spv::StorageClassOutput)
+			{
+				m_pOpEntryPoint->AddIntermediate(Op.m_uInstrId);
+			}
 		}
 	}, is_var_op);	
 
@@ -423,6 +498,8 @@ uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperati
 	{
 		*_pOutInstr = &m_Operations.back();
 	}
+
+	//HLOGD("%s", WCSTR(_Instr.GetString()));
 
 	return m_uInstrId++;
 }
@@ -510,119 +587,13 @@ void SPIRVAssembler::AssignId(SPIRVOperation& _Op)
 
 	if (_Op.m_bUsed) // dont resolve unused ops
 	{
-		switch (_Op.GetOpCode())
+		if (CreatesResultId(_Op.GetOpCode()))
 		{
-			// instructions that don't create a result id (incomplete list)
-		case spv::OpCapability:
-		case spv::OpMemoryModel:
-		case spv::OpEntryPoint:
-		case spv::OpExecutionMode:
-		case spv::OpSource:
-		case spv::OpName:
-		case spv::OpMemberName:
-		case spv::OpDecorate:
-		case spv::OpMemberDecorate:
-
-		case spv::OpStore:
-		case spv::OpSelectionMerge:
-		case spv::OpBranchConditional:
-		case spv::OpBranch:
-		case spv::OpLoopMerge:
-		case spv::OpReturn:
-		case spv::OpFunctionEnd:
-			break;
-		default:
 			uResultId = m_uResultId++;
 		}
 	}
 
 	_Op.m_uResultId = uResultId;
 }
-//---------------------------------------------------------------------------------------------------
 
-//void SPIRVAssembler::RemoveUnused()
-//{
-//	auto findInOperands = [](std::vector<SPIRVOperation>& _Operations, const SPIRVOperand& _Operand) -> bool
-//	{
-//		for (SPIRVOperation& Op : _Operations)
-//		{
-//			if (Op.GetUsed())
-//			{
-//				for (const SPIRVOperand& Operand : Op.GetOperands())
-//				{
-//					if (Operand == _Operand)
-//					{
-//						return true;
-//					}
-//				}
-//			}
-//		}
-//
-//		return false;
-//	};
-//
-//	// find unused variables
-//	for (SPIRVOperation& Var : m_Variables)
-//	{
-//		Var.m_bUsed = findInOperands(m_Operations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));
-//
-//		// remove decorations for removed variable => not necessary since unused variables are never loaded and thus dont
-//		// create any decorations
-//		//if (Var.m_bUsed == false)
-//		//{
-//		//	SPIRVOperation* pConsumingDecorate = findOp(m_Decorations, SPIRVOperand(kOperandType_Variable, Var.m_uInstrId));;
-//		//	if (pConsumingDecorate != nullptr)
-//		//	{
-//		//		pConsumingDecorate->m_bUsed = false;
-//		//	}
-//		//}
-//	}
-//
-//	// remove unused constants
-//	for (auto it = m_Constants.begin(); it != m_Constants.end();)
-//	{
-//		bool bUsed =
-//			findInOperands(m_Operations, SPIRVOperand(kOperandType_Constant, it->first)) && 
-//			findInOperands(m_Variables, SPIRVOperand(kOperandType_Constant, it->first));
-//
-//		if (bUsed = false)
-//		{
-//			it = m_Constants.erase(it);
-//		}
-//		else
-//		{
-//			++it;
-//		}
-//	}
-//
-//	auto findInResultType = [](std::vector<SPIRVOperation>& _Operations, const size_t& _uHash) -> bool
-//	{
-//		for (const SPIRVOperation& Op : _Operations)
-//		{
-//			if (Op.GetUsed() && Op.GetResultType() == _uHash)
-//			{
-//				return true;
-//			}
-//		}
-//
-//		return false;
-//	};
-//
-//	// remove unused types
-//	for (auto it = m_Types.begin(); it != m_Types.end();)
-//	{
-//		bool bUsed =
-//			findInResultType(m_Variables, it->first) ||
-//			findInResultType(m_Operations, it->first) ||
-//			findInOperands(m_Operations, SPIRVOperand(kOperandType_Type, it->first));
-//		if (bUsed == false)
-//		{
-//			it = m_Types.erase(it);
-//		}
-//		else
-//		{
-//			++it;
-//		}
-//	}
-//}
 //---------------------------------------------------------------------------------------------------

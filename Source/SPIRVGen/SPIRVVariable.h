@@ -46,6 +46,7 @@ namespace Tracy
 		inline void SetLocation(const uint32_t _uLocation) noexcept {}
 		inline void SetIdentifier(const uint32_t _uIdentifier) noexcept {}
 		inline void MaterializeDecorations() const noexcept {};
+		inline void CreateAccessChain() const noexcept {}
 		inline void SetName(const std::string& _sName) noexcept {};
 	};
 
@@ -86,6 +87,7 @@ namespace Tracy
 		void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet);
 		void SetLocation(const uint32_t _uLocation);
 		void SetName(const std::string& _sName);
+		void CreateAccessChain() const;
 
 		void Store() const;
 		uint32_t Load(const bool _bForceLoad = false) const;
@@ -96,7 +98,7 @@ namespace Tracy
 		virtual ~var_decoration();
 
 		const var_decoration& operator=(const var_decoration& _Other) const;
-		const var_decoration& operator=(var_decoration&& _Other) const noexcept;
+		//const var_decoration& operator=(var_decoration&& _Other) const noexcept;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -162,10 +164,10 @@ namespace Tracy
 		}
 #pragma endregion
 
-		//template <spv::StorageClass C1>
-		//const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
 		template <spv::StorageClass C1>
-		const var_t& operator=(var_t<T, Assemble, C1>&& _Other) const;
+		const var_t& operator=(const var_t<T, Assemble, C1>& _Other) const;
+		//template <spv::StorageClass C1>
+		//const var_t& operator=(var_t<T, Assemble, C1>&& _Other) const;
 
 		template <spv::StorageClass C1>
 		const var_t& operator+=(const var_t<T, Assemble, C1>& _Other) const;
@@ -721,24 +723,24 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 	// assign operator
-	//template<typename T, bool Assemble, spv::StorageClass Class>
-	//template<spv::StorageClass C1>
-	//inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(const var_t<T, Assemble, C1>& _Other) const
-	//{
-	//	var_decoration<Assemble>::operator=(_Other);
-	//	Value = _Other.Value;
-	//	return *this;
-	//}
-	//---------------------------------------------------------------------------------------------------
-	// move operator
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<spv::StorageClass C1>
-	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(var_t<T, Assemble, C1>&& _Other) const
+	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(const var_t<T, Assemble, C1>& _Other) const
 	{
-		Value = std::move(_Other.Value);
-		var_decoration<Assemble>::operator=(std::forward<var_t<T, Assemble, C1>>(_Other));
+		Value = _Other.Value;
+		var_decoration<Assemble>::operator=(_Other);
 		return *this;
 	}
+	//---------------------------------------------------------------------------------------------------
+	// move operator
+	//template<typename T, bool Assemble, spv::StorageClass Class>
+	//template<spv::StorageClass C1>
+	//inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator=(var_t<T, Assemble, C1>&& _Other) const
+	//{
+	//	Value = std::move(_Other.Value);
+	//	var_decoration<Assemble>::operator=(std::forward<var_t<T, Assemble, C1>>(_Other));
+	//	return *this;
+	//}
 	//---------------------------------------------------------------------------------------------------
 	// set, binding & location helper
 	template<typename T, bool Assemble, spv::StorageClass Class>
@@ -864,6 +866,35 @@ namespace Tracy
 			if constexpr(Assemble)
 			{
 				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, kBuiltIn));
+			}
+		}
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	// per vertex builtin
+	template<bool Assemble>
+	struct var_per_vertex_t
+	{
+		SPVStruct
+		SPVBuiltIn
+
+		var_t<float4_t, Assemble, spv::StorageClassOutput> kPostion;
+		var_t<float, Assemble, spv::StorageClassOutput> kPointSize;
+		var_t<float, Assemble, spv::StorageClassOutput> kClipDistance;
+		var_t<float, Assemble, spv::StorageClassOutput> kCullDistance;
+	};
+
+	template <bool Assemble = true>
+	struct var_per_vertex : public var_t<var_per_vertex_t<Assemble>, Assemble, spv::StorageClassOutput>
+	{
+		var_per_vertex() : var_t<var_per_vertex_t<Assemble>, Assemble, spv::StorageClassOutput>()
+		{
+			if constexpr(Assemble)
+			{
+				Value.kPostion.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition, kDecorationType_Member));
+				Value.kPointSize.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize, kDecorationType_Member));
+				Value.kClipDistance.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance, kDecorationType_Member));
+				Value.kCullDistance.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance, kDecorationType_Member));
 			}
 		}
 	};
@@ -1073,9 +1104,13 @@ namespace Tracy
 					Operands.front().uId = (uint32_t)kStorageClass;
 				}
 
-				// Create member offset decoration
-				SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, kDecorationType_Member, pMember->AccessChain.back());
-				GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeId));
+				// builtin types dont have offsets
+				if constexpr(is_builtin<T> == false)
+				{
+					// Create member offset decoration
+					SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, kDecorationType_Member, pMember->AccessChain.back());
+					GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeId));
+				}
 			}
 		}
 	}

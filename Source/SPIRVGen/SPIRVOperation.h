@@ -53,6 +53,8 @@ namespace Tracy
 
 		~SPIRVOperation();
 
+		std::string GetString() const;
+
 		void AddOperand(const SPIRVOperand& _Operand);
 		void AddIntermediate(const uint32_t _uId);
 		void AddLiteral(const uint32_t _uLiteral1);

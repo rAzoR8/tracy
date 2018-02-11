@@ -20,11 +20,11 @@ namespace Tracy
 
 	using TSPVArgFlag = hlx::Flag<ESPVOpArgs>;
 
-	namespace detail
+	inline static std::string GetOpCodeString(const spv::Op _kOp)
 	{
-		static const std::unordered_map<spv::Op, std::string> g_OpNames =
+		static const std::unordered_map<spv::Op, std::string> OpNames =
 		{
-		{ spv::OpNop, "OpNop" },
+			{ spv::OpNop, "OpNop" },
 		{ spv::OpUndef, "OpUndef" },
 		{ spv::OpSourceContinued, "OpSourceContinued" },
 		{ spv::OpSource, "OpSource" },
@@ -123,9 +123,15 @@ namespace Tracy
 
 		};
 
-		static const std::unordered_map<spv::Op, ESPVOpArgs> g_OpArgs =
+		auto it = OpNames.find(_kOp);
+		return it != OpNames.end() ? it->second : "Unknown [" + std::to_string(_kOp) + "]";
+	}
+
+	inline static ESPVOpArgs GetOpCodeArgs(const spv::Op _kOp)
+	{
+		static const std::unordered_map<spv::Op, ESPVOpArgs> OpArgs =
 		{
-		{ spv::OpNop, kSPVOpArgs_None},
+			{ spv::OpNop, kSPVOpArgs_None },
 		{ spv::OpUndef, kSPVOpArgs_TypeAndResultId },
 		{ spv::OpSourceContinued, kSPVOpArgs_None },
 		{ spv::OpSource, kSPVOpArgs_None },
@@ -168,18 +174,49 @@ namespace Tracy
 
 		};
 
-	} // detail
-
-	inline static std::string GetOpCodeString(const spv::Op _kOp)
-	{
-		auto it = detail::g_OpNames.find(_kOp);
-		return it != detail::g_OpNames.end() ? it->second : "Unknown [" + std::to_string(_kOp) + "]";
+		auto it = OpArgs.find(_kOp);
+		return it != OpArgs.end() ? it->second : kSPVOpArgs_Unknown;
 	}
 
-	inline static ESPVOpArgs GetOpCodeArgs(const spv::Op _kOp)
+	inline static std::string LiteralToString(const uint32_t _uLiteral)
 	{
-		auto it = detail::g_OpArgs.find(_kOp);
-		return it != detail::g_OpArgs.end() ? it->second : kSPVOpArgs_Unknown;
+		std::string sLiteralStr;
+		const char* c = reinterpret_cast<const char*>(&_uLiteral);
+		for (uint32_t i = 0; i < 4 && *c != 0; i++, c++)
+		{
+			sLiteralStr += *c;
+		}
+
+		return sLiteralStr;
+	}
+
+	inline static bool CreatesResultId(const spv::Op _kOp)
+	{
+		switch (_kOp)
+		{
+			// instructions that don't create a result id (incomplete list)
+		case spv::OpCapability:
+		case spv::OpMemoryModel:
+		case spv::OpEntryPoint:
+		case spv::OpExecutionMode:
+		case spv::OpSource:
+		case spv::OpName:
+		case spv::OpMemberName:
+		case spv::OpDecorate:
+		case spv::OpMemberDecorate:
+
+		case spv::OpStore:
+		case spv::OpSelectionMerge:
+		case spv::OpBranchConditional:
+		case spv::OpBranch:
+		case spv::OpLoopMerge:
+		case spv::OpReturn:
+		case spv::OpFunctionEnd:
+			return false;
+			break;
+		default:
+			return true;
+		}
 	}
 	
 } // Tracy

@@ -15,7 +15,7 @@ void var_decoration<true>::MaterializeDecorations() const
 	// instantiate variable decorations
 	for (const SPIRVDecoration& Decoration : Decorations)
 	{
-		GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId));
+		GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, uMemberIndex));
 	}
 	Decorations.clear();
 
@@ -67,10 +67,8 @@ void var_decoration<true>::Store() const
 }
 //---------------------------------------------------------------------------------------------------
 
-uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
+void var_decoration<true>::CreateAccessChain() const
 {
-	HASSERT(uTypeId != HUNDEFINED32, "Invalid TypeId");
-
 	// create access chain for structures and composite types
 	if (uVarId == HUNDEFINED32 && uBaseId != HUNDEFINED32 && AccessChain.empty() == false)
 	{
@@ -84,6 +82,14 @@ uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
 
 		uVarId = GlobalAssembler.AddOperation(OpAccessChain);
 	}
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
+{
+	HASSERT(uTypeId != HUNDEFINED32, "Invalid TypeId");
+
+	CreateAccessChain();
 
 	const bool bForceLoad = (uVarId != HUNDEFINED32) && (_bForceLoad || GlobalAssembler.GetForceNextLoads());
 
@@ -143,24 +149,34 @@ var_decoration<true>::var_decoration(var_decoration<true>&& _Other) noexcept:
 }
 //---------------------------------------------------------------------------------------------------
 
-const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const noexcept
-{
-	HASSERT(uTypeId != HUNDEFINED32 && uTypeId == _Other.uTypeId, "Type mismatch!");
-
-	uVarId = _Other.uVarId; // might become actual var
-	uResultId = _Other.uResultId;
-	//kStorageClass = _Other.kStorageClass; storage class cant change
-	uLastStoredId = _Other.uLastStoredId;
-	uBaseId = _Other.uBaseId;
-
-	_Other.uVarId = HUNDEFINED32;
-	_Other.uResultId = HUNDEFINED32;
-	_Other.uLastStoredId = HUNDEFINED32;
-	_Other.uTypeId = HUNDEFINED32;
-	_Other.uBaseId = HUNDEFINED32;
-
-	return *this;
-}
+//const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const noexcept
+//{
+//	if (this == &_Other)
+//		return *this;
+//
+//	HASSERT(uTypeId != HUNDEFINED32 && uTypeId == _Other.uTypeId, "Type mismatch!");
+//
+//	_Other.Load();// load source
+//	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
+//	{
+//		uResultId = _Other.uResultId; // get result
+//		Store(); // store result
+//	}
+//	else // intermediate
+//	{
+//		uResultId = _Other.uResultId;
+//		uLastStoredId = _Other.uLastStoredId;
+//		uBaseId = _Other.uBaseId;
+//	}
+//
+//	_Other.uVarId = HUNDEFINED32;
+//	_Other.uResultId = HUNDEFINED32;
+//	_Other.uLastStoredId = HUNDEFINED32;
+//	_Other.uTypeId = HUNDEFINED32;
+//	_Other.uBaseId = HUNDEFINED32;
+//
+//	return *this;
+//}
 
 //---------------------------------------------------------------------------------------------------
 
@@ -169,9 +185,11 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 	if (this == &_Other)
 		return *this;
 
-	HASSERT(uTypeId == _Other.uTypeId, "Variable type mismatch");
+	HASSERT(uTypeId != HUNDEFINED32 && uTypeId == _Other.uTypeId, "Type mismatch!");
 
+	CreateAccessChain(); // creat var id for structs
 	_Other.Load();// load source
+
 	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
 	{
 		uResultId = _Other.uResultId; // get result
@@ -179,7 +197,6 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 	}
 	else // intermediate
 	{
-		//uVarId = _Other.uVarId; // might become actual var
 		uResultId = _Other.uResultId;
 		uLastStoredId = _Other.uLastStoredId;
 		uBaseId = _Other.uBaseId;

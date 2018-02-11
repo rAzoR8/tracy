@@ -49,16 +49,17 @@ namespace Tracy
 		template <class T, uint32_t Location = HUNDEFINED32>
 		using InstanceInput = var_in_t<T, Assemble, Location, true>;
 
-		inline static const var_builtin_t<spv::BuiltInVertexIndex, int, Assemble> kVertexIndex = {};
-		inline static const var_builtin_t<spv::BuiltInInstanceIndex, int, Assemble> kInstanceIndex = {};
-		inline static const var_builtin_t<spv::BuiltInDrawIndex, int, Assemble> kDrawIndex = {};
+		const var_per_vertex<Assemble> kPerVertex;
 
-		inline static const var_builtin_t<spv::BuiltInBaseVertex, int, Assemble> kBaseVertex = {};
-		inline static const var_builtin_t<spv::BuiltInBaseInstance, int, Assemble> kBaseInstance = {};
+		const var_builtin_t<spv::BuiltInVertexIndex, int, Assemble> kVertexIndex;
+		const var_builtin_t<spv::BuiltInInstanceIndex, int, Assemble> kInstanceIndex;
+		const var_builtin_t<spv::BuiltInDrawIndex, int, Assemble> kDrawIndex;
 
-		inline static const var_builtin_t<spv::BuiltInFragCoord, float4_t, Assemble> kFragCoord = {};
-		//inline static const var_builtin_t<spv::BuiltInPointCoord, float4_t, Assemble> kPointCoord = {};
-		inline static const var_builtin_t<spv::BuiltInFragDepth, float, Assemble> kFragDepth = {};
+		const var_builtin_t<spv::BuiltInBaseVertex, int, Assemble> kBaseVertex;
+		const var_builtin_t<spv::BuiltInBaseInstance, int, Assemble> kBaseInstance;
+
+		const var_builtin_t<spv::BuiltInFragCoord, float4_t, Assemble> kFragCoord;
+		const var_builtin_t<spv::BuiltInFragDepth, float, Assemble> kFragDepth;
 
 		using s32 = var<int32_t>;
 		using s64 = var<int64_t>;
@@ -188,6 +189,20 @@ namespace Tracy
 #endif // !Else
 #pragma endregion
 		
+	};
+
+	class VertexProgram : public SPIRVProgram<true>
+	{
+	public:
+		VertexProgram() : SPIRVProgram<true>(spv::ExecutionModelVertex, spv::ExecutionModeMax) {}
+		virtual ~VertexProgram() {}
+	};
+
+	class FragmentProgram : public SPIRVProgram<true>
+	{
+	public:
+		FragmentProgram(const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft) : SPIRVProgram<true>(spv::ExecutionModelFragment, _kMode) {}
+		virtual ~FragmentProgram() {}
 	};
 
 	//---------------------------------------------------------------------------------------------------

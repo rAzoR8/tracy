@@ -95,6 +95,8 @@ namespace Tracy
 
 		//void RemoveUnused();
 
+		void FlagUnused();
+
 		spv::StorageClass GetStorageClass(const SPIRVOperation& _Op) const;
 
 		template <class Fn, class Pred>

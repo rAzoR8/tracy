@@ -73,13 +73,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ExampleFactory.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="DefaultShaderFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonBufferSourceNames.h" />
-    <ClInclude Include="ExampleFactory.h" />
-    <ClInclude Include="ExampleShader.h" />
+    <ClInclude Include="DefaultShaderFactory.h" />
+    <ClInclude Include="ClearColor.h" />
+    <ClInclude Include="ScreenSpaceTriangle.h" />
+    <ClInclude Include="DefaultShaderIdentifiers.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">

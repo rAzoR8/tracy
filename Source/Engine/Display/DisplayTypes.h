@@ -3,6 +3,7 @@
 
 #include "StandardDefines.h"
 #include "Flag.h"
+#include <string>
 
 namespace Tracy
 {
@@ -31,10 +32,12 @@ namespace Tracy
 
 	struct ShaderID
 	{
-		ShaderID(const uint64_t _uID = 0u) : uID(_uID) {}
-		ShaderID(const EShaderType _kType, const uint8_t _uCompileFlags, const uint16_t _uShader, const uint32_t _uVariant) :
+		constexpr ShaderID(const uint64_t _uID = 0u) : uID(_uID) {}
+		constexpr ShaderID(const EShaderType _kType, const uint8_t _uCompileFlags, const uint16_t _uShader, const uint32_t _uVariant) :
 			kType(_kType), uCompileFlags(_uCompileFlags), uShader(_uShader), uVariant(_uVariant) {}
-		ShaderID(const ShaderID& _Other) : uID(_Other.uID) {}
+		constexpr ShaderID(const ShaderID& _Other) : uID(_Other.uID) {}
+
+		inline std::string GetString() const { return "Type " + std::to_string(kType) + " Shader " + std::to_string(uShader) + " Variant " + std::to_string(uVariant) + " Flags " + std::to_string(uCompileFlags); }
 
 		static constexpr uint64_t kInvalid = kShaderType_Unknown;
 
@@ -54,6 +57,9 @@ namespace Tracy
 
 		operator uint64_t() const { return uID; }
 	};
+
+	template <EShaderType kType, uint16_t uShader, uint32_t uVariant = 0u>
+	constexpr uint64_t kShaderID = (uint8_t)kType | ((uint64_t)uShader << 16u) | ((uint64_t)uVariant << 32u);
 
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/dn770385(v=vs.85).aspx
 	//typedef enum D3D12_PRIMITIVE_TOPOLOGY_TYPE {
