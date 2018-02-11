@@ -55,6 +55,10 @@ namespace Tracy
 				sum -= 1.f;
 			});
 
+			u32 uVertexID(1);
+			auto id1 = (uVertexID & 1) << 2;
+			auto id2 = (uVertexID & 2) << 1;
+
 			For(u32 e = 0u, e < size, ++e)
 			{
 				auto elem = TestArray[e];

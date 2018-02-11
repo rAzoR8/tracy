@@ -393,7 +393,7 @@ namespace Tracy
 	constexpr bool is_vector_uint = hlx::is_of_type<T, uint2_t, uint3_t, uint4_t>();
 
 	template <class T>
-	constexpr bool is_vector_integer = hlx::is_of_type<T, int2_t, int3_t, int4_t, uint2_t, uint3_t, uint4_t();
+	constexpr bool is_vector_integer = hlx::is_of_type<T, int2_t, int3_t, int4_t, uint2_t, uint3_t, uint4_t>();
 
 	template <class T>
 	constexpr bool is_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float3x4_t, float4x3_t, float4x4_t>();
@@ -412,7 +412,7 @@ namespace Tracy
 	constexpr bool is_base_uint = hlx::is_of_type<base_type_t<T>, uint32_t, uint64_t>();
 
 	template <class T>
-	constexpr bool is_base_integer = is_base_int<T>() || is_base_uint<T>();
+	constexpr bool is_base_integer = is_base_int<T> || is_base_uint<T>;
 
 #pragma region texture_types
 

@@ -312,6 +312,66 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// BITWISE OR
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator|(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 | v2; }, kOpTypeBase_Result, spv::OpBitwiseOr);
+	}
+	// bitwise or with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator|(const V& l, const var_t<T, Assemble, C1>& r)
+	{
+		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) | r;
+	}
+	// bitwise or with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator|(const var_t<T, Assemble, C1>& l, const V& r)
+	{
+		return l | var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// BITWISE XOR
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator^(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 ^ v2; }, kOpTypeBase_Result, spv::OpBitwiseXor);
+	}
+	// bitwise xor with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator^(const V& l, const var_t<T, Assemble, C1>& r)
+	{
+		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) ^ r;
+	}
+	// bitwise xor with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator^(const var_t<T, Assemble, C1>& l, const V& r)
+	{
+		return l ^ var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// BITWISE AND
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator&(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 & v2; }, kOpTypeBase_Result, spv::OpBitwiseAnd);
+	}
+	// bitwise and with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator&(const V& l, const var_t<T, Assemble, C1>& r)
+	{
+		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) & r;
+	}
+	// bitwise and with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator&(const var_t<T, Assemble, C1>& l, const V& r)
+	{
+		return l & var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// Less
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
@@ -389,6 +449,46 @@ namespace Tracy
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l >= var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Logical Shift Right
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator>>(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 >> v2; }, kOpTypeBase_Result, spv::OpShiftRightLogical);
+	}
+	// logical shift right with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator>>(const V& l, const var_t<T, Assemble, C1>& r)
+	{
+		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) >> r;
+	}
+	// logical shift right with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator>>(const var_t<T, Assemble, C1>& l, const V& r)
+	{
+		return l >> var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Logical Shift left
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator<<(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 << v2; }, kOpTypeBase_Result, spv::OpShiftLeftLogical);
+	}
+	// logical shift left with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator<<(const V& l, const var_t<T, Assemble, C1>& r)
+	{
+		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) << r;
+	}
+	// logical shift left with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator<<(const var_t<T, Assemble, C1>& l, const V& r)
+	{
+		return l << var_t<T, Assemble, spv::StorageClassFunction>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
