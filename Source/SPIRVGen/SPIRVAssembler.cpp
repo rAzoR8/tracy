@@ -115,6 +115,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 			SPIRVOperand(kOperandType_Intermediate, uFunctionTypeId), // function type
 		}));
 
+	m_uFunctionPreambleIndex = static_cast<uint32_t>(m_PreambleOpIds.size());
 	AddPreambleId(uFuncId);
 
 	if (_kMode < spv::ExecutionModeMax)
@@ -436,14 +437,12 @@ void SPIRVAssembler::Resolve()
 		AssignId(Op);
 	}, [](const SPIRVOperation& Op) {return Op.m_uResultId == HUNDEFINED32; });
 
-	// translate header:
-	size_t i = 0u;
-	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpCapability Shader
-	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpCapability InputAttachment
-	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpExtInstImport
-	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpMemoryModel
-	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpEntryPoint
-	TranslateOp(m_Operations[m_PreambleOpIds[i++]]); // OpExecutionMode
+	// translate header up until OpFuntion (which is followed by OpLable)
+	size_t p = 0u;
+	for (;p < m_uFunctionPreambleIndex; ++p)
+	{
+		TranslateOp(m_Operations[m_PreambleOpIds[p]]); 
+	}
 
 	// translate names
 	ForEachOp([TranslateOp](SPIRVOperation& Op)
@@ -470,9 +469,9 @@ void SPIRVAssembler::Resolve()
 	}, [this](const SPIRVOperation& Op) {return Op.GetOpCode() == spv::OpVariable && GetStorageClass(Op) != spv::StorageClassFunction; });
 
 	// translate rest of the preamble
-	for (; i < m_PreambleOpIds.size(); ++i)
+	for (; p < m_PreambleOpIds.size(); ++p)
 	{
-		TranslateOp(m_Operations[m_PreambleOpIds[i]]);
+		TranslateOp(m_Operations[m_PreambleOpIds[p]]);
 	}
 
 	// translate function variables, this resolves the problem that variables can not be declared in branch blocks

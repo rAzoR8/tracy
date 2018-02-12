@@ -148,6 +148,7 @@ namespace Tracy
 
 		std::vector<SPIRVOperation> m_Operations; // unresolved local instruction stream
 
+		uint32_t m_uFunctionPreambleIndex = 0u;
 		std::vector<uint32_t> m_PreambleOpIds;
 
 		// var id -> VariableInfo

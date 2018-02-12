@@ -519,6 +519,32 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 #pragma region helper_functions
 	//---------------------------------------------------------------------------------------------------
+
+	// intermediate converts U to V
+	template <class U, class V, class OpFunc, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_convertible<U, V> && !std::is_same_v<U, V>>>
+	inline var_t<U, Assemble, spv::StorageClassFunction> convert_intermediate(const var_t<V, Assemble, C1>& _Other)
+	{
+		auto var = var_t<U, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			var.Value = (U)_Other.Value;
+		}
+		else
+		{
+			_Other.Load();
+
+			spv::Op kType = GetConvertOp<V, U>();
+			HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
+			SPIRVOperation Op(kType, var.uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
+			var.uResultId = GlobalAssembler.AddOperation(Op);
+			//Store();
+		}
+
+		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	template <class T>
 	inline uint32_t OpTypeDecider(const uint32_t _kOp)
 	{
@@ -891,10 +917,10 @@ namespace Tracy
 		{
 			if constexpr(Assemble)
 			{
-				Value.kPostion.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition, kDecorationType_Member));
-				Value.kPointSize.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize, kDecorationType_Member));
-				Value.kClipDistance.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance, kDecorationType_Member));
-				Value.kCullDistance.Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance, kDecorationType_Member));
+				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition, kDecorationType_Member, Value.kPostion.uMemberIndex));
+				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize, kDecorationType_Member, Value.kPointSize.uMemberIndex));
+				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance, kDecorationType_Member, Value.kClipDistance.uMemberIndex));
+				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance, kDecorationType_Member, Value.kCullDistance.uMemberIndex));
 			}
 		}
 	};
@@ -1067,7 +1093,7 @@ namespace Tracy
 
 			// argument list has var_t<> initializers
 			constexpr bool bHasVar = has_var<Ts...>;
-			if constexpr(bHasVar)
+			if constexpr(bHasVar && uArgs > 1u)
 			{
 				OpCreateVar = SPIRVOperation(spv::OpCompositeConstruct, uTypeId); // uPtrTypeId
 				ExtractCompnents(OpCreateVar, _args...);
@@ -1080,7 +1106,11 @@ namespace Tracy
 				OpCreateVar = SPIRVOperation(spv::OpVariable, uPtrTypeId, // result type
 					SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
 
-				if constexpr(uArgs > 0u)
+				if constexpr(bHasVar)
+				{
+					// TODO: convert
+				}
+				else if constexpr(uArgs > 0u)
 				{
 					SPIRVConstant Constant = SPIRVConstant::Make(va_type_var(_args...));
 					const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
