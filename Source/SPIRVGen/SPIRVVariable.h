@@ -520,8 +520,22 @@ namespace Tracy
 #pragma region helper_functions
 	//---------------------------------------------------------------------------------------------------
 
-	// intermediate converts U to V
-	template <class U, class V, class OpFunc, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_convertible<U, V> && !std::is_same_v<U, V>>>
+	// convert V to U
+	template <class U, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<Assemble && is_convertible<U, V> && !std::is_same_v<U, V>>>
+	inline uint32_t convert_op(const var_t<V, Assemble, C1>& _Other)
+	{
+		_Other.Load();
+
+		const spv::Op kType = GetConvertOp<V, U>();
+		HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
+		const uint32_t uTypeId = GlobalAssembler.AddType(SPIRVType::FromType<U>()); // target type
+		const SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
+
+		return GlobalAssembler.AddOperation(Op);
+	}
+
+	// intermediate converts V to U
+	template <class U, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_convertible<U, V> && !std::is_same_v<U, V>>>
 	inline var_t<U, Assemble, spv::StorageClassFunction> convert_intermediate(const var_t<V, Assemble, C1>& _Other)
 	{
 		auto var = var_t<U, Assemble, spv::StorageClassFunction>(TIntermediate());
@@ -532,12 +546,7 @@ namespace Tracy
 		}
 		else
 		{
-			_Other.Load();
-
-			spv::Op kType = GetConvertOp<V, U>();
-			HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
-			SPIRVOperation Op(kType, var.uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = convert_op(_Other);
 			//Store();
 		}
 
@@ -1051,6 +1060,9 @@ namespace Tracy
 	template <class T, class ...Ts>
 	const T& get_first_arg(const T& _first, const Ts& ..._args) { return _first; }
 
+	template <class T, bool Assemble, spv::StorageClass Class, class ...Ts>
+	const var_t<T, Assemble, Class>& get_first_var(const var_t<T, Assemble, Class>& _first, const Ts& ..._args) { return _first; }
+
 	//---------------------------------------------------------------------------------------------------
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	template<class ...Ts>
@@ -1106,9 +1118,10 @@ namespace Tracy
 				OpCreateVar = SPIRVOperation(spv::OpVariable, uPtrTypeId, // result type
 					SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
 
-				if constexpr(bHasVar)
+				if constexpr(bHasVar) // exactly one var
 				{
-					// TODO: convert
+					// convert to T
+					uResultId = convert_op<T>(_args...);
 				}
 				else if constexpr(uArgs > 0u)
 				{
