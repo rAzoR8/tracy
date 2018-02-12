@@ -1016,15 +1016,23 @@ namespace Tracy
 			uint32_t uTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<VarT>>());
 			_First.Load();
 
-			// extract all components of variable
-			for (uint32_t n = 0u; n < N; ++n)
+			if constexpr(N == 1)
 			{
-				SPIRVOperation OpExtract(spv::OpCompositeExtract, uTypeId, SPIRVOperand(kOperandType_Intermediate, _First.uResultId)); // var id to extract from
-				OpExtract.AddLiterals(_First.AccessChain); // can be empty
-				OpExtract.AddLiteral(n); // extraction index
+				// directly take the result id
+				_Op.AddIntermediate(_First.uResultId);
+			}
+			else
+			{
+				// extract all components of variable
+				for (uint32_t n = 0u; n < N; ++n)
+				{
+					SPIRVOperation OpExtract(spv::OpCompositeExtract, uTypeId, SPIRVOperand(kOperandType_Intermediate, _First.uResultId)); // var id to extract from
+					OpExtract.AddLiterals(_First.AccessChain); // can be empty
+					OpExtract.AddLiteral(n); // extraction index
 
-				uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
-				_Op.AddIntermediate(uId);
+					uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
+					_Op.AddIntermediate(uId);
+				}
 			}
 		}
 		else
