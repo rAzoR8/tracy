@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
 	Pass.sPassName = L"TestPass";
 	Pass.sLibName = L"SPIRVShaderFactory";
 
-	Pass.Framebuffer.uWidth = 1280u;
-	Pass.Framebuffer.uHeight = 720u;
+	Pass.Framebuffer.uWidth = 1600u;
+	Pass.Framebuffer.uHeight = 900u;
 	auto& Attachment = Pass.Framebuffer.Attachments.emplace_back();
 	Attachment.kType = kAttachmentType_Color;
 	Attachment.kSource = kAttachmentSourceType_Backbuffer;

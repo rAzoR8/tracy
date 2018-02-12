@@ -1049,6 +1049,32 @@ struct Rect
 	uint32_t uExtentY = 0;
 };
 
+enum EBlendFactor : uint32_t
+{
+	kBlendFactor_Zero = 0,
+	kBlendFactor_One,
+	kBlendFactor_SrcColor,
+	kBlendFactor_OneMinusSrcColor,
+	kBlendFactor_DstColor,
+	kBlendFactor_OneMinusDstColor,
+	kBlendFactor_SrcAlpha,
+	kBlendFactor_OneMinusSrcAlpha,
+	kBlendFactor_DstAlpha,
+	kBlendFactor_OneMinusDstAlpha,
+	kBlendFactor_ConstantColor,
+	kBlendFactor_OneMinusConstantColor,
+	kBlendFactor_ConstantAlpha,
+	kBlendFactor_OneMinusConstantAlpha,
+	kBlendFactor_SrcAlphaSaturate,
+	kBlendFactor_Src1Color,
+	kBlendFactor_OneMinusSrc1Color,
+	kBlendFactor_Src1Alpha,
+	kBlendFactor_OneMinusSrc1Alpha,
+
+	kBlendFactor_NumOf,
+	kBlendFactor_Unknown = kBlendFactor_NumOf
+};
+
 } // Tracy
 
 #endif // !TRACY_DISPLAYTYPES_H

@@ -159,6 +159,9 @@ void SPIRVAssembler::FlagUnused()
 
 	const auto Flag = [&](SPIRVOperation& _InOp)
 	{
+		if (_InOp.m_bUsed == false)
+			return;
+
 		if (CreatesResultId(_InOp.GetOpCode()) == false || _InOp.GetOpCode() == spv::OpLabel)
 		{
 			_InOp.m_bUsed = true;
@@ -168,7 +171,7 @@ void SPIRVAssembler::FlagUnused()
 		_InOp.m_bUsed = false;
 
 		// find any instruction that consumes this one
-		for (uint32_t i = 0u/*_InOp.m_uInstrId + 1*/; i < m_Operations.size() && _InOp.m_bUsed == false; i++)
+		for (uint32_t i = 0u; i < m_Operations.size() && _InOp.m_bUsed == false; i++)
 		{
 			if (i != _InOp.m_uInstrId)
 			{
@@ -179,7 +182,7 @@ void SPIRVAssembler::FlagUnused()
 		if (_InOp.m_bUsed == false)
 		{
 			++uUnused;
-			HLOGD("Removed instruction %u %s", _InOp.m_uInstrId, WCSTR(GetOpCodeString(_InOp.GetOpCode())));
+			//HLOGD("Removed instruction %u %s", _InOp.m_uInstrId, WCSTR(GetOpCodeString(_InOp.GetOpCode())));
 		}
 	};
 
@@ -194,7 +197,7 @@ void SPIRVAssembler::FlagUnused()
 
 	//std::for_each(m_Operations.begin(), m_Operations.end(), Flag);
 
-	HLOG("Removed %u unused operations from %u total", uUnused, m_uInstrId);
+	HLOG("Removed %u unused operations from %u total", uPrevCount, m_uInstrId);
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -529,6 +532,7 @@ void SPIRVAssembler::AddVariableInfo(const var_decoration<true>& _Var)
 	Var.bTexStored = _Var.bTexStored;
 	Var.uInputAttachmentIndex = _Var.uInputAttachmentIndex;
 	Var.bInstanceData = _Var.bInstanceData;
+	Var.bBuiltIn = _Var.bBuiltIn;
 	//Var.Decorations.insert(Var.Decorations.end(), _Var.Decorations.begin(), _Var.Decorations.end());
 }
 

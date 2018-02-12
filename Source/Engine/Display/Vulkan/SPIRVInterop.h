@@ -461,7 +461,7 @@ namespace Tracy
 		
 			for (const VariableInfo& Var : _Vars)
 			{
-				if (Var.kStorageClass == spv::StorageClassInput)
+				if (Var.kStorageClass == spv::StorageClassInput && Var.bBuiltIn == false)
 				{
 					HASSERT(Var.uBinding < 16u, "Invalid binding (to high)");
 

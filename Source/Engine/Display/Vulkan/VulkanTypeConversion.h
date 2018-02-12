@@ -249,6 +249,73 @@ namespace Tracy::detail
 		vk::IndexType::eUint16,
 		vk::IndexType::eUint32
 	};
+
+	static const vk::BlendFactor g_VkBlendFactor[kBlendFactor_NumOf] =
+	{
+		vk::BlendFactor::eZero,
+		vk::BlendFactor::eOne,
+		vk::BlendFactor::eSrcColor,
+		vk::BlendFactor::eOneMinusSrcColor,
+		vk::BlendFactor::eDstColor,
+		vk::BlendFactor::eOneMinusDstColor,
+		vk::BlendFactor::eSrcAlpha,
+		vk::BlendFactor::eOneMinusSrcAlpha,
+		vk::BlendFactor::eDstAlpha,
+		vk::BlendFactor::eOneMinusDstAlpha,
+		vk::BlendFactor::eConstantColor,
+		vk::BlendFactor::eOneMinusConstantColor,
+		vk::BlendFactor::eConstantAlpha,
+		vk::BlendFactor::eOneMinusConstantAlpha,
+		vk::BlendFactor::eSrcAlphaSaturate,
+		vk::BlendFactor::eSrc1Color,
+		vk::BlendFactor::eOneMinusSrc1Color,
+		vk::BlendFactor::eSrc1Alpha,
+		vk::BlendFactor::eOneMinusSrc1Alpha
+	};
+
+	static const vk::ImageViewType g_VkTextureViewType[kTextureType_NumOf] =
+	{
+		vk::ImageViewType::e1D,
+		vk::ImageViewType::e2D,
+		vk::ImageViewType::e3D,
+		vk::ImageViewType::eCube,
+		vk::ImageViewType::e1DArray,
+		vk::ImageViewType::e2DArray,
+		vk::ImageViewType::eCubeArray
+	};
+
+	static const vk::ImageUsageFlagBits g_VkImageUsageFlags[kTextureUsage_NumOf] =
+	{
+		vk::ImageUsageFlagBits::eTransferSrc,
+		vk::ImageUsageFlagBits::eTransferDst,
+		vk::ImageUsageFlagBits::eSampled,
+		vk::ImageUsageFlagBits::eStorage,
+		vk::ImageUsageFlagBits::eColorAttachment,
+		vk::ImageUsageFlagBits::eDepthStencilAttachment,
+		vk::ImageUsageFlagBits::eTransientAttachment,
+		vk::ImageUsageFlagBits::eInputAttachment
+	};
+
+	static const vk::BufferUsageFlagBits g_VkBufferUsageFlags[kBufferUsage_NumOf] =
+	{
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::BufferUsageFlagBits::eTransferDst,
+		vk::BufferUsageFlagBits::eUniformTexelBuffer,
+		vk::BufferUsageFlagBits::eStorageTexelBuffer,
+		vk::BufferUsageFlagBits::eUniformBuffer,
+		vk::BufferUsageFlagBits::eStorageBuffer,
+		vk::BufferUsageFlagBits::eIndexBuffer,
+		vk::BufferUsageFlagBits::eVertexBuffer,
+		vk::BufferUsageFlagBits::eIndirectBuffer
+	};
+
+	static const vk::ImageAspectFlagBits g_VkAspectFlags[kAspect_NumOf] =
+	{
+		vk::ImageAspectFlagBits::eColor,
+		vk::ImageAspectFlagBits::eDepth,
+		vk::ImageAspectFlagBits::eStencil,
+		vk::ImageAspectFlagBits::eMetadata
+	};
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -380,18 +447,6 @@ namespace Tracy
 		return detail::g_VkIndexType[_kType];
 	}
 
-	static const vk::ImageUsageFlagBits g_VkImageUsageFlags[kTextureUsage_NumOf] =
-	{
-		vk::ImageUsageFlagBits::eTransferSrc,
-		vk::ImageUsageFlagBits::eTransferDst,
-		vk::ImageUsageFlagBits::eSampled,
-		vk::ImageUsageFlagBits::eStorage,
-		vk::ImageUsageFlagBits::eColorAttachment,
-		vk::ImageUsageFlagBits::eDepthStencilAttachment,
-		vk::ImageUsageFlagBits::eTransientAttachment,
-		vk::ImageUsageFlagBits::eInputAttachment
-	};
-
 	// TODO : Find a solution to copy paste, they olny differ for mapping used
 	inline const vk::ImageUsageFlags GetTextureUsage(const ETextureUsage _kFlag)
 	{
@@ -403,25 +458,12 @@ namespace Tracy
 
 			if (bHasFlag)
 			{
-				Result |= g_VkImageUsageFlags[uUsageBits];
+				Result |= detail::g_VkImageUsageFlags[uUsageBits];
 			}
 		}
 
 		return Result;
 	}
-
-	static const vk::BufferUsageFlagBits g_VkBufferUsageFlags[kBufferUsage_NumOf] =
-	{
-		vk::BufferUsageFlagBits::eTransferSrc,
-		vk::BufferUsageFlagBits::eTransferDst,
-		vk::BufferUsageFlagBits::eUniformTexelBuffer,
-		vk::BufferUsageFlagBits::eStorageTexelBuffer,
-		vk::BufferUsageFlagBits::eUniformBuffer,
-		vk::BufferUsageFlagBits::eStorageBuffer,
-		vk::BufferUsageFlagBits::eIndexBuffer,
-		vk::BufferUsageFlagBits::eVertexBuffer,
-		vk::BufferUsageFlagBits::eIndirectBuffer
-	};
 
 	inline const vk::BufferUsageFlags GetBufferUsage(const EBufferUsage _kFlag)
 	{
@@ -433,7 +475,7 @@ namespace Tracy
 
 			if (bHasFlag)
 			{
-				Result |= g_VkBufferUsageFlags[uUsageBits];
+				Result |= detail::g_VkBufferUsageFlags[uUsageBits];
 			}
 		}
 
@@ -465,21 +507,10 @@ namespace Tracy
 		return vk::ImageType::e1D;
 	}
 
-	static const vk::ImageViewType g_VkTextureViewType[kTextureType_NumOf] =
-	{
-		vk::ImageViewType::e1D,
-		vk::ImageViewType::e2D,
-		vk::ImageViewType::e3D,
-		vk::ImageViewType::eCube,
-		vk::ImageViewType::e1DArray,
-		vk::ImageViewType::e2DArray,
-		vk::ImageViewType::eCubeArray
-	};
-
 	inline const vk::ImageViewType GetTextureViewType(const ETextureType _kTexType)
 	{
 		HASSERT(_kTexType < kTextureType_NumOf, "Invalid Texture Format");
-		return g_VkTextureViewType[_kTexType];
+		return detail::g_VkTextureViewType[_kTexType];
 	}
 
 	inline const vk::ComponentMapping GetTextureComponentMapping(const ColorSwizzle& _Swizzle)
@@ -509,14 +540,6 @@ namespace Tracy
 		return kFormat_Undefined;
 	}
 
-	static const vk::ImageAspectFlagBits g_VkAspectFlags[kAspect_NumOf] =
-	{
-		vk::ImageAspectFlagBits::eColor,
-		vk::ImageAspectFlagBits::eDepth,
-		vk::ImageAspectFlagBits::eStencil,
-		vk::ImageAspectFlagBits::eMetadata
-	};
-
 	inline const vk::ImageAspectFlags GetAspectMask(const EAspect _kAspect)
 	{
 		vk::ImageAspectFlags Result{};
@@ -527,7 +550,7 @@ namespace Tracy
 
 			if (bHasFlag)
 			{
-				Result |= g_VkAspectFlags[uMaskIndex];
+				Result |= detail::g_VkAspectFlags[uMaskIndex];
 			}
 		}
 
@@ -542,6 +565,12 @@ namespace Tracy
 	inline vk::Rect2D GetRect(const Rect& _Rect) // lol
 	{
 		return vk::Rect2D({ _Rect.iOffsetX, _Rect.iOffsetY }, { _Rect.uExtentX, _Rect.uExtentY });
+	}
+
+	inline const vk::BlendFactor GetBlendFactor(const EBlendFactor _kBlendFActor)
+	{
+		HASSERT(_kBlendFActor < kBlendFactor_NumOf, "Invalid BlendFactor");
+		return detail::g_VkBlendFactor[_kBlendFActor];
 	}
 }
 

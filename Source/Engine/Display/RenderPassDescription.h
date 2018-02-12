@@ -125,6 +125,10 @@ namespace Tracy
 			float fClearDepth = 1.f;
 			uint32_t uClearStencil = 0u;
 
+			// blend ops
+			bool bBlendEnabled = false;
+
+
 			// Initial format
 		};
 

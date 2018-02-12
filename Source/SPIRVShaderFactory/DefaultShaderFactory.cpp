@@ -54,9 +54,9 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 		break;
 	}
 
-	Shader.Save("test.spv");
-	system("spirv-dis test.spv");
-	system("spirv-val test.spv");
+	//Shader.Save("test.spv");
+	//system("spirv-dis test.spv");
+	//system("spirv-val test.spv");
 
 	return Shader;
 }

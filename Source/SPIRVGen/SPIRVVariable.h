@@ -71,6 +71,7 @@ namespace Tracy
 		mutable bool bTexSampled = false; // indicates that the var texture has been sampled in the code
 		mutable bool bTexStored = false; // indicates that the var texture has been stored in the code
 		bool bInstanceData = false; // only valid for StorageClassInput in vertex stage
+		bool bBuiltIn = false; //only valid for StorageClassInput, used for VertexIndex and other system values
 		mutable bool bMaterializedName = false;
 
 		std::string sName; // user can set this to identify the variable stored in the module
@@ -900,6 +901,7 @@ namespace Tracy
 		{
 			if constexpr(Assemble)
 			{
+				bBuiltIn = true;
 				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, kBuiltIn));
 			}
 		}
@@ -926,6 +928,12 @@ namespace Tracy
 		{
 			if constexpr(Assemble)
 			{
+				bBuiltIn = true;
+				Value.kPostion.bBuiltIn = true;
+				Value.kPointSize.bBuiltIn = true;
+				Value.kClipDistance.bBuiltIn = true;
+				Value.kCullDistance.bBuiltIn = true;
+
 				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition, kDecorationType_Member, Value.kPostion.uMemberIndex));
 				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize, kDecorationType_Member, Value.kPointSize.uMemberIndex));
 				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance, kDecorationType_Member, Value.kClipDistance.uMemberIndex));

@@ -759,6 +759,12 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 		VertexInputState = VLayout.GetVertexLayout(pVertexShader->Code.GetVariables());
 		uHash += VLayout.ComputeHash();
 	}
+	else
+	{
+		HERROR("No vertex shader supplied");
+		return nullptr;
+	}
+
 	PipelineInfo.pVertexInputState = &VertexInputState;
 
 	//---------------------------------------------------------------------------------------------------
@@ -834,6 +840,35 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 	uHash << DSInfo.depthTestEnable << DSInfo.depthWriteEnable << DSInfo.depthCompareOp << DSInfo.front << DSInfo.back;
 
 	PipelineInfo.pDepthStencilState = &DSInfo;
+
+	//---------------------------------------------------------------------------------------------------
+	// Blend STATE
+	//---------------------------------------------------------------------------------------------------
+
+	vk::PipelineColorBlendStateCreateInfo BlendInfo{};
+
+	//BlendInfo.blendConstants
+	//BlendInfo.logicOpEnable
+	//BlendInfo.logicOp
+
+	std::vector<vk::PipelineColorBlendAttachmentState> AttStates;
+
+	for (const FramebufferDesc::Attachment& Att : m_Description.Framebuffer.Attachments)
+	{
+		if (Att.kType == kAttachmentType_Color || Att.kSource == kAttachmentSourceType_Backbuffer)
+		{
+			vk::PipelineColorBlendAttachmentState& State = AttStates.emplace_back();
+			State.blendEnable = vkBool(Att.bBlendEnabled);
+
+			uHash << State.blendEnable;
+		}
+	}
+
+	BlendInfo.attachmentCount = static_cast<uint32_t>(AttStates.size());
+	BlendInfo.pAttachments = AttStates.data();
+
+	// TODO: add to hash
+	PipelineInfo.pColorBlendState = &BlendInfo;
 
 	//---------------------------------------------------------------------------------------------------
 	// Viewport STATE

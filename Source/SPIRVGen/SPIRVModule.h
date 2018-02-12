@@ -25,6 +25,7 @@ namespace Tracy
 		bool bTexSampled = false;
 		bool bTexStored = false;
 		bool bInstanceData = false;
+		bool bBuiltIn = false;
 		std::string sName;
 
 		// for internal use only
