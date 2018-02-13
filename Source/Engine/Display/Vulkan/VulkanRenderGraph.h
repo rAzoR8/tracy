@@ -18,7 +18,7 @@ namespace Tracy
 		bool Initialize();
 		void Uninitialze();
 
-		void Render(const std::vector<Camera*>& _Cameras, const bool _bParallelRecord = false);
+		void Render(const std::vector<std::shared_ptr<Camera>>& _Cameras, const bool _bParallelRecord = false);
 
 		// returns nullptr if not found
 		VulkanRenderPass* GetRenderpassByName(const std::wstring& _sName);

@@ -197,6 +197,12 @@
     <ClInclude Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.h">
       <Filter>Display\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Scene\SceneDescription.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Display\RenderObjectDescription.h">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">

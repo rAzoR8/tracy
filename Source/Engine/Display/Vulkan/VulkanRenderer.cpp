@@ -1,10 +1,12 @@
 #include "VulkanRenderer.h"
+#include "Scene\Scene.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
 VulkanRenderer::VulkanRenderer(const RenderGraphDesc& _Desc, const THandle _hWindowHandle) : Renderer(),
-	m_RenderGraph(_Desc, _hWindowHandle)
+	m_RenderGraph(_Desc, _hWindowHandle),
+	m_Scene(Scene::Instance())
 {
 }
 //---------------------------------------------------------------------------------------------------
@@ -22,8 +24,8 @@ bool VulkanRenderer::Init()
 
 void VulkanRenderer::RenderFrame()
 {
-	std::vector<Camera*> Cameras;
+	m_Scene.Update();
 
-	m_RenderGraph.Render(Cameras);
+	m_RenderGraph.Render(m_Scene.GetCameras());
 }
 //---------------------------------------------------------------------------------------------------

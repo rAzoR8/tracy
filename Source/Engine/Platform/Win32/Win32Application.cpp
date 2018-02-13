@@ -73,7 +73,7 @@ std::unique_ptr<Renderer> Win32Application::OnInit(const uint32_t _uWidth, const
 	return nullptr;
 }
 //---------------------------------------------------------------------------------------------------
-LRESULT Tracy::Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -123,5 +123,31 @@ LRESULT Tracy::Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wPar
 	}
 
 	return 0;
+}
+//---------------------------------------------------------------------------------------------------
+
+int Win32Application::Run()
+{
+	MSG Msg = {};
+	while (Msg.message != WM_QUIT)
+	{
+		if (PeekMessage(&Msg, nullptr, 0u, 0u, PM_REMOVE))
+		{
+			TranslateMessage(&Msg);
+			DispatchMessage(&Msg);
+		}
+		else
+		{
+			// Run game
+			if (m_pRenderer)
+			{
+				m_pRenderer->RenderFrame();
+			}
+		}
+	}
+
+	// Cleanup memory
+
+	return static_cast<char>(Msg.wParam);
 }
 //---------------------------------------------------------------------------------------------------

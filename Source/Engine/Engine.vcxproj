@@ -124,6 +124,7 @@
     <ClInclude Include="Display\PrimitiveVertices.h" />
     <ClInclude Include="Display\Renderer.h" />
     <ClInclude Include="Display\RenderObject.h" />
+    <ClInclude Include="Display\RenderObjectDescription.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
     <ClInclude Include="Display\Texture.h" />
     <ClInclude Include="Display\Vulkan\IShaderFactory.h" />
@@ -152,6 +153,7 @@
     <ClInclude Include="Scene\Frustum.h" />
     <ClInclude Include="Scene\Intersection.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Scene\SceneDescription.h" />
     <ClInclude Include="Scene\Transform.h" />
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,29 @@ Scene::~Scene()
 
 bool Scene::Initialize(const SceneDesc& _Desc)
 {
+	m_Objects.resize(0);
+
+	const uint32_t uBlockSize = 1024u;
+	const uint32_t uBlockCount = static_cast<uint32_t>(std::ceil((_Desc.Objects.size() + _Desc.uMaxDynamicObjects) / uBlockSize));
+	const uint32_t uPreAllocedBlocks = 1u;
+	m_pObjectAllocator = std::make_unique<TObjAllocator>(uBlockSize, uBlockCount, uPreAllocedBlocks);
+
+	m_Objects.reserve(_Desc.Objects.size() + _Desc.uMaxDynamicObjects);
+
+	for (const RenderObjectDesc& ObjDesc : _Desc.Objects)
+	{
+		RenderObject* pObject = m_pObjectAllocator->Alloc();
+		if (pObject == nullptr)
+		{
+			HERROR("Failed to allocate renderobject");
+			return false;
+		}
+
+		construct(pObject);
+
+		// TODO: init with custom functor
+	}
+
 	// we need to initialize static transforms once
 	UpdateTransforms(false);
 	return true;
@@ -25,15 +48,24 @@ bool Scene::Initialize(const SceneDesc& _Desc)
 
 //---------------------------------------------------------------------------------------------------
 
-void Scene::Update()
+void Scene::Update(const bool _bGatherCameras)
 {
 	UpdateTransforms();
 
 	// todo: update octree and stuff
+
+	if (_bGatherCameras)
+	{
+		// TODO: in parallel
+		for (const std::shared_ptr<Camera>& pCamera : m_Cameras)
+		{
+			Gather(*pCamera);
+		}
+	}
 }
 //---------------------------------------------------------------------------------------------------
 
-inline void Scene::AddObject(RenderObject* _pObject, Camera& _Camera, const bool _bAddChildObjects)
+inline void Scene::AddObject(RenderObject* _pObject, Camera& _Camera, const bool _bAddChildObjects) const
 {
 	if (_pObject->CheckFlag(kRenderObjectFlag_Invisible) == false &&
 		_pObject->GetNode().Material &&
@@ -55,7 +87,7 @@ inline void Scene::AddObject(RenderObject* _pObject, Camera& _Camera, const bool
 }
 //---------------------------------------------------------------------------------------------------
 
-void Scene::Gather(Camera& _Camera)
+void Scene::Gather(Camera& _Camera) const
 {
 	// if we want multiple scenes to be gathered in one camera, this needs to be removed
 	_Camera.ClearObjects();
@@ -68,6 +100,12 @@ void Scene::Gather(Camera& _Camera)
 	}
 
 	_Camera.SortObjects();
+}
+//---------------------------------------------------------------------------------------------------
+
+void Scene::AddCamera(const std::shared_ptr<Camera>& _pCamera)
+{
+	m_Cameras.push_back(_pCamera);
 }
 //---------------------------------------------------------------------------------------------------
 

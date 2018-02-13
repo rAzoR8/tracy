@@ -4,8 +4,7 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "Scene\Transform.h"
-#include "Scene\AABB.h"
-#include "Flag.h"
+#include "RenderObjectDescription.h"
 
 namespace Tracy
 {
@@ -14,15 +13,6 @@ namespace Tracy
 		Material Material;
 		Mesh Mesh;
 	};
-
-	enum ERenderObjectFlag
-	{
-		kRenderObjectFlag_None = 0,
-		kRenderObjectFlag_StaticTransform = 1 << 0,
-		kRenderObjectFlag_Invisible = 1 << 1,
-	};
-
-	using TRenderObjectFlags = hlx::Flag<ERenderObjectFlag>;
 
 	class RenderObject : public BufferSource, public TRenderObjectFlags, public Transform<RenderObject>
 	{

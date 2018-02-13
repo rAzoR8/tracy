@@ -5,6 +5,9 @@
 #include "VulkanRenderGraph.h"
 namespace Tracy
 {
+	//forward decl:
+	class Scene;
+
 	class VulkanRenderer : public Renderer
 	{
 	public:
@@ -16,6 +19,7 @@ namespace Tracy
 
 	private:
 		VulkanRenderGraph m_RenderGraph;
+		Scene& m_Scene;
 
 	};
 } // Tracy

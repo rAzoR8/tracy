@@ -135,7 +135,7 @@ void VulkanRenderGraph::Uninitialze()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool _bParallelRecord)
+void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Cameras, const bool _bParallelRecord)
 {
 	uint32_t uImageIndex = 0u;
 	const std::vector<VulkanTexture>& Backbuffer = m_Window.GetBackuffer();
@@ -158,7 +158,7 @@ void VulkanRenderGraph::Render(const std::vector<Camera*>& _Cameras, const bool 
 
 	const auto RecordFN = [&](VulkanRenderPass& Pass)
 	{
-		for (Camera* pCamera : _Cameras)
+		for (const std::shared_ptr<Camera>& pCamera : _Cameras)
 		{
 			if (pCamera != nullptr)
 			{

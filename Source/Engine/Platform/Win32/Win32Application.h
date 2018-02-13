@@ -30,26 +30,6 @@ namespace Tracy
 	};
 
 	//---------------------------------------------------------------------------------------------------
-	inline int Win32Application::Run()
-	{
-		MSG Msg = {};
-		while (Msg.message != WM_QUIT)
-		{
-			if (PeekMessage(&Msg, nullptr, 0u, 0u, PM_REMOVE))
-			{
-				TranslateMessage(&Msg);
-				DispatchMessage(&Msg);
-			}
-			else
-			{
-				// Run game
-			}
-		}
-
-		// Cleanup memory
-
-		return static_cast<char>(Msg.wParam);
-	}
 }
 
 #endif // !TRACY_WIN32APPLICATION_H

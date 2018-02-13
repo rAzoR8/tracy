@@ -24,7 +24,7 @@ namespace Tracy
 		virtual std::unique_ptr<Renderer> OnInit(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _eAPI, const RenderGraphDesc& _RenderDesc) = 0;
 		virtual int Run() = 0;
 
-	private:
+	protected:
 		std::unique_ptr<Renderer> m_pRenderer = nullptr;
 	};
 }
