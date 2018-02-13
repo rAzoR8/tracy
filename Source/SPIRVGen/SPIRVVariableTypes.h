@@ -6,6 +6,7 @@
 // put this into Source file: #include <glm/glm.hpp> 
 #include <vulkan\spirv.hpp>
 #include "FunctionalUtils.h"
+#include <array>
 
 namespace Tracy
 {

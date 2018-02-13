@@ -3,13 +3,16 @@
 
 #include "ImageSource.h"
 #include "Datastructures\BinaryKeyValueBufferSource.h"
+#include "RenderObjectDescription.h"
 #include <array>
 
 namespace Tracy
 {
 	struct MaterialRefEntry
 	{
-		uint64_t uPassId = 0u; // renderpasse this material uses
+		MaterialRefEntry() {}
+		virtual ~MaterialRefEntry() {}
+		uint64_t uPassId = 0u; // renderpasses this material uses
 
 		// not sure if this is the right place
 		std::array<ShaderID, kShaderType_NumOf> Shaders; // todo userdata
@@ -21,12 +24,13 @@ namespace Tracy
 	class Material : public RefCounted<MaterialRefEntry, true>
 	{
 	public:
-		//Material() {};
+		Material(const MaterialDesc& _Desc);
 		virtual ~Material() {};
 
 		REFCOUNT_INTERFACE(Material, RefCountedType);
 
 	private:
+		bool Load(const MaterialDesc& _Desc);
 		
 	};
 

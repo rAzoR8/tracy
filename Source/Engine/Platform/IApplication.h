@@ -9,8 +9,11 @@ namespace Tracy
 {
 	enum EGraphicsAPI
 	{
-		eVulkan = 0,
-		eD3D12
+		kGraphicsAPI_Vulkan = 0,
+		kGraphicsAPI_D3D12,
+
+		kGraphicsAPI_NumOf,
+		kGraphicsAPI_Unknown = kGraphicsAPI_NumOf
 	};
 
 	class IApplication
@@ -26,6 +29,25 @@ namespace Tracy
 
 	protected:
 		std::unique_ptr<Renderer> m_pRenderer = nullptr;
+	};
+
+	class ApplicationInfo
+	{
+		friend class IApplication;
+	public:
+		static ApplicationInfo& Instance()
+		{
+			static ApplicationInfo Info;
+			return Info;
+		}
+
+		inline const EGraphicsAPI GetGfxAPI() const { return m_kGfxAPI; }
+
+	private:
+		inline void SetGfxAPI(const EGraphicsAPI _kAPI) { m_kGfxAPI = _kAPI; }
+
+	private:
+		EGraphicsAPI m_kGfxAPI = kGraphicsAPI_Unknown;
 	};
 }
 

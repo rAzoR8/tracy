@@ -203,6 +203,9 @@
     <ClInclude Include="Display\RenderObjectDescription.h">
       <Filter>Display</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanTextureLoader.h">
+      <Filter>Display\Vulkan\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -277,6 +280,14 @@
     <ClCompile Include="Scene\Camera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanTextureLoader.cpp">
+      <Filter>Display\Vulkan\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Material.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.cpp">
+      <Filter>Display\Vulkan\Resource</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -10,6 +10,7 @@ namespace Tracy
 	{
 	public:
 		BinaryKeyValueBufferSource();
+		BinaryKeyValueBufferSource(const hlx::bytes& _KVBlob);
 		BinaryKeyValueBufferSource(hlx::bytes&& _KVBlob);
 
 		virtual ~BinaryKeyValueBufferSource();

@@ -36,8 +36,6 @@ bool Scene::Initialize(const SceneDesc& _Desc)
 			return false;
 		}
 
-		construct(pObject);
-
 		// TODO: init with custom functor
 	}
 

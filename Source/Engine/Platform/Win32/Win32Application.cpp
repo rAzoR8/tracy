@@ -57,7 +57,7 @@ std::unique_ptr<Renderer> Win32Application::OnInit(const uint32_t _uWidth, const
 	}
 
 	// Init API
-	if (_kAPI == EGraphicsAPI::eVulkan)
+	if (_kAPI == kGraphicsAPI_Vulkan)
 	{
 		VulkanInstance& Gfx = VulkanInstance::GetInstance();
 		const std::vector<DeviceInfo> Devices = Gfx.Init();

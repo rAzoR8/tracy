@@ -8,6 +8,13 @@ BinaryKeyValueBufferSource::BinaryKeyValueBufferSource()
 }
 //---------------------------------------------------------------------------------------------------
 
+BinaryKeyValueBufferSource::BinaryKeyValueBufferSource(const hlx::bytes& _KVBlob) :
+	BinaryKeyValueStore(_KVBlob)
+{
+	Initialize();
+}
+//---------------------------------------------------------------------------------------------------
+
 BinaryKeyValueBufferSource::BinaryKeyValueBufferSource(hlx::bytes&& _KVBlob) :
 	BinaryKeyValueStore(std::forward<hlx::bytes>(_KVBlob))
 {

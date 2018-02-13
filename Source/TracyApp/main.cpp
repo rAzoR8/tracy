@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 	PipelineDesc::ShaderDesc& PixelShader = Pipeline.Shaders.emplace_back();
 	PixelShader.Identifier = kShader_ClearColor;
 
-	if (App.Initialize(1600u, 900u, Tracy::EGraphicsAPI::eVulkan, Desc))
+	if (App.Initialize(1600u, 900u, kGraphicsAPI_Vulkan, Desc))
 	{
 		return App.Run();
 	}
