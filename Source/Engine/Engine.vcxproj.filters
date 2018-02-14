@@ -206,6 +206,9 @@
     <ClInclude Include="Display\Vulkan\VulkanTextureLoader.h">
       <Filter>Display\Vulkan\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanMeshLoader.h">
+      <Filter>Display\Vulkan\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -287,6 +290,12 @@
       <Filter>Display</Filter>
     </ClCompile>
     <ClCompile Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.cpp">
+      <Filter>Display\Vulkan\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Mesh.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanMeshLoader.cpp">
       <Filter>Display\Vulkan\Resource</Filter>
     </ClCompile>
   </ItemGroup>

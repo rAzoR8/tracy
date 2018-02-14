@@ -22,7 +22,7 @@ namespace Tracy
 		
 		virtual ~Scene();
 
-		bool Initialize(const SceneDesc& _Desc);
+		bool Initialize(const SceneDesc& _Desc, const THandle _hDevice = 0u);
 
 		void Update(const bool _bGatherCameras = true);
 
@@ -34,6 +34,8 @@ namespace Tracy
 
 	private:
 		Scene();
+
+		void FreeObjects();
 
 		void UpdateTransforms(const bool _bSkipStaticTransforms = true);
 

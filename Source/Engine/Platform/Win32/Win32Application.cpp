@@ -1,5 +1,6 @@
 #include "Win32Application.h"
-#include "Display\Vulkan\VulkanRenderer.h"
+#include "Display/Vulkan/VulkanInstance.h"
+#include "Display/DX12/DX12Instance.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
@@ -14,9 +15,12 @@ Win32Application::~Win32Application()
 }
 //---------------------------------------------------------------------------------------------------
 
-std::unique_ptr<Renderer> Win32Application::OnInit(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _kAPI, const RenderGraphDesc& _RenderDesc)
+bool Win32Application::OnInitAPI(const uint32_t _uWidth, const uint32_t _uHeight)
 {
 	HASSERT(m_hInstance != nullptr, "Invalid Instance handle.");
+
+	m_uWidth = _uWidth;
+	m_uHeight = _uHeight;
 
 	WNDCLASSEX WndClass{};
 	WndClass.cbSize = sizeof(WNDCLASSEX);
@@ -52,26 +56,26 @@ std::unique_ptr<Renderer> Win32Application::OnInit(const uint32_t _uWidth, const
 	);
 
 	if (m_hWnd == nullptr)
-	{
-		return nullptr;
-	}
+		return false;
 
-	// Init API
-	if (_kAPI == kGraphicsAPI_Vulkan)
-	{
-		VulkanInstance& Gfx = VulkanInstance::GetInstance();
-		const std::vector<DeviceInfo> Devices = Gfx.Init();
-		HASSERT(Devices.size() > 0u, "No compatible graphics adapter found");
+	ShowWindow(m_hWnd, SW_SHOW);
 
-		m_hVkWindow = Gfx.MakeWindow(Devices[0u].hHandle, _uWidth, _uHeight, m_hWnd, m_hInstance);
-		HASSERT(m_hVkWindow != kUndefinedSizeT, "Failed to create default window");
-
-		ShowWindow(m_hWnd, SW_SHOW);
-		return std::make_unique<VulkanRenderer>(_RenderDesc, m_hVkWindow);
-	}
-
-	return nullptr;
+	return true;
 }
+//---------------------------------------------------------------------------------------------------
+
+bool Win32Application::OnInitWindow(const THandle _hDevice, THandle& _hWnd)
+{
+	switch (ApplicationInfo::Instance().GetGfxAPI())
+	{
+	case kGraphicsAPI_Vulkan:
+		_hWnd = m_hVkWindow = VulkanInstance::GetInstance().MakeWindow(_hDevice, m_uWidth, m_uHeight, m_hWnd, m_hInstance);
+		return m_hVkWindow != kUndefinedSizeT;
+	default:
+		return false;
+	}
+}
+
 //---------------------------------------------------------------------------------------------------
 LRESULT Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {

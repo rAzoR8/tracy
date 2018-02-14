@@ -973,7 +973,8 @@ namespace Tracy
 		kViewType_ShaderResource = 0u,
 		kViewType_RenderTarget,
 		kViewType_DepthStencil,
-		kViewType_NumOf
+		kViewType_NumOf,
+		kViewType_Unknown = kViewType_NumOf
 	};
 
 	enum EIndexType : uint32_t

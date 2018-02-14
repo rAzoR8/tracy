@@ -23,7 +23,7 @@ namespace Tracy
 
 		T* Alloc();
 
-		void Free(const T* _pData);
+		void Free(const T* _pData, const bool _bDestruct = true);
 
 	private:
 		const uint32_t m_uBlockSize;
@@ -108,12 +108,17 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template<class T, bool ThreadSafe, uint32_t BlockSizeOverride>
-	inline void BigObjectPool<T, ThreadSafe, BlockSizeOverride>::Free(const T* _pData)
+	inline void BigObjectPool<T, ThreadSafe, BlockSizeOverride>::Free(const T* _pData, const bool _bDestruct)
 	{
 		const Entry* pEntry = reinterpret_cast<const Entry*>(_pData);
 
 		pEntry->bUsed.clear(std::memory_order_release);
 		m_uFirstFree = pEntry->uIndex; // todo: min(m_uFirstFree, pEntry->uIndex) ?
+
+		if (_bDestruct)
+		{
+			pEntry->Data.~T();
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 #ifndef TRACY_DX12INSTANCE_H
 #define TRACY_DX12INSTANCE_H
 
-#include "../IGraphicsInstance.h"
+#include "Display/IGraphicsInstance.h"
 #include "DX12Device.h"
 #include <unordered_map>
 

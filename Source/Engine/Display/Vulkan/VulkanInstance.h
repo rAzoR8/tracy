@@ -1,10 +1,9 @@
 #ifndef TRACY_VULKANININSTANCE_H
 #define TRACY_VULKANININSTANCE_H
 
-#include "../IGraphicsInstance.h"
+#include "Display/IGraphicsInstance.h"
 #include "VulkanDevice.h"
 #include "VulkanWindow.h"
-#include <vector>
 
 namespace Tracy
 {

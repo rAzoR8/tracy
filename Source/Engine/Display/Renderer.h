@@ -1,7 +1,7 @@
 #ifndef TRACY_RENDERER_H
 #define TRACY_RENDERER_H
 
-#include "..\Display\RenderPassDescription.h"
+#include "Display/RenderPassDescription.h"
 
 namespace Tracy
 {

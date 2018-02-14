@@ -1,8 +1,8 @@
 #ifndef TRACY_IAPPLICATION_H
 #define TRACY_IAPPLICATION_H
 
-#include "StandardDefines.h"
-#include "..\Display\Renderer.h"
+#include "Display/DeviceInfo.h"
+#include "Display/Renderer.h"
 #include <memory>
 
 namespace Tracy
@@ -21,10 +21,15 @@ namespace Tracy
 	public:
 		virtual ~IApplication() {}
 
-		bool Initialize(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _eAPI, const RenderGraphDesc& _RenderDesc);
+		bool InitAPI(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _API, std::vector<DeviceInfo>& _OutDevices);
+
+		bool InitWindowAndRenderer(const RenderGraphDesc& _Desc, const THandle _hDevice);
 
 	protected:
-		virtual std::unique_ptr<Renderer> OnInit(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _eAPI, const RenderGraphDesc& _RenderDesc) = 0;
+		virtual bool OnInitAPI(const uint32_t _uWidth, const uint32_t _uHeight) = 0;
+
+		virtual bool OnInitWindow(const THandle _hDevice, THandle& _hWnd) = 0;
+
 		virtual int Run() = 0;
 
 	protected:

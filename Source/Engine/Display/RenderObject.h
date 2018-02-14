@@ -4,7 +4,6 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "Scene\Transform.h"
-#include "RenderObjectDescription.h"
 
 namespace Tracy
 {
@@ -28,6 +27,11 @@ namespace Tracy
 
 		// returns true if the material targets this pass
 		bool CheckPass(const uint64_t& _uPassId) const;
+
+		// reset references
+		void Reset();
+
+		bool Initialize(const RenderObjectDesc& _Desc, const THandle _hDevice = 0u);
 
 	private:
 

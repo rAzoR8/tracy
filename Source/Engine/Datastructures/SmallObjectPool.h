@@ -19,7 +19,7 @@ namespace Tracy
 		T* Alloc();
 
 		// this allocator assumes that free is never called twice for the same address!
-		void Free(const T* _pData);
+		void Free(const T* _pData, const bool _bDestruct = true);
 
 	private:
 		const uint32_t m_uBlockSize;
@@ -107,7 +107,7 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template<class T, bool ThreadSafe, bool AllowFallbackAlloc>
-	inline void SmallObjectPool<T, ThreadSafe, AllowFallbackAlloc>::Free(const T* _pData)
+	inline void SmallObjectPool<T, ThreadSafe, AllowFallbackAlloc>::Free(const T* _pData, const bool _bDestruct)
 	{
 		for (Block& b : m_MemoryBlocks)
 		{
@@ -118,6 +118,11 @@ namespace Tracy
 				{
 					b.uFirstFree = 0u;
 					b.uFreed = 0u;
+				}
+
+				if (_bDestruct)
+				{
+					_pData->~T();
 				}
 
 				return;

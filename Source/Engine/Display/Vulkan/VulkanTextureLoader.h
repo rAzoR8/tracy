@@ -18,7 +18,7 @@ namespace Tracy
 		VulkanTextureLoader();
 		~VulkanTextureLoader();
 
-		VulkanTexture Load(const ImageDesc& _Desc);
+		VulkanTexture Load(const ImageDesc& _Desc, const THandle _hDevice = 0u);
 
 	private:
 

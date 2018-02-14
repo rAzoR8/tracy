@@ -5,13 +5,13 @@
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
-Material::Material(const MaterialDesc& _Desc) : RefCountedType(CreateRefCountedTag{})
+Material::Material(const MaterialDesc& _Desc, const THandle _hDevice) : RefCountedType(CreateRefCountedTag{})
 {
-	Load(_Desc);
+	Load(_Desc, _hDevice);
 }
 //---------------------------------------------------------------------------------------------------
 
-bool Material::Load(const MaterialDesc& _Desc)
+bool Material::Load(const MaterialDesc& _Desc, const THandle _hDevice)
 {
 	if (IsValidRef())
 	{
@@ -35,7 +35,7 @@ bool Material::Load(const MaterialDesc& _Desc)
 			switch (ApplicationInfo::Instance().GetGfxAPI())
 			{
 			case kGraphicsAPI_Vulkan:
-				Entry.Images.AddImage(VulkanTextureLoader::Instance().Load(Img), hlx::Hash(Img.sIdentifier));
+				Entry.Images.AddImage(VulkanTextureLoader::Instance().Load(Img, _hDevice), hlx::Hash(Img.sIdentifier));
 				break;
 			case kGraphicsAPI_D3D12:
 				// todo: use dx texture pool

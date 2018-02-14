@@ -24,13 +24,13 @@ namespace Tracy
 	class Material : public RefCounted<MaterialRefEntry, true>
 	{
 	public:
-		Material(const MaterialDesc& _Desc);
+		Material(const MaterialDesc& _Desc, const THandle _hDevice = 0u);
 		virtual ~Material() {};
 
 		REFCOUNT_INTERFACE(Material, RefCountedType);
 
+		bool Load(const MaterialDesc& _Desc, const THandle _hDevice = 0u);
 	private:
-		bool Load(const MaterialDesc& _Desc);
 		
 	};
 

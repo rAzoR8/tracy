@@ -2,6 +2,7 @@
 #define TRACY_MESH_H
 
 #include "GPUBuffer.h"
+#include "RenderObjectDescription.h"
 
 namespace Tracy
 {
@@ -108,7 +109,43 @@ namespace Tracy
 			m_uFirstInstance(_uFirstInstance)
 		{};
 
-		virtual ~Mesh() {};
+		Mesh(Mesh&& _Other) :
+			m_kDrawMode(_Other.m_kDrawMode),
+			m_uVertexCount(_Other.m_uVertexCount),
+			m_VertexBuffer(std::forward<GPUBuffer>(_Other.m_VertexBuffer)),
+			m_uFirstVertex(_Other.m_uFirstVertex),
+			m_uVertexOffset(_Other.m_uVertexOffset),
+
+			m_uIndexCount(_Other.m_uIndexCount),
+			m_IndexBuffer(std::forward<GPUBuffer>(_Other.m_IndexBuffer)),
+			m_kIndexType(_Other.m_kIndexType),
+			m_uFirstIndex(_Other.m_uFirstIndex),
+			m_uIndexOffset(_Other.m_uIndexOffset),
+
+			m_uInstanceCount(_Other.m_uInstanceCount),
+			m_uFirstInstance(_Other.m_uFirstInstance)
+		{}
+
+		Mesh(const Mesh& _Other) :
+			m_kDrawMode(_Other.m_kDrawMode),
+			m_uVertexCount(_Other.m_uVertexCount),
+			m_VertexBuffer(_Other.m_VertexBuffer),
+			m_uFirstVertex(_Other.m_uFirstVertex),
+			m_uVertexOffset(_Other.m_uVertexOffset),
+
+			m_uIndexCount(_Other.m_uIndexCount),
+			m_IndexBuffer(_Other.m_IndexBuffer),
+			m_kIndexType(_Other.m_kIndexType),
+			m_uFirstIndex(_Other.m_uFirstIndex),
+			m_uIndexOffset(_Other.m_uIndexOffset),
+
+			m_uInstanceCount(_Other.m_uInstanceCount),
+			m_uFirstInstance(_Other.m_uFirstInstance)
+		{}
+
+		Mesh(const MeshDesc& _Desc);
+
+		virtual ~Mesh();
 
 		const GPUBuffer& GetVertexBuffer() const;
 		const GPUBuffer& GetIndexBuffer() const;
@@ -124,6 +161,11 @@ namespace Tracy
 
 		const EDrawMode GetDrawMode() const noexcept;
 		const EIndexType GetIndexType() const noexcept;
+
+		// Reset buffers
+		void Reset();
+
+		bool Load(const MeshDesc& _Desc, const THandle _hDevice = 0);
 
 	private:
 		EDrawMode m_kDrawMode = kDrawMode_VertexData;

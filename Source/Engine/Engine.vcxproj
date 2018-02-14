@@ -135,6 +135,7 @@
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
     <ClInclude Include="Display\Vulkan\VulkanDevice.h" />
     <ClInclude Include="Display\Vulkan\VulkanInstance.h" />
+    <ClInclude Include="Display\Vulkan\VulkanMeshLoader.h" />
     <ClInclude Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="Display\Vulkan\VulkanRenderGraph.h" />
@@ -167,12 +168,14 @@
     <ClCompile Include="Display\IDevice.cpp" />
     <ClCompile Include="Display\ImageSource.cpp" />
     <ClCompile Include="Display\Material.cpp" />
+    <ClCompile Include="Display\Mesh.cpp" />
     <ClCompile Include="Display\RenderObject.cpp" />
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp" />
     <ClCompile Include="Display\Texture.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanMeshLoader.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanRenderGraph.cpp" />

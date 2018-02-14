@@ -1,5 +1,4 @@
 #include "..\Engine\Engine.hpp"
-//#include "..\Engine\Display\Vulkan\VulkanPrimitiveMeshGenerator.h"
 #include "..\SPIRVShaderFactory\DefaultShaderIdentifiers.h"
 
 using namespace Tracy;
@@ -38,9 +37,13 @@ int main(int argc, char* argv[])
 	PipelineDesc::ShaderDesc& PixelShader = Pipeline.Shaders.emplace_back();
 	PixelShader.Identifier = kShader_ClearColor;
 
-	if (App.Initialize(1600u, 900u, kGraphicsAPI_Vulkan, Desc))
+	std::vector<DeviceInfo> Devices;
+	if (App.InitAPI(1600u, 900u, kGraphicsAPI_Vulkan, Devices))
 	{
-		return App.Run();
+		if (App.InitWindowAndRenderer(Desc, Devices.front().hHandle))
+		{
+			return App.Run();
+		}
 	}
 
 	return EXIT_FAILURE;

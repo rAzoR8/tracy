@@ -14,8 +14,42 @@ RenderObject::RenderObject(const TRenderObjectFlags _kFlags) :
 
 RenderObject::~RenderObject()
 {
+	Reset();
 }
+//---------------------------------------------------------------------------------------------------
 
+void RenderObject::Reset()
+{
+	m_Node.Material.Reset();
+	m_Node.Mesh.Reset();
+	m_BufferSources = { this };
+	ResetFlag();
+}
+//---------------------------------------------------------------------------------------------------
+bool RenderObject::Initialize(const RenderObjectDesc& _Desc, const THandle _hDevice)
+{
+	// todo: load from file
+	if (_Desc.bLoadByFile)
+	{
+	
+	}
+	else
+	{
+		SetFlag(_Desc.kRenderFlags);
+		if (m_Node.Material.Load(_Desc.Material, _hDevice) == false)
+			return false;
+
+		if (m_Node.Mesh.Load(_Desc.Mesh, _hDevice) == false)
+			return false;
+
+		m_AABB = _Desc.BoundingBox;
+		m_vPosition = _Desc.vPosition;
+		m_vScale = _Desc.vScale;
+		m_vOrientation = _Desc.vOrientation;
+	}
+
+	return true;
+}
 //---------------------------------------------------------------------------------------------------
 void RenderObject::AddBufferSource(BufferSource* _pSource)
 {

@@ -1,10 +1,9 @@
 #ifndef TRACY_WIN32APPLICATION_H
 #define TRACY_WIN32APPLICATION_H
 
-#include "../IApplication.h"
+#include "Platform/IApplication.h"
 
-#include "../../Display/Vulkan/VulkanInstance.h"
-#include "../../Display/DX12/DX12Instance.h"
+
 
 #include "Logger.h"
 
@@ -17,7 +16,9 @@ namespace Tracy
 		
 		~Win32Application();
 
-		std::unique_ptr<Renderer> OnInit(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _eAPI, const RenderGraphDesc& _RenderDesc) final;
+		bool OnInitAPI(const uint32_t _uWidth, const uint32_t _uHeight) final;
+		bool OnInitWindow(const THandle _hDevice, THandle& _hWnd) final;
+
 		int Run() final;
 
 	private:
@@ -25,7 +26,10 @@ namespace Tracy
 
 		HWND m_hWnd = nullptr;
 		HINSTANCE m_hInstance = nullptr;
-
+		// todo: update OnChangeDisplay
+		uint32_t m_uWidth = 1600u;
+		uint32_t m_uHeight = 900u;
+		
 		THandle m_hVkWindow = kUndefinedSizeT;
 	};
 

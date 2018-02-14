@@ -231,6 +231,8 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 		Attachment.kType = Desc.kType;
 		Attachment.sName = Desc.sName;
 
+		ETextureViewType kViewType = kViewType_Unknown;
+
 		if (Desc.kSource == kAttachmentSourceType_New)
 		{
 			TextureDesc TexDesc{};
@@ -256,6 +258,8 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 				ViewDesc.kType = kViewType_DepthStencil;
 			}
 
+			kViewType = ViewDesc.kType;
+
 			if (Attachment.Texture.AddView(ViewDesc) == false)
 				return false;
 		}
@@ -271,6 +275,14 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 						if (Src.sName == Desc.sName)
 						{
 							Attachment.Texture = Src.Texture; // found tex, copy reference
+							if (Desc.kType == kAttachmentType_Color)
+							{
+								kViewType = kViewType_RenderTarget;
+							}
+							else if (Desc.kType == kAttachmentType_DepthStencil)
+							{
+								kViewType = kViewType_DepthStencil;
+							}
 							break;
 						}
 					}
@@ -281,12 +293,13 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 		else if (Desc.kSource == kAttachmentSourceType_Backbuffer)
 		{
 			Attachment.Texture = _CurrentBackbuffer;
+			kViewType = kViewType_RenderTarget;
 		}
 
-		if (Attachment.Texture.IsValidVkTex() == false)
+		if (Attachment.Texture.IsValidVkTex() == false || kViewType >= kViewType_Unknown)
 			return false;
 
-		ImageViews.push_back(VKTexture(Attachment.Texture).Views[Desc.kType]);
+		ImageViews.push_back(VKTexture(Attachment.Texture).Views[kViewType]);
 	}
 
 	vk::FramebufferCreateInfo FrameInfo{};

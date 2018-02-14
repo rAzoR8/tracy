@@ -1,5 +1,5 @@
 #include "Scene.h"
-#include "Display\RenderObject.h"
+#include "Display/RenderObject.h"
 #include "Camera.h"
 #include "Intersection.h"
 
@@ -13,12 +13,25 @@ Scene::Scene()
 
 Scene::~Scene()
 {
+	FreeObjects();
 }
+
+//---------------------------------------------------------------------------------------------------
+void Scene::FreeObjects()
+{
+	for (RenderObject* pObject : m_Objects)
+	{
+		m_pObjectAllocator->Free(pObject);
+	}
+
+	m_Objects.resize(0);
+}
+
 //---------------------------------------------------------------------------------------------------
 
-bool Scene::Initialize(const SceneDesc& _Desc)
+bool Scene::Initialize(const SceneDesc& _Desc, const THandle _hDevice)
 {
-	m_Objects.resize(0);
+	m_Objects.resize(0); //FreeObjects(); not needed, we create a new allocator anyways
 
 	const uint32_t uBlockSize = 1024u;
 	const uint32_t uBlockCount = static_cast<uint32_t>(std::ceil((_Desc.Objects.size() + _Desc.uMaxDynamicObjects) / uBlockSize));
@@ -32,12 +45,19 @@ bool Scene::Initialize(const SceneDesc& _Desc)
 		RenderObject* pObject = m_pObjectAllocator->Alloc();
 		if (pObject == nullptr)
 		{
-			HERROR("Failed to allocate renderobject");
+			HERROR("Failed to allocate renderobject %s", WCSTR(ObjDesc.sIdentifier));
 			return false;
 		}
 
 		// TODO: init with custom functor
+		if (pObject->Initialize(ObjDesc, _hDevice) == false)
+		{
+			HERROR("Failed to load renderobject %s", WCSTR(ObjDesc.sIdentifier));
+			return false;
+		}
 	}
+
+	// TODO: resovle transform hierachry
 
 	// we need to initialize static transforms once
 	UpdateTransforms(false);
@@ -69,7 +89,8 @@ inline void Scene::AddObject(RenderObject* _pObject, Camera& _Camera, const bool
 		_pObject->GetNode().Material &&
 		_pObject->CheckPass(_Camera.GetPassIDs()))
 	{
-		if (Intersects(_Camera.GetFrustum(), _pObject->GetAABB()))
+		if (_pObject->CheckFlag(kRenderObjectFlag_SkipCulling) || 
+			Intersects(_Camera.GetFrustum(), _pObject->GetAABB()))
 		{
 			_Camera.AddObject(_pObject);
 
