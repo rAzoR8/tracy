@@ -36,6 +36,7 @@ bool RenderObject::Initialize(const RenderObjectDesc& _Desc, const THandle _hDev
 	else
 	{
 		SetFlag(_Desc.kRenderFlags);
+
 		if (m_Node.Material.Load(_Desc.Material, _hDevice) == false)
 			return false;
 

@@ -43,8 +43,10 @@ SPIRVModule SPIRVAssembler::Assemble()
 			Module.AddVariable(var);
 		}
 	}
-
+	
 	Module.Write(m_Instructions);
+
+	m_Mutex.unlock();
 
 	return Module;
 }

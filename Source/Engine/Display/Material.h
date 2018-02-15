@@ -29,7 +29,7 @@ namespace Tracy
 
 		REFCOUNT_INTERFACE(Material, RefCountedType);
 
-		bool Load(const MaterialDesc& _Desc, const THandle _hDevice = 0u);
+		bool Load(const MaterialDesc& _Desc, const THandle _hDevice = 0u, const bool _bCreateRef = true);
 	private:
 		
 	};

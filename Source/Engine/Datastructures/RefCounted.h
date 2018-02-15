@@ -50,15 +50,7 @@ namespace Tracy
 		template <class ...Ts>
 		inline RefCounted(CreateRefCountedTag, Ts&& ... _Args)
 		{
-			m_pRef = RefAllocator::Alloc();
-			if (m_pRef != nullptr)
-			{
-				m_pRef->pData = DataAllocator::Alloc();
-				if (m_pRef->pData != nullptr)
-				{
-					construct(m_pRef->pData, std::forward<Ts>(_Args)...);
-				}
-			}			
+			Create(std::forward<Ts>(_Args)...);
 		}
 
 		inline virtual ~RefCounted()
@@ -75,6 +67,28 @@ namespace Tracy
 		{
 			Decrement();
 			m_pRef = nullptr;
+		}
+
+		template <class ...Ts>
+		inline void Create(Ts&& ... _Args)
+		{
+			Reset(); // free old ref
+			m_pRef = RefAllocator::Alloc();
+			if (m_pRef != nullptr)
+			{
+				m_pRef->pData = DataAllocator::Alloc();
+				if (m_pRef->pData != nullptr)
+				{
+					construct(m_pRef->pData, std::forward<Ts>(_Args)...);
+				}
+			}
+		}
+
+		inline void Swap(RefCountedType& _Other)
+		{
+			TBaseRef* pRef = m_pRef;
+			m_pRef = _Other.m_pRef;
+			_Other.m_pRef = pRef;
 		}
 
 		inline RefCounted& operator=(std::nullptr_t)

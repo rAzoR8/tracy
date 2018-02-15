@@ -11,8 +11,13 @@ Material::Material(const MaterialDesc& _Desc, const THandle _hDevice) : RefCount
 }
 //---------------------------------------------------------------------------------------------------
 
-bool Material::Load(const MaterialDesc& _Desc, const THandle _hDevice)
+bool Material::Load(const MaterialDesc& _Desc, const THandle _hDevice, const bool _bCreateRef)
 {
+	if (_bCreateRef && IsValidRef() == false)
+	{
+		Create();
+	}
+
 	if (IsValidRef())
 	{
 		MaterialRefEntry& Entry = Get();

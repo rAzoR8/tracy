@@ -55,6 +55,8 @@ bool Scene::Initialize(const SceneDesc& _Desc, const THandle _hDevice)
 			HERROR("Failed to load renderobject %s", WCSTR(ObjDesc.sIdentifier));
 			return false;
 		}
+
+		m_Objects.push_back(pObject);
 	}
 
 	// TODO: resovle transform hierachry

@@ -6,6 +6,7 @@
 #include "SPIRVInstruction.h"
 #include "SPIRVModule.h"
 #include "Singleton.h"
+#include <mutex>
 
 namespace Tracy
 {
@@ -108,6 +109,8 @@ namespace Tracy
 		void AddPreambleId(const uint32_t& _uId);
 
 	private:
+		std::mutex m_Mutex;
+
 		// remove variables, types, constants
 		bool m_bRemoveUnused = true;
 
@@ -244,10 +247,9 @@ namespace Tracy
 		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;
 		constexpr bool bExecute = std::is_base_of_v<SPIRVProgram<false>, TProg>;
 
-		//static_assert(bAssemble, "Invalid program type (Assemble = false)");
-
 		if constexpr(bAssemble)
 		{
+			m_Mutex.lock();
 			m_pAssembleProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
 			Init(m_pAssembleProgram->GetExecutionModel(), m_pAssembleProgram->GetExecutionMode(), _sEntryPoint, _Extensions);
 		}
