@@ -7,6 +7,7 @@
 #include <memory>
 #include "DisplayTypes.h"
 #include "Bytes.h"
+#include "..\SPIRVShaderFactory\DefaultShaderIdentifiers.h"
 
 // forward decl
 
@@ -18,14 +19,14 @@ namespace Tracy
 		kRenderObjectFlag_StaticTransform = 1 << 0,
 		kRenderObjectFlag_Invisible = 1 << 1,
 		kRenderObjectFlag_SkipCulling = 1 << 2,
-		kRenderObjectFlag_ScreenSpace = 1 << 3
+		kRenderObjectFlag_ScreenSpace = 1 << 3 | kRenderObjectFlag_SkipCulling | kRenderObjectFlag_StaticTransform
 	};
 
 	using TRenderObjectFlags = hlx::Flag<ERenderObjectFlag>;
 
 	struct ImageDesc
 	{
-		std::string sIdentifier; // file path or name
+		std::wstring sIdentifier; // file path or name
 		bool bLoadByFile = false; // if true, Desc will be ignored
 		// bool cache like in helix?
 		TextureDesc Desc;
@@ -33,19 +34,21 @@ namespace Tracy
 
 	struct MaterialDesc
 	{
-		std::string sIdentifier; // file path or name
+		std::wstring sIdentifier; // file path or name
 		bool bLoadByFile = false;
 		uint64_t uPassId = 0u; // renderpasses this material uses
 		std::vector<ShaderID> Shaders;
 		std::unique_ptr<hlx::bytes> pKVBuffer = nullptr; // material variables
 		std::vector<ImageDesc> Images;
+
+		static MaterialDesc ScreenSpaceMaterial(const uint64_t _uPassIds = HUNDEFINED64, const ShaderID _kVertexShader = kShader_ScreenSpaceTriangle, const ShaderID _kPixelShader = kShader_ClearColor);
 	};
 
 	// todo: primitve descs, put std::variant<SphereDesc, PlaneDesc, CubeDesc...> into MeshDesc
 
 	struct MeshDesc
 	{
-		std::string sIdentifier; // file path or name
+		std::wstring sIdentifier; // file path or name
 		bool bLoadByFile = false;
 		std::unique_ptr<hlx::bytes> pVBuffer = nullptr; // vertex buffer
 		std::unique_ptr<hlx::bytes> pIBuffer = nullptr; // index buffer
@@ -67,7 +70,7 @@ namespace Tracy
 
 	struct RenderObjectDesc
 	{
-		std::string sIdentifier; // file path or name
+		std::wstring sIdentifier; // file path or name
 		bool bLoadByFile = false;
 
 		TRenderObjectFlags kRenderFlags;
@@ -76,9 +79,15 @@ namespace Tracy
 		MeshDesc Mesh;
 		AABB BoundingBox;
 
-		float3_t vPosition;
-		float3_t vScale;
-		quaternion_t vOrientation;
+		float3_t vPosition = {0.f, 0.f, 0.f};
+		float3_t vScale = { 1.f, 1.f, 1.f };
+		quaternion_t vOrientation = { 0.f, 0.f, 0.f, 0.f };
+
+		static RenderObjectDesc ScreenSpaceObject(
+			const uint64_t _uPassIds = HUNDEFINED64,
+			const ShaderID _kVertexShader = kShader_ScreenSpaceTriangle,
+			const ShaderID _kPixelShader = kShader_ClearColor,
+			const TRenderObjectFlags& _kFlags = kRenderObjectFlag_ScreenSpace);
 
 		// todo: parent link etc
 	};

@@ -13,6 +13,8 @@ namespace Tracy
 	{
 		struct ShaderDesc
 		{
+			ShaderDesc(const ShaderID& _Shader = ShaderID::kInvalid) :
+				Identifier(_Shader) {}
 			ShaderID Identifier;
 			//hlx::bytes UserData;
 		};

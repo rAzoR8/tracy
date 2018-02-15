@@ -170,6 +170,7 @@
     <ClCompile Include="Display\Material.cpp" />
     <ClCompile Include="Display\Mesh.cpp" />
     <ClCompile Include="Display\RenderObject.cpp" />
+    <ClCompile Include="Display\RenderObjectDescription.cpp" />
     <ClCompile Include="Display\Vulkan\IShaderFactoryConsumer.cpp" />
     <ClCompile Include="Display\Texture.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanBuffer.cpp" />

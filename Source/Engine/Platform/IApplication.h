@@ -25,6 +25,9 @@ namespace Tracy
 
 		bool InitWindowAndRenderer(const RenderGraphDesc& _Desc, const THandle _hDevice);
 
+		inline const std::unique_ptr<Renderer>& GetRenderer() const { return m_pRenderer; };
+		inline std::unique_ptr<Renderer>& GetRenderer() { return m_pRenderer; };
+
 	protected:
 		virtual bool OnInitAPI(const uint32_t _uWidth, const uint32_t _uHeight) = 0;
 

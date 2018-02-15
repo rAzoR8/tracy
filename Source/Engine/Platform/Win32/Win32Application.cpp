@@ -1,6 +1,7 @@
 #include "Win32Application.h"
 #include "Display/Vulkan/VulkanInstance.h"
 #include "Display/DX12/DX12Instance.h"
+#include "Logger.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------

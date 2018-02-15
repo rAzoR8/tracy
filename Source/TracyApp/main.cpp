@@ -1,5 +1,6 @@
-#include "..\Engine\Engine.hpp"
+#include "Engine.hpp"
 #include "..\SPIRVShaderFactory\DefaultShaderIdentifiers.h"
+#include "Scene\Scene.h"
 
 using namespace Tracy;
 
@@ -31,18 +32,22 @@ int main(int argc, char* argv[])
 	Pipeline.Viewports.push_back(Viewport());
 	Pipeline.Scissors.push_back({0,0, 1600u, 900u});
 
-	PipelineDesc::ShaderDesc& VertexShader = Pipeline.Shaders.emplace_back();
-	VertexShader.Identifier = kShader_ScreenSpaceTriangle;
-
-	PipelineDesc::ShaderDesc& PixelShader = Pipeline.Shaders.emplace_back();
-	PixelShader.Identifier = kShader_ClearColor;
+	Pipeline.Shaders.push_back(kShader_ScreenSpaceTriangle);
+	Pipeline.Shaders.push_back(kShader_ClearColor);
 
 	std::vector<DeviceInfo> Devices;
 	if (App.InitAPI(1600u, 900u, kGraphicsAPI_Vulkan, Devices))
 	{
 		if (App.InitWindowAndRenderer(Desc, Devices.front().hHandle))
 		{
-			return App.Run();
+			const uint64_t uMat = App.GetRenderer()->GetMaterialIds({ Pass.sPassName });
+			SceneDesc Desc;
+
+			Desc.Objects.push_back(RenderObjectDesc::ScreenSpaceObject(uMat));
+			if (Scene::Instance().Initialize(Desc, Devices.front().hHandle))
+			{
+				return App.Run();			
+			}
 		}
 	}
 

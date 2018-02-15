@@ -1,9 +1,6 @@
 #ifndef TRACY_SCENEDESCRIPTION_H
 #define TRACY_SCENEDESCRIPTION_H
 
-#include <vector>
-#include <cstdint>
-#include <string>
 #include "Display\RenderObjectDescription.h"
 
 namespace Tracy

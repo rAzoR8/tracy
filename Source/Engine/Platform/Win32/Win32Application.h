@@ -3,10 +3,6 @@
 
 #include "Platform/IApplication.h"
 
-
-
-#include "Logger.h"
-
 namespace Tracy
 {
 	class Win32Application : public IApplication

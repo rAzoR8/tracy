@@ -298,5 +298,6 @@
     <ClCompile Include="Display\Vulkan\VulkanMeshLoader.cpp">
       <Filter>Display\Vulkan\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="Display\RenderObjectDescription.cpp" />
   </ItemGroup>
 </Project>

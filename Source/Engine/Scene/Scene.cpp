@@ -34,7 +34,7 @@ bool Scene::Initialize(const SceneDesc& _Desc, const THandle _hDevice)
 	m_Objects.resize(0); //FreeObjects(); not needed, we create a new allocator anyways
 
 	const uint32_t uBlockSize = 1024u;
-	const uint32_t uBlockCount = static_cast<uint32_t>(std::ceil((_Desc.Objects.size() + _Desc.uMaxDynamicObjects) / uBlockSize));
+	const uint32_t uBlockCount = std::max(static_cast<uint32_t>(std::ceil((_Desc.Objects.size() + _Desc.uMaxDynamicObjects) / uBlockSize)), 1u);
 	const uint32_t uPreAllocedBlocks = 1u;
 	m_pObjectAllocator = std::make_unique<TObjAllocator>(uBlockSize, uBlockCount, uPreAllocedBlocks);
 
