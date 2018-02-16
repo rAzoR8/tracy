@@ -190,8 +190,10 @@ void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 	}
 
 	// TODO: dependencies and shit
-
-	//m_hPrimaryGfxCmdBuffer.begin()
+	vk::CommandBufferBeginInfo Info{};
+	Info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+	if (LogVKErrorFailed(m_hPrimaryGfxCmdBuffer.begin(&Info)))
+		return;
 
 	for (VulkanRenderPass& Pass : m_RenderPasses)
 	{

@@ -26,7 +26,7 @@ VulkanInstance::~VulkanInstance()
 }
 //---------------------------------------------------------------------------------------------------
 
-const std::vector<DeviceInfo> VulkanInstance::Init(/*const uint32_t _uWidth, const uint32_t _uHeight, HWND _hWnd, HINSTANCE _hInstance*/)
+const std::vector<DeviceInfo> VulkanInstance::Init()
 {
 	vk::ApplicationInfo AppInfo{};
 	AppInfo.apiVersion = VK_API_VERSION_1_0;

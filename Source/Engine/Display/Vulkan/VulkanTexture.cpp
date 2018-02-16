@@ -10,8 +10,6 @@ using namespace Tracy;
 VkTexData::VkTexData(TextureDesc& _Desc) : hDevice(_Desc.hDevice), bOwnsResource(true)
 {
 	GetDevice(hDevice).CreateTexture(_Desc, Allocation, hImage);
-
-	// TODO: layout
 }
 //---------------------------------------------------------------------------------------------------
 VkTexData::VkTexData(const THandle& _hDevice, const vk::Image& _hImage, const vk::ImageLayout& _hLayout, const TImageViews& _Views) :
@@ -59,6 +57,7 @@ VulkanTexture::VulkanTexture(const THandle& _hDevice, const vk::Image& _hImage, 
 	if (IsValidRef())
 	{
 		Ref.ConstructAPIData<VkTexData>(_hDevice, _hImage, _hLayout, _Views);
+		Ref.Data.uIdentifier = GetDevice(_hDevice).GetTextureIdentifier();
 	}
 }
 

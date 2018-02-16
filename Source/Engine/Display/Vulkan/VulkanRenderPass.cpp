@@ -215,6 +215,8 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 		return m_hFramebuffer;
 	}
 
+	// TODO: check for same identifier
+
 	ResetFramebuffer();
 
 	std::vector<vk::ImageView> ImageViews;
@@ -317,8 +319,8 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 	m_BeginInfo.framebuffer = m_hFramebuffer;
 	m_BeginInfo.renderArea.offset.x = m_ActivePipelineDesc.RenderArea.uOffsetX;
 	m_BeginInfo.renderArea.offset.y = m_ActivePipelineDesc.RenderArea.uOffsetY;
-	m_BeginInfo.renderArea.extent.width = m_ActivePipelineDesc.RenderArea.uExtentX;
-	m_BeginInfo.renderArea.extent.height = m_ActivePipelineDesc.RenderArea.uExtentY;
+	m_BeginInfo.renderArea.extent.width = std::min(m_ActivePipelineDesc.RenderArea.uExtentX, FrameInfo.width);
+	m_BeginInfo.renderArea.extent.height = std::min(m_ActivePipelineDesc.RenderArea.uExtentY, FrameInfo.height);
 	m_BeginInfo.clearValueCount = static_cast<uint32_t>(m_Framebuffer.ClearValues.size());
 	m_BeginInfo.pClearValues = m_Framebuffer.ClearValues.data();
 

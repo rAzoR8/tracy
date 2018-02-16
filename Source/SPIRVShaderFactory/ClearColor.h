@@ -16,7 +16,7 @@ namespace Tracy
 
 		inline void operator()()
 		{
-			OutputColor = float4(1.f, 0.f, 0.0f, 0.f);
+			OutputColor = float4(0.f, 1.f, 0.0f, 1.f);
 		};
 	private:
 	};

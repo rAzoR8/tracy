@@ -40,6 +40,7 @@ namespace Tracy
 	{
 		friend class VulkanInstance;
 		friend struct VkTexData;
+		friend class VulkanTexture;
 		friend struct VkBufferData;
 		friend class VulkanRenderGraph;
 		friend class VulkanRenderPass;
@@ -102,6 +103,9 @@ namespace Tracy
 
 	private:
 		bool Initialize();
+
+		uint64_t GetTextureIdentifier();
+		uint64_t GetBufferIdentifier();
 
 		// Textures
 		const bool CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image);

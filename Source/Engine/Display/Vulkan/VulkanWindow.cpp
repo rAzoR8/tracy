@@ -156,6 +156,12 @@ bool VulkanWindow::ReloadSurfaceInfo()
 //---------------------------------------------------------------------------------------------------
 bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeight)
 {
+	if (m_Swapchain && m_uWidth == _uWidth && m_uHeight == _uHeight)
+		return true;
+
+	if (_uWidth == 0u || _uHeight == 0u)
+		return false;
+
 	// Retrieve updated info from os layer
 	if (ReloadSurfaceInfo() == false)
 		return false;

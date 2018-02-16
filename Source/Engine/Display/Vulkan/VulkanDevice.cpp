@@ -239,6 +239,15 @@ AsyncTask<vk::Result> Tracy::VulkanDevice::WaitForFences(const vk::Fence* _pFenc
 		return res;
 	});
 }
+uint64_t VulkanDevice::GetTextureIdentifier()
+{
+	return m_uTextureIdentifier.fetch_add(1u);
+}
+//---------------------------------------------------------------------------------------------------
+uint64_t VulkanDevice::GetBufferIdentifier()
+{
+	return m_uBufferIdentifier.fetch_add(1u);;
+}
 //---------------------------------------------------------------------------------------------------
 const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Allocation, vk::Image& _Image)
 {
@@ -252,7 +261,7 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 	Info.arrayLayers = std::max(_Desc.uLayerCount, 1u);
 	Info.usage = GetTextureUsage(_Desc.kUsageFlag);
 
-	_Desc.uIdentifier = m_uTextureIdentifier.fetch_add(1u);
+	_Desc.uIdentifier = GetTextureIdentifier();
 
 	if (LogVKErrorFailed(m_pAllocator->CreateImageAllocation(Info, _Image)))
 		return false;
@@ -300,7 +309,7 @@ const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allo
 	Info.size = _Desc.uSize;
 	Info.usage = GetBufferUsage(_Desc.kUsageFlag);
 
-	_Desc.uIdentifier = m_uBufferIdentifier.fetch_add(1u);
+	_Desc.uIdentifier = GetBufferIdentifier();
 
 	if (LogVKErrorFailed(m_pAllocator->CreateBufferAllocation(Info, _Buffer)))
 		return false;
