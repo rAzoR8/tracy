@@ -1,6 +1,7 @@
 #include "Engine.hpp"
-#include "..\SPIRVShaderFactory\DefaultShaderIdentifiers.h"
-#include "Scene\Scene.h"
+#include "../SPIRVShaderFactory/DefaultShaderIdentifiers.h"
+#include "Scene/Scene.h"
+#include "Scene/Camera.h"
 
 using namespace Tracy;
 
@@ -35,17 +36,21 @@ int main(int argc, char* argv[])
 	Pipeline.Shaders.push_back(kShader_ScreenSpaceTriangle);
 	Pipeline.Shaders.push_back(kShader_ClearColor);
 
+	std::shared_ptr<Camera> pCamera = std::make_shared<Camera>();
+
 	std::vector<DeviceInfo> Devices;
 	if (App.InitAPI(1600u, 900u, kGraphicsAPI_Vulkan, Devices))
 	{
 		if (App.InitWindowAndRenderer(Desc, Devices.front().hHandle))
 		{
 			const uint64_t uMat = App.GetRenderer()->GetMaterialIds({ Pass.sPassName });
-			SceneDesc Desc;
+			SceneDesc Desc{};
+			Scene& Scene = Scene::Instance();
 
 			Desc.Objects.push_back(RenderObjectDesc::ScreenSpaceObject(uMat));
-			if (Scene::Instance().Initialize(Desc, Devices.front().hHandle))
+			if (Scene.Initialize(Desc, Devices.front().hHandle))
 			{
+				Scene.AddCamera(pCamera);
 				return App.Run();			
 			}
 		}

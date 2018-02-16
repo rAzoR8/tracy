@@ -439,6 +439,8 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		if (ActivatePipeline(m_ActivePipelineDesc).operator bool() == false)
 			return false;
 
+		m_hCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
+
 		ResetMappings();
 
 		//m_hCommandBuffer.setViewport(0, m_ViewportState.Viewports);
@@ -483,7 +485,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		const MaterialRefEntry& Mat = Node.Material.Get();
 		// skip object
-		if ((Mat.uPassId != uPassID) == 0)
+		if ((Mat.uPassId & uPassID) == 0)
 			continue;
 
 		bool bShaderChanged = false;
@@ -527,13 +529,16 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			uint32_t uFirstSet = UINT32_MAX;
 			for (DescriptorSetContainer* pSet : m_ActiveDescriptorSets)
 			{
-				if (pSet->Update(m_Device))
+				if (pSet != nullptr)
 				{
-					pSet->AddDescriptorWrites(Writes);
-				}
+					if (pSet->Update(m_Device))
+					{
+						pSet->AddDescriptorWrites(Writes);
+					}
 
-				DescriporSets.push_back(pSet->hSet);
-				uFirstSet = std::min(uFirstSet, pSet->uSlot);
+					DescriporSets.push_back(pSet->hSet);
+					uFirstSet = std::min(uFirstSet, pSet->uSlot);
+				}
 			}
 
 			if (Writes.empty() == false)
@@ -544,7 +549,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 			// TODO: fill for dynamic uniforms and storage buffers
 			std::vector<uint32_t> DynamicOffsets;
 
-			if (m_ActiveDescriptorSets.empty() == false)
+			if (uFirstSet != UINT32_MAX)
 			{
 				m_hCommandBuffer.bindDescriptorSets(
 					vk::PipelineBindPoint::eGraphics,
@@ -1109,13 +1114,17 @@ bool VulkanRenderPass::FindBinding(const uint64_t& _uNameHash, InputMapping& _Ou
 	uint32_t uSet = 0u;
 	for (DescriptorSetContainer* pSet : m_ActiveDescriptorSets)
 	{
-		uint32_t uBinding = pSet->FindBinding(_uNameHash);
-		if (uBinding != HUNDEFINED32)
+		if (pSet != nullptr)
 		{
-			_OutMapping.uBindingIndex = uBinding;
-			_OutMapping.uSet = uSet;
-			return true;
+			uint32_t uBinding = pSet->FindBinding(_uNameHash);
+			if (uBinding != HUNDEFINED32)
+			{
+				_OutMapping.uBindingIndex = uBinding;
+				_OutMapping.uSet = uSet;
+				return true;
+			}
 		}
+
 		++uSet;
 	}
 
@@ -1125,7 +1134,10 @@ bool VulkanRenderPass::FindBinding(const uint64_t& _uNameHash, InputMapping& _Ou
 
 void VulkanRenderPass::DigestImages(const ImageSource& Src)
 {
-	ResourceMapping& Mapping = m_ImageMappings[Src.GetID()];
+	const uint32_t uId = Src.GetID();
+	HASSERT(uId < m_BufferMappings.size(), "Invalid image source ID");
+
+	ResourceMapping& Mapping = m_ImageMappings[uId];
 	const std::vector<ImageSource::Image>& Images = Src.GetImages();
 
 	if (Mapping.bInitialized == false)
@@ -1149,14 +1161,19 @@ void VulkanRenderPass::DigestImages(const ImageSource& Src)
 	for (const InputMapping& Input : Mapping.Resource)
 	{
 		const ImageSource::Image& Source = Images[Input.uSourceIndex];
-		m_ActiveDescriptorSets[Input.uSet]->Bindings[Input.uBindingIndex].Set(Source.Img);
+		DescriptorSetContainer* pContainer = m_ActiveDescriptorSets[Input.uSet];
+		HASSERT(pContainer != nullptr, "Invalid descriptor set container");
+		pContainer->Bindings[Input.uBindingIndex].Set(Source.Img);
 	}
 }
 //---------------------------------------------------------------------------------------------------
 
 void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 {
-	ResourceMapping& Mapping = m_BufferMappings[Src.GetID()];
+	const uint32_t uId = Src.GetID();
+	HASSERT(uId < m_BufferMappings.size(), "Invalid buffer source ID");
+
+	ResourceMapping& Mapping = m_BufferMappings[uId];
 	const std::vector<BufferSource::Var>& Vars = Src.GetVars();
 
 	if (Mapping.bInitialized == false)
@@ -1180,7 +1197,9 @@ void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 	for (const InputMapping& Input : Mapping.Resource)
 	{
 		const BufferSource::Var& Source = Vars[Input.uSourceIndex];
-		Binding& Binding = m_ActiveDescriptorSets[Input.uSet]->Bindings[Input.uBindingIndex];
+		DescriptorSetContainer* pContainer = m_ActiveDescriptorSets[Input.uSet];
+		HASSERT(pContainer != nullptr, "Invalid descriptor set container");
+		Binding& Binding = pContainer->Bindings[Input.uBindingIndex];
 
 		// buffer content changed
 		if (Binding.Set(Source.pData, Source.uSize))

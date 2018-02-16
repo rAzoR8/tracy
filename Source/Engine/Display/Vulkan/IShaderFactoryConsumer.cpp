@@ -51,6 +51,7 @@ bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 		else // assemble new shader
 		{
 			pActiveShader = &m_ShaderModules.insert({ uHash, {} }).first->second;
+			pActiveShader->uIDHash = uHash;
 
 			HASSERT(GetPlugin() != nullptr, "Invalid ShaderFactory!");	
 			pActiveShader->Code = GetPlugin()->GetModule(_ShaderIdentifier, _pUserData, _uSize);

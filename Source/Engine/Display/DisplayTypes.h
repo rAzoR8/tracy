@@ -32,7 +32,7 @@ namespace Tracy
 
 	struct ShaderID
 	{
-		constexpr ShaderID(const uint64_t _uID = 0u) : uID(_uID) {}
+		constexpr ShaderID(const uint64_t _uID = kShaderType_Unknown) : uID(_uID) {}
 		constexpr ShaderID(const EShaderType _kType, const uint8_t _uCompileFlags, const uint16_t _uShader, const uint32_t _uVariant) :
 			kType(_kType), uCompileFlags(_uCompileFlags), uShader(_uShader), uVariant(_uVariant) {}
 		constexpr ShaderID(const ShaderID& _Other) : uID(_Other.uID) {}

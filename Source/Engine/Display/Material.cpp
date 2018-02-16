@@ -50,6 +50,10 @@ bool Material::Load(const MaterialDesc& _Desc, const THandle _hDevice, const boo
 			}
 		}
 
+		// finalize image source
+		Entry.Images.Finalize();
+		Entry.Values.Finalize();
+
 		return true;
 	}
 

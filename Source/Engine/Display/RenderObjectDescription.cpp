@@ -21,7 +21,7 @@ RenderObjectDesc RenderObjectDesc::ScreenSpaceObject(const uint64_t _uPassIds, c
 	Desc.kRenderFlags = _kFlags;
 	Desc.Material = MaterialDesc::ScreenSpaceMaterial(_uPassIds, _kVertexShader, _kPixelShader);
 
-	Desc.Mesh.kDrawMode = kDrawMode_VertexData;
+	Desc.Mesh.kDrawMode = kDrawMode_VertexCount;
 	Desc.Mesh.uVertexCount = 3u;
 
 	return Desc;

@@ -49,6 +49,9 @@ bool RenderObject::Initialize(const RenderObjectDesc& _Desc, const THandle _hDev
 		m_vOrientation = _Desc.vOrientation;
 	}
 
+	// finalize buffer source
+	Finalize();
+
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
