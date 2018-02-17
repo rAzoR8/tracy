@@ -53,7 +53,8 @@ namespace Tracy
 			struct Attachment
 			{
 				std::string sName;
-				EAttachmentType kType;
+				EAttachmentType kType = kAttachmentType_Color;
+				EAttachmentSourceType kSource = kAttachmentSourceType_Backbuffer;
 				VulkanTexture Texture;
 			};
 
@@ -155,7 +156,7 @@ namespace Tracy
 		void AddDependency(const Dependence& _Dependency);
 
 		// prepares command buffer & dynamic state for recording
-		bool BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffer);
+		bool BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffer, const uint32_t  _uIndex);
 		void EndCommandbuffer();
 
 		void NextSubPass();
@@ -173,7 +174,7 @@ namespace Tracy
 		bool StorePipelineCache(const std::wstring& _sPath);
 
 		// called from begin commandbuffer
-		bool CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer);
+		bool CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer, const uint32_t  _uIndex);
 		bool CreateRenderPass();
 
 		void ResetFramebuffer();
@@ -209,8 +210,16 @@ namespace Tracy
 
 		vk::RenderPass m_hRenderPass = nullptr;
 		Framebuffer m_Framebuffer;
-		vk::Framebuffer m_hFramebuffer = nullptr;
 
+		struct FramebufferInstance
+		{
+			vk::Framebuffer hBuffer = nullptr;
+			uint64_t uIdentifier = kUndefinedSizeT;
+		};
+
+		std::vector<FramebufferInstance> m_VkFramebuffers;
+		vk::Framebuffer m_hFrameBuffer;
+		
 		std::vector<ResourceMapping> m_ImageMappings;
 		std::vector<ResourceMapping> m_BufferMappings;
 

@@ -362,12 +362,19 @@ bool VulkanWindow::CreateSwapchain(const uint32_t _uWidth, const uint32_t _uHeig
 	ColorView.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, uBaseMipLevel, uMipLevelCount, uBaseArrayLayer, uArrayLayerCount);
 	ColorView.viewType = vk::ImageViewType::e2D;
 
+	TextureDesc TexDesc{};
+	TexDesc.hDevice = m_hPresentDevice;
+	TexDesc.kFormat = GetResourceFormat(ColorView.format);
+	TexDesc.kType = kTextureType_Texture2D;
+	TexDesc.uHeight = m_uHeight;
+	TexDesc.uWidth = m_uWidth;
+
 	TImageViews Views;
 	for (const vk::Image& Image : SwapchainImages)
 	{		
 		ColorView.image = Image;
 		Views[kViewType_RenderTarget] = Device.createImageView(ColorView);
-		m_Backbuffer.emplace_back(m_hPresentDevice, Image, vk::ImageLayout::eUndefined, Views);
+		m_Backbuffer.emplace_back(TexDesc, Image, vk::ImageLayout::eUndefined, Views);
 	}
 
 	return true;

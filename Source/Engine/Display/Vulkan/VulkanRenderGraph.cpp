@@ -152,7 +152,7 @@ void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 	// prepare passes
 	for (VulkanRenderPass& Pass : m_RenderPasses)
 	{
-		if (Pass.BeginCommandbuffer(CurrentBackbuffer) == false) // begin commandbuffer recording
+		if (Pass.BeginCommandbuffer(CurrentBackbuffer, uImageIndex) == false) // begin commandbuffer recording
 			return;
 	}
 

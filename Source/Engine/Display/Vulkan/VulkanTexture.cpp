@@ -52,12 +52,13 @@ VulkanTexture::VulkanTexture(const TextureDesc& _Desc) :
 }
 //---------------------------------------------------------------------------------------------------
 
-VulkanTexture::VulkanTexture(const THandle& _hDevice, const vk::Image& _hImage, const vk::ImageLayout& _hLayout, const TImageViews& _Views) : Texture(DefaultInit)
+VulkanTexture::VulkanTexture(const TextureDesc& _Desc, const vk::Image& _hImage, const vk::ImageLayout& _hLayout, const TImageViews& _Views) : Texture(DefaultInit)
 {
 	if (IsValidRef())
 	{
-		Ref.ConstructAPIData<VkTexData>(_hDevice, _hImage, _hLayout, _Views);
-		Ref.Data.uIdentifier = GetDevice(_hDevice).GetTextureIdentifier();
+		Ref.Data = _Desc;
+		Ref.Data.uIdentifier = GetDevice(_Desc.hDevice).GetTextureIdentifier();
+		Ref.ConstructAPIData<VkTexData>(_Desc.hDevice, _hImage, _hLayout, _Views);
 	}
 }
 

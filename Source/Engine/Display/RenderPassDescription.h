@@ -47,7 +47,6 @@ namespace Tracy
 		// viewport
 		std::vector<Viewport> Viewports;
 		std::vector<Rect> Scissors;
-		RenderArea RenderArea;
 
 		struct MappedSampler
 		{
@@ -135,6 +134,7 @@ namespace Tracy
 		};
 
 		std::vector<Attachment> Attachments;
+		RenderArea RenderArea;
 
 		uint32_t uWidth = 1920u;
 		uint32_t uHeight = 1080u;

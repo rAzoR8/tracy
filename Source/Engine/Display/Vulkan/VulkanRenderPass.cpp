@@ -206,96 +206,115 @@ void VulkanRenderPass::ResetRenderPass()
 }
 //---------------------------------------------------------------------------------------------------
 
-bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer)
+bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer, const uint32_t _uIndex)
 {
+	HASSERT(_CurrentBackbuffer.operator bool(), "Invalid backbuffer reference");
 	// we assume that rendertargets stay the same for all shaders & permutations
 	if (m_pParent != nullptr)
 	{
-		m_hFramebuffer = m_pParent->m_hFramebuffer;
-		return m_hFramebuffer;
+		return m_pParent->m_VkFramebuffers.empty() == false;
 	}
 
-	// TODO: check for same identifier
-
-	ResetFramebuffer();
-
-	std::vector<vk::ImageView> ImageViews;
-
-	// setup framebuffer
-	for (const FramebufferDesc::Attachment& Desc : m_Description.Framebuffer.Attachments)
+	// first time setup
+	if (m_Framebuffer.Attachments.empty())
 	{
-		vk::ClearValue& cv = m_Framebuffer.ClearValues.emplace_back();
-		cv.color = Desc.vClearColor;
-		cv.depthStencil = { Desc.fClearDepth, Desc.uClearStencil };
-
-		Framebuffer::Attachment& Attachment = m_Framebuffer.Attachments.emplace_back();
-
-		Attachment.kType = Desc.kType;
-		Attachment.sName = Desc.sName;
-
-		ETextureViewType kViewType = kViewType_Unknown;
-
-		if (Desc.kSource == kAttachmentSourceType_New)
+		for (const FramebufferDesc::Attachment& Desc : m_Description.Framebuffer.Attachments)
 		{
-			TextureDesc TexDesc{};
-			TexDesc.kType = kTextureType_Texture2D;
-			TexDesc.kFormat = Desc.kFormat;
-			TexDesc.hDevice = m_Device.GetHandle();
-			TexDesc.kUsageFlag = Desc.kType == kAttachmentType_Color ? kTextureUsage_RenderTarget : kTextureUsage_DepthStencil;
-			TexDesc.uHeight = m_Description.Framebuffer.uHeight;
-			TexDesc.uWidth = m_Description.Framebuffer.uWidth;
-			TexDesc.uLayerCount = 1u;
+			vk::ClearValue& cv = m_Framebuffer.ClearValues.emplace_back();
+			cv.color = Desc.vClearColor;
+			cv.depthStencil = { Desc.fClearDepth, Desc.uClearStencil };
 
-			Attachment.Texture = std::move(VulkanTexture(TexDesc));
+			Framebuffer::Attachment& Attachment = m_Framebuffer.Attachments.emplace_back();
 
-			TextureViewDesc ViewDesc{};
-			ViewDesc.kFormat = Desc.kFormat;
+			Attachment.kSource = Desc.kSource;
+			Attachment.kType = Desc.kType;
+			Attachment.sName = Desc.sName;
 
-			if (Desc.kType == kAttachmentType_Color)
+			if (Desc.kSource == kAttachmentSourceType_New)
 			{
-				ViewDesc.kType = kViewType_RenderTarget;
+				TextureDesc TexDesc{};
+				TexDesc.kType = kTextureType_Texture2D;
+				TexDesc.kFormat = Desc.kFormat;
+				TexDesc.hDevice = m_Device.GetHandle();
+				TexDesc.kUsageFlag = Desc.kType == kAttachmentType_Color ? kTextureUsage_RenderTarget : kTextureUsage_DepthStencil;
+				TexDesc.uHeight = m_Description.Framebuffer.uHeight;
+				TexDesc.uWidth = m_Description.Framebuffer.uWidth;
+				TexDesc.uLayerCount = 1u;
+
+				Attachment.Texture = std::move(VulkanTexture(TexDesc));
+
+				TextureViewDesc ViewDesc{};
+				ViewDesc.kFormat = Desc.kFormat;
+
+				if (Attachment.Texture.AddView(ViewDesc) == false)
+					return false;
 			}
-			else if (Desc.kType == kAttachmentType_DepthStencil)
+			else if (Desc.kSource == kAttachmentSourceType_Use)
 			{
-				ViewDesc.kType = kViewType_DepthStencil;
-			}
-
-			kViewType = ViewDesc.kType;
-
-			if (Attachment.Texture.AddView(ViewDesc) == false)
-				return false;
-		}
-		else if (Desc.kSource == kAttachmentSourceType_Use)
-		{
-			// search for source texture in previous passes
-			for (VulkanRenderPass& Pass : m_RenderGraph.m_RenderPasses)
-			{
-				if (Pass.m_Description.sPassName == Desc.sSourcePassName)
+				// search for source texture in previous passes
+				for (VulkanRenderPass& Pass : m_RenderGraph.m_RenderPasses)
 				{
-					for (const Framebuffer::Attachment& Src : Pass.m_Framebuffer.Attachments)
+					if (Pass.m_Description.sPassName == Desc.sSourcePassName)
 					{
-						if (Src.sName == Desc.sName)
+						for (const Framebuffer::Attachment& Src : Pass.m_Framebuffer.Attachments)
 						{
-							Attachment.Texture = Src.Texture; // found tex, copy reference
-							if (Desc.kType == kAttachmentType_Color)
+							if (Src.sName == Desc.sName)
 							{
-								kViewType = kViewType_RenderTarget;
+								HASSERT(Src.kSource != kAttachmentSourceType_Backbuffer, "Backbuffer cannot be attachment source for use");
+								Attachment.Texture = Src.Texture; // found tex, copy reference
+								break;
 							}
-							else if (Desc.kType == kAttachmentType_DepthStencil)
-							{
-								kViewType = kViewType_DepthStencil;
-							}
-							break;
 						}
+						break;
 					}
-					break;
 				}
 			}
 		}
-		else if (Desc.kSource == kAttachmentSourceType_Backbuffer)
+	}
+
+	std::vector<vk::ImageView> ImageViews;
+	uint32_t uFramebufferIndex = 0u;
+	bool bNewBackbuffer = false;
+
+	uint32_t uResX = m_Description.Framebuffer.uWidth;
+	uint32_t uResY = m_Description.Framebuffer.uHeight;
+	uint32_t uLayers = m_Description.Framebuffer.uLayers;
+
+	// check if we can reuse a framebuffer
+	for (Framebuffer::Attachment& Attachment : m_Framebuffer.Attachments)
+	{
+		ETextureViewType kViewType = kViewType_Unknown;
+
+		if (Attachment.kSource == kAttachmentSourceType_Backbuffer)
 		{
+			uFramebufferIndex = _uIndex;
+
+			if (uFramebufferIndex < m_VkFramebuffers.size())
+			{
+				bNewBackbuffer = m_VkFramebuffers[uFramebufferIndex].uIdentifier != _CurrentBackbuffer.GetIdentifier();
+			}
+			else
+			{
+				m_VkFramebuffers.resize(uFramebufferIndex + 1u, {});
+				bNewBackbuffer = true;
+			}
+
+			m_VkFramebuffers[uFramebufferIndex].uIdentifier = _CurrentBackbuffer.GetIdentifier();
+
 			Attachment.Texture = _CurrentBackbuffer;
 			kViewType = kViewType_RenderTarget;
+
+			uResX = _CurrentBackbuffer.GetWidth();
+			uResY = _CurrentBackbuffer.GetHeight();
+			uLayers = 1u;
+		}
+		else if (Attachment.kType == kAttachmentType_Color)
+		{
+			kViewType = kViewType_RenderTarget;
+		}
+		else if (Attachment.kType == kAttachmentType_DepthStencil)
+		{
+			kViewType = kViewType_DepthStencil;
 		}
 
 		if (Attachment.Texture.IsValidVkTex() == false || kViewType >= kViewType_Unknown)
@@ -305,26 +324,53 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 	}
 
 	vk::FramebufferCreateInfo FrameInfo{};
-	FrameInfo.height = m_Description.Framebuffer.uHeight;
-	FrameInfo.width = m_Description.Framebuffer.uWidth;
-	FrameInfo.layers = m_Description.Framebuffer.uLayers;
-	FrameInfo.renderPass = m_hRenderPass;
-	FrameInfo.pAttachments = ImageViews.data();
-	FrameInfo.attachmentCount = static_cast<uint32_t>(ImageViews.size());
 
-	if (LogVKErrorBool(VKDevice().createFramebuffer(&FrameInfo, nullptr, &m_hFramebuffer)) == false)
-		return false;
+	vk::Framebuffer& hCurFramebuffer = m_VkFramebuffers[uFramebufferIndex].hBuffer;
+
+	// create new framebuffer
+	if (bNewBackbuffer || hCurFramebuffer.operator bool() == false)
+	{
+		if (hCurFramebuffer)
+		{
+			VKDevice().destroyFramebuffer(hCurFramebuffer);
+			hCurFramebuffer = nullptr;
+		}
+
+		FrameInfo.width = uResX;
+		FrameInfo.height = uResY;
+		FrameInfo.layers = uLayers;
+		FrameInfo.renderPass = m_hRenderPass;
+		FrameInfo.pAttachments = ImageViews.data();
+		FrameInfo.attachmentCount = static_cast<uint32_t>(ImageViews.size());
+
+		if (LogVKErrorBool(VKDevice().createFramebuffer(&FrameInfo, nullptr, &hCurFramebuffer)) == false)
+			return false;
+	}
+
+	RenderArea& Area = m_Description.Framebuffer.RenderArea;
 
 	m_BeginInfo.renderPass = m_hRenderPass;
-	m_BeginInfo.framebuffer = m_hFramebuffer;
-	m_BeginInfo.renderArea.offset.x = m_ActivePipelineDesc.RenderArea.uOffsetX;
-	m_BeginInfo.renderArea.offset.y = m_ActivePipelineDesc.RenderArea.uOffsetY;
-	m_BeginInfo.renderArea.extent.width = std::min(m_ActivePipelineDesc.RenderArea.uExtentX, FrameInfo.width);
-	m_BeginInfo.renderArea.extent.height = std::min(m_ActivePipelineDesc.RenderArea.uExtentY, FrameInfo.height);
+	m_BeginInfo.framebuffer = hCurFramebuffer;
+	m_BeginInfo.renderArea.offset.x = Area.uOffsetX;
+	m_BeginInfo.renderArea.offset.y = Area.uOffsetY;
+
+	if ((Area.uOffsetX + Area.uExtentX) > uResX)
+	{
+		Area.uExtentX -= (Area.uOffsetX + Area.uExtentX - uResX);
+	}
+
+	if ((Area.uOffsetY + Area.uExtentY) > uResY)
+	{
+		Area.uExtentY -= (Area.uOffsetY + Area.uExtentY - uResY);
+	}
+
+	m_BeginInfo.renderArea.extent.width = Area.uExtentX;
+	m_BeginInfo.renderArea.extent.height = Area.uExtentY;
+
 	m_BeginInfo.clearValueCount = static_cast<uint32_t>(m_Framebuffer.ClearValues.size());
 	m_BeginInfo.pClearValues = m_Framebuffer.ClearValues.data();
 
-	return m_hFramebuffer && m_hRenderPass;
+	return hCurFramebuffer && m_hRenderPass;
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -340,13 +386,16 @@ void VulkanRenderPass::ResetFramebuffer()
 		}
 		m_Framebuffer.Reset();
 
-		if (m_hFramebuffer)
+		for(const FramebufferInstance& f : m_VkFramebuffers)
 		{
-			VKDevice().destroyFramebuffer(m_hFramebuffer);
+			if (f.hBuffer)
+			{
+				VKDevice().destroyFramebuffer(f.hBuffer);
+			}
 		}
 	}
 
-	m_hFramebuffer = nullptr;
+	m_VkFramebuffers.clear();
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -636,15 +685,15 @@ void VulkanRenderPass::AddDependency(const Dependence& _Dependency)
 //---------------------------------------------------------------------------------------------------
 // prepares command buffer & dynamic state for recording
 // called for each batch of objects that use a different shader
-bool VulkanRenderPass::BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffer)
+bool VulkanRenderPass::BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffer, const uint32_t  _uIndex)
 {
-	if (CreateFramebuffer(_CurrentBackbuffer) == false)
+	if (CreateFramebuffer(_CurrentBackbuffer, _uIndex) == false)
 		return false;
 
 	vk::CommandBufferInheritanceInfo BufferInfo{};
 
 	BufferInfo.renderPass = m_hRenderPass;
-	BufferInfo.framebuffer = m_hFramebuffer;
+	BufferInfo.framebuffer = m_pParent != nullptr ? m_pParent->m_VkFramebuffers[_uIndex].hBuffer : m_VkFramebuffers[_uIndex].hBuffer;
 	BufferInfo.occlusionQueryEnable = VK_FALSE;
 	BufferInfo.subpass = 0u; //m_pParent != nullptr ? m_uPassIndex : 0;
 
