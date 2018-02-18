@@ -180,6 +180,16 @@ bool VulkanRenderPass::CreateRenderPass()
 	PassInfo.attachmentCount = static_cast<uint32_t>(AttachmentDescs.size());
 	PassInfo.pAttachments = AttachmentDescs.data();
 
+	std::vector<vk::SubpassDependency> SubpassDependencies;
+
+	//vk::SubpassDependency& Dep = SubpassDependencies.emplace_back();
+	//Dep.srcSubpass = VK_SUBPASS_EXTERNAL;
+	//Dep.dstSubpass = VK_SUBPASS_EXTERNAL;
+	//Dep.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+	//Dep.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	//Dep.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+	//Dep.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
 		vk::SubpassDescription& SubDesc = SubPassDescs.emplace_back();
@@ -190,6 +200,9 @@ bool VulkanRenderPass::CreateRenderPass()
 
 	PassInfo.subpassCount = static_cast<uint32_t>(SubPassDescs.size());
 	PassInfo.pSubpasses = SubPassDescs.data();
+
+	PassInfo.pDependencies = SubpassDependencies.data();
+	PassInfo.dependencyCount = static_cast<uint32_t>(SubpassDependencies.size());
 
 	return LogVKErrorBool(VKDevice().createRenderPass(&PassInfo, nullptr, &m_hRenderPass));
 }

@@ -22,10 +22,10 @@ bool VulkanRenderer::Init()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderer::RenderFrame()
+bool VulkanRenderer::RenderFrame()
 {
 	m_Scene.Update();
 
-	m_RenderGraph.Render(m_Scene.GetCameras());
+	return m_RenderGraph.Render(m_Scene.GetCameras());
 }
 //---------------------------------------------------------------------------------------------------

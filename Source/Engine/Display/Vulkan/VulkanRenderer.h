@@ -15,7 +15,7 @@ namespace Tracy
 		~VulkanRenderer();
 
 		bool Init() final;
-		void RenderFrame() final;
+		bool RenderFrame() final;
 
 		uint64_t GetMaterialIds(const std::vector<std::wstring>& _Passes) final;
 

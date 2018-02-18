@@ -11,7 +11,7 @@ namespace Tracy
 		virtual ~Renderer() {}
 
 		virtual bool Init() = 0;
-		virtual void RenderFrame() = 0;
+		virtual bool RenderFrame() = 0;
 
 		virtual uint64_t GetMaterialIds(const std::vector<std::wstring>& _Passes) = 0;
 	private:

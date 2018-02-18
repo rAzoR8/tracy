@@ -230,7 +230,7 @@ AsyncTask<vk::Result> Tracy::VulkanDevice::WaitForFences(const vk::Fence* _pFenc
 {
 	return make_task([&]()
 	{ 
-		std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed
+		//std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed
 		vk::Result res = m_Device.waitForFences(_uFenceCount, _pFences, _bWaitAll, _uTimeOutNanoSec);
 		if (LogVKErrorBool(res) && _bRestFence)
 		{
