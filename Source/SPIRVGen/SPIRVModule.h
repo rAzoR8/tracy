@@ -45,7 +45,8 @@ namespace Tracy
 		void Write(const std::vector<SPIRVInstruction>& _Instructions);
 		bool Save(const std::string& _sFilePath);
 
-		static constexpr uint32_t uGenerator = 'trcy';
+		static constexpr uint32_t uVersion = 1u;
+		static constexpr uint32_t uGenerator = uVersion | 'ty' << 16u;
 		static constexpr uint32_t uSchema = 0u;
 
 		const std::vector<uint32_t>& GetCode() const noexcept;
@@ -77,6 +78,7 @@ namespace Tracy
 		uint32_t m_uBounds = std::numeric_limits<uint32_t>::max();
 		uint32_t m_uSchema = uSchema;
 		uint32_t m_uGenerator = uGenerator;
+		uint32_t m_uSPVVersion = 0x00010000;//spv::Version
 
 		std::vector<uint32_t> m_InstructionStream;
 		std::vector<VariableInfo> m_Variables; // no function class variables (in out uniform etc)

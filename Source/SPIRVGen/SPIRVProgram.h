@@ -51,15 +51,15 @@ namespace Tracy
 
 		const var_per_vertex<Assemble> kPerVertex;
 
-		const var_builtin_t<spv::BuiltInVertexIndex, int, Assemble> kVertexIndex;
-		const var_builtin_t<spv::BuiltInInstanceIndex, int, Assemble> kInstanceIndex;
-		const var_builtin_t<spv::BuiltInDrawIndex, int, Assemble> kDrawIndex;
+		const var_builtin_t<spv::BuiltInVertexIndex, int, Assemble, spv::StorageClassInput> kVertexIndex;
+		const var_builtin_t<spv::BuiltInInstanceIndex, int, Assemble, spv::StorageClassInput> kInstanceIndex;
+		const var_builtin_t<spv::BuiltInDrawIndex, int, Assemble, spv::StorageClassInput> kDrawIndex;
 
-		const var_builtin_t<spv::BuiltInBaseVertex, int, Assemble> kBaseVertex;
-		const var_builtin_t<spv::BuiltInBaseInstance, int, Assemble> kBaseInstance;
+		const var_builtin_t<spv::BuiltInBaseVertex, int, Assemble, spv::StorageClassInput> kBaseVertex;
+		const var_builtin_t<spv::BuiltInBaseInstance, int, Assemble, spv::StorageClassInput> kBaseInstance;
 
-		const var_builtin_t<spv::BuiltInFragCoord, float4_t, Assemble> kFragCoord;
-		const var_builtin_t<spv::BuiltInFragDepth, float, Assemble> kFragDepth;
+		const var_builtin_t<spv::BuiltInFragCoord, float4_t, Assemble, spv::StorageClassInput> kFragCoord;
+		const var_builtin_t<spv::BuiltInFragDepth, float, Assemble, spv::StorageClassInput> kFragDepth;
 
 		using s32 = var<int32_t>;
 		using s64 = var<int64_t>;

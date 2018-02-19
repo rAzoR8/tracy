@@ -39,7 +39,7 @@ void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 
 	// write header
 	Put(spv::MagicNumber);
-	Put(spv::Version);
+	Put(m_uSPVVersion);
 	Put(uGenerator); // tracy
 	Put(m_uBounds); // Bounds
 	Put(uSchema);

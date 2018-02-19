@@ -54,7 +54,9 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 		break;
 	}
 
-	//Shader.Save("test.spv");
+	std::string sName = _ShaderIdentifier.kType == kShaderType_Vertex ? "vert" : "frag";
+
+	Shader.Save(sName+".spv");
 	//system("spirv-dis test.spv");
 	//system("spirv-val test.spv");
 

@@ -10,6 +10,11 @@ void var_decoration<true>::Decorate(const SPIRVDecoration& _Decoration)
 //---------------------------------------------------------------------------------------------------
 void var_decoration<true>::MaterializeDecorations() const
 {
+	// TODO: materialize decorations of base variables too!
+
+	if (uVarId == HUNDEFINED32)
+		return;
+
 	GlobalAssembler.AddVariableInfo(*this);
 
 	// instantiate variable decorations
@@ -91,15 +96,15 @@ uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
 
 	CreateAccessChain();
 
+	// instantiate variable decorations
+	MaterializeDecorations();
+
 	const bool bForceLoad = (uVarId != HUNDEFINED32) && (_bForceLoad || GlobalAssembler.GetForceNextLoads());
 
 	if (uResultId != HUNDEFINED32 && bForceLoad == false)
 		return uResultId;
 
 	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");
-
-	// instantiate variable decorations
-	MaterializeDecorations();
 
 	// OpLoad:
 	// Result Type is the type of the loaded object.
