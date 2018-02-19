@@ -23,6 +23,7 @@ RenderObjectDesc RenderObjectDesc::ScreenSpaceObject(const uint64_t _uPassIds, c
 
 	Desc.Mesh.kDrawMode = kDrawMode_VertexCount;
 	Desc.Mesh.uVertexCount = 3u;
+	Desc.Mesh.uInstanceCount = 1u;
 
 	return Desc;
 }

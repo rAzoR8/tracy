@@ -638,7 +638,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		{
 		case kDrawMode_VertexCount:
 		{
-			m_hCommandBuffer.draw(mesh.GetVertexCount(), 0u, 0u, 0u);
+			m_hCommandBuffer.draw(mesh.GetVertexCount(), mesh.GetInstanceCount(), mesh.GetFirstVertex(), mesh.GetFirstInstance());
 		}
 		break;
 		case kDrawMode_VertexData:
