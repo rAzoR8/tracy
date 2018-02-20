@@ -633,6 +633,30 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// LERP
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Lerp(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r, const var_t<float, Assemble, C3> t)
+	{
+		return l * (1.f - t) + r * t;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// NDC to [0..1]
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> NDCToZeroOne(const var_t<T, Assemble, C1>& ndc)
+	{
+		return (ndc + 1.f) * 0.5f;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// NDC to range
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
+	inline var_t<T, Assemble, spv::StorageClassFunction> NDCToRange(const var_t<T, Assemble, C1>& ndc, const var_t<float, Assemble, C2>& low, const var_t<float, Assemble, C3> high)
+	{
+		return low + ((ndc + 1.f) * 0.5f * (high-low));
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// MUL
 	// vector * matrix
 	template <class M, bool Assemble,spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>

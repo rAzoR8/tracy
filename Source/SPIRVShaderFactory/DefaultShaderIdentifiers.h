@@ -7,11 +7,14 @@ namespace Tracy
 	enum EDefaultShader : uint16_t
 	{
 		kDefaultShader_ClearColor,
-		kDefaultShader_ScreenSpaceTriangle
+		kDefaultShader_ScreenSpaceTriangle,
+		kDefaultShader_Mandelbrot,
 	};
 
 	constexpr ShaderID kShader_ClearColor = kShaderID<kShaderType_Fragment, kDefaultShader_ClearColor>;
 	constexpr ShaderID kShader_ScreenSpaceTriangle = kShaderID<kShaderType_Vertex, kDefaultShader_ScreenSpaceTriangle>;
+	constexpr ShaderID kShader_Mandelbrot = kShaderID<kShaderType_Fragment, kDefaultShader_Mandelbrot>;
+
 
 } // Tracy
 

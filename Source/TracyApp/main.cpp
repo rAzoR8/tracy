@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 	Pipeline.Scissors.push_back({0,0, 1600u, 900u});
 
 	Pipeline.Shaders.push_back(kShader_ScreenSpaceTriangle);
-	Pipeline.Shaders.push_back(kShader_ClearColor);
+	Pipeline.Shaders.push_back(kShader_Mandelbrot);
 
 	std::shared_ptr<Camera> pCamera = std::make_shared<Camera>();
 

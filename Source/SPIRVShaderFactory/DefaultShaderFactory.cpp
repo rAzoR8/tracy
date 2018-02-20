@@ -4,6 +4,7 @@
 // shaders
 #include "ClearColor.h"
 #include "ScreenSpaceTriangle.h"
+#include "Mandelbrot.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
@@ -48,6 +49,9 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 		break;
 	case kDefaultShader_ScreenSpaceTriangle:
 		Shader = GlobalAssembler.AssembleSimple<ScreenSpaceTriangle>();
+		break;
+	case kDefaultShader_Mandelbrot:
+		Shader = GlobalAssembler.AssembleSimple<Mandelbrot>();
 		break;
 	default:
 		HERROR("Unknown shader %s", WCSTR(_ShaderIdentifier.GetString()));

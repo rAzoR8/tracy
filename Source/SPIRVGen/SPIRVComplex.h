@@ -22,6 +22,9 @@ namespace Tracy
 		//template <spv::StorageClass C1>
 		//SPRIVComplex(const var_t<float2_t, Assemble, C1>& _vComplex);
 
+		template <spv::StorageClass C1>
+		const SPIRVComplex& operator=(const SPIRVComplex<Assemble, C1>& _Other) const;
+
 		var_t<float, Assemble, spv::StorageClassFunction> Conjugate() const;
 		var_t<float, Assemble, spv::StorageClassFunction> Norm() const;
 		SPIRVComplex<Assemble, spv::StorageClassFunction> Inverse() const;
@@ -41,6 +44,14 @@ namespace Tracy
 		template <spv::StorageClass C1>
 		const SPIRVComplex& operator/=(const SPIRVComplex<Assemble, C1>& _Other) const;
 	};
+
+	template<bool Assemble, spv::StorageClass Class>
+	template <spv::StorageClass C1>
+	inline const SPIRVComplex<Assemble, Class>& SPIRVComplex<Assemble, Class>::operator=(const SPIRVComplex<Assemble, C1>& _Other) const
+	{
+		var_t<float2_t, Assemble, Class>::operator=(_Other);
+		return *this;
+	}
 
 	//---------------------------------------------------------------------------------------------------
 	template<bool Assemble, spv::StorageClass Class>
@@ -81,7 +92,7 @@ namespace Tracy
 	{
 		// z1z2 = (a1 + b1i)(a2 + b2i) =
 		//		= (a1a2 - b1b2)(a1b2 + b1a2)i
-		const auto A1 = _c1.x; const auto B1 = _c2.y;
+		const auto A1 = _c1.x; const auto B1 = _c1.y;
 		const auto A2 = _c2.x; const auto B2 = _c2.y;
 		_cOut.x = A1 * A2 - B1 * B2;
 		_cOut.y = A1 * B2 + B1 * A2;
