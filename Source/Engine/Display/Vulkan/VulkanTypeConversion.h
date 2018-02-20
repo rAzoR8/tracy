@@ -2,7 +2,7 @@
 #define TRACY_VULKANTYPECONVERSION_H
 
 #include "VulkanAPI.h"
-#include "../DisplayTypes.h"
+#include "Display/DisplayTypes.h"
 #include "Logger.h"
 
 #include <unordered_map>
@@ -135,7 +135,7 @@ namespace Tracy::detail
 		{ kUsageFlag_CopyDestination,	vk::BufferUsageFlagBits::eTransferDst },
 	};*/
 
-	static const vk::ComponentSwizzle g_VkChannelSwizzle[kColorChannel_NumOf] =
+	static const vk::ComponentSwizzle g_VkChannelSwizzle[kColorComponent_NumOf] =
 	{
 		vk::ComponentSwizzle::eIdentity,
 		vk::ComponentSwizzle::eZero,
@@ -153,9 +153,9 @@ namespace Tracy::detail
 		{kAspect_Stencil,	vk::ImageAspectFlagBits::eStencil}
 	};*/
 
-	inline static const vk::ComponentSwizzle GetSwizzle(const EColorChannel _kChannel)
+	inline static const vk::ComponentSwizzle GetSwizzle(const EColorComponent _kChannel)
 	{
-		HASSERTD(_kChannel < kColorChannel_NumOf, "Invalid Primitive Topology");
+		HASSERTD(_kChannel < kColorComponent_NumOf, "Invalid Primitive Topology");
 		return g_VkChannelSwizzle[_kChannel];
 	}
 	//---------------------------------------------------------------------------------------------------
@@ -271,6 +271,15 @@ namespace Tracy::detail
 		vk::BlendFactor::eOneMinusSrc1Color,
 		vk::BlendFactor::eSrc1Alpha,
 		vk::BlendFactor::eOneMinusSrc1Alpha
+	};
+
+	static const vk::BlendOp g_VkBlendOp[kBlendOp_NumOf] =
+	{
+		vk::BlendOp::eAdd,
+		vk::BlendOp::eSubtract,
+		vk::BlendOp::eReverseSubtract,
+		vk::BlendOp::eMin,
+		vk::BlendOp::eMax
 	};
 
 	static const vk::ImageViewType g_VkTextureViewType[kTextureType_NumOf] =
@@ -516,16 +525,48 @@ namespace Tracy
 	inline const vk::ComponentMapping GetTextureComponentMapping(const ColorSwizzle& _Swizzle)
 	{
 		return vk::ComponentMapping(
-			detail::GetSwizzle(_Swizzle.Red),
-			detail::GetSwizzle(_Swizzle.Green),
-			detail::GetSwizzle(_Swizzle.Blue),
-			detail::GetSwizzle(_Swizzle.Alpha));
+			detail::GetSwizzle(_Swizzle.kRed),
+			detail::GetSwizzle(_Swizzle.kGreen),
+			detail::GetSwizzle(_Swizzle.kBlue),
+			detail::GetSwizzle(_Swizzle.kAlpha));
+	}
+
+	inline const vk::ColorComponentFlags GetColorComponentFlag(const TColorChannelFlag& _kFlag)
+	{
+		return vk::ColorComponentFlags(_kFlag);
+	}
+
+	inline const vk::BlendOp GetBlendOperation(const EBlendOp _kOp)
+	{
+		HASSERT(_kOp < kBlendOp_NumOf, "Invalid Blend Operation");
+		return detail::g_VkBlendOp[_kOp];
 	}
 	
+	inline const vk::BlendFactor GetBlendFactor(const EBlendFactor _kBlendFActor)
+	{
+		HASSERT(_kBlendFActor < kBlendFactor_NumOf, "Invalid BlendFactor");
+		return detail::g_VkBlendFactor[_kBlendFActor];
+	}
+
+	inline vk::PipelineColorBlendAttachmentState GetAttachmentBlendState(const BlendStateDesc& _Desc)
+	{
+		vk::PipelineColorBlendAttachmentState Desc{};
+
+		Desc.blendEnable = vkBool(_Desc.bBlendEnabled);
+		Desc.colorWriteMask = GetColorComponentFlag(_Desc.kColorWriteMask);
+		Desc.colorBlendOp = GetBlendOperation(_Desc.kColorBlendOp);
+		Desc.srcColorBlendFactor = GetBlendFactor(_Desc.kSrcColorBlendFactor);
+		Desc.dstColorBlendFactor = GetBlendFactor(_Desc.kDstColorBlendFactor);
+		Desc.alphaBlendOp = GetBlendOperation(_Desc.kAlphaBlendOp);
+		Desc.srcAlphaBlendFactor = GetBlendFactor(_Desc.kSrcAlphaBlendFactor);
+		Desc.dstAlphaBlendFactor = GetBlendFactor(_Desc.kDstAlphaBlendFactor);
+
+		return Desc;
+	}
+
 	inline const vk::Format& GetResourceFormat(const EFormat _kFormat)
 	{
 		HASSERT(_kFormat > kFormat_Undefined && _kFormat < kFormat_NumOf, "Format is either Undefined or OutOfRange");
-
 		return detail::g_VkFormatMapping.at(_kFormat);
 	}
 
@@ -565,12 +606,6 @@ namespace Tracy
 	inline vk::Rect2D GetRect(const Rect& _Rect) // lol
 	{
 		return vk::Rect2D({ _Rect.iOffsetX, _Rect.iOffsetY }, { _Rect.uExtentX, _Rect.uExtentY });
-	}
-
-	inline const vk::BlendFactor GetBlendFactor(const EBlendFactor _kBlendFActor)
-	{
-		HASSERT(_kBlendFActor < kBlendFactor_NumOf, "Invalid BlendFactor");
-		return detail::g_VkBlendFactor[_kBlendFActor];
 	}
 }
 

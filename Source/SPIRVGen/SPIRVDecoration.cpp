@@ -17,21 +17,17 @@ SPIRVOperation SPIRVDecoration::MakeOperation(const uint32_t _uTargetId, const u
 	std::vector<SPIRVOperand> Operands = { SPIRVOperand(kOperandType_Intermediate, uTargetId) };
 
 	spv::Op kOp = spv::OpNop;
-	switch (m_kType)
+	if (uMemberIndex == HUNDEFINED32)
 	{
-	case kDecorationType_Default:
-		Operands.push_back(SPIRVOperand::Literal((uint32_t)m_kDecoration));
 		kOp = spv::OpDecorate;
-		break;
-	case kDecorationType_Member:
-		HASSERT(uMemberIndex != HUNDEFINED32, "Invalid member index for decoration");
-		Operands.push_back(SPIRVOperand::Literal(uMemberIndex));
-		Operands.push_back(SPIRVOperand::Literal((uint32_t)m_kDecoration));
-		kOp = spv::OpMemberDecorate;
-		break;
-	default:
-		break;
 	}
+	else
+	{	
+		kOp = spv::OpMemberDecorate;
+		Operands.push_back(SPIRVOperand::Literal(uMemberIndex));
+	}
+
+	Operands.push_back(SPIRVOperand::Literal((uint32_t)m_kDecoration));
 
 	SPIRVOperation OpDecorate(kOp, Operands);
 	OpDecorate.AddLiterals(m_Literals);

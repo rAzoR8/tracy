@@ -135,17 +135,17 @@ void VulkanRenderGraph::Uninitialze()
 }
 //---------------------------------------------------------------------------------------------------
 
-void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Cameras, const bool _bParallelRecord)
+bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Cameras, const bool _bParallelRecord)
 {
 	uint32_t uImageIndex = 0u;
 	const std::vector<VulkanTexture>& Backbuffer = m_Window.GetBackuffer();
 
 	// get next image
 	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, m_hImageAcquiredSemaphore, nullptr, &uImageIndex)))
-		return;
+		return false;
 
 	if (uImageIndex >= Backbuffer.size())
-		return;
+		return false;
 
 	const VulkanTexture& CurrentBackbuffer = Backbuffer[uImageIndex];
 
@@ -153,7 +153,7 @@ void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 	for (VulkanRenderPass& Pass : m_RenderPasses)
 	{
 		if (Pass.BeginCommandbuffer(CurrentBackbuffer, uImageIndex) == false) // begin commandbuffer recording
-			return;
+			return false;
 	}
 
 	const auto RecordFN = [&](VulkanRenderPass& Pass)
@@ -191,9 +191,9 @@ void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 
 	// TODO: dependencies and shit
 	vk::CommandBufferBeginInfo Info{};
-	Info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+	//Info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 	if (LogVKErrorFailed(m_hPrimaryGfxCmdBuffer.begin(&Info)))
-		return;
+		return false;
 
 	for (VulkanRenderPass& Pass : m_RenderPasses)
 	{
@@ -207,7 +207,7 @@ void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 	// submit
 	{
 		vk::SubmitInfo Info{};
-		const vk::PipelineStageFlags kMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		const vk::PipelineStageFlags kMask = vk::PipelineStageFlagBits::eColorAttachmentOutput; // eBottomOfPipe
 		Info.commandBufferCount = 1u;
 		Info.pCommandBuffers = &m_hPrimaryGfxCmdBuffer;
 		Info.waitSemaphoreCount = 1u;
@@ -217,7 +217,7 @@ void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 		m_hGfxQueue.submit(Info, m_hSubmitFence);
 
 		if (LogVKErrorFailed(m_Device.WaitForFences(&m_hSubmitFence)))
-			return;
+			return false;
 	}
 
 	// present
@@ -228,8 +228,10 @@ void VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 		Info.pImageIndices = &uImageIndex;
 
 		if (LogVKErrorFailed(m_hGfxQueue.presentKHR(Info)))
-			return;
+			return false;
 	}
+
+	return true;
 }
 //---------------------------------------------------------------------------------------------------
 

@@ -21,7 +21,7 @@ void Scene::FreeObjects()
 {
 	for (RenderObject* pObject : m_Objects)
 	{
-		m_pObjectAllocator->Free(pObject);
+		m_pObjectAllocator->Free(pObject, false);
 	}
 
 	m_Objects.resize(0);

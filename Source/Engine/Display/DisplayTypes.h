@@ -356,34 +356,47 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	// Used to convert ComponentMapping in View creation
-	enum EColorChannel : uint32_t
+	enum EColorComponent : uint32_t
 	{
-		kColorChannel_Identity = 0u,	// Is Default
-		kColorChannel_Zero = 1u,
-		kColorChannel_One = 2u,
-		kColorChannel_Red = 3u,
-		kColorChannel_Green = 4u,
-		kColorChannel_Blue = 5u,
-		kColorChannel_Alpha = 6u,
+		kColorComponent_Identity = 0u,	// Is Default
+		kColorComponent_Zero = 1u,
+		kColorComponent_One = 2u,
+		kColorComponent_Red = 3u,
+		kColorComponent_Green = 4u,
+		kColorComponent_Blue = 5u,
+		kColorComponent_Alpha = 6u,
 
-		kColorChannel_NumOf,
-		kColorChannel_Unkown = kColorChannel_NumOf
+		kColorComponent_NumOf,
+		kColorComponent_Unkown = kColorComponent_NumOf
 	};
 
 	struct ColorSwizzle
 	{
-		EColorChannel Red;
-		EColorChannel Green;
-		EColorChannel Blue;
-		EColorChannel Alpha;
+		EColorComponent kRed;
+		EColorComponent kGreen;
+		EColorComponent kBlue;
+		EColorComponent kAlpha;
 
-		ColorSwizzle(const EColorChannel _kRed = kColorChannel_Identity, const EColorChannel _kGreen = kColorChannel_Identity, const EColorChannel _kBlue = kColorChannel_Identity, const EColorChannel _kAlpha = kColorChannel_Identity) :
-			Red(_kRed),
-			Green(_kGreen),
-			Blue(_kBlue),
-			Alpha(_kAlpha)
+		ColorSwizzle(const EColorComponent _kRed = kColorComponent_Identity, const EColorComponent _kGreen = kColorComponent_Identity, const EColorComponent _kBlue = kColorComponent_Identity, const EColorComponent _kAlpha = kColorComponent_Identity) :
+			kRed(_kRed),
+			kGreen(_kGreen),
+			kBlue(_kBlue),
+			kAlpha(_kAlpha)
 		{}
 	};
+
+	enum EColorChannel : uint32_t
+	{
+		kColorChannel_None = 0,
+		kColorChannel_Red = 1 << 0u,
+		kColorChannel_Green = 1 << 1u,
+		kColorChannel_Blue = 1 << 2u,
+		kColorChannel_Alpha = 1 << 3u,
+		kColorChannel_RGB = kColorChannel_Red | kColorChannel_Green | kColorChannel_Blue,
+		kColorChannel_RGBA = kColorChannel_RGB | kColorChannel_Alpha
+	};
+
+	using TColorChannelFlag = hlx::Flag<EColorChannel>;
 
 	// https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#VkImageAspectFlagBits
 	/*VK_IMAGE_ASPECT_COLOR_BIT = 0x00000001,
@@ -440,7 +453,7 @@ namespace Tracy
 
 		kTextureUsage_NumOf = 8u,
 		kTextureUsage_None = 0u
-	};
+	}; // todo: make this an acutal hlx::Flag
 
 	/*VK_BUFFER_USAGE_TRANSFER_SRC_BIT = 0x00000001,
 	VK_BUFFER_USAGE_TRANSFER_DST_BIT = 0x00000002,
@@ -1074,6 +1087,30 @@ enum EBlendFactor : uint32_t
 
 	kBlendFactor_NumOf,
 	kBlendFactor_Unknown = kBlendFactor_NumOf
+};
+
+enum EBlendOp : uint32_t
+{
+	kBlendOp_Add = 0,
+	kBlendOp_Sub,
+	kBlendOp_ReverseSub,
+	kBlendOp_Min,
+	kBlendOp_Max,
+
+	kBlendOp_NumOf,
+	kBlendOp_Unknown = kBlendOp_NumOf
+};
+
+struct BlendStateDesc
+{
+	bool bBlendEnabled = false;
+	TColorChannelFlag kColorWriteMask = kColorChannel_RGBA;
+	EBlendFactor kSrcColorBlendFactor = kBlendFactor_Zero;
+	EBlendFactor kDstColorBlendFactor = kBlendFactor_Zero;
+	EBlendOp kColorBlendOp = kBlendOp_Add;
+	EBlendFactor kSrcAlphaBlendFactor = kBlendFactor_Zero;
+	EBlendFactor kDstAlphaBlendFactor = kBlendFactor_Zero;
+	EBlendOp kAlphaBlendOp = kBlendOp_Add;
 };
 
 } // Tracy

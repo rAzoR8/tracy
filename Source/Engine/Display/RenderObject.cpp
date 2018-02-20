@@ -24,6 +24,8 @@ void RenderObject::Reset()
 	m_Node.Mesh.Reset();
 	m_BufferSources = { this };
 	ResetFlag();
+
+	// todo reset buffer sources
 }
 //---------------------------------------------------------------------------------------------------
 bool RenderObject::Initialize(const RenderObjectDesc& _Desc, const THandle _hDevice)

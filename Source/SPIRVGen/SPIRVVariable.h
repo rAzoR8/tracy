@@ -894,10 +894,10 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// builtin variables
-	template <spv::BuiltIn kBuiltIn, class T, bool Assemble = true>
-	struct var_builtin_t : public var_t<T, Assemble, spv::StorageClassInput>
+	template <spv::BuiltIn kBuiltIn, class T, bool Assemble, spv::StorageClass Class>
+	struct var_builtin_t : public var_t<T, Assemble, Class>
 	{
-		var_builtin_t(const T& _DefaultValue = {}) : var_t<T, Assemble, spv::StorageClassInput>(_DefaultValue)
+		var_builtin_t(const T& _DefaultValue = {}) : var_t<T, Assemble, Class>(_DefaultValue)
 		{
 			if constexpr(Assemble)
 			{
@@ -905,6 +905,9 @@ namespace Tracy
 				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, kBuiltIn));
 			}
 		}
+
+		template <spv::StorageClass C1>
+		inline const var_builtin_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, Class>::operator=(_Other);	return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -934,10 +937,10 @@ namespace Tracy
 				Value.kClipDistance.bBuiltIn = true;
 				Value.kCullDistance.bBuiltIn = true;
 
-				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition, kDecorationType_Member, Value.kPostion.uMemberIndex));
-				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize, kDecorationType_Member, Value.kPointSize.uMemberIndex));
-				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance, kDecorationType_Member, Value.kClipDistance.uMemberIndex));
-				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance, kDecorationType_Member, Value.kCullDistance.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition).MakeOperation(uTypeId, Value.kPostion.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize).MakeOperation(uTypeId, Value.kPointSize.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance).MakeOperation(uTypeId, Value.kClipDistance.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance).MakeOperation(uTypeId, Value.kCullDistance.uMemberIndex));
 			}
 		}
 	};
@@ -1167,7 +1170,7 @@ namespace Tracy
 				if constexpr(is_builtin<T> == false)
 				{
 					// Create member offset decoration
-					SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, kDecorationType_Member, pMember->AccessChain.back());
+					SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, pMember->AccessChain.back());
 					GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeId));
 				}
 			}

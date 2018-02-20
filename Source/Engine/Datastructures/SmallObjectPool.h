@@ -19,7 +19,7 @@ namespace Tracy
 		T* Alloc();
 
 		// this allocator assumes that free is never called twice for the same address!
-		void Free(const T* _pData, const bool _bDestruct = true);
+		void Free(const T* _pData, const bool _bDestruct = false);
 
 	private:
 		const uint32_t m_uBlockSize;
