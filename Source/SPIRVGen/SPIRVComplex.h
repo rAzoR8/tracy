@@ -22,8 +22,8 @@ namespace Tracy
 		//template <spv::StorageClass C1>
 		//SPRIVComplex(const var_t<float2_t, Assemble, C1>& _vComplex);
 
-		float Conjugate() const;
-		float Norm() const;
+		var_t<float, Assemble, spv::StorageClassFunction> Conjugate() const;
+		var_t<float, Assemble, spv::StorageClassFunction> Norm() const;
 		SPIRVComplex<Assemble, spv::StorageClassFunction> Inverse() const;
 
 		// operators
@@ -53,24 +53,24 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	template<bool Assemble, spv::StorageClass Class>
-	inline float SPIRVComplex<Assemble, Class>::Conjugate() const
+	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Conjugate() const
 	{
 		return x*x + y*y;
 	}
 
 	template<bool Assemble, spv::StorageClass Class>
-	inline float SPIRVComplex<Assemble, Class>::Norm() const
+	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Norm() const
 	{
-		return std::sqrtf(x*x + y*y);
+		return Sqrtf(Conjugate());
 	}
 
 	template<bool Assemble, spv::StorageClass Class>
 	inline SPIRVComplex<Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Inverse() const
 	{
 		auto COut = SPIRVComplex<Assemble, spv::StorageClassFunction>();
-		const float fRcpConj = 1.0f / Conjugate();
-		COut.x = x * fRcpConjugate;
-		COut.y = -1.0f * (y * fRcpCnjugate);
+		const var_t<float, Assemble, spv::StorageClassFunction> fRcpConj = 1.0f / Conjugate();
+		COut.x = x * fRcpConj;
+		COut.y = -1.0f * (y * fRcpConj);
 		return COut;
 	}
 
@@ -188,7 +188,7 @@ namespace Tracy
 		//		 = (a1a2+b1b2)/(a2^2+b2^2) + (b1a2-a1b2)/(a2^2+b2^2)i
 		const auto A1 = _c1.x; const auto B1 = _c2.y;
 		const auto A2 = _c2.x; const auto B2 = _c2.y;
-		const float fRcpDenom = 1.0f / (A2 * A2 + B2 * B2);
+		const auto fRcpDenom = 1.0f / (A2 * A2 + B2 * B2);
 		_cOut.x = (A1*A2 + B1*B2) * fRcpDenom;
 		_cOut.y = (B1*A2 - A1*B2) * fRcpDenom;
 	}
