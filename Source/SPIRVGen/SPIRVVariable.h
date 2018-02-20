@@ -922,11 +922,6 @@ namespace Tracy
 		var_t<float, Assemble, spv::StorageClassOutput> kPointSize;
 		var_t<float, Assemble, spv::StorageClassOutput> kClipDistance;
 		var_t<float, Assemble, spv::StorageClassOutput> kCullDistance;
-
-		//var_builtin_t<spv::BuiltInPosition, float4_t, Assemble, spv::StorageClassOutput> kPostion;
-		//var_builtin_t<spv::BuiltInPointSize, float, Assemble, spv::StorageClassOutput> kPointSize;
-		//var_builtin_t<spv::BuiltInClipDistance, float, Assemble, spv::StorageClassOutput> kClipDistance;
-		//var_builtin_t<spv::BuiltInCullDistance, float, Assemble, spv::StorageClassOutput> kCullDistance;
 	};
 
 	template <bool Assemble = true>

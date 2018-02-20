@@ -940,10 +940,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 		if (Att.kType == kAttachmentType_Color || Att.kSource == kAttachmentSourceType_Backbuffer)
 		{
 			vk::PipelineColorBlendAttachmentState& State = AttStates.emplace_back();
-			State.blendEnable = vkBool(Att.bBlendEnabled);
-
-			// workaround for now
-			State.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+			State = GetAttachmentBlendState(Att.BlendState);
 			
 			uHash << State;
 		}

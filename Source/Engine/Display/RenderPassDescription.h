@@ -127,8 +127,7 @@ namespace Tracy
 			uint32_t uClearStencil = 0u;
 
 			// blend ops
-			bool bBlendEnabled = false;
-
+			BlendStateDesc BlendState;
 
 			// Initial format
 		};
