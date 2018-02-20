@@ -918,15 +918,15 @@ namespace Tracy
 		SPVStruct
 		SPVBuiltIn
 
-		//var_t<float4_t, Assemble, spv::StorageClassOutput> kPostion;
-		//var_t<float, Assemble, spv::StorageClassOutput> kPointSize;
-		//var_t<float, Assemble, spv::StorageClassOutput> kClipDistance;
-		//var_t<float, Assemble, spv::StorageClassOutput> kCullDistance;
+		var_t<float4_t, Assemble, spv::StorageClassOutput> kPostion;
+		var_t<float, Assemble, spv::StorageClassOutput> kPointSize;
+		var_t<float, Assemble, spv::StorageClassOutput> kClipDistance;
+		var_t<float, Assemble, spv::StorageClassOutput> kCullDistance;
 
-		var_builtin_t<spv::BuiltInPosition, float4_t, Assemble, spv::StorageClassOutput> kPostion;
-		var_builtin_t<spv::BuiltInPointSize, float, Assemble, spv::StorageClassOutput> kPointSize;
-		var_builtin_t<spv::BuiltInClipDistance, float, Assemble, spv::StorageClassOutput> kClipDistance;
-		var_builtin_t<spv::BuiltInCullDistance, float, Assemble, spv::StorageClassOutput> kCullDistance;
+		//var_builtin_t<spv::BuiltInPosition, float4_t, Assemble, spv::StorageClassOutput> kPostion;
+		//var_builtin_t<spv::BuiltInPointSize, float, Assemble, spv::StorageClassOutput> kPointSize;
+		//var_builtin_t<spv::BuiltInClipDistance, float, Assemble, spv::StorageClassOutput> kClipDistance;
+		//var_builtin_t<spv::BuiltInCullDistance, float, Assemble, spv::StorageClassOutput> kCullDistance;
 	};
 
 	template <bool Assemble = true>
@@ -942,10 +942,10 @@ namespace Tracy
 				Value.kClipDistance.bBuiltIn = true;
 				Value.kCullDistance.bBuiltIn = true;
 
-				//GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition, kDecorationType_Member).MakeOperation(uVarId, Value.kPostion.uMemberIndex));
-				//GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize, kDecorationType_Member).MakeOperation(uVarId, Value.kPointSize.uMemberIndex));
-				//GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance, kDecorationType_Member).MakeOperation(uVarId, Value.kClipDistance.uMemberIndex));
-				//GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance, kDecorationType_Member).MakeOperation(uVarId, Value.kCullDistance.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition).MakeOperation(uTypeId, Value.kPostion.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize).MakeOperation(uTypeId, Value.kPointSize.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance).MakeOperation(uTypeId, Value.kClipDistance.uMemberIndex));
+				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance).MakeOperation(uTypeId, Value.kCullDistance.uMemberIndex));
 			}
 		}
 	};
@@ -1175,7 +1175,7 @@ namespace Tracy
 				if constexpr(is_builtin<T> == false)
 				{
 					// Create member offset decoration
-					SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, kDecorationType_Member, pMember->AccessChain.back());
+					SPIRVDecoration MemberDecl(spv::DecorationOffset, pMember->uMemberOffset, pMember->AccessChain.back());
 					GlobalAssembler.AddOperation(MemberDecl.MakeOperation(uTypeId));
 				}
 			}

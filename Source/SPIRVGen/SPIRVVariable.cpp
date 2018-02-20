@@ -20,7 +20,7 @@ void var_decoration<true>::MaterializeDecorations() const
 	// instantiate variable decorations
 	for (const SPIRVDecoration& Decoration : Decorations)
 	{
-		GlobalAssembler.AddOperation(Decoration.MakeOperation(uVarId, uMemberIndex));
+		GlobalAssembler.AddOperation(Decoration.MakeOperation(uMemberIndex == HUNDEFINED ? uVarId : uBaseTypeId, uMemberIndex));
 	}
 	Decorations.clear();
 
