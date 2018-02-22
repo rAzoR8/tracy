@@ -375,37 +375,51 @@ namespace Tracy
 			}
 			else if (uSpecConstId == HUNDEFINED32)
 			{
-				// vector 1 (this) + vector 2
-				// xyzw xy
-				// 0123 45
-				// vector1.xz = vector2.xy
-				// 4153
-
 				constexpr uint32_t N = Dimmension<T>;
-				const std::array<uint32_t, 4> Indices = {v0, v1, v2, v3};
-				std::vector<uint32_t> Target(N);
-		
-				uint32_t n = N;
-				for (uint32_t i = 0; i < N; ++i)
-				{
-					const uint32_t& j = Indices[i];
-					Target[i] = i;// copy from vector 1
-					if (j < Dim)
-					{
-						Target[j] = n++; // take from concated vector 2
-					}
-				}
-				//HASSERT(n == Dim+N, "Index missmatch");
-
 				Load();
 				_Var.Load();
 
-				SPIRVOperation OpVectorShuffle(spv::OpVectorShuffle, uTypeId);
-				OpVectorShuffle.AddIntermediate(uResultId); // vector 1
-				OpVectorShuffle.AddIntermediate(_Var.uResultId); // vector 2
-				OpVectorShuffle.AddLiterals(Target);
-				
-				uResultId = GlobalAssembler.AddOperation(OpVectorShuffle);
+				if constexpr(Dim == 1u)
+				{
+					SPIRVOperation OpCompositeInsert(spv::OpCompositeInsert, uTypeId);
+					OpCompositeInsert.AddIntermediate(_Var.uResultId); // part to insert
+					OpCompositeInsert.AddIntermediate(uResultId); // compsite object
+					const uint32_t uDest = hlx::min(v0, v1, v2, v3);
+					HASSERT(uDest < N, "Invalid destination index");
+					OpCompositeInsert.AddLiteral(uDest);
+
+					uResultId = GlobalAssembler.AddOperation(OpCompositeInsert);
+				}
+				else
+				{
+					// vector 1 (this) + vector 2
+					// xyzw xy
+					// 0123 45
+					// vector1.xz = vector2.xy
+					// 4153
+
+					const std::array<uint32_t, 4> Indices = { v0, v1, v2, v3 };
+					std::vector<uint32_t> Target(N);
+
+					uint32_t n = N;
+					for (uint32_t i = 0; i < N; ++i)
+					{
+						const uint32_t& j = Indices[i];
+						Target[i] = i;// copy from vector 1
+						if (j < Dim)
+						{
+							Target[j] = n++; // take from concated vector 2
+						}
+					}
+					//HASSERT(n == Dim+N, "Index missmatch");
+
+					SPIRVOperation OpVectorShuffle(spv::OpVectorShuffle, uTypeId);
+					OpVectorShuffle.AddIntermediate(uResultId); // vector 1
+					OpVectorShuffle.AddIntermediate(_Var.uResultId); // vector 2
+					OpVectorShuffle.AddLiterals(Target);
+
+					uResultId = GlobalAssembler.AddOperation(OpVectorShuffle);
+				}
 
 				Store();
 			}

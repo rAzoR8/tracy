@@ -23,8 +23,8 @@ namespace Tracy
 			//f32 y = 0.f;
 
 			//complex c(x0, y0);
-			//complex z(0.f, 0.f);
-			//z *= z;
+			complex z(0.f, 0.f);
+			z *= z;
 
 			//f32 i = 0;
 			//const f32 max = 100;
@@ -45,7 +45,7 @@ namespace Tracy
 
 			//OutputColor = float4(0.f, 0.f, i / max, 0.f);
 
-			OutputColor.xy = kFragCoord.xy;
+			OutputColor.xy = z;//kFragCoord.xy;
 		};
 	private:
 	};
