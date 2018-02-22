@@ -8,7 +8,7 @@ namespace Tracy
 	class ScreenSpaceTriangle : public VertexProgram
 	{
 	public:
-		ScreenSpaceTriangle() {};
+		ScreenSpaceTriangle() : VertexProgram("ScreenSpaceTriangle"){};
 		~ScreenSpaceTriangle() {};
 
 		//https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/

@@ -64,12 +64,12 @@ uint32_t SPIRVAssembler::GetExtensionId(const std::string& _sExt)
 }
 //---------------------------------------------------------------------------------------------------
 
-void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::string& _sEntryPoint, const std::vector<std::string>& _Extensions)
+void SPIRVAssembler::Init(const std::unique_ptr<SPIRVProgram<true>>& _pProgram)
 {
-	m_kMode = _kMode;
-	m_kModel = _kModel;
-	m_Extensions = _Extensions;
-	m_sEntryPoint = _sEntryPoint;
+	m_kMode = _pProgram->GetExecutionMode();
+	m_kModel = _pProgram->GetExecutionModel();
+	m_Extensions = _pProgram->GetExtensions();
+	m_sEntryPoint = _pProgram->GetEntryPoint();
 
 	m_uResultId = 1u;
 	m_pOpEntryPoint = nullptr;
@@ -87,7 +87,7 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	// OpExtension (unused)
 
 	// OpExtInstImport
-	for (const std::string& sExt : _Extensions)
+	for (const std::string& sExt : m_Extensions)
 	{
 		uint32_t uId = AddOperation(SPIRVOperation(spv::OpExtInstImport, MakeLiteralString(sExt)));
 		AddPreambleId(uId);
@@ -99,9 +99,9 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 
 	// OpEntryPoint
 	// Op1: Execution model
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(_kModel))), &m_pOpEntryPoint));
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpEntryPoint, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(m_kModel))), &m_pOpEntryPoint));
 
-	if (_kMode < spv::ExecutionModeMax)
+	if (m_kMode < spv::ExecutionModeMax)
 	{
 		AddPreambleId(AddOperation(SPIRVOperation(spv::OpExecutionMode), &m_pOpExeutionMode));
 	}
@@ -120,10 +120,10 @@ void SPIRVAssembler::Init(const spv::ExecutionModel _kModel, const spv::Executio
 	m_uFunctionPreambleIndex = static_cast<uint32_t>(m_PreambleOpIds.size());
 	AddPreambleId(uFuncId);
 
-	if (_kMode < spv::ExecutionModeMax)
+	if (m_kMode < spv::ExecutionModeMax)
 	{
 		m_pOpExeutionMode->AddIntermediate(uFuncId);
-		m_pOpExeutionMode->AddLiteral(static_cast<uint32_t>(_kMode));
+		m_pOpExeutionMode->AddLiteral(static_cast<uint32_t>(m_kMode));
 	}
 
 	// Op2: entry point id must be the result id of an OpFunction instruction

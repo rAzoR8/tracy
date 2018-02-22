@@ -8,7 +8,7 @@ namespace Tracy
 	class Mandelbrot : public FragmentProgram
 	{
 	public:
-		Mandelbrot() {};
+		Mandelbrot() : FragmentProgram("Mandelbrot"){};
 		~Mandelbrot() {};
 
 		//CBuffer<B> BufferBlock;
@@ -22,9 +22,9 @@ namespace Tracy
 			//f32 x = 0.f;
 			//f32 y = 0.f;
 
-			////complex c(x0, y0);
-			////complex z(0.f, 0.f);
-			//////z *= z;
+			//complex c(x0, y0);
+			//complex z(0.f, 0.f);
+			//z *= z;
 
 			//f32 i = 0;
 			//const f32 max = 100;

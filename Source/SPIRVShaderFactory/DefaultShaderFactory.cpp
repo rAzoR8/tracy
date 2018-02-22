@@ -58,11 +58,12 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 		break;
 	}
 
-	std::string sName = _ShaderIdentifier.kType == kShaderType_Vertex ? "vert" : "frag";
-
+#ifdef _DEBUG
+	std::string sName = Shader.GetEntryPoint() + "_" + (_ShaderIdentifier.kType == kShaderType_Vertex ? "vert" : "frag");
 	Shader.Save(sName+".spv");
 	//system("spirv-dis test.spv");
 	//system("spirv-val test.spv");
+#endif
 
 	return Shader;
 }

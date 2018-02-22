@@ -134,8 +134,12 @@ namespace Tracy
 		// TODO: array types
 
 #pragma endregion
-		SPIRVProgram(const spv::ExecutionModel _kExecutionModel = spv::ExecutionModelFragment,
-			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft);
+		SPIRVProgram(
+			const spv::ExecutionModel _kExecutionModel = spv::ExecutionModelFragment,
+			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+			const std::string& _sEntryPoint = "main",
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 });
+
 		virtual ~SPIRVProgram();
 
 		template <class TProg, class... Ts>
@@ -143,27 +147,55 @@ namespace Tracy
 
 		inline const spv::ExecutionModel GetExecutionModel() const { return m_kExecutionModel; }
 		inline const spv::ExecutionMode GetExecutionMode() const { return m_kExecutionMode; }
+		inline const std::string& GetEntryPoint() const { return m_sEntryPoint; }
+		inline const std::vector<std::string>& GetExtensions() const { return m_Extensions; }
 
 	protected:
 		const spv::ExecutionModel m_kExecutionModel;
 		const spv::ExecutionMode m_kExecutionMode;
+		const std::string m_sEntryPoint;
+		const std::vector<std::string> m_Extensions;
 
 		template <class CondFunc, class IncFunc, class LoopBody>
 		void ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
 
 		template <class CondFunc, class LoopBody>
-		void WhileImpl(const CondFunc& _CondFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
+		void WhileImpl(const CondFunc& _CondFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);		
+	};
 
+	//---------------------------------------------------------------------------------------------------
+	// Predefined stage programs
+	class VertexProgram : public SPIRVProgram<true>
+	{
+	public:
+		VertexProgram(const std::string& _sEntryPoint = "main",	const std::vector<std::string>& _Extensions = { ExtGLSL450 })
+			: SPIRVProgram<true>(spv::ExecutionModelVertex, spv::ExecutionModeMax, _sEntryPoint, _Extensions) {}
+		virtual ~VertexProgram() {}
+	};
+
+	class FragmentProgram : public SPIRVProgram<true>
+	{
+	public:
+		FragmentProgram(
+			const std::string& _sEntryPoint = "main",
+			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 })
+			: SPIRVProgram<true>(spv::ExecutionModelFragment, _kMode, _sEntryPoint, _Extensions) {}
+		virtual ~FragmentProgram() {}
+	};
+
+	//---------------------------------------------------------------------------------------------------
+	// helper macros
 #ifndef While
 #define While(_cond) WhileImpl([=](){return _cond;}, [=]()
 #endif // !While
-		
+
 #ifndef For
 #define For(_var, _cond, _inc) _var; ForImpl([=](){return _cond;}, [=](){_inc;}, [=]()
 #endif // !While
 
 #pragma region if_else
-		// renamed If and Else functions so that the macros are not part of the name
+	// renamed If and Else functions so that the macros are not part of the name
 #ifndef If
 #define If(_cond) IfNode((_cond), [=]()
 #endif // !If
@@ -188,30 +220,22 @@ namespace Tracy
 #define ELSE }).ElseNode([=]() {
 #endif // !Else
 #pragma endregion
-		
-	};
-
-	class VertexProgram : public SPIRVProgram<true>
-	{
-	public:
-		VertexProgram() : SPIRVProgram<true>(spv::ExecutionModelVertex, spv::ExecutionModeMax) {}
-		virtual ~VertexProgram() {}
-	};
-
-	class FragmentProgram : public SPIRVProgram<true>
-	{
-	public:
-		FragmentProgram(const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft) : SPIRVProgram<true>(spv::ExecutionModelFragment, _kMode) {}
-		virtual ~FragmentProgram() {}
-	};
 
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>
-	SPIRVProgram<Assemble>::SPIRVProgram(const spv::ExecutionModel _kExecutionModel, const spv::ExecutionMode _kExecutionMode) :
-		m_kExecutionModel(_kExecutionModel), m_kExecutionMode(_kExecutionMode)
+	SPIRVProgram<Assemble>::SPIRVProgram(
+		const spv::ExecutionModel _kExecutionModel,
+		const spv::ExecutionMode _kExecutionMode,
+		const std::string& _sEntryPoint,
+		const std::vector<std::string>& _Extensions) :
+		m_kExecutionModel(_kExecutionModel),
+		m_kExecutionMode(_kExecutionMode),
+		m_sEntryPoint(_sEntryPoint),
+		m_Extensions(_Extensions)
 	{
 	}
 
+	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>
 	SPIRVProgram<Assemble>::~SPIRVProgram()
 	{

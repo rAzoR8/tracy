@@ -39,10 +39,7 @@ namespace Tracy
 		// todo: check if SPIRVProgam<true> is base of TProg with enable if
 		// also check if TProg has a function operator / is callable
 		template <class TProg, class... Ts>
-		void InitializeProgram(
-			const std::string& _sEntryPoint = "main",
-			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
-			Ts&& ..._args);
+		void InitializeProgram(Ts&& ..._args);
 
 		template <class TProg, class... Ts>
 		void RecordInstructions(Ts&& ..._args);
@@ -51,11 +48,7 @@ namespace Tracy
 
 		// calls InitializeProgram with Ts args, RecordInstructions without args and Assemble
 		template <class TProg, class... Ts>
-		SPIRVModule AssembleSimple(
-			const bool _bUseDefaults = true,
-			const std::string& _sEntryPoint = "main",
-			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
-			Ts&& ..._args);
+		SPIRVModule AssembleSimple(const bool _bUseDefaults = true, Ts&& ..._args);
 
 		uint32_t GetExtensionId(const std::string& _sExt = ExtGLSL450);
 
@@ -84,7 +77,7 @@ namespace Tracy
 
 	private:
 		// TODO: add support for compute mode settings (LocalSizeId etc)
-		void Init(const spv::ExecutionModel _kModel, const spv::ExecutionMode _kMode, const std::string& _sEntryPoint, const std::vector<std::string>& _Extensions);
+		void Init(const std::unique_ptr<SPIRVProgram<true>>& _pProgram);
 
 		void Resolve();
 
@@ -239,10 +232,7 @@ namespace Tracy
 #endif
 
 	template<class TProg, class ...Ts>
-	inline void SPIRVAssembler::InitializeProgram(
-		const std::string& _sEntryPoint,
-		const std::vector<std::string>& _Extensions,
-		Ts && ..._args)
+	inline void SPIRVAssembler::InitializeProgram(Ts&& ..._args)
 	{
 		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;
 		constexpr bool bExecute = std::is_base_of_v<SPIRVProgram<false>, TProg>;
@@ -251,7 +241,7 @@ namespace Tracy
 		{
 			m_Mutex.lock();
 			m_pAssembleProgram = std::make_unique<TProg>(std::forward<Ts>(_args)...);
-			Init(m_pAssembleProgram->GetExecutionModel(), m_pAssembleProgram->GetExecutionMode(), _sEntryPoint, _Extensions);
+			Init(m_pAssembleProgram);
 		}
 		else if constexpr(bExecute)
 		{
@@ -277,18 +267,14 @@ namespace Tracy
 	}
 
 	template<class TProg, class ...Ts>
-	inline SPIRVModule SPIRVAssembler::AssembleSimple(
-		const bool _bUseDefaults,
-		const std::string& _sEntryPoint,
-		const std::vector<std::string>& _Extensions,
-		Ts&& ..._args)
+	inline SPIRVModule SPIRVAssembler::AssembleSimple(const bool _bUseDefaults,	Ts&& ..._args)
 	{
 		if (_bUseDefaults)
 		{
 			SetDefaults();
 		}
 
-		InitializeProgram<TProg>(_sEntryPoint, _Extensions, std::forward<Ts>(_args)...);
+		InitializeProgram<TProg>(std::forward<Ts>(_args)...);
 		RecordInstructions<TProg>();
 
 		constexpr bool bAssemble = std::is_base_of_v<SPIRVProgram<true>, TProg>;

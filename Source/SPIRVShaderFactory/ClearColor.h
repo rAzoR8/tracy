@@ -8,7 +8,7 @@ namespace Tracy
 	class ClearColor: public FragmentProgram
 	{
 	public:
-		ClearColor() {};
+		ClearColor() : FragmentProgram("ClearColor") {};
 		~ClearColor() {};
 
 		//CBuffer<B> BufferBlock;
