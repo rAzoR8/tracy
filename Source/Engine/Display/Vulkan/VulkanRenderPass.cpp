@@ -1157,10 +1157,10 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 		Info.pSetLayouts = Layouts.data();
 		Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
 
-		if (LogVKErrorBool(m_Device.createPipelineLayout(&Info, nullptr, &m_ActivePipelineLayout)) == false)
-		{
+		if (LogVKErrorFailed(m_Device.createPipelineLayout(&Info, nullptr, &m_ActivePipelineLayout)))
 			return false;
-		}
+
+		m_PipelineLayouts.insert({ uHash, m_ActivePipelineLayout });
 	}
 
 	_OutPipeline = m_ActivePipelineLayout;

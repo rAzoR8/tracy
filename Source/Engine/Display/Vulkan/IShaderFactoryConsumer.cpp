@@ -16,6 +16,7 @@ IShaderFactoryConsumer::IShaderFactoryConsumer(const std::wstring& _sLibName, co
 //---------------------------------------------------------------------------------------------------
 IShaderFactoryConsumer::~IShaderFactoryConsumer()
 {
+	UninitializeFactory();
 }
 //---------------------------------------------------------------------------------------------------
 
@@ -29,10 +30,20 @@ void IShaderFactoryConsumer::OnPluginReloaded(IShaderFactory* _pFactory)
 //---------------------------------------------------------------------------------------------------
 void IShaderFactoryConsumer::OnPluginUnloaded()
 {
+	UninitializeFactory();
+	OnFactoryUnloaded();
+}
+//---------------------------------------------------------------------------------------------------
+
+void IShaderFactoryConsumer::UninitializeFactory()
+{
+	for (auto& kv : m_ShaderModules)
+	{
+		VKDevice().destroyShaderModule(kv.second.StageCreateInfo.module);
+	}
+
 	m_ActiveShaders.fill(nullptr);
 	m_ShaderModules.clear();
-
-	OnFactoryUnloaded();
 }
 //---------------------------------------------------------------------------------------------------
 bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, const SpecConstFactory* _pSpecConstFactory, const void* _pUserData, const size_t _uSize)

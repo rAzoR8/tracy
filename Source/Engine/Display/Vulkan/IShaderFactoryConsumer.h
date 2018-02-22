@@ -41,6 +41,7 @@ namespace Tracy
 		// reloaded
 		void OnPluginReloaded(IShaderFactory* _pFactory) override;
 		void OnPluginUnloaded() override;
+		void UninitializeFactory();
 
 		virtual void OnFactoryLoaded() = 0;
 		virtual void OnFactoryUnloaded() = 0;
