@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{AF153E59-0346-49E1-AC4F-2E2B6518261F}</ProjectGuid>
+    <RootNamespace>SPIRVOpt</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\spirv-tools\source;$(VULKAN_SDK)\spirv-tools\external\spirv-headers\include;$(ProjectDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\spirv-tools\source;$(VULKAN_SDK)\spirv-tools\external\spirv-headers\include;$(ProjectDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\aggressive_dead_code_elim_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\basic_block.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\block_merge_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\build_module.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ccp_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg_cleanup_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\common_uniform_elim_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\compact_ids_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\composite.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\constants.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_branch_elim_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_insert_elim_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_variable_elimination.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\decoration_manager.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\def_use_manager.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dominator_analysis.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dominator_tree.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\eliminate_dead_constant_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\eliminate_dead_functions_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\feature_manager.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\flatten_decoration_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\fold.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\folding_rules.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\fold_spec_constant_op_and_composite_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\freeze_spec_constant_value_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\function.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\if_conversion.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_exhaustive_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_opaque_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\insert_extract_elim.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\instruction.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\instruction_list.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_context.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_loader.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_access_chain_convert_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_redundancy_elimination.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_single_block_elim_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_single_store_elim_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_ssa_elim_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\loop_descriptor.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\loop_utils.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\mem_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\merge_return_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\module.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\optimizer.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\pass_manager.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\private_to_local_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\propagator.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\redundancy_elimination.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\remove_duplicates_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\replace_invalid_opc.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\scalar_replacement_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\set_spec_constant_default_value_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\strength_reduction_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\strip_debug_info_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\types.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\type_manager.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\unify_const_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\value_number_table.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\workaround1209.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

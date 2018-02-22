@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hlx", "hlx\hlx.vcxproj", "{FC75675A-89D1-422B-A8CB-B26FF5ECE37E}"
 EndProject
@@ -17,6 +17,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRVShaderFactory", "SPIRVShaderFactory\SPIRVShaderFactory.vcxproj", "{70859C6F-CBF5-4864-B5A9-77B0FE394CCA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TracyApp", "TracyApp\TracyApp.vcxproj", "{4AE509A3-FD3B-4112-99B0-1F8936693D62}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRVOpt", "SPIRVOpt\SPIRVOpt.vcxproj", "{AF153E59-0346-49E1-AC4F-2E2B6518261F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,12 +50,16 @@ Global
 		{4AE509A3-FD3B-4112-99B0-1F8936693D62}.Debug|x64.Build.0 = Debug|x64
 		{4AE509A3-FD3B-4112-99B0-1F8936693D62}.Release|x64.ActiveCfg = Release|x64
 		{4AE509A3-FD3B-4112-99B0-1F8936693D62}.Release|x64.Build.0 = Release|x64
+		{AF153E59-0346-49E1-AC4F-2E2B6518261F}.Debug|x64.ActiveCfg = Debug|x64
+		{AF153E59-0346-49E1-AC4F-2E2B6518261F}.Debug|x64.Build.0 = Debug|x64
+		{AF153E59-0346-49E1-AC4F-2E2B6518261F}.Release|x64.ActiveCfg = Release|x64
+		{AF153E59-0346-49E1-AC4F-2E2B6518261F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {97AA53BB-1317-4A1C-8070-C64496D33CDC}
 		Qt5Version = $(DefaultQtVersion)
+		SolutionGuid = {97AA53BB-1317-4A1C-8070-C64496D33CDC}
 	EndGlobalSection
 EndGlobal

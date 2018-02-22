@@ -11,3 +11,4 @@ Source/SPIRVGenTest/x64/
 /Source/Engine/x64/
 Source/SPIRVShaderFactory/x64/
 *.orig
+Source/SPIRVOpt/x64/
