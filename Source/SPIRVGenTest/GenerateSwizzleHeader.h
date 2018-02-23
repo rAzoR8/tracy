@@ -111,7 +111,7 @@ void GenerateSwizzleHeader()
 						for (uint32_t l = 0; l < 2; ++l)
 						{
 							out << "__declspec(property(get = " << sFuncName << ", put = " << sFuncName <<
-								")) " << sExtractType << " " << lows[l][x] << lows[l][y] << lows[l][z] << ";" << std::endl;
+								")) " << sExtractType << " " << lows[l][x] << lows[l][y] << lows[l][z] << lows[l][w] << ";" << std::endl;
 						}
 					}
 				}
