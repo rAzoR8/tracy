@@ -66,7 +66,7 @@ namespace Tracy
 #pragma endregion
 
 		VulkanRenderPass(VulkanRenderGraph& _Graph, VulkanRenderPass* _pParent, const RenderPassDesc& _Desc, const uint32_t _uPassIndex, const THandle _hDevice = 0);
-		~VulkanRenderPass();
+		virtual ~VulkanRenderPass();
 
 		bool Initialize();
 		void Uninitialize();
@@ -190,6 +190,8 @@ namespace Tracy
 		void DigestImages(const ImageSource& Src);
 		void DigestBuffer(const BufferSource& Src);
 
+		void PipelineBarrier();
+
 	private:
 		VulkanRenderGraph& m_RenderGraph;
 		VulkanRenderPass* m_pParent = nullptr;
@@ -205,6 +207,10 @@ namespace Tracy
 
 		std::vector<VulkanRenderPass> m_SubPasses;
 		std::vector<Dependence> m_Dependencies;
+
+		std::vector<vk::MemoryBarrier> m_MemoryBarriers;
+		std::vector<vk::BufferMemoryBarrier> m_BufferBarriers;
+		std::vector<vk::ImageMemoryBarrier> m_ImageBarriers;
 
 		vk::RenderPassBeginInfo m_BeginInfo;
 

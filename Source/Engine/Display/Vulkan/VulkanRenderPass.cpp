@@ -129,7 +129,7 @@ bool VulkanRenderPass::CreateRenderPass()
 		AttDesc.stencilLoadOp = vk::AttachmentLoadOp::eDontCare; // not supported atm
 		AttDesc.stencilStoreOp = vk::AttachmentStoreOp::eDontCare; // not supported atm
 		AttDesc.initialLayout = vk::ImageLayout::eUndefined; // VKTexture(Attachment.Texture).kLayout
-		//AttDesc.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
+		AttDesc.flags = vk::AttachmentDescriptionFlagBits::eMayAlias;
 
 		if (Desc.kSource == kAttachmentSourceType_Backbuffer)
 		{
@@ -180,15 +180,18 @@ bool VulkanRenderPass::CreateRenderPass()
 	PassInfo.attachmentCount = static_cast<uint32_t>(AttachmentDescs.size());
 	PassInfo.pAttachments = AttachmentDescs.data();
 
+	// TODO: fill m_ImageBarriers and BufferBarriers
+
 	std::vector<vk::SubpassDependency> SubpassDependencies;
 
-	//vk::SubpassDependency& Dep = SubpassDependencies.emplace_back();
-	//Dep.srcSubpass = VK_SUBPASS_EXTERNAL;
-	//Dep.dstSubpass = VK_SUBPASS_EXTERNAL;
-	//Dep.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-	//Dep.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-	//Dep.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-	//Dep.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+	vk::SubpassDependency& Dep = SubpassDependencies.emplace_back();
+	Dep.srcSubpass = VK_SUBPASS_EXTERNAL;
+	Dep.dstSubpass = 0;
+	Dep.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+	Dep.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	Dep.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+	Dep.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+	Dep.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 
 	for (VulkanRenderPass& SubPass : m_SubPasses)
 	{
@@ -476,6 +479,19 @@ void VulkanRenderPass::Uninitialize()
 
 //---------------------------------------------------------------------------------------------------
 
+void VulkanRenderPass::PipelineBarrier()
+{
+	m_hCommandBuffer.pipelineBarrier(
+		vk::PipelineStageFlagBits::eHost, //source stage
+		vk::PipelineStageFlagBits::eAllGraphics, //destination stage (end of this pass) todo: determine from active shaders
+		vk::DependencyFlagBits::eByRegion,
+		m_MemoryBarriers,
+		m_BufferBarriers,
+		m_ImageBarriers);
+}
+
+//---------------------------------------------------------------------------------------------------
+
 bool VulkanRenderPass::Record(const Camera& _Camera)
 {
 	const uint64_t uPassID = 1ull << (m_pParent != nullptr ? m_pParent->m_uPassIndex : m_uPassIndex);
@@ -503,10 +519,12 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		m_hCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
 
-		ResetMappings();
+		if(false)
+		{
+			PipelineBarrier();
+		}
 
-		//m_hCommandBuffer.setViewport(0, m_ViewportState.Viewports);
-		//m_hCommandBuffer.setScissor(0, m_ViewportState.Scissors);
+		ResetMappings();
 
 		if (m_ActivePipelineDesc.kFillMode == kPolygonFillMode_Line)
 		{
@@ -718,6 +736,11 @@ bool VulkanRenderPass::BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffe
 	if (LogVKErrorBool(m_hCommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
 		return false;
 	
+	if (false)
+	{
+		PipelineBarrier();	
+	}
+
 	return true;
 }
 //---------------------------------------------------------------------------------------------------
@@ -1270,6 +1293,7 @@ void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 		}
 	}
 }
+
 //---------------------------------------------------------------------------------------------------
 
 bool VulkanRenderPass::LoadPipelineCache(const std::wstring& _sPath)
