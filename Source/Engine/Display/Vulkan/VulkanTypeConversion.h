@@ -533,7 +533,7 @@ namespace Tracy
 
 	inline const vk::ColorComponentFlags GetColorComponentFlag(const TColorChannelFlag& _kFlag)
 	{
-		return vk::ColorComponentFlags(_kFlag);
+		return vk::ColorComponentFlags(static_cast<vk::ColorComponentFlagBits>(_kFlag.GetBase()));
 	}
 
 	inline const vk::BlendOp GetBlendOperation(const EBlendOp _kOp)
