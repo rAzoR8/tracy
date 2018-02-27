@@ -186,9 +186,11 @@ bool VulkanDevice::Initialize()
 			// Create an item in the queue map, used for later to ease submit
 			auto queuePair = m_Queues.emplace(QueueFlags[uQueueFlagIndex], Queue());
 			
+			const QueueOffset& qOffset = QueueOffsets[uQueueFlagIndex];
+
 			// Assign the queue
-			queuePair.first->second.uFamilyIndex = QueueOffsets[uQueueFlagIndex].uOffset;
-			queuePair.first->second.Handle = m_Device.getQueue(QueueOffsets[uQueueFlagIndex].uFamilyIndex, QueueOffsets[uQueueFlagIndex].uOffset);
+			queuePair.first->second.uFamilyIndex = qOffset.uFamilyIndex;
+			queuePair.first->second.Handle = m_Device.getQueue(qOffset.uFamilyIndex, qOffset.uOffset);
 
 			// create commandbuffer pools
 			CommandPoolEntry& Pool = m_CommandPools[uQueueFlagIndex];
@@ -226,7 +228,7 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 }
 //---------------------------------------------------------------------------------------------------
 
-AsyncTask<vk::Result> Tracy::VulkanDevice::WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount, const bool _bRestFence, const bool _bWaitAll, const uint64_t _uTimeOutNanoSec)
+AsyncTask<vk::Result> VulkanDevice::WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount, const bool _bRestFence, const bool _bWaitAll, const uint64_t _uTimeOutNanoSec)
 {
 	return make_task([&]()
 	{ 
@@ -239,6 +241,8 @@ AsyncTask<vk::Result> Tracy::VulkanDevice::WaitForFences(const vk::Fence* _pFenc
 		return res;
 	});
 }
+//---------------------------------------------------------------------------------------------------
+
 uint64_t VulkanDevice::GetTextureIdentifier()
 {
 	return m_uTextureIdentifier.fetch_add(1u);
