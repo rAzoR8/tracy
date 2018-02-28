@@ -209,6 +209,9 @@
     <ClInclude Include="Display\Vulkan\VulkanMeshLoader.h">
       <Filter>Display\Vulkan\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanSemaphore.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -300,6 +303,9 @@
     </ClCompile>
     <ClCompile Include="Display\RenderObjectDescription.cpp">
       <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanSemaphore.cpp">
+      <Filter>Display\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
