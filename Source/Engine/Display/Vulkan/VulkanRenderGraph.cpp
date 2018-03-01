@@ -1,5 +1,6 @@
 #include "VulkanRenderGraph.h"
 #include "VulkanInstance.h"
+#include "VulkanSemaphore.h"
 #include "Scene\Camera.h"
 #include <algorithm>
 #include <execution>
@@ -90,9 +91,9 @@ bool VulkanRenderGraph::Initialize()
 	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)))
 		return false;
 
-	vk::SemaphoreCreateInfo SemaphoreInfo{};
-	if (LogVKErrorFailed(m_Device.GetDevice().createSemaphore(&SemaphoreInfo, nullptr, &m_hImageAcquiredSemaphore)))
-		return false;
+	//vk::SemaphoreCreateInfo SemaphoreInfo{};
+	//if (LogVKErrorFailed(m_Device.GetDevice().createSemaphore(&SemaphoreInfo, nullptr, &m_hImageAcquiredSemaphore)))
+	//	return false;
 
 	m_hSwapchain = m_Window.GetSwapchain();
 	if (m_hSwapchain.operator bool() == false)
@@ -117,11 +118,11 @@ void VulkanRenderGraph::Uninitialze()
 		m_hSubmitFence = nullptr;
 	}
 
-	if (m_hImageAcquiredSemaphore)
-	{
-		m_Device.GetDevice().destroySemaphore(m_hImageAcquiredSemaphore);
-		m_hImageAcquiredSemaphore = nullptr;
-	}
+	//if (m_hImageAcquiredSemaphore)
+	//{
+	//	m_Device.GetDevice().destroySemaphore(m_hImageAcquiredSemaphore);
+	//	m_hImageAcquiredSemaphore = nullptr;
+	//}
 
 	m_MaterialIds.clear();
 
@@ -140,8 +141,10 @@ bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 	uint32_t uImageIndex = 0u;
 	const std::vector<VulkanTexture>& Backbuffer = m_Window.GetBackuffer();
 
+	VulkanSemaphore ImageAcquiredSemaphore(m_Device.GetHandle());
+
 	// get next image
-	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, m_hImageAcquiredSemaphore, nullptr, &uImageIndex)))
+	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, ImageAcquiredSemaphore, nullptr, &uImageIndex)))
 		return false;
 
 	if (uImageIndex >= Backbuffer.size())
@@ -211,7 +214,7 @@ bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 		Info.commandBufferCount = 1u;
 		Info.pCommandBuffers = &m_hPrimaryGfxCmdBuffer;
 		Info.waitSemaphoreCount = 1u;
-		Info.pWaitSemaphores = &m_hImageAcquiredSemaphore;
+		Info.pWaitSemaphores = ImageAcquiredSemaphore.GetPtr();
 		Info.pWaitDstStageMask = &kMask;
 
 		m_hGfxQueue.submit(Info, m_hSubmitFence);

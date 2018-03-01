@@ -42,7 +42,7 @@ namespace Tracy
 		vk::Queue m_hGfxQueue = nullptr; // owned by the device
 		vk::SwapchainKHR m_hSwapchain = nullptr; // owned by the window
 		vk::Fence m_hSubmitFence = nullptr;
-		vk::Semaphore m_hImageAcquiredSemaphore = nullptr;
+		//vk::Semaphore m_hImageAcquiredSemaphore = nullptr;
 	};
 
 	template<class ...TStrings>
