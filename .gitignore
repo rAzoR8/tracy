@@ -12,3 +12,16 @@ Source/SPIRVGenTest/x64/
 Source/SPIRVShaderFactory/x64/
 *.orig
 Source/SPIRVOpt/x64/
+Source/spirvtools/.vs/
+Source/spirvtools/CMakeFiles/
+Source/spirvtools/source/opt/x64/
+Source/spirvtools/source/SPIRV-Tools.dir/
+Source/spirvtools/x64/
+Source/spirvtools/examples/
+Source/spirvtools/tools/
+Source/spirvtools/test/
+Source/spirvtools/source/opt/CMakeFiles/
+Source/spirvtools/source/link/CMakeFiles/
+Source/spirvtools/source/comp/CMakeFiles/
+Source/spirvtools/source/CMakeFiles/
+Source/spirvtools/external/CMakeFiles/

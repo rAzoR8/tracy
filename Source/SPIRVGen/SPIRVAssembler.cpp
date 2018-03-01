@@ -2,8 +2,41 @@
 #include "SPIRVProgram.h"
 #include "SPIRVVariable.h"
 #include "SPIRVBinaryDefines.h"
+#include "spirv-tools\optimizer.hpp"
 
 using namespace Tracy;
+
+//---------------------------------------------------------------------------------------------------
+
+SPIRVModule SPIRVAssembler::ExternalOptimize(const SPIRVModule& _Module, const OptimizationSettings& _Settings)
+{
+	if (_Settings.kPasses.None())
+		return _Module;
+
+	spvtools::Optimizer Optimizer(SPV_ENV_VULKAN_1_0);
+
+	if (_Settings.kPasses.CheckFlag(kOptimizationPassFlag_AllPerformance))
+	{
+		Optimizer.RegisterPerformancePasses();
+	}
+
+	if (_Settings.kPasses.CheckFlag(kOptimizationPassFlag_AllSize))
+	{
+		Optimizer.RegisterSizePasses();
+	}
+
+	std::vector<uint32_t> Optimized;
+	if (Optimizer.Run(_Module.GetCode().data(), _Module.GetCode().size(), &Optimized))
+	{		
+		return SPIRVModule(Optimized, _Module);
+	}
+	else
+	{
+		return _Module;
+	}
+}
+//---------------------------------------------------------------------------------------------------
+
 
 SPIRVAssembler::SPIRVAssembler() noexcept
 {

@@ -1,0 +1,330 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\util\bit_stream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\util\parse_number.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\util\string_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\assembly_grammar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\binary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\diagnostic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\disassemble.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\enum_string_mapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\ext_inst.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\extensions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\id_descriptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\libspirv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\name_mapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opcode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\operand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\parsed_operand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\print.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\software_version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\spirv_endian.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\spirv_stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\spirv_target_env.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\spirv_validator_options.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\table.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\text_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_adjacency.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_arithmetics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_atomics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_barriers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_bitwise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_capability.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_cfg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_composites.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_conversion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_datarules.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_decorations.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_derivatives.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_ext_inst.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_id.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_instruction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_literals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_logicals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_primitives.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\validate_type_unique.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\val\basic_block.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\val\construct.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\val\function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\val\instruction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\val\validation_state.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\include\spirv-tools\libspirv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\util\bitutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\util\bit_stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\util\hex_float.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\util\parse_number.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\util\string_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\assembly_grammar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\binary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\cfa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\diagnostic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\disassemble.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\enum_set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\enum_string_mapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\ext_inst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\extensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\id_descriptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\instruction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\latest_version_glsl_std_450_header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\latest_version_opencl_std_header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\latest_version_spirv_header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\macro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\name_mapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opcode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\operand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\parsed_operand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\print.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\spirv_constant.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\spirv_definition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\spirv_endian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\spirv_target_env.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\spirv_validator_options.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\text_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\validate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\val\decoration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\VulkanSDK\spirv-tools\source\CMakeLists.txt" />
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\extension_enum.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\opencl.std.insts.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\glsl.std.450.insts.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-shader-explicit-vertex-parameter.insts.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-shader-trinary-minmax.insts.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-gcn-shader.insts.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-shader-ballot.insts.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\debuginfo.insts.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\DebugInfo.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\core.insts-1.0.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\core.insts-1.1.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\core.insts-1.2.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\generators.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\build-version.inc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{A6D8AC7F-9AA8-31EF-BA51-A32A50A199C6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{7B0FAAB9-F672-3E25-ACAA-AE16D15BFAED}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E265450B-A140-3D4B-AC10-6D81B23BB1D7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

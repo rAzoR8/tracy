@@ -1,0 +1,423 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{A5C48754-5D51-3ACD-BABA-810800264694}</ProjectGUID>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>SPIRV-Tools-opt</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">SPIRV-Tools-opt</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SPIRV-Tools-opt</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">SPIRV-Tools-opt</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">SPIRV-Tools-opt</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\spirv-tools\source;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)spirvtools;$(VULKAN_SDK)\spirv-tools\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4800</DisableSpecificWarnings>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions)  /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\spirv-tools\source;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)spirvtools;$(VULKAN_SDK)\spirv-tools\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4800</DisableSpecificWarnings>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions)  /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\spirv-tools\source;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)spirvtools;$(VULKAN_SDK)\spirv-tools\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>MinSizeRel/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4800</DisableSpecificWarnings>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions)  /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\spirv-tools\source;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)spirvtools;$(VULKAN_SDK)\spirv-tools\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>RelWithDebInfo/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4800</DisableSpecificWarnings>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;C:\VulkanSDK\spirv-tools\include;C:\VulkanSDK\spirv-tools\external\SPIRV-Headers\include;C:\Projects\Tracy\Source\spirvtools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions)  /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/opt/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Tracy\Source\spirvtools\source\opt\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/opt/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Tracy\Source\spirvtools\source\opt\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/opt/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Projects\Tracy\Source\spirvtools\source\opt\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/opt/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/VulkanSDK/spirv-tools/source/opt/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Projects\Tracy\Source\spirvtools\source\opt\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\aggressive_dead_code_elim_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\basic_block.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\block_merge_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\build_module.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\ccp_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\cfg_cleanup_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\cfg.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\common_uniform_elim_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\compact_ids_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\composite.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\constants.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dead_branch_elim_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dead_insert_elim_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dead_variable_elimination.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\decoration_manager.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\def_use_manager.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_analysis.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_tree.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_constant_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_functions_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\feature_manager.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\flatten_decoration_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\fold.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\folding_rules.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\fold_spec_constant_op_and_composite_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\freeze_spec_constant_value_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\function.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\if_conversion.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\inline_exhaustive_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\inline_opaque_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\inline_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\insert_extract_elim.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\instruction.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\ir_context.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\ir_loader.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_access_chain_convert_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_redundancy_elimination.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_block_elim_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_store_elim_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_ssa_elim_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\log.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\loop_descriptor.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\loop_utils.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\mem_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\merge_return_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\module.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\null_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\passes.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\pass_manager.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\private_to_local_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\propagator.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\redundancy_elimination.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\reflect.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\remove_duplicates_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\replace_invalid_opc.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\scalar_replacement_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\set_spec_constant_default_value_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\strength_reduction_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\strip_debug_info_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\tree_iterator.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\type_manager.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\types.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\unify_const_pass.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\value_number_table.h" />
+    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\workaround1209.h" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\aggressive_dead_code_elim_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\basic_block.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\block_merge_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\build_module.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\ccp_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\cfg_cleanup_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\cfg.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\common_uniform_elim_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\compact_ids_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\composite.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\constants.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dead_branch_elim_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dead_insert_elim_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dead_variable_elimination.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\decoration_manager.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\def_use_manager.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_analysis.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_tree.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_constant_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_functions_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\feature_manager.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\flatten_decoration_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\fold.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\folding_rules.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\fold_spec_constant_op_and_composite_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\freeze_spec_constant_value_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\function.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\if_conversion.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\inline_exhaustive_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\inline_opaque_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\inline_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\insert_extract_elim.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\instruction.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\instruction_list.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\ir_context.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\ir_loader.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_access_chain_convert_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_redundancy_elimination.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_block_elim_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_store_elim_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_ssa_elim_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\loop_descriptor.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\loop_utils.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\mem_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\merge_return_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\module.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\optimizer.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\pass_manager.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\private_to_local_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\propagator.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\redundancy_elimination.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\remove_duplicates_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\replace_invalid_opc.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\scalar_replacement_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\set_spec_constant_default_value_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\strength_reduction_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\strip_debug_info_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\type_manager.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\types.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\unify_const_pass.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\value_number_table.cpp" />
+    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\workaround1209.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Projects\Tracy\Source\spirvtools\ZERO_CHECK.vcxproj">
+      <Project>{A210AC0E-3BFE-357E-A315-4A3F8C161AB0}</Project>
+      <Name>ZERO_CHECK</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Projects\Tracy\Source\spirvtools\source\SPIRV-Tools.vcxproj">
+      <Project>{77010E12-2028-34A4-BAFE-F5A8B538C87B}</Project>
+      <Name>SPIRV-Tools</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

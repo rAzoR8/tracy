@@ -21,6 +21,24 @@ SPIRVModule::SPIRVModule(const SPIRVModule& _Other) :
 {
 }
 //---------------------------------------------------------------------------------------------------
+
+SPIRVModule::SPIRVModule(const std::vector<uint32_t>& _Optimized, const SPIRVModule& _Other) :
+	m_uBounds(_Other.m_uBounds),
+	m_InstructionStream(_Optimized),
+	m_Extensions(_Other.m_Extensions),
+	m_kMode(_Other.m_kMode),
+	m_kModel(_Other.m_kModel),
+	m_sEntryPoint(_Other.m_sEntryPoint),
+	m_Variables(_Other.m_Variables)
+{
+	m_uHash = 0u;
+
+	for (const uint32_t& uWord : _Optimized)
+	{
+		m_uHash = hlx::AddHash(m_uHash, uWord);
+	}
+}
+//---------------------------------------------------------------------------------------------------
 SPIRVModule::SPIRVModule(const uint32_t _uBounds) noexcept :
 	m_uBounds(_uBounds)
 {

@@ -16,25 +16,25 @@ namespace Tracy
 
 		inline void operator()()
 		{
-			f32 x0 = NDCToRange(kFragCoord.x, f32(-2.5f), f32(1.f));
-			f32 y0 = kFragCoord.y;
+			//f32 x0 = NDCToRange(kFragCoord.x, f32(-2.5f), f32(1.f));
+			//f32 y0 = kFragCoord.y;
 
-			f32 x = 0.f;
-			f32 y = 0.f;
+			//f32 x = 0.f;
+			//f32 y = 0.f;
 
 			//complex c(x0, y0);
 			//complex z(0.f, 0.f);
 
-			f32 i = 0;
-			const f32 max = 100;
+			//f32 i = 0;
+			//const f32 max = 100;
 
-			While(x*x + y * y < 4.f && i < max)
-			{
-				f32 xtemp = x * x - y * y + x0;
-				y = 2.f * x*y + y0;
-				x = xtemp;
-				++i;
-			});
+			//While(x*x + y * y < 4.f && i < max)
+			//{
+			//	f32 xtemp = x * x - y * y + x0;
+			//	y = 2.f * x*y + y0;
+			//	x = xtemp;
+			//	++i;
+			//});
 
 			//While(z.Conjugate() < f32(4.f) && i < max)
 			//{
@@ -42,9 +42,9 @@ namespace Tracy
 			//	++i;
 			//});
 
-			OutputColor = float4(0.f, 0.f, i / max, 0.f);
+			//OutputColor = float4(0.f, 0.f, i / max, 0.f);
 
-			//OutputColor.xy = z;//kFragCoord.xy;
+			OutputColor.xy = kFragCoord.xy;
 		};
 	private:
 	};

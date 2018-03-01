@@ -6,6 +6,7 @@
 #include "SPIRVInstruction.h"
 #include "SPIRVModule.h"
 #include "Singleton.h"
+#include "Flag.h"
 #include <mutex>
 
 namespace Tracy
@@ -27,6 +28,21 @@ namespace Tracy
 	struct var_decoration;
 
 	static const std::string ExtGLSL450 = "GLSL.std.450";
+
+	enum EOptimizationPassFlag : uint32_t
+	{
+		kOptimizationPassFlag_None = 0,
+		kOptimizationPassFlag_AllPerformance = 1 << 0,
+		kOptimizationPassFlag_AllSize = 1 << 1,
+		kOptimizationPassFlag_All = UINT32_MAX
+	};
+
+	using TOptimizationPassFlags = hlx::Flag<EOptimizationPassFlag>;
+
+	struct OptimizationSettings
+	{
+		TOptimizationPassFlags kPasses;
+	};
 
 	class SPIRVAssembler : public hlx::Singleton<SPIRVAssembler>
 	{
@@ -63,6 +79,7 @@ namespace Tracy
 		void UseDefaultSetLocation(const uint32_t _uDefaultSet = 0u, const uint32_t _uDefaultInputLocation = 0u, const uint32_t _uDefaultOutputLocation = 0u) noexcept;
 		void UseDefaultSpecConstId(const uint32_t _uStartId = 0u) noexcept;
 		void UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex = 0u) noexcept;
+		void ConfigureOptimization(const OptimizationSettings& _Settings);
 
 		void ForceNextLoads(const bool _bForce = true) noexcept;
 		bool GetForceNextLoads() const noexcept;
@@ -74,6 +91,8 @@ namespace Tracy
 		const uint32_t GetCurrentOutputLocation() noexcept;
 		const uint32_t GetCurrentSpecConstId() noexcept;
 		const uint32_t GetCurrentInputAttchmentIndex() noexcept;
+
+		static SPIRVModule ExternalOptimize(const SPIRVModule& _Module, const OptimizationSettings& _Settings);
 
 	private:
 		// TODO: add support for compute mode settings (LocalSizeId etc)
@@ -103,6 +122,8 @@ namespace Tracy
 
 	private:
 		std::mutex m_Mutex;
+
+		OptimizationSettings m_OptSettings;
 
 		// remove variables, types, constants
 		bool m_bRemoveUnused = true;
@@ -173,6 +194,11 @@ namespace Tracy
 	inline void SPIRVAssembler::UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex) noexcept
 	{
 		m_uCurrentInputAttachmentIndex = _uStartIndex;
+	}
+
+	inline void SPIRVAssembler::ConfigureOptimization(const OptimizationSettings & _Settings)
+	{
+		m_OptSettings = _Settings;
 	}
 
 	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce) noexcept

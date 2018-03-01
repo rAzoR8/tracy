@@ -87,6 +87,19 @@
     <ClInclude Include="spirv-tools\source\opt\workaround1209.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="spirv-tools\source\assembly_grammar.cpp" />
+    <ClCompile Include="spirv-tools\source\binary.cpp" />
+    <ClCompile Include="spirv-tools\source\diagnostic.cpp" />
+    <ClCompile Include="spirv-tools\source\disassemble.cpp" />
+    <ClCompile Include="spirv-tools\source\enum_string_mapping.cpp" />
+    <ClCompile Include="spirv-tools\source\extensions.cpp" />
+    <ClCompile Include="spirv-tools\source\ext_inst.cpp" />
+    <ClCompile Include="spirv-tools\source\id_descriptor.cpp" />
+    <ClCompile Include="spirv-tools\source\libspirv.cpp" />
+    <ClCompile Include="spirv-tools\source\message.cpp" />
+    <ClCompile Include="spirv-tools\source\name_mapper.cpp" />
+    <ClCompile Include="spirv-tools\source\opcode.cpp" />
+    <ClCompile Include="spirv-tools\source\operand.cpp" />
     <ClCompile Include="spirv-tools\source\opt\aggressive_dead_code_elim_pass.cpp" />
     <ClCompile Include="spirv-tools\source\opt\basic_block.cpp" />
     <ClCompile Include="spirv-tools\source\opt\block_merge_pass.cpp" />
@@ -154,6 +167,38 @@
     <ClCompile Include="spirv-tools\source\opt\unify_const_pass.cpp" />
     <ClCompile Include="spirv-tools\source\opt\value_number_table.cpp" />
     <ClCompile Include="spirv-tools\source\opt\workaround1209.cpp" />
+    <ClCompile Include="spirv-tools\source\parsed_operand.cpp" />
+    <ClCompile Include="spirv-tools\source\print.cpp" />
+    <ClCompile Include="spirv-tools\source\software_version.cpp" />
+    <ClCompile Include="spirv-tools\source\spirv_endian.cpp" />
+    <ClCompile Include="spirv-tools\source\spirv_stats.cpp" />
+    <ClCompile Include="spirv-tools\source\spirv_target_env.cpp" />
+    <ClCompile Include="spirv-tools\source\spirv_validator_options.cpp" />
+    <ClCompile Include="spirv-tools\source\table.cpp" />
+    <ClCompile Include="spirv-tools\source\text.cpp" />
+    <ClCompile Include="spirv-tools\source\text_handler.cpp" />
+    <ClCompile Include="spirv-tools\source\validate.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_adjacency.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_arithmetics.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_atomics.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_barriers.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_bitwise.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_capability.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_cfg.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_composites.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_conversion.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_datarules.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_decorations.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_derivatives.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_ext_inst.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_id.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_image.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_instruction.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_layout.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_literals.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_logicals.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_primitives.cpp" />
+    <ClCompile Include="spirv-tools\source\validate_type_unique.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

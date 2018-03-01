@@ -1,0 +1,280 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{1B0285BB-40E7-3828-B7DF-EC042A9749F4}</ProjectGUID>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>spirv-tools-vimsyntax</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+    <PropertyGroup>
+      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\VulkanSDK\spirv-tools\source\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/VulkanSDK/spirv-tools/source/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/VulkanSDK/spirv-tools/source/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/VulkanSDK/spirv-tools/source/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/VulkanSDK/spirv-tools/source/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/VulkanSDK/spirv-tools -BC:/Projects/Tracy/Source/spirvtools --check-stamp-file C:/Projects/Tracy/Source/spirvtools/source/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/VulkanSDK/spirv-tools/source/CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;C:\VulkanSDK\spirv-tools\source\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spvasm.vim.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate spvasm.vim: Vim syntax file for SPIR-V assembly.</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_vim_syntax.py --spirv-core-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/spirv.core.grammar.json --exinst-debuginfo-grammar=C:/VulkanSDK/spirv-tools/source/extinst.debuginfo.grammar.json --extinst-glsl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.glsl.std.450.grammar.json --extinst-opencl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.opencl.std.100.grammar.json &gt;C:/Projects/Tracy/Source/spirvtools/spvasm.vim
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/3f0b71df6fbd715ea48d36f5726ff5ad/spvasm.vim.rule;C:\VulkanSDK\spirv-tools\utils\generate_vim_syntax.py;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\spirv.core.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.glsl.std.450.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.opencl.std.100.grammar.json;C:\VulkanSDK\spirv-tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Tracy\Source\spirvtools\spvasm.vim</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate spvasm.vim: Vim syntax file for SPIR-V assembly.</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_vim_syntax.py --spirv-core-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/spirv.core.grammar.json --exinst-debuginfo-grammar=C:/VulkanSDK/spirv-tools/source/extinst.debuginfo.grammar.json --extinst-glsl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.glsl.std.450.grammar.json --extinst-opencl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.opencl.std.100.grammar.json &gt;C:/Projects/Tracy/Source/spirvtools/spvasm.vim
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/3f0b71df6fbd715ea48d36f5726ff5ad/spvasm.vim.rule;C:\VulkanSDK\spirv-tools\utils\generate_vim_syntax.py;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\spirv.core.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.glsl.std.450.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.opencl.std.100.grammar.json;C:\VulkanSDK\spirv-tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Tracy\Source\spirvtools\spvasm.vim</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generate spvasm.vim: Vim syntax file for SPIR-V assembly.</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_vim_syntax.py --spirv-core-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/spirv.core.grammar.json --exinst-debuginfo-grammar=C:/VulkanSDK/spirv-tools/source/extinst.debuginfo.grammar.json --extinst-glsl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.glsl.std.450.grammar.json --extinst-opencl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.opencl.std.100.grammar.json &gt;C:/Projects/Tracy/Source/spirvtools/spvasm.vim
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/3f0b71df6fbd715ea48d36f5726ff5ad/spvasm.vim.rule;C:\VulkanSDK\spirv-tools\utils\generate_vim_syntax.py;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\spirv.core.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.glsl.std.450.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.opencl.std.100.grammar.json;C:\VulkanSDK\spirv-tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Projects\Tracy\Source\spirvtools\spvasm.vim</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generate spvasm.vim: Vim syntax file for SPIR-V assembly.</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_vim_syntax.py --spirv-core-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/spirv.core.grammar.json --exinst-debuginfo-grammar=C:/VulkanSDK/spirv-tools/source/extinst.debuginfo.grammar.json --extinst-glsl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.glsl.std.450.grammar.json --extinst-opencl-grammar=C:/VulkanSDK/spirv-tools/external/SPIRV-Headers/include/spirv/1.2/extinst.opencl.std.100.grammar.json &gt;C:/Projects/Tracy/Source/spirvtools/spvasm.vim
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/3f0b71df6fbd715ea48d36f5726ff5ad/spvasm.vim.rule;C:\VulkanSDK\spirv-tools\utils\generate_vim_syntax.py;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\spirv.core.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.glsl.std.450.grammar.json;C:\VulkanSDK\spirv-tools\external\spirv-headers\include\spirv\1.2\extinst.opencl.std.100.grammar.json;C:\VulkanSDK\spirv-tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Projects\Tracy\Source\spirvtools\spvasm.vim</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\f76f1ffdf3718cffd0186afd9c953033\spirv-tools-vimsyntax.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/f76f1ffdf3718cffd0186afd9c953033/spirv-tools-vimsyntax.rule;C:\Projects\Tracy\Source\spirvtools\spvasm.vim;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\spirv-tools-vimsyntax</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/f76f1ffdf3718cffd0186afd9c953033/spirv-tools-vimsyntax.rule;C:\Projects\Tracy\Source\spirvtools\spvasm.vim;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\spirv-tools-vimsyntax</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/f76f1ffdf3718cffd0186afd9c953033/spirv-tools-vimsyntax.rule;C:\Projects\Tracy\Source\spirvtools\spvasm.vim;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\spirv-tools-vimsyntax</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/Projects/Tracy/Source/spirvtools/CMakeFiles/f76f1ffdf3718cffd0186afd9c953033/spirv-tools-vimsyntax.rule;C:\Projects\Tracy\Source\spirvtools\spvasm.vim;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\spirv-tools-vimsyntax</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Projects\Tracy\Source\spirvtools\source\CMakeFiles\spirv-tools-vimsyntax" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Projects\Tracy\Source\spirvtools\ZERO_CHECK.vcxproj">
+      <Project>{A210AC0E-3BFE-357E-A315-4A3F8C161AB0}</Project>
+      <Name>ZERO_CHECK</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

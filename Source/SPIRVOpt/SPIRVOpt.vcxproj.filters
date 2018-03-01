@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="libspirv">
+      <UniqueIdentifier>{f33af7f8-787d-49ba-8637-535f25d37eef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="spirv-tools\source\opt\aggressive_dead_code_elim_pass.h">
@@ -439,6 +442,141 @@
     </ClCompile>
     <ClCompile Include="spirv-tools\source\opt\workaround1209.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\libspirv.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_type_unique.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_primitives.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_logicals.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_literals.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_layout.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_instruction.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_image.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_id.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_ext_inst.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_derivatives.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_decorations.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_datarules.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_conversion.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_composites.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_cfg.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_capability.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_bitwise.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_barriers.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_atomics.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_arithmetics.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate_adjacency.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\validate.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\text_handler.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\text.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\table.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\spirv_validator_options.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\spirv_target_env.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\spirv_stats.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\spirv_endian.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\software_version.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\print.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\parsed_operand.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\operand.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\opcode.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\name_mapper.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\message.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\id_descriptor.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\extensions.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\ext_inst.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\enum_string_mapping.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\disassemble.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\diagnostic.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\binary.cpp">
+      <Filter>libspirv</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv-tools\source\assembly_grammar.cpp">
+      <Filter>libspirv</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

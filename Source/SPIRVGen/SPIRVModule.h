@@ -38,6 +38,7 @@ namespace Tracy
 	{
 	public:
 		SPIRVModule(const SPIRVModule& _Other);
+		SPIRVModule(const std::vector<uint32_t>& _Optimized, const SPIRVModule& _Other);
 		SPIRVModule(const uint32_t _uBounds = 4096) noexcept;
 		~SPIRVModule();
 
