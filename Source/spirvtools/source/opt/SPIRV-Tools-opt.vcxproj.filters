@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\aggressive_dead_code_elim_pass.cpp">
@@ -390,9 +390,6 @@
     <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\workaround1209.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(VULKAN_SDK)\spirv-tools\source\opt\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">

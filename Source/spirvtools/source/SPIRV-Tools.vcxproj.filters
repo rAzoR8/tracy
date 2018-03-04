@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\util\bit_stream.cpp">
@@ -272,59 +272,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(VULKAN_SDK)\spirv-tools\source\CMakeLists.txt" />
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\extension_enum.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\opencl.std.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\glsl.std.450.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-shader-explicit-vertex-parameter.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-shader-trinary-minmax.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-gcn-shader.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-shader-ballot.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\debuginfo.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\DebugInfo.h.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\core.insts-1.0.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\core.insts-1.1.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\core.insts-1.2.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\generators.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\build-version.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{A6D8AC7F-9AA8-31EF-BA51-A32A50A199C6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{7B0FAAB9-F672-3E25-ACAA-AE16D15BFAED}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CMake Rules">
-      <UniqueIdentifier>{E265450B-A140-3D4B-AC10-6D81B23BB1D7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
