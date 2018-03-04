@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{34053157-D03A-31F4-ACDA-15502F1BE5EC}</ProjectGUID>
+    <ProjectGuid>{34053157-D03A-31F4-ACDA-15502F1BE5EC}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -29,25 +29,21 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
@@ -58,13 +54,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-    <PropertyGroup>
-      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
-      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    </PropertyGroup>
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
       <AdditionalIncludeDirectories>C:\VulkanSDK\spirv-tools\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -165,7 +161,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\3f0b71df6fbd715ea48d36f5726ff5ad\spv-amd-shader-trinary-minmax.insts.inc.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate extended instruction tables for spv-amd-shader-trinary-minmax.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
+"C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -178,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate extended instruction tables for spv-amd-shader-trinary-minmax.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
+"C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -191,7 +187,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generate extended instruction tables for spv-amd-shader-trinary-minmax.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
-"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
+"C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -204,7 +200,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generate extended instruction tables for spv-amd-shader-trinary-minmax.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
-"C:\Program Files\Anaconda3\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
+"C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64\python.exe" C:/VulkanSDK/spirv-tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=C:/VulkanSDK/spirv-tools/source/extinst.spv-amd-shader-trinary-minmax.grammar.json --vendor-insts-output=C:/Projects/Tracy/Source/spirvtools/spv-amd-shader-trinary-minmax.insts.inc
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

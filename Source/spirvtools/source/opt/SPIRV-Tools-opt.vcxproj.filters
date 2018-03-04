@@ -1,398 +1,398 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\aggressive_dead_code_elim_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\aggressive_dead_code_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\basic_block.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\basic_block.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\block_merge_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\block_merge_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\build_module.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\build_module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\ccp_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ccp_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\cfg_cleanup_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg_cleanup_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\cfg.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\common_uniform_elim_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\common_uniform_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\compact_ids_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\compact_ids_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\composite.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\composite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\constants.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dead_branch_elim_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_branch_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dead_insert_elim_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_insert_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dead_variable_elimination.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_variable_elimination.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\decoration_manager.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\decoration_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\def_use_manager.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\def_use_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_analysis.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dominator_analysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_tree.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\dominator_tree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_constant_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\eliminate_dead_constant_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_functions_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\eliminate_dead_functions_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\feature_manager.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\feature_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\flatten_decoration_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\flatten_decoration_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\fold.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\fold.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\folding_rules.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\folding_rules.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\fold_spec_constant_op_and_composite_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\fold_spec_constant_op_and_composite_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\freeze_spec_constant_value_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\freeze_spec_constant_value_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\function.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\function.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\if_conversion.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\if_conversion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\inline_exhaustive_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_exhaustive_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\inline_opaque_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_opaque_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\inline_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\insert_extract_elim.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\insert_extract_elim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\instruction.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\instruction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\instruction_list.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\instruction_list.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\ir_context.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\ir_loader.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_access_chain_convert_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_access_chain_convert_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_redundancy_elimination.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_redundancy_elimination.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_block_elim_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_single_block_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_store_elim_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_single_store_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\local_ssa_elim_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_ssa_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\loop_descriptor.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\loop_descriptor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\loop_utils.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\loop_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\mem_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\mem_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\merge_return_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\merge_return_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\module.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\optimizer.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\optimizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\pass_manager.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\pass_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\private_to_local_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\private_to_local_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\propagator.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\propagator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\redundancy_elimination.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\redundancy_elimination.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\remove_duplicates_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\remove_duplicates_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\replace_invalid_opc.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\replace_invalid_opc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\scalar_replacement_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\scalar_replacement_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\set_spec_constant_default_value_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\set_spec_constant_default_value_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\strength_reduction_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\strength_reduction_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\strip_debug_info_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\strip_debug_info_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\type_manager.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\type_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\types.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\types.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\unify_const_pass.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\unify_const_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\value_number_table.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\value_number_table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\VulkanSDK\spirv-tools\source\opt\workaround1209.cpp">
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\workaround1209.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\aggressive_dead_code_elim_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\aggressive_dead_code_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\basic_block.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\basic_block.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\block_merge_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\block_merge_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\build_module.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\build_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\ccp_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\ccp_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\cfg_cleanup_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg_cleanup_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\cfg.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\common_uniform_elim_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\common_uniform_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\compact_ids_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\compact_ids_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\composite.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\composite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\constants.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dead_branch_elim_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_branch_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dead_insert_elim_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_insert_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dead_variable_elimination.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\dead_variable_elimination.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\decoration_manager.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\decoration_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\def_use_manager.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\def_use_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_analysis.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\dominator_analysis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\dominator_tree.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\dominator_tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_constant_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\eliminate_dead_constant_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\eliminate_dead_functions_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\eliminate_dead_functions_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\feature_manager.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\feature_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\flatten_decoration_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\flatten_decoration_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\fold.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\fold.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\folding_rules.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\folding_rules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\fold_spec_constant_op_and_composite_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\fold_spec_constant_op_and_composite_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\freeze_spec_constant_value_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\freeze_spec_constant_value_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\function.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\function.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\if_conversion.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\if_conversion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\inline_exhaustive_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_exhaustive_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\inline_opaque_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_opaque_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\inline_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\inline_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\insert_extract_elim.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\insert_extract_elim.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\instruction.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\instruction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\ir_context.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\ir_loader.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_access_chain_convert_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_access_chain_convert_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_redundancy_elimination.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_redundancy_elimination.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_block_elim_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_single_block_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_single_store_elim_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_single_store_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\local_ssa_elim_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_ssa_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\log.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\loop_descriptor.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\loop_descriptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\loop_utils.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\loop_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\mem_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\mem_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\merge_return_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\merge_return_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\module.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\null_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\null_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\passes.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\passes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\pass_manager.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\pass_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\private_to_local_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\private_to_local_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\propagator.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\propagator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\redundancy_elimination.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\redundancy_elimination.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\reflect.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\reflect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\remove_duplicates_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\remove_duplicates_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\replace_invalid_opc.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\replace_invalid_opc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\scalar_replacement_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\scalar_replacement_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\set_spec_constant_default_value_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\set_spec_constant_default_value_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\strength_reduction_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\strength_reduction_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\strip_debug_info_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\strip_debug_info_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\tree_iterator.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\tree_iterator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\type_manager.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\type_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\types.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\unify_const_pass.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\unify_const_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\value_number_table.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\value_number_table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\VulkanSDK\spirv-tools\source\opt\workaround1209.h">
+    <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\workaround1209.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\VulkanSDK\spirv-tools\source\opt\CMakeLists.txt" />
+    <CustomBuild Include="$(VULKAN_SDK)\spirv-tools\source\opt\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">

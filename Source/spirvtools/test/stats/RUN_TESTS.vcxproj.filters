@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Projects\Tracy\Source\spirvtools\CMakeFiles\d52e8d7cd9be99815713f803cae5b98c\RUN_TESTS_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E265450B-A140-3D4B-AC10-6D81B23BB1D7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
