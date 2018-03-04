@@ -87,7 +87,7 @@
     <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">
       <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\spirvtools\source\opt\SPIRV-Tools-opt.vcxproj">
+    <ProjectReference Include="..\spirvtools\SPIRV-Tools-opt.vcxproj">
       <Project>{a5c48754-5d51-3acd-baba-810800264694}</Project>
     </ProjectReference>
   </ItemGroup>
