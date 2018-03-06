@@ -232,6 +232,8 @@ bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 
 		if (LogVKErrorFailed(m_hGfxQueue.presentKHR(Info)))
 			return false;
+
+		m_Device.GetDevice().waitIdle();
 	}
 
 	return true;

@@ -41,7 +41,7 @@ namespace Tracy
 		std::unique_ptr<hlx::bytes> pKVBuffer = nullptr; // material variables
 		std::vector<ImageDesc> Images;
 
-		static MaterialDesc ScreenSpaceMaterial(const uint64_t _uPassIds = HUNDEFINED64, const ShaderID _kVertexShader = kShader_ScreenSpaceTriangle, const ShaderID _kPixelShader = kShader_ClearColor);
+		static MaterialDesc ScreenSpaceMaterial(const uint64_t _uPassIds = HUNDEFINED64, const ShaderID _kPixelShader = kShader_ClearColor, const ShaderID _kVertexShader = kShader_ScreenSpaceTriangle);
 	};
 
 	// todo: primitve descs, put std::variant<SphereDesc, PlaneDesc, CubeDesc...> into MeshDesc
@@ -85,8 +85,8 @@ namespace Tracy
 
 		static RenderObjectDesc ScreenSpaceObject(
 			const uint64_t _uPassIds = HUNDEFINED64,
-			const ShaderID _kVertexShader = kShader_ScreenSpaceTriangle,
 			const ShaderID _kPixelShader = kShader_ClearColor,
+			const ShaderID _kVertexShader = kShader_ScreenSpaceTriangle,
 			const TRenderObjectFlags& _kFlags = kRenderObjectFlag_ScreenSpace);
 
 		// todo: parent link etc

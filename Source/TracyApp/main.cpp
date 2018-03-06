@@ -33,8 +33,10 @@ int main(int argc, char* argv[])
 	Pipeline.Viewports.push_back(Viewport());
 	Pipeline.Scissors.push_back({0,0, 1600u, 900u});
 
+	const auto kPixelShader = kShader_Mandelbrot;
+
 	Pipeline.Shaders.push_back(kShader_ScreenSpaceTriangle);
-	Pipeline.Shaders.push_back(kShader_Mandelbrot);
+	Pipeline.Shaders.push_back(kPixelShader);
 
 	std::shared_ptr<Camera> pCamera = std::make_shared<Camera>();
 
@@ -47,7 +49,7 @@ int main(int argc, char* argv[])
 			SceneDesc Desc{};
 			Scene& Scene = Scene::Instance();
 
-			Desc.Objects.push_back(RenderObjectDesc::ScreenSpaceObject(uMat));
+			Desc.Objects.push_back(RenderObjectDesc::ScreenSpaceObject(uMat, kPixelShader));
 			if (Scene.Initialize(Desc, Devices.front().hHandle))
 			{
 				Scene.AddCamera(pCamera);

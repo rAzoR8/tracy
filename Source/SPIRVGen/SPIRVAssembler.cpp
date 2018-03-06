@@ -81,7 +81,7 @@ SPIRVModule SPIRVAssembler::Assemble()
 
 	m_Mutex.unlock();
 
-	return Module;
+	return ExternalOptimize(Module, m_OptSettings);
 }
 //---------------------------------------------------------------------------------------------------
 

@@ -120,6 +120,11 @@
     <ClCompile Include="SPIRVType.cpp" />
     <ClCompile Include="SPIRVVariable.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\spirvtools\SPIRV-Tools-opt.vcxproj">
+      <Project>{a5c48754-5d51-3acd-baba-810800264694}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

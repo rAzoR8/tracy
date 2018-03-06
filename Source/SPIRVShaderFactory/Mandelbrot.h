@@ -44,7 +44,7 @@ namespace Tracy
 
 			//OutputColor = float4(0.f, 0.f, i / max, 0.f);
 
-			OutputColor.xy = kFragCoord.xy;
+			OutputColor.r = NDCToZeroOne(kFragCoord.r);
 		};
 	private:
 	};
