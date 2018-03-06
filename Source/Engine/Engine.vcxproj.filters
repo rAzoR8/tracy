@@ -212,6 +212,9 @@
     <ClInclude Include="Display\Vulkan\VulkanSemaphore.h">
       <Filter>Display\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Display\Vulkan\VulkanFence.h">
+      <Filter>Display\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\DX12\DX12Device.cpp">
@@ -305,6 +308,9 @@
       <Filter>Display</Filter>
     </ClCompile>
     <ClCompile Include="Display\Vulkan\VulkanSemaphore.cpp">
+      <Filter>Display\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Display\Vulkan\VulkanFence.cpp">
       <Filter>Display\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>

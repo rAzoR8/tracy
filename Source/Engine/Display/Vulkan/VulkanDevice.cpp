@@ -228,17 +228,23 @@ const bool VulkanDevice::PresentSupport(vk::SurfaceKHR& _Surface, const vk::Queu
 }
 //---------------------------------------------------------------------------------------------------
 
-AsyncTask<vk::Result> VulkanDevice::WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount, const bool _bRestFence, const bool _bWaitAll, const uint64_t _uTimeOutNanoSec)
+vk::Result VulkanDevice::WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount, const bool _bRestFence, const bool _bWaitAll, const uint64_t _uTimeOutNanoSec)
+{
+	//std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed
+	vk::Result res = m_Device.waitForFences(_uFenceCount, _pFences, _bWaitAll, _uTimeOutNanoSec);
+	if (LogVKErrorBool(res) && _bRestFence)
+	{
+		return LogVKError(m_Device.resetFences(_uFenceCount, _pFences));
+	}
+	return res;
+}
+//---------------------------------------------------------------------------------------------------
+
+AsyncTask<vk::Result> VulkanDevice::WaitForFencesAsync(const vk::Fence* _pFences, const uint32_t _uFenceCount, const bool _bRestFence, const bool _bWaitAll, const uint64_t _uTimeOutNanoSec)
 {
 	return make_task([&]()
 	{ 
-		//std::lock_guard<std::mutex> lock(m_DeviceMutex); //  not sure if needed
-		vk::Result res = m_Device.waitForFences(_uFenceCount, _pFences, _bWaitAll, _uTimeOutNanoSec);
-		if (LogVKErrorBool(res) && _bRestFence)
-		{
-			return LogVKError(m_Device.resetFences(_uFenceCount, _pFences));
-		}
-		return res;
+		return WaitForFences(_pFences, _uFenceCount, _bRestFence, _bWaitAll, _uTimeOutNanoSec);
 	});
 }
 //---------------------------------------------------------------------------------------------------

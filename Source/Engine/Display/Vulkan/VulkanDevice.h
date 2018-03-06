@@ -71,7 +71,8 @@ namespace Tracy
 		//---------------------------------------------------------------------------------------------------
 		// DEVICE CALLS
 
-		AsyncTask<vk::Result> WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount = 1u, const bool _bRestFence = true, const bool _bWaitAll = true, const uint64_t _uTimeOutNanoSec = 60000000u);
+		vk::Result WaitForFences(const vk::Fence* _pFences, const uint32_t _uFenceCount = 1u, const bool _bRestFence = true, const bool _bWaitAll = true, const uint64_t _uTimeOutNanoSec = 60000000u);
+		AsyncTask<vk::Result> WaitForFencesAsync(const vk::Fence* _pFences, const uint32_t _uFenceCount = 1u, const bool _bRestFence = true, const bool _bWaitAll = true, const uint64_t _uTimeOutNanoSec = 60000000u);
 
 		// any overload
 #ifndef DeviceFunc

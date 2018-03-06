@@ -131,6 +131,7 @@
     <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h" />
     <ClInclude Include="Display\Vulkan\SPIRVInterop.h" />
     <ClInclude Include="Display\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="Display\Vulkan\VulkanFence.h" />
     <ClInclude Include="Display\Vulkan\VulkanMemoryAllocator.h" />
     <ClInclude Include="Display\Vulkan\VulkanAPI.h" />
     <ClInclude Include="Display\Vulkan\VulkanDevice.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="Display\Texture.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="Display\Vulkan\VulkanFence.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanInstance.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanMeshLoader.cpp" />
     <ClCompile Include="Display\Vulkan\VulkanPrimitiveMeshGenerator.cpp" />

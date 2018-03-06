@@ -11,7 +11,10 @@ namespace Tracy
 	{
 		static constexpr bool is_void_future = std::is_same_v<ResultT, void>; // poetic
 		using TReplacementT = std::conditional_t<is_void_future, nullptr_t, ResultT>;
-
+		
+		// default 
+		inline AsyncTask(){}
+		inline AsyncTask(const TReplacementT _Res) : m_Result(_Res) {}
 		inline AsyncTask(std::future<ResultT>&& _Future) : m_Future(std::move(_Future)) {}
 		
 		// TODO: deduction guide http://en.cppreference.com/w/cpp/language/class_template_argument_deduction

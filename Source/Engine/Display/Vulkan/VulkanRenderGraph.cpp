@@ -1,6 +1,7 @@
 #include "VulkanRenderGraph.h"
 #include "VulkanInstance.h"
 #include "VulkanSemaphore.h"
+#include "VulkanFence.h"
 #include "Scene\Camera.h"
 #include <algorithm>
 #include <execution>
@@ -87,9 +88,9 @@ bool VulkanRenderGraph::Initialize()
 	if (m_hGfxQueue.operator bool() == false)
 		return false;
 
-	vk::FenceCreateInfo FenceInfo{};
-	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)))
-		return false;
+	//vk::FenceCreateInfo FenceInfo{};
+	//if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)))
+	//	return false;
 
 	//vk::SemaphoreCreateInfo SemaphoreInfo{};
 	//if (LogVKErrorFailed(m_Device.GetDevice().createSemaphore(&SemaphoreInfo, nullptr, &m_hImageAcquiredSemaphore)))
@@ -112,11 +113,11 @@ void VulkanRenderGraph::Uninitialze()
 		m_hPrimaryGfxCmdBuffer = nullptr;
 	}
 
-	if (m_hSubmitFence)
-	{
-		m_Device.GetDevice().destroyFence(m_hSubmitFence);
-		m_hSubmitFence = nullptr;
-	}
+	//if (m_hSubmitFence)
+	//{
+	//	m_Device.GetDevice().destroyFence(m_hSubmitFence);
+	//	m_hSubmitFence = nullptr;
+	//}
 
 	//if (m_hImageAcquiredSemaphore)
 	//{
@@ -217,9 +218,10 @@ bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 		Info.pWaitSemaphores = ImageAcquiredSemaphore.GetPtr();
 		Info.pWaitDstStageMask = &kMask;
 
-		m_hGfxQueue.submit(Info, m_hSubmitFence);
+		VulkanFence SubmitFence(m_Device.GetHandle());
+		m_hGfxQueue.submit(Info, SubmitFence);
 
-		if (LogVKErrorFailed(m_Device.WaitForFences(&m_hSubmitFence)))
+		if (LogVKErrorFailed(SubmitFence.Wait(false))) //m_Device.WaitForFences(&m_hSubmitFence))
 			return false;
 	}
 
