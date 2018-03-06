@@ -11,8 +11,18 @@ namespace Tracy
 		kDefaultShader_Mandelbrot,
 	};
 
-	constexpr ShaderID kShader_ClearColor = kShaderID<kShaderType_Fragment, kDefaultShader_ClearColor>;
+	enum EVertexPerm : uint32_t
+	{
+		kVertexPerm_None = 0,
+		kVertexPerm_UVCoords = 1 << 0,
+	};
+
+	using TVertexPermutation = hlx::Flag<EVertexPerm>;
+
 	constexpr ShaderID kShader_ScreenSpaceTriangle = kShaderID<kShaderType_Vertex, kDefaultShader_ScreenSpaceTriangle>;
+	constexpr ShaderID kShader_ScreenSpaceTriangle_UV = kShaderID<kShaderType_Vertex, kDefaultShader_ScreenSpaceTriangle, kVertexPerm_UVCoords>;
+
+	constexpr ShaderID kShader_ClearColor = kShaderID<kShaderType_Fragment, kDefaultShader_ClearColor>;
 	constexpr ShaderID kShader_Mandelbrot = kShaderID<kShaderType_Fragment, kDefaultShader_Mandelbrot>;
 
 

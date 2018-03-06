@@ -184,9 +184,9 @@ bool VulkanDevice::Initialize()
 #if _DEBUG
 		// Generate debug info for all gpu features
 		EnabledLayers.push_back("VK_LAYER_LUNARG_standard_validation");
-		EnabledLayers.push_back("VK_LAYER_LUNARG_core_validation");
-		EnabledLayers.push_back("VK_LAYER_LUNARG_assistant_layer");
-		EnabledLayers.push_back("VK_LAYER_LUNARG_parameter_validation");
+		//EnabledLayers.push_back("VK_LAYER_LUNARG_core_validation");
+		//EnabledLayers.push_back("VK_LAYER_LUNARG_assistant_layer");
+		//EnabledLayers.push_back("VK_LAYER_LUNARG_parameter_validation");
 #endif
 
 		// Layers

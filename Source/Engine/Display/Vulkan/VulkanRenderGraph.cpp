@@ -88,13 +88,13 @@ bool VulkanRenderGraph::Initialize()
 	if (m_hGfxQueue.operator bool() == false)
 		return false;
 
-	//vk::FenceCreateInfo FenceInfo{};
-	//if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)))
-	//	return false;
+	vk::FenceCreateInfo FenceInfo{};
+	if (LogVKErrorFailed(m_Device.GetDevice().createFence(&FenceInfo, nullptr, &m_hSubmitFence)))
+		return false;
 
-	//vk::SemaphoreCreateInfo SemaphoreInfo{};
-	//if (LogVKErrorFailed(m_Device.GetDevice().createSemaphore(&SemaphoreInfo, nullptr, &m_hImageAcquiredSemaphore)))
-	//	return false;
+	vk::SemaphoreCreateInfo SemaphoreInfo{};
+	if (LogVKErrorFailed(m_Device.GetDevice().createSemaphore(&SemaphoreInfo, nullptr, &m_hImageAcquiredSemaphore)))
+		return false;
 
 	m_hSwapchain = m_Window.GetSwapchain();
 	if (m_hSwapchain.operator bool() == false)
@@ -113,17 +113,17 @@ void VulkanRenderGraph::Uninitialze()
 		m_hPrimaryGfxCmdBuffer = nullptr;
 	}
 
-	//if (m_hSubmitFence)
-	//{
-	//	m_Device.GetDevice().destroyFence(m_hSubmitFence);
-	//	m_hSubmitFence = nullptr;
-	//}
+	if (m_hSubmitFence)
+	{
+		m_Device.GetDevice().destroyFence(m_hSubmitFence);
+		m_hSubmitFence = nullptr;
+	}
 
-	//if (m_hImageAcquiredSemaphore)
-	//{
-	//	m_Device.GetDevice().destroySemaphore(m_hImageAcquiredSemaphore);
-	//	m_hImageAcquiredSemaphore = nullptr;
-	//}
+	if (m_hImageAcquiredSemaphore)
+	{
+		m_Device.GetDevice().destroySemaphore(m_hImageAcquiredSemaphore);
+		m_hImageAcquiredSemaphore = nullptr;
+	}
 
 	m_MaterialIds.clear();
 
@@ -142,10 +142,8 @@ bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 	uint32_t uImageIndex = 0u;
 	const std::vector<VulkanTexture>& Backbuffer = m_Window.GetBackuffer();
 
-	VulkanSemaphore ImageAcquiredSemaphore(m_Device.GetHandle());
-
 	// get next image
-	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, ImageAcquiredSemaphore, nullptr, &uImageIndex)))
+	if (LogVKErrorFailed(m_Device.GetDevice().acquireNextImageKHR(m_hSwapchain, UINT64_MAX, m_hImageAcquiredSemaphore, nullptr, &uImageIndex)))
 		return false;
 
 	if (uImageIndex >= Backbuffer.size())
@@ -215,13 +213,12 @@ bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 		Info.commandBufferCount = 1u;
 		Info.pCommandBuffers = &m_hPrimaryGfxCmdBuffer;
 		Info.waitSemaphoreCount = 1u;
-		Info.pWaitSemaphores = ImageAcquiredSemaphore.GetPtr();
+		Info.pWaitSemaphores = &m_hImageAcquiredSemaphore;
 		Info.pWaitDstStageMask = &kMask;
 
-		VulkanFence SubmitFence(m_Device.GetHandle());
-		m_hGfxQueue.submit(Info, SubmitFence);
+		m_hGfxQueue.submit(Info, m_hSubmitFence);
 
-		if (LogVKErrorFailed(SubmitFence.Wait(false))) //m_Device.WaitForFences(&m_hSubmitFence))
+		if (LogVKErrorFailed(m_Device.WaitForFences(&m_hSubmitFence)))
 			return false;
 	}
 
@@ -235,7 +232,7 @@ bool VulkanRenderGraph::Render(const std::vector<std::shared_ptr<Camera>>& _Came
 		if (LogVKErrorFailed(m_hGfxQueue.presentKHR(Info)))
 			return false;
 
-		m_Device.GetDevice().waitIdle();
+		//m_Device.GetDevice().waitIdle();
 	}
 
 	return true;

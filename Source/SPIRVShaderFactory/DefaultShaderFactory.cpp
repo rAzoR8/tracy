@@ -48,7 +48,7 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 		Shader =  GlobalAssembler.AssembleSimple<ClearColor>();
 		break;
 	case kDefaultShader_ScreenSpaceTriangle:
-		Shader = GlobalAssembler.AssembleSimple<ScreenSpaceTriangle>();
+		Shader = GlobalAssembler.AssembleSimple<ScreenSpaceTriangle>(true, _ShaderIdentifier.uVariant);
 		break;
 	case kDefaultShader_Mandelbrot:
 		Shader = GlobalAssembler.AssembleSimple<Mandelbrot>();
