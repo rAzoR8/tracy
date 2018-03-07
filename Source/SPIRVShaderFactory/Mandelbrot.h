@@ -2,21 +2,28 @@
 #define TRACY_MANDELBROT_H
 
 #include "SPIRVProgram.h"
+#include "CommonBufferSourceNames.h"
 
 namespace Tracy
 {
 	class Mandelbrot : public FragmentProgram
 	{
 	public:
-		Mandelbrot() : FragmentProgram("Mandelbrot"){};
+		Mandelbrot() : FragmentProgram("Mandelbrot")
+		{
+			//FrameBufferDim.SetName(hlx::to_string(BufferSources::sFrameBufferDimension));
+		};
 		~Mandelbrot() {};
 
-		//CBuffer<B> BufferBlock;
+		//CBuffer<float3_t> FrameBufferDim;
 		RenderTarget OutputColor;
 
 		inline void operator()()
 		{
-			f32 x0 = NDCToRange(kFragCoord.x / 1600.f, f32(-2.5f), f32(1.f));
+			//f32 x0 = NDCToRange(kFragCoord.x / FrameBufferDim.x, f32(-2.5f), f32(1.f));
+			//f32 y0 = kFragCoord.y / FrameBufferDim.y;
+
+			f32 x0 = Lerp(f32(-1.f), f32(1.f), kFragCoord.x / 1600.f);
 			f32 y0 = kFragCoord.y / 900.f;
 
 			f32 i = 0.f;
@@ -45,9 +52,6 @@ namespace Tracy
 			});
 
 			OutputColor = float4(0.f, 0.f, i / max, 0.f);
-
-			//OutputColor = float4(kFragCoord.x / 1600.f/*, kFragCoord.y / 900.f*/, 0.f, 0.f, 0.f);
-			//OutputColor.r = NDCToZeroOne(kFragCoord.r);
 		};
 	private:
 	};

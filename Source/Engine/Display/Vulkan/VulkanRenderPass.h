@@ -4,7 +4,9 @@
 #include "IShaderFactoryConsumer.h"
 #include "..\RenderPassDescription.h"
 #include "VulkanBuffer.h"
+#include "Datastructures\BufferSource.h"
 #include "VulkanTexture.h"
+#include "MathTypes.h"
 
 namespace Tracy
 {
@@ -50,6 +52,8 @@ namespace Tracy
 		// maybe put this into a different header
 		struct Framebuffer
 		{
+			Framebuffer();
+
 			struct Attachment
 			{
 				std::string sName;
@@ -58,7 +62,10 @@ namespace Tracy
 				VulkanTexture Texture;
 			};
 
-			void Reset() { Attachments.resize(0); ClearValues.resize(0); }
+			void Reset();
+
+			uint3_t vRTDimensions; // width height layers
+			BufferSource DimensionSource; // stores rendertarget info for shader access
 
 			std::vector<Attachment> Attachments;
 			std::vector<vk::ClearValue> ClearValues;
@@ -165,7 +172,6 @@ namespace Tracy
 		vk::Pipeline ActivatePipeline(const PipelineDesc& _Desc);
 		const bool ActivatePipelineLayout(
 			const std::array<TVarSet, kMaxDescriptorSets>& _Sets,
-			const uint32_t uLastSet,
 			vk::PipelineLayout& _OutPipeline,
 			uint64_t& _uOutHash,
 			const PushConstantFactory* _pPushConstants = nullptr);

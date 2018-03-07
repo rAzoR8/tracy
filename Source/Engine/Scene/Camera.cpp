@@ -7,7 +7,7 @@
 using namespace Tracy;
 
 Camera::Camera(const uint64_t _uPassIds, const ECameraType _kType) : 
-	BufferSource(m_mViewProj, BufferSources::ViewProjectionMatrix),
+	BufferSource(m_mViewProj, BufferSources::kViewProjectionMatrix),
 	m_uPassIds(_uPassIds), m_kType(_kType)
 {
 	// finalize buffer source

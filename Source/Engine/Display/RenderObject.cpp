@@ -5,7 +5,7 @@ using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
 RenderObject::RenderObject(const TRenderObjectFlags _kFlags) :
-	BufferSource(m_mTransform, BufferSources::ObjectWorldMatrix),
+	BufferSource(m_mTransform, BufferSources::kObjectWorldMatrix),
 	TRenderObjectFlags(_kFlags),
 	m_BufferSources(1u, this)
 {
@@ -52,7 +52,7 @@ bool RenderObject::Initialize(const RenderObjectDesc& _Desc, const THandle _hDev
 	}
 
 	// finalize buffer source
-	Finalize();
+	// Finalize();
 
 	return true;
 }

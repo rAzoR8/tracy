@@ -4,8 +4,22 @@
 #include "VulkanTypeConversion.h"
 #include "Scene\Camera.h"
 #include "Display\RenderObject.h"
+#include "..\SPIRVShaderFactory\CommonBufferSourceNames.h"
 
 using namespace Tracy;
+
+//---------------------------------------------------------------------------------------------------
+
+VulkanRenderPass::Framebuffer::Framebuffer() :
+	DimensionSource(vRTDimensions, BufferSources::kFrameBufferDimension)
+{
+}
+//---------------------------------------------------------------------------------------------------
+
+void VulkanRenderPass::Framebuffer::Reset()
+{
+	Attachments.resize(0); ClearValues.resize(0);
+}
 
 //---------------------------------------------------------------------------------------------------
 
@@ -359,6 +373,8 @@ bool VulkanRenderPass::CreateFramebuffer(const VulkanTexture& _CurrentBackbuffer
 		FrameInfo.pAttachments = ImageViews.data();
 		FrameInfo.attachmentCount = static_cast<uint32_t>(ImageViews.size());
 
+		m_Framebuffer.vRTDimensions = { uResX, uResY, uLayers };
+
 		if (LogVKErrorBool(VKDevice().createFramebuffer(&FrameInfo, nullptr, &hCurFramebuffer)) == false)
 			return false;
 	}
@@ -519,11 +535,6 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		m_hCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ActivePipeline);
 
-		if(false)
-		{
-			PipelineBarrier();
-		}
-
 		ResetMappings();
 
 		if (m_ActivePipelineDesc.kFillMode == kPolygonFillMode_Line)
@@ -547,6 +558,9 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 		}
 	}
 	
+	// set framebuffer dimensions source
+	DigestBuffer(m_Framebuffer.DimensionSource);
+
 	// set camera sources
 	DigestBuffer(_Camera);
 
@@ -736,10 +750,10 @@ bool VulkanRenderPass::BeginCommandbuffer(const VulkanTexture& _CurrentBackbuffe
 	if (LogVKErrorBool(m_hCommandBuffer.begin(&BeginInfo)) == false) // implicitly resets cmd buffer
 		return false;
 	
-	if (false)
-	{
-		PipelineBarrier();	
-	}
+	//if (false)
+	//{
+	//	PipelineBarrier();	
+	//}
 
 	return true;
 }
@@ -785,7 +799,6 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 	std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages;
 	std::array<TVarSet, kMaxDescriptorSets> DescriptorSets;
-	uint32_t uLastDescriptorSet = 0u;
 
 	// load active shaders set by SelectShader function
 	for (const CompiledShader* pShader : m_ActiveShaders)
@@ -796,7 +809,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 			uHash += pShader->uIDHash;
 			uHash += pShader->uSpecConstHash;
 
-			uLastDescriptorSet = std::max(uLastDescriptorSet, SortIntoDescriptorSets(pShader->Code, DescriptorSets));
+			SortIntoDescriptorSets(pShader->Code, DescriptorSets);
 		}
 	}
 
@@ -845,7 +858,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 	// TODO: pass pushconst factory
 	uint64_t uPipelineLayoutHash = 0u;
-	if (ActivatePipelineLayout(DescriptorSets, uLastDescriptorSet, PipelineInfo.layout, uPipelineLayoutHash, nullptr) == false)
+	if (ActivatePipelineLayout(DescriptorSets, PipelineInfo.layout, uPipelineLayoutHash, nullptr) == false)
 	{
 		return nullptr;
 	}
@@ -1077,21 +1090,22 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 const bool VulkanRenderPass::ActivatePipelineLayout(
 	const std::array<TVarSet, kMaxDescriptorSets>& _Sets,
-	const uint32_t _uLastSet,
 	vk::PipelineLayout& _OutPipeline,
 	uint64_t& _uOutHash,
 	const PushConstantFactory* _pPushConstants)
 {
 	m_ActiveDescriptorSets.fill(nullptr); // reset
 	
-	std::vector<vk::DescriptorSetLayout> Layouts(_uLastSet); // _uLastSet + 1 ?
+	std::vector<vk::DescriptorSetLayout> Layouts;
 	hlx::Hasher uHash = 0u;
 
-	for (uint32_t uSet = 0u; uSet < _uLastSet; ++uSet)
+	bool bHasSet = false;
+	for (uint32_t uSet = 0u; uSet < kMaxDescriptorSets; ++uSet)
 	{
 		const TVarSet& Vars = _Sets[uSet];
 		if (Vars.empty() == false)
 		{
+			bHasSet = true;
 			hlx::Hasher uSetHash = 0u;
 			std::vector<vk::DescriptorSetLayoutBinding> Bindings;
 
@@ -1152,11 +1166,12 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 				}
 			}
 
-			Layouts[uSet] = pContainer->kLayout;
+			Layouts.push_back(pContainer->kLayout);
 			m_ActiveDescriptorSets[uSet] = pContainer;
 		}
 		else // empty set (not sure if that works)
 		{
+			Layouts.push_back(nullptr);
 			uHash << uSet;
 		}
 	}
@@ -1177,8 +1192,11 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 	}
 	else
 	{
-		Info.pSetLayouts = Layouts.data();
-		Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
+		if (bHasSet)
+		{
+			Info.pSetLayouts = Layouts.data();
+			Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
+		}
 
 		if (LogVKErrorFailed(m_Device.createPipelineLayout(&Info, nullptr, &m_ActivePipelineLayout)))
 			return false;
@@ -1286,10 +1304,18 @@ void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 		HASSERT(pContainer != nullptr, "Invalid descriptor set container");
 		Binding& Binding = pContainer->Bindings[Input.uBindingIndex];
 
+		uint32_t uSize = Source.uSize;
+		if (Binding.BufferInfo.range < uSize)
+		{
+			HERROR("Variable size mismatch %u BufferSize %u", uSize, Binding.BufferInfo.range);
+			uSize = static_cast<uint32_t>(Binding.BufferInfo.range);
+		}
+
 		// buffer content changed
 		if (Binding.Set(Source.pData, Source.uSize))
 		{
-			m_hCommandBuffer.updateBuffer(Binding.BufferInfo.buffer, 0, Source.uSize, Source.pData);
+			//m_hCommandBuffer.updateBuffer(Binding.BufferInfo.buffer, 0, uSize, Source.pData);
+			// TODO: CopyBuffer
 		}
 	}
 }
@@ -1383,14 +1409,17 @@ void VulkanRenderPass::ResetMappings()
 //---------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::Binding::Binding(const VariableInfo& _Var, const THandle _hDevice) :
-	Var(_Var), kType(GetDescriptorType(_Var)), uNameHash(hlx::Hash(_Var.sName))
+	Var(_Var),
+	kType(GetDescriptorType(_Var)),
+	uNameHash(hlx::Hash(_Var.sName))
 {
 	if (kType == vk::DescriptorType::eUniformBuffer)
 	{
 		BufferDesc Desc{};
 		Desc.hDevice = _hDevice;
 		Desc.uSize = Var.Type.GetSize();
-		Desc.kUsageFlag = kBufferUsage_Uniform;
+		Desc.kUsageFlag = kBufferUsage_Uniform | kBufferUsage_CopyDestination;
+		Desc.kAccessFlag = kResourceAccess_CPUVisible;
 
 		Buffer = std::move(VulkanBuffer(Desc));
 
@@ -1400,7 +1429,7 @@ VulkanRenderPass::Binding::Binding(const VariableInfo& _Var, const THandle _hDev
 			const VkBufferData& Buf = VKBuffer(Buffer);
 
 			BufferInfo.buffer = Buf.hBuffer;
-			BufferInfo.offset = Var.uMemberOffset; // 0
+			BufferInfo.offset = 0u; // Var.uMemberOffset;
 			BufferInfo.range = Desc.uSize; // VK_WHOLE_SIZE
 
 			uHash = hlx::Hash(Buffer.GetIdentifier(), Var.uBinding, kType);
@@ -1524,4 +1553,5 @@ void VulkanRenderPass::DescriptorSetContainer::AddDescriptorWrites(std::vector<v
 		write.pTexelBufferView = nullptr;
 	}
 }
+
 //---------------------------------------------------------------------------------------------------

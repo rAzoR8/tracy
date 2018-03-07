@@ -38,9 +38,9 @@ namespace Tracy
 		// call after the last variable has been added
 		void Finalize();
 
-	protected:
 		template <class T, class... Ts>
 		void AddVars(const T& _Var, const uint64_t _uNameHash, const Ts& ... _Args);
+	protected:
 
 		void AddVar(const void* _pData, const uint32_t _uSize, const uint64_t _uNameHash);
 
@@ -56,6 +56,7 @@ namespace Tracy
 	inline BufferSource::BufferSource(const T& _Var, const uint64_t _uNameHash, const Ts& ..._Args)
 	{
 		AddVars(_Var, _uNameHash, _Args...);
+		Finalize();
 	}
 
 	template<class T, class ...Ts>

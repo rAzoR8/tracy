@@ -455,36 +455,30 @@ namespace Tracy
 		HASSERTD(_kType < kIndexType_NumOf, "Invalid index type");
 		return detail::g_VkIndexType[_kType];
 	}
-
+	
 	// TODO : Find a solution to copy paste, they olny differ for mapping used
-	inline const vk::ImageUsageFlags GetTextureUsage(const ETextureUsage _kFlag)
+	inline const vk::ImageUsageFlags GetTextureUsage(const TTextureUsageFlag _kFlag)
 	{
 		vk::ImageUsageFlags Result{};
 		for (uint32_t uFlag = kTextureUsage_None; uFlag < kTextureUsage_NumOf; ++uFlag)
 		{
-			const uint32_t uUsageBits = (1u << uFlag);
-			const bool bHasFlag = _kFlag & uUsageBits;
-
-			if (bHasFlag)
+			if (_kFlag.CheckFlag(1u << uFlag))
 			{
-				Result |= detail::g_VkImageUsageFlags[uUsageBits];
+				Result |= detail::g_VkImageUsageFlags[uFlag];
 			}
 		}
 
 		return Result;
 	}
 
-	inline const vk::BufferUsageFlags GetBufferUsage(const EBufferUsage _kFlag)
+	inline const vk::BufferUsageFlags GetBufferUsage(const TBufferUsageFlag _kFlag)
 	{
 		vk::BufferUsageFlags Result{};
 		for (uint32_t uFlag = kBufferUsage_None; uFlag < kBufferUsage_NumOf; ++uFlag)
 		{
-			const uint32_t uUsageBits = (1u << uFlag);
-			const bool bHasFlag = _kFlag & uUsageBits;
-
-			if (bHasFlag)
+			if (_kFlag.CheckFlag((1u << uFlag)))
 			{
-				Result |= detail::g_VkBufferUsageFlags[uUsageBits];
+				Result |= detail::g_VkBufferUsageFlags[uFlag];
 			}
 		}
 

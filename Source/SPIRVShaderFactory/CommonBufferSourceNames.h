@@ -9,11 +9,16 @@ namespace Tracy
 	{
 		using namespace hlx;
 
-		//static constexpr uint64_t ObjectPosition = "TRACY_OBJ_POSITION"_hash;
-		//static constexpr uint64_t ObjectScale = "TRACY_OBJ_SCALE"_hash;
-		//static constexpr uint64_t ObjectOrientation = "TRACY_OBJ_ORIENTATION"_hash;
-		static constexpr uint64_t ObjectWorldMatrix = "TRACY_OBJ_WORLD_MATRIX"_hash;
-		static constexpr uint64_t ViewProjectionMatrix = "TRACY_VIEW_PROJ_MATRIX"_hash;
+		static constexpr std::string_view sObjectWorldMatrix = "TRACY_OBJ_WORLD_MATRIX"_sv;
+		static constexpr std::string_view sViewProjectionMatrix = "TRACY_VIEW_PROJ_MATRIX"_sv;
+		static constexpr std::string_view sFrameBufferDimension = "TRACY_FRAMEBUFFER_DIM"_sv;
+
+#pragma warning(push)
+#pragma warning(disable: 4307)
+		static constexpr uint64_t kObjectWorldMatrix = const_string_hash(sObjectWorldMatrix);
+		static constexpr uint64_t kViewProjectionMatrix = const_string_hash(sViewProjectionMatrix);
+		static constexpr uint64_t kFrameBufferDimension = const_string_hash(sFrameBufferDimension);
+#pragma warning(pop)
 	}
 } // Tracy
 

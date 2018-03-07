@@ -453,7 +453,9 @@ namespace Tracy
 
 		kTextureUsage_NumOf = 8u,
 		kTextureUsage_None = 0u
-	}; // todo: make this an acutal hlx::Flag
+	}; 
+	
+	using TTextureUsageFlag = hlx::Flag<ETextureUsage>;
 
 	/*VK_BUFFER_USAGE_TRANSFER_SRC_BIT = 0x00000001,
 	VK_BUFFER_USAGE_TRANSFER_DST_BIT = 0x00000002,
@@ -479,6 +481,8 @@ namespace Tracy
 		kBufferUsage_NumOf = 9u,
 		kBufferUsage_None = 0u
 	};
+
+	using TBufferUsageFlag = hlx::Flag<EBufferUsage>;
 
 	//enum EUsageFlag : uint32_t
 	//{
@@ -1033,7 +1037,7 @@ struct BufferDesc
 	const void* pInitialData = nullptr;
 	size_t uInitialDataOffset = 0u;
 	size_t uInitialDataSize = 0u; // must be in bounds with uSize
-	EBufferUsage kUsageFlag = kBufferUsage_None;
+	TBufferUsageFlag kUsageFlag = kBufferUsage_None;
 	TResourceAccessFlag kAccessFlag = kResourceAccess_GPUVisible;
 };
 
