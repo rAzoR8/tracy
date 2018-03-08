@@ -14,6 +14,8 @@ namespace Tracy
 		const THandle hDevice;
 		vk::Buffer hBuffer;
 		VulkanAllocation Allocation;
+
+		bool MapWrite(const void* _pData, const uint32_t _uSize, const uint32_t _uOffset = 0u) const;
 	};
 
 	class VulkanBuffer : public GPUBuffer
@@ -26,6 +28,8 @@ namespace Tracy
 		
 		inline const bool IsValidBuffer() const { return IsValidRef() && API.hBuffer; }
 		inline explicit operator bool() { return IsValidBuffer(); }
+
+		//bool MapWrite(const void* _pData, const uint32_t _uSize, const uint32_t _uOffset) const final;
 
 	protected:
 		REFAPI(VkBufferData);

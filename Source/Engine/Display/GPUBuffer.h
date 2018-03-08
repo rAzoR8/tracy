@@ -20,6 +20,8 @@ namespace Tracy
 		inline const bool IsValidBuffer() const { return IsValidRef() && Ref.HasAPIData(); }
 		inline explicit operator bool() const { return IsValidBuffer(); }
 
+		//virtual bool MapWrite(const void* _pData, const uint32_t _uSize, const uint32_t _uOffset) const = 0;
+
 	protected:
 		GPUBuffer(const BufferDesc& _Desc);
 	};

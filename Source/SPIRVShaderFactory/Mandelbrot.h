@@ -20,11 +20,14 @@ namespace Tracy
 
 		inline void operator()()
 		{
-			//f32 x0 = NDCToRange(kFragCoord.x / FrameBufferDim.x, f32(-2.5f), f32(1.f));
-			//f32 y0 = kFragCoord.y / FrameBufferDim.y;
+			//f32 width = FrameBufferDim.x;
+			//f32 height = FrameBufferDim.y;
 
-			f32 x0 = Lerp(f32(-1.f), f32(1.f), kFragCoord.x / 1600.f);
-			f32 y0 = kFragCoord.y / 900.f;
+			f32 width = 1600.f;
+			f32 height = 900.f;
+
+			f32 x0 = Lerp(f32(-1.f), f32(1.f), kFragCoord.x / width);
+			f32 y0 = kFragCoord.y / height;
 
 			f32 i = 0.f;
 			const f32 max = 100.f;

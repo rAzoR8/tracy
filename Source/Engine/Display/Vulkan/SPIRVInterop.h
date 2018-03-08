@@ -140,10 +140,10 @@ namespace Tracy
 	constexpr size_t kMaxDescriptorSets = 16u;
 	using TVarSet = std::vector<VariableInfo>;
 
-	template <size_t N = kMaxDescriptorSets> // returns last used set
-	inline uint32_t SortIntoDescriptorSets(const SPIRVModule& _Module, std::array<TVarSet, N>& _OutDescriptorSets)
+	template <size_t N = kMaxDescriptorSets> // returns last used set, or -1 if empty
+	inline int32_t SortIntoDescriptorSets(const SPIRVModule& _Module, std::array<TVarSet, N>& _OutDescriptorSets)
 	{
-		uint32_t uLastSet = 0u;
+		int32_t iLastSet = -1;
 		for (const VariableInfo& Var : _Module.GetVariables())
 		{
 			switch (Var.kStorageClass)
@@ -158,7 +158,7 @@ namespace Tracy
 			}
 
 			HASSERT(Var.uDescriptorSet < _OutDescriptorSets.size(), "Invalid descriptor set index");
-			uLastSet = std::max(Var.uDescriptorSet, uLastSet);
+			iLastSet = std::max(static_cast<int32_t>(Var.uDescriptorSet), iLastSet);
 
 			TVarSet& Set = _OutDescriptorSets[Var.uDescriptorSet];
 			
@@ -181,7 +181,7 @@ namespace Tracy
 			}
 		}
 
-		return uLastSet;
+		return iLastSet;
 	}
 	//---------------------------------------------------------------------------------------------------
 

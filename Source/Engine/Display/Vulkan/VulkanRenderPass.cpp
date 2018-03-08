@@ -800,6 +800,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 	std::vector<vk::PipelineShaderStageCreateInfo> ShaderStages;
 	std::array<TVarSet, kMaxDescriptorSets> DescriptorSets;
 
+	int32_t iLastUsedSet = -1;
 	// load active shaders set by SelectShader function
 	for (const CompiledShader* pShader : m_ActiveShaders)
 	{
@@ -809,7 +810,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 			uHash += pShader->uIDHash;
 			uHash += pShader->uSpecConstHash;
 
-			SortIntoDescriptorSets(pShader->Code, DescriptorSets);
+			iLastUsedSet = std::max(SortIntoDescriptorSets(pShader->Code, DescriptorSets), iLastUsedSet);
 		}
 	}
 
@@ -858,7 +859,7 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 	// TODO: pass pushconst factory
 	uint64_t uPipelineLayoutHash = 0u;
-	if (ActivatePipelineLayout(DescriptorSets, PipelineInfo.layout, uPipelineLayoutHash, nullptr) == false)
+	if (ActivatePipelineLayout(DescriptorSets, iLastUsedSet, PipelineInfo.layout, uPipelineLayoutHash, nullptr) == false)
 	{
 		return nullptr;
 	}
@@ -1090,22 +1091,21 @@ vk::Pipeline VulkanRenderPass::ActivatePipeline(const PipelineDesc& _Desc)
 
 const bool VulkanRenderPass::ActivatePipelineLayout(
 	const std::array<TVarSet, kMaxDescriptorSets>& _Sets,
+	const int32_t _uLastUsedSet,
 	vk::PipelineLayout& _OutPipeline,
 	uint64_t& _uOutHash,
 	const PushConstantFactory* _pPushConstants)
 {
 	m_ActiveDescriptorSets.fill(nullptr); // reset
 	
-	std::vector<vk::DescriptorSetLayout> Layouts;
+	std::vector<vk::DescriptorSetLayout> Layouts(_uLastUsedSet + 1);
 	hlx::Hasher uHash = 0u;
 
-	bool bHasSet = false;
-	for (uint32_t uSet = 0u; uSet < kMaxDescriptorSets; ++uSet)
+	for (uint32_t uSet = 0u; uSet < Layouts.size(); ++uSet)
 	{
 		const TVarSet& Vars = _Sets[uSet];
 		if (Vars.empty() == false)
 		{
-			bHasSet = true;
 			hlx::Hasher uSetHash = 0u;
 			std::vector<vk::DescriptorSetLayoutBinding> Bindings;
 
@@ -1166,12 +1166,11 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 				}
 			}
 
-			Layouts.push_back(pContainer->kLayout);
+			Layouts[uSet] = pContainer->kLayout;
 			m_ActiveDescriptorSets[uSet] = pContainer;
 		}
 		else // empty set (not sure if that works)
 		{
-			Layouts.push_back(nullptr);
 			uHash << uSet;
 		}
 	}
@@ -1192,7 +1191,7 @@ const bool VulkanRenderPass::ActivatePipelineLayout(
 	}
 	else
 	{
-		if (bHasSet)
+		if (Layouts.empty() == false)
 		{
 			Info.pSetLayouts = Layouts.data();
 			Info.setLayoutCount = static_cast<uint32_t>(Layouts.size());
@@ -1312,10 +1311,19 @@ void VulkanRenderPass::DigestBuffer(const BufferSource& Src)
 		}
 
 		// buffer content changed
-		if (Binding.Set(Source.pData, Source.uSize))
+		if (Binding.Set(Source.pData, uSize))
 		{
-			//m_hCommandBuffer.updateBuffer(Binding.BufferInfo.buffer, 0, uSize, Source.pData);
-			// TODO: CopyBuffer
+			const auto& SrcBuffer = VKBuffer(Binding.StagingBuffer);
+			if (SrcBuffer.MapWrite(Source.pData, uSize)) // TODO call async?
+			{
+				// copy staging buffer to GPU buffer
+				vk::BufferCopy Region{};
+				Region.dstOffset = 0u;
+				Region.srcOffset = 0u;
+				Region.size = uSize;
+
+				m_hCommandBuffer.copyBuffer(SrcBuffer.hBuffer, Binding.BufferInfo.buffer, 1u, &Region);
+			}
 		}
 	}
 }
@@ -1418,21 +1426,25 @@ VulkanRenderPass::Binding::Binding(const VariableInfo& _Var, const THandle _hDev
 		BufferDesc Desc{};
 		Desc.hDevice = _hDevice;
 		Desc.uSize = Var.Type.GetSize();
-		Desc.kUsageFlag = kBufferUsage_Uniform | kBufferUsage_CopyDestination;
+		Desc.kUsageFlag = kBufferUsage_Uniform | kBufferUsage_CopySource;
 		Desc.kAccessFlag = kResourceAccess_CPUVisible;
 
-		Buffer = std::move(VulkanBuffer(Desc));
+		StagingBuffer = std::move(VulkanBuffer(Desc));
 
-		if (Buffer)
+		Desc.kAccessFlag = kResourceAccess_GPUVisible;
+		Desc.kUsageFlag = kBufferUsage_Uniform | kBufferUsage_CopyDestination;
+
+		GPUBuffer = std::move(VulkanBuffer(Desc));
+
+		if (StagingBuffer && GPUBuffer)
 		{
-			//ProxyMemory.resize(Desc.uSize);
-			const VkBufferData& Buf = VKBuffer(Buffer);
+			const VkBufferData& Buf = VKBuffer(GPUBuffer);
 
 			BufferInfo.buffer = Buf.hBuffer;
 			BufferInfo.offset = 0u; // Var.uMemberOffset;
 			BufferInfo.range = Desc.uSize; // VK_WHOLE_SIZE
 
-			uHash = hlx::Hash(Buffer.GetIdentifier(), Var.uBinding, kType);
+			uHash = hlx::Hash(GPUBuffer.GetIdentifier(), Var.uBinding, kType);
 		}
 	}
 }
@@ -1440,7 +1452,8 @@ VulkanRenderPass::Binding::Binding(const VariableInfo& _Var, const THandle _hDev
 
 VulkanRenderPass::Binding::~Binding()
 {
-	Buffer.Reset();
+	StagingBuffer.Reset();
+	GPUBuffer.Reset();
 }
 //---------------------------------------------------------------------------------------------------
 void VulkanRenderPass::Binding::Set(const Texture& _Texture)

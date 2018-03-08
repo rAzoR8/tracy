@@ -309,13 +309,7 @@ const bool VulkanDevice::CreateTexture(TextureDesc& _Desc, VulkanAllocation& _Al
 		// TODO: https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/html/vkspec.html#resources-image-layouts
 		//Host access to image memory is only well - defined for images created with VK_IMAGE_TILING_LINEAR tiling and for image subresources of those images which are currently in either the VK_IMAGE_LAYOUT_PREINITIALIZED or VK_IMAGE_LAYOUT_GENERAL layout
 
-		vk::MemoryMapFlags flags{};
-		void* pDeviceMem = nullptr;
-		if (LogVKErrorBool(m_Device.mapMemory(_Allocation.Memory, _Desc.uInitialDataOffset, _Desc.uInitialDataSize, flags, &pDeviceMem)))
-		{
-			std::memcmp(pDeviceMem, _Desc.pInitialData, _Desc.uInitialDataSize);
-			m_Device.unmapMemory(_Allocation.Memory);
-		}
+		MapWrite(_Allocation, _Desc.pInitialData, _Desc.uInitialDataSize, _Desc.uInitialDataOffset);
 	}
 
 	m_pAllocator->BindImageMemory(_Allocation, _Image);
@@ -354,13 +348,7 @@ const bool VulkanDevice::CreateBuffer(BufferDesc& _Desc, VulkanAllocation& _Allo
 		_Desc.pInitialData != nullptr &&
 		(_Desc.uInitialDataOffset + _Desc.uInitialDataSize) <= Info.size)
 	{
-		vk::MemoryMapFlags flags{};
-		void* pDeviceMem = nullptr;
-		if (LogVKErrorBool(m_Device.mapMemory(_Allocation.Memory, _Desc.uInitialDataOffset, _Desc.uInitialDataSize, flags, &pDeviceMem)))
-		{
-			std::memcmp(pDeviceMem, _Desc.pInitialData, _Desc.uInitialDataSize);
-			m_Device.unmapMemory(_Allocation.Memory);
-		}
+		MapWrite(_Allocation, _Desc.pInitialData, _Desc.uInitialDataSize, _Desc.uInitialDataOffset);
 	}
 
 	m_pAllocator->BindBufferMemory(_Allocation, _Buffer);
@@ -512,6 +500,28 @@ vk::Queue VulkanDevice::GetQueue(const vk::QueueFlagBits _kFlags) const
 	}
 
 	return nullptr;
+}
+//---------------------------------------------------------------------------------------------------
+
+bool VulkanDevice::MapWrite(const VulkanAllocation& _Allocation, const void* _pData, const uint32_t _uSize, const uint32_t _uOffset)
+{
+	if (_Allocation.uSize < _uOffset + _uSize)
+	{
+		HERROR("Insufficient allocation %u size for requested write %u", _Allocation.uSize, _uSize);
+		return false;
+	}
+
+	vk::MemoryMapFlags flags{};
+	void* pDeviceMem = nullptr;
+
+	if (LogVKErrorBool(m_Device.mapMemory(_Allocation.Memory, _uOffset, _uSize, flags, &pDeviceMem)))
+	{
+		std::memcmp(pDeviceMem, _pData, _uSize);
+		m_Device.unmapMemory(_Allocation.Memory);
+		return true;
+	}
+
+	return false;
 }
 
 //---------------------------------------------------------------------------------------------------

@@ -118,10 +118,12 @@ namespace Tracy
 			bool Set(const void* _pData, const size_t _uSize);
 
 		//private:
-			VulkanBuffer Buffer;
+			VulkanBuffer StagingBuffer;
+			VulkanBuffer GPUBuffer;
+
 			vk::DescriptorImageInfo ImageInfo;
 			uint64_t uImageId = HUNDEFINED64;
-			vk::DescriptorBufferInfo BufferInfo;
+			vk::DescriptorBufferInfo BufferInfo; // GPU buffer
 			uint32_t uBufferHash = HUNDEFINED32;
 			uint64_t uHash = HUNDEFINED64;
 
@@ -172,6 +174,7 @@ namespace Tracy
 		vk::Pipeline ActivatePipeline(const PipelineDesc& _Desc);
 		const bool ActivatePipelineLayout(
 			const std::array<TVarSet, kMaxDescriptorSets>& _Sets,
+			const int32_t _uLastUsedSet,
 			vk::PipelineLayout& _OutPipeline,
 			uint64_t& _uOutHash,
 			const PushConstantFactory* _pPushConstants = nullptr);
