@@ -98,7 +98,7 @@
     <ClInclude Include="SPIRVQuaternion.h" />
     <ClInclude Include="SPIRVVariableTypes.h" />
     <ClInclude Include="SPIRVAssembler.h" />
-    <ClInclude Include="SPIRVBranchNode.h" />
+    <ClInclude Include="SPIRVBranchOperations.h" />
     <ClInclude Include="SPIRVConstant.h" />
     <ClInclude Include="SPIRVDecoration.h" />
     <ClInclude Include="SPIRVInstruction.h" />

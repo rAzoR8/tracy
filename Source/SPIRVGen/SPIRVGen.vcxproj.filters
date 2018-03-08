@@ -21,9 +21,6 @@
     <ClInclude Include="SPIRVAssembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SPIRVBranchNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SPIRVConstant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -67,6 +64,9 @@
       <Filter>StandardLibrary</Filter>
     </ClInclude>
     <ClInclude Include="SPIRVBinaryDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRVBranchOperations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

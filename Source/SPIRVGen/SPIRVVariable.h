@@ -111,6 +111,7 @@ namespace Tracy
 	{
 		typedef TSPVVarTag SPVVarTag;
 		typedef T ValueType;
+		static constexpr bool AssembleMode = Assemble;
 
 		mutable T Value;
 

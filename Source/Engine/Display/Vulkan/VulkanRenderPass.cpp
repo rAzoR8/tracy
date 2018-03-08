@@ -154,7 +154,6 @@ bool VulkanRenderPass::CreateRenderPass()
 			if (Desc.kType == kAttachmentType_Color)
 			{
 				AttDesc.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-
 			}
 			else if (Desc.kType == kAttachmentType_DepthStencil)
 			{

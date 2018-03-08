@@ -4,7 +4,7 @@
 #include "SPIRVOperatorImpl.h"
 #include "SPIRVQuaternion.h"
 #include "SPIRVComplex.h"
-#include "SPIRVBranchNode.h"
+#include "SPIRVBranchOperations.h"
 #include "glm/glm.hpp"
 #include <glm/gtc/quaternion.hpp>
 
@@ -155,12 +155,6 @@ namespace Tracy
 		const spv::ExecutionMode m_kExecutionMode;
 		const std::string m_sEntryPoint;
 		const std::vector<std::string> m_Extensions;
-
-		template <class CondFunc, class IncFunc, class LoopBody>
-		void ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);
-
-		template <class CondFunc, class LoopBody>
-		void WhileImpl(const CondFunc& _CondFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl = spv::LoopControlMaskNone);		
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -184,41 +178,6 @@ namespace Tracy
 		virtual ~FragmentProgram() {}
 	};
 
-	//---------------------------------------------------------------------------------------------------
-	// helper macros
-#ifndef While
-#define While(_cond) WhileImpl([=](){return _cond;}, [=]()
-#endif // !While
-
-#ifndef For
-#define For(_var, _cond, _inc) _var; ForImpl([=](){return _cond;}, [=](){_inc;}, [=]()
-#endif // !While
-
-#pragma region if_else
-	// renamed If and Else functions so that the macros are not part of the name
-#ifndef If
-#define If(_cond) IfNode((_cond), [=]()
-#endif // !If
-
-#ifndef Endif
-#define Endif );
-#endif // !Endif
-
-#ifndef Else
-#define Else ).ElseNode([=]()
-#endif // !Else
-
-#ifndef IF
-#define IF(_cond) IfNode((_cond), [=]() {
-#endif // !If
-
-#ifndef ENDIF
-#define ENDIF });
-#endif // !Endif
-
-#ifndef ELSE
-#define ELSE }).ElseNode([=]() {
-#endif // !Else
 #pragma endregion
 
 	//---------------------------------------------------------------------------------------------------
@@ -248,152 +207,7 @@ namespace Tracy
 	{
 		((TProg*)this)->operator()(std::forward<Ts>(_args)...);
 	}
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble> // CondFunc needs to return a var_t<bool>
-	template <class CondFunc, class LoopBody>
-	inline void SPIRVProgram<Assemble>::WhileImpl(const CondFunc& _CondFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl)
-	{
-		if constexpr(Assemble == false)
-		{
-			while (_CondFunc().Value)
-			{
-				_LoopBody();
-			}
-		}
-		else
-		{
-			// merge branch label
-			SPIRVOperation* pOpBranch = nullptr;
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch); // close previous block
-			const uint32_t uLoopMergeId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uLoopMergeId);
-
-			// loop merge
-			SPIRVOperation* pOpLoopMerge = nullptr;
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLoopMerge), &pOpLoopMerge);
-
-			// condition branch label
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
-			const uint32_t uConditionLabelId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uConditionLabelId);
-
-			GlobalAssembler.ForceNextLoads();
-
-			// tranlate condition var
-			const auto& CondVar = _CondFunc();
-
-			// branch conditional %cond %loopbody %exit
-			SPIRVOperation* pOpBranchCond = nullptr;
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranchConditional), &pOpBranchCond);
-			const uint32_t uLoopBodyId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranchCond->AddIntermediate(CondVar.uResultId);
-			pOpBranchCond->AddIntermediate(uLoopBodyId);
-
-			_LoopBody();
-
-			// close block
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
-			const uint32_t uBlockExit = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uBlockExit);
-
-			// exit branch label
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
-			const uint32_t uExitId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uLoopMergeId);
-
-			pOpLoopMerge->AddIntermediate(uExitId); // merge block
-			pOpLoopMerge->AddIntermediate(uBlockExit); // continue
-			pOpLoopMerge->AddLiteral((uint32_t)_kLoopControl);
-
-			pOpBranchCond->AddIntermediate(uExitId); // structured merge
-
-			GlobalAssembler.ForceNextLoads(false);
-		}
-	}
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble> // CondFunc needs to return a var_t<bool>
-	template<class CondFunc, class IncFunc, class LoopBody>
-	inline void SPIRVProgram<Assemble>::ForImpl(const CondFunc& _CondFunc, const IncFunc& _IncFunc, const LoopBody& _LoopBody, const spv::LoopControlMask _kLoopControl)
-	{
-		if constexpr(Assemble == false)
-		{
-			for (; _CondFunc().Value; _IncFunc())
-			{
-				_LoopBody();
-			}
-		}
-		else
-		{
-			// branch %merge
-			// label %merge
-			// loopmerge
-			// branch %cond
-			// label %cond
-			// Condition Code
-			// branch_conditional
-			// label %loopbody
-			// LoopBody code
-			// branch %increment
-			// label %increment
-			// Increment Code
-			// branch %exit
-			// label %exit
-
-			// merge branch label
-			SPIRVOperation* pOpBranch = nullptr;
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch); // close previous block
-			const uint32_t uLoopMergeId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uLoopMergeId);
-
-			// loop merge
-			SPIRVOperation* pOpLoopMerge = nullptr;			
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLoopMerge), &pOpLoopMerge);
-
-			// condition branch label
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
-			const uint32_t uConditionLabelId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uConditionLabelId);
-
-			GlobalAssembler.ForceNextLoads();
-
-			// tranlate condition var
-			const auto& CondVar = _CondFunc();
-
-			// branch conditional %cond %loopbody %exit
-			SPIRVOperation* pOpBranchCond = nullptr;
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranchConditional), &pOpBranchCond);
-			const uint32_t uLoopBodyId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranchCond->AddIntermediate(CondVar.uResultId);
-			pOpBranchCond->AddIntermediate(uLoopBodyId);
-
-			_LoopBody();
-
-			// inrement branch label
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
-			const uint32_t uIncrementId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uIncrementId);
-			
-			_IncFunc();
-
-			// exit branch label
-			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
-			const uint32_t uExitId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranch->AddIntermediate(uLoopMergeId);
-
-			pOpLoopMerge->AddIntermediate(uExitId);
-			pOpLoopMerge->AddIntermediate(uIncrementId);
-			pOpLoopMerge->AddLiteral((uint32_t)_kLoopControl);
-
-			pOpBranchCond->AddIntermediate(uExitId); // structured merge
-
-			GlobalAssembler.ForceNextLoads(false);
-		}
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
+	//---------------------------------------------------------------------------------------------------	
 }; // !Tracy
 
 #endif // !TRACY_SPIRVPROGRAM_H
