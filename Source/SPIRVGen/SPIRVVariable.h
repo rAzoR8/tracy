@@ -25,8 +25,6 @@ namespace Tracy
 	template <>
 	struct var_decoration<false>
 	{
-		//template <class... Ts>
-		//var_decoration(Ts&& ... _args) noexcept {} // consume arguments
 		var_decoration() noexcept {}
 		var_decoration(const var_decoration& _Other) noexcept {}
 		var_decoration(var_decoration&& _Other) noexcept {}
@@ -849,8 +847,6 @@ namespace Tracy
 	{
 		template<class ...Ts>
 		var_out_t(const Ts& ...args) : var_t<T, Assemble, spv::StorageClassOutput>(args...) { LocationHelper(*this, Location, false); }
-		//template <spv::StorageClass C1>
-		//const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
 	};
 	//---------------------------------------------------------------------------------------------------
 	// uniform variable constructor
@@ -859,8 +855,6 @@ namespace Tracy
 	{
 		template<class ...Ts>
 		var_uniform_t(const Ts& ...args) : var_t<T, Assemble, spv::StorageClassUniform>(args...) { BindingSetHelper(*this, Binding, Set); }
-		//template <spv::StorageClass C1>
-		//const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
 	};
 	//---------------------------------------------------------------------------------------------------
 	// uniform constant variable constructor
@@ -869,8 +863,6 @@ namespace Tracy
 	{
 		template<class ...Ts>
 		var_uniform_constant_t(const Ts& ...args) : var_t<T, Assemble, spv::StorageClassUniformConstant>(args...) { BindingSetHelper(*this, Binding, Set); LocationHelper(*this, Location, true); }
-		//template <spv::StorageClass C1>
-		//const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -925,7 +917,6 @@ namespace Tracy
 	struct var_push_const_t : public var_t<T, Assemble, spv::StorageClassPushConstant>
 	{
 		using VarType::VarType;
-		//var_push_const_t() : var_t<T, Assemble, spv::StorageClassPushConstant>() {}
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -941,9 +932,6 @@ namespace Tracy
 				Decorate(SPIRVDecoration(spv::DecorationBuiltIn, kBuiltIn));
 			}
 		}
-
-		//template <spv::StorageClass C1>
-		//inline const var_builtin_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, Class>::operator=(_Other);	return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
