@@ -9,13 +9,10 @@ namespace Tracy
 	class Mandelbrot : public FragmentProgram
 	{
 	public:
-		Mandelbrot() : FragmentProgram("Mandelbrot")
-		{
-			//FrameBufferDim.SetName(hlx::to_string(BufferSources::sFrameBufferDimension));
-		};
+		Mandelbrot() : FragmentProgram("Mandelbrot"){};
 		~Mandelbrot() {};
 
-		//CBuffer<float3_t> FrameBufferDim;
+		CBuffer<float3_t> FrameBufferDim = BufferSources::sFrameBufferDimension;
 		RenderTarget OutputColor;
 
 		inline void operator()()

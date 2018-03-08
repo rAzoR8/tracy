@@ -5,7 +5,7 @@
 #include "SPIRVDecoration.h"
 #include "SPIRVType.h"
 #include "SPIRVAssembler.h"
-#include <array>
+//#include <string_view>
 
 namespace Tracy
 {
@@ -92,7 +92,7 @@ namespace Tracy
 
 		void Store() const;
 		uint32_t Load(const bool _bForceLoad = false) const;
-
+		
 		var_decoration(const spv::StorageClass _kStorageClass) : kStorageClass(_kStorageClass) {};
 		var_decoration(const var_decoration<true>& _Other);
 		var_decoration(var_decoration<true>&& _Other) noexcept;
@@ -111,11 +111,13 @@ namespace Tracy
 	{
 		typedef TSPVVarTag SPVVarTag;
 		typedef T ValueType;
+		typedef base_type_t<T> BaseType;
+		typedef var_t<T, Assemble, Class> VarType;
+
 		static constexpr bool AssembleMode = Assemble;
+		static constexpr spv::StorageClass StorageClass = Class;
 
 		mutable T Value;
-
-		using BaseType = base_type_t<T>;
 
 		// generates OpVar
 		template <class... Ts>
@@ -127,6 +129,8 @@ namespace Tracy
 
 		// calls SetName
 		var_t(const char* _sName);
+		// calls SetName
+		var_t(std::string_view _sName);
 
 		template <spv::StorageClass C1>
 		var_t(var_t<T, Assemble, C1>&& _Other);
@@ -747,10 +751,20 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// name constructor
 	template<typename T, bool Assemble, spv::StorageClass Class>
-	inline var_t<T, Assemble, Class>::var_t(const char* _sName) : 
+	inline var_t<T, Assemble, Class>::var_t(const char* _sName) :
 		var_decoration<Assemble>(Class)
 	{
 		SetName(_sName);
+		InitVar();
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// name constructor
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, Class>::var_t(std::string_view _sName) : 
+		var_decoration<Assemble>(Class)
+	{
+		SetName(std::string(_sName.data(), _sName.size()));
 		InitVar();
 	}
 
@@ -822,7 +836,9 @@ namespace Tracy
 	template <typename T, bool Assemble = true, uint32_t Location = HUNDEFINED32, bool InstanceData = false>
 	struct var_in_t : public var_t<T, Assemble, spv::StorageClassInput>
 	{
-		var_in_t() : var_t<T, Assemble, spv::StorageClassInput>() { LocationHelper(*this, Location, true); bInstanceData = InstanceData; }
+		template<class ...Ts>
+		var_in_t(const Ts& ...args) : var_t<T, Assemble, spv::StorageClassInput>(args...) { LocationHelper(*this, Location, true); bInstanceData = InstanceData; }
+		
 		template <spv::StorageClass C1>
 		const var_in_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassInput>::operator=(_Other); return *this; }
 	};
@@ -831,27 +847,30 @@ namespace Tracy
 	template <typename T, bool Assemble = true, uint32_t Location = HUNDEFINED32>
 	struct var_out_t : public var_t<T, Assemble, spv::StorageClassOutput>
 	{
-		var_out_t() : var_t<T, Assemble, spv::StorageClassOutput>() { LocationHelper(*this, Location, false); }
-		template <spv::StorageClass C1>
-		const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
+		template<class ...Ts>
+		var_out_t(const Ts& ...args) : var_t<T, Assemble, spv::StorageClassOutput>(args...) { LocationHelper(*this, Location, false); }
+		//template <spv::StorageClass C1>
+		//const var_out_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassOutput>::operator=(_Other);	return *this; }
 	};
 	//---------------------------------------------------------------------------------------------------
 	// uniform variable constructor
 	template <typename T, bool Assemble = true, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32>
 	struct var_uniform_t : public var_t<T, Assemble, spv::StorageClassUniform>
 	{
-		var_uniform_t() : var_t<T, Assemble, spv::StorageClassUniform>() { BindingSetHelper(*this, Binding, Set); }
-		template <spv::StorageClass C1>
-		const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
+		template<class ...Ts>
+		var_uniform_t(const Ts& ...args) : var_t<T, Assemble, spv::StorageClassUniform>(args...) { BindingSetHelper(*this, Binding, Set); }
+		//template <spv::StorageClass C1>
+		//const var_uniform_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniform>::operator=(_Other);	return *this; }
 	};
 	//---------------------------------------------------------------------------------------------------
 	// uniform constant variable constructor
 	template <typename T, bool Assemble = true, uint32_t Binding = HUNDEFINED32, uint32_t Set = HUNDEFINED32, uint32_t Location = HUNDEFINED32>
 	struct var_uniform_constant_t : public var_t<T, Assemble, spv::StorageClassUniformConstant>
 	{
-		var_uniform_constant_t() : var_t<T, Assemble, spv::StorageClassUniformConstant>() { BindingSetHelper(*this, Binding, Set); LocationHelper(*this, Location, true); }
-		template <spv::StorageClass C1>
-		const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
+		template<class ...Ts>
+		var_uniform_constant_t(const Ts& ...args) : var_t<T, Assemble, spv::StorageClassUniformConstant>(args...) { BindingSetHelper(*this, Binding, Set); LocationHelper(*this, Location, true); }
+		//template <spv::StorageClass C1>
+		//const var_uniform_constant_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, spv::StorageClassUniformConstant>::operator=(_Other);	return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -887,7 +906,8 @@ namespace Tracy
 	template <typename T, bool Assemble = true, bool Depth = false, uint32_t InputAttachmentIndex = HUNDEFINED32, class SubT = cond_t<Depth, tex_depth_subpass_t<T>, tex_color_subpass_t<T>>>
 	struct var_subpass_t : public var_t<SubT, Assemble, spv::StorageClassUniformConstant>
 	{
-		var_subpass_t() : var_t<SubT, Assemble, spv::StorageClassUniformConstant>()
+		template <class ...Ts>
+		var_subpass_t(const Ts&... _args) : var_t<SubT, Assemble, spv::StorageClassUniformConstant>(_args...)
 		{
 			if constexpr(Assemble)
 			{
@@ -904,7 +924,8 @@ namespace Tracy
 	template <typename T, bool Assemble = true>
 	struct var_push_const_t : public var_t<T, Assemble, spv::StorageClassPushConstant>
 	{
-		var_push_const_t() : var_t<T, Assemble, spv::StorageClassPushConstant>() {}
+		using VarType::VarType;
+		//var_push_const_t() : var_t<T, Assemble, spv::StorageClassPushConstant>() {}
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -921,8 +942,8 @@ namespace Tracy
 			}
 		}
 
-		template <spv::StorageClass C1>
-		inline const var_builtin_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, Class>::operator=(_Other);	return *this; }
+		//template <spv::StorageClass C1>
+		//inline const var_builtin_t& operator=(const var_t<T, Assemble, C1>& _Other) const { var_t<T, Assemble, Class>::operator=(_Other);	return *this; }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -935,27 +956,30 @@ namespace Tracy
 
 		var_t<float4_t, Assemble, spv::StorageClassOutput> kPostion;
 		var_t<float, Assemble, spv::StorageClassOutput> kPointSize;
-		var_t<float, Assemble, spv::StorageClassOutput> kClipDistance;
-		var_t<float, Assemble, spv::StorageClassOutput> kCullDistance;
+
+		//https://www.khronos.org/opengl/wiki/Built-in_Variable_(GLSL)
+		// these are actually arrays of userdefined size:
+		//var_t<float, Assemble, spv::StorageClassOutput> kClipDistance;
+		//var_t<float, Assemble, spv::StorageClassOutput> kCullDistance;
 	};
 
 	template <bool Assemble = true>
 	struct var_per_vertex : public var_t<var_per_vertex_t<Assemble>, Assemble, spv::StorageClassOutput>
 	{
-		var_per_vertex() : var_t<var_per_vertex_t<Assemble>, Assemble, spv::StorageClassOutput>()
+		var_per_vertex() : VarType() //var_t<var_per_vertex_t<Assemble>, Assemble, spv::StorageClassOutput>()
 		{
 			if constexpr(Assemble)
 			{
 				bBuiltIn = true;
 				Value.kPostion.bBuiltIn = true;
 				Value.kPointSize.bBuiltIn = true;
-				Value.kClipDistance.bBuiltIn = true;
-				Value.kCullDistance.bBuiltIn = true;
+				//Value.kClipDistance.bBuiltIn = true;
+				//Value.kCullDistance.bBuiltIn = true;
 
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPosition).MakeOperation(uTypeId, Value.kPostion.uMemberIndex));
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInPointSize).MakeOperation(uTypeId, Value.kPointSize.uMemberIndex));
-				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance).MakeOperation(uTypeId, Value.kClipDistance.uMemberIndex));
-				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance).MakeOperation(uTypeId, Value.kCullDistance.uMemberIndex));
+				//GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInClipDistance).MakeOperation(uTypeId, Value.kClipDistance.uMemberIndex));
+				//GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBuiltIn, spv::BuiltInCullDistance).MakeOperation(uTypeId, Value.kCullDistance.uMemberIndex));
 			}
 		}
 	};
