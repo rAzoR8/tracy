@@ -8,8 +8,36 @@
 namespace Tracy
 {
 	//---------------------------------------------------------------------------------------------------
-	template <class U, class V, class OpFunc, bool Assemble, spv::StorageClass C1, spv::StorageClass C2,  class T = std::invoke_result_t<OpFunc, const U&, const V&>, class ...Ops >
-	inline var_t<T, Assemble, spv::StorageClassFunction> make_op(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r, const OpFunc& _OpFunc, const EOpTypeBase _kOpTypeBase, const Ops ..._Ops)
+	// create operation with one operand
+	template <class U, class OpFunc, bool Assemble, spv::StorageClass C1, class T = std::invoke_result_t<OpFunc, const U&>, class ...Ops>
+	inline var_t<T, Assemble, spv::StorageClassFunction> make_op1(const var_t<U, Assemble, C1>& l, const OpFunc& _OpFunc, const Ops ..._Ops)
+	{
+		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc(l.Value);
+		}
+		else // Assemble
+		{
+			LoadVariables(l);
+
+			spv::Op kOpCode = (spv::Op)OpTypeDecider<base_type_t<U>>(_Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
+
+			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
+			Op.AddIntermediate(l.uResultId); // operand1
+
+			var.uResultId = GlobalAssembler.AddOperation(Op);
+		}
+
+		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// create operation with two operands
+	template <class U, class V, class OpFunc, bool Assemble, spv::StorageClass C1, spv::StorageClass C2,  class T = std::invoke_result_t<OpFunc, const U&, const V&>, class ...Ops>
+	inline var_t<T, Assemble, spv::StorageClassFunction> make_op2(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r, const OpFunc& _OpFunc, const EOpTypeBase _kOpTypeBase, const Ops ..._Ops)
 	{
 		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
 		
@@ -150,7 +178,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator+(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 + v2; }, kOpTypeBase_Result, spv::OpFAdd, spv::OpIAdd);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 + v2; }, kOpTypeBase_Result, spv::OpFAdd, spv::OpIAdd);
 	}
 	// add with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -169,7 +197,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator-(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 - v2; }, kOpTypeBase_Result, spv::OpFSub, spv::OpISub);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 - v2; }, kOpTypeBase_Result, spv::OpFSub, spv::OpISub);
 	}
 	// sub with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -190,13 +218,13 @@ namespace Tracy
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r)
 	{
 		if constexpr(is_vector<U> && is_scalar<V>)
-			return make_op(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpVectorTimesScalar);
+			return make_op2(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpVectorTimesScalar);
 		else if constexpr(is_vector<V> && is_scalar<U>)
-			return make_op(r, l, [](const V& v1, const U& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpVectorTimesScalar);
+			return make_op2(r, l, [](const V& v1, const U& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpVectorTimesScalar);
 		else if constexpr(is_matrix<V> || is_matrix<U>)
 			return Mul(l, r); // implementation below
 		else
-			return make_op(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpFMul, spv::OpIMul);
+			return make_op2(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpFMul, spv::OpIMul);
 	}
 
 	// mul with constant left
@@ -219,7 +247,7 @@ namespace Tracy
 		const var_t<col_type_t<M>, Assemble, C1>& l,
 		const var_t<M, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const col_type_t<M>& v, const M& m)-> row_type_t<M> {return v * m; }, kOpTypeBase_Result, spv::OpVectorTimesMatrix);
+		return make_op2(l, r, [](const col_type_t<M>& v, const M& m)-> row_type_t<M> {return v * m; }, kOpTypeBase_Result, spv::OpVectorTimesMatrix);
 	}
 
 	// matrix * vector
@@ -228,7 +256,7 @@ namespace Tracy
 		const var_t<M, Assemble, C1>& l,
 		const var_t<row_type_t<M>, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const M& m, const row_type_t<M>& v)-> col_type_t<M> {return m * v; }, kOpTypeBase_Result, spv::OpMatrixTimesVector);
+		return make_op2(l, r, [](const M& m, const row_type_t<M>& v)-> col_type_t<M> {return m * v; }, kOpTypeBase_Result, spv::OpMatrixTimesVector);
 	}
 
 	// matrix * matrix
@@ -245,7 +273,7 @@ namespace Tracy
 			const var_t<M, Assemble, C1>& l,
 			const var_t<N, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const M& m, const N& n)-> R {return m * n; }, kOpTypeBase_Result, spv::OpMatrixTimesMatrix);
+		return make_op2(l, r, [](const M& m, const N& n)-> R {return m * n; }, kOpTypeBase_Result, spv::OpMatrixTimesMatrix);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -253,7 +281,7 @@ namespace Tracy
 	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class T = longer_type_t<U, V>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator/(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, kOpTypeBase_Result, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv); // kOpTypeBase_Operand1
+		return make_op2(l, r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, kOpTypeBase_Result, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv); // kOpTypeBase_Operand1
 	}
 	// div with constant left
 	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<V>, typename = std::enable_if_t<is_convertible<U, BaseType>>>
@@ -273,7 +301,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 == v2; }, kOpTypeBase_Result, spv::OpLogicalEqual);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 == v2; }, kOpTypeBase_Result, spv::OpLogicalEqual);
 	}
 	// equal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1/*, typename = std::enable_if_t<is_convertible<T,V>>*/>
@@ -292,7 +320,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 != v2; }, kOpTypeBase_Result, spv::OpLogicalNotEqual);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 != v2; }, kOpTypeBase_Result, spv::OpLogicalNotEqual);
 	}
 	// unequal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -312,7 +340,7 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const var_t<bool, Assemble, C1>& l, const var_t<bool, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 || v2; }, kOpTypeBase_Result, spv::OpLogicalOr);
+		return make_op2(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 || v2; }, kOpTypeBase_Result, spv::OpLogicalOr);
 	}
 	// logical or with constant left
 	template <bool Assemble, spv::StorageClass C1>
@@ -332,7 +360,7 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const var_t<bool, Assemble, C1>& l, const var_t<bool, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 && v2; }, kOpTypeBase_Result, spv::OpLogicalAnd);
+		return make_op2(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 && v2; }, kOpTypeBase_Result, spv::OpLogicalAnd);
 	}
 	// logical and with constant left
 	template <bool Assemble, spv::StorageClass C1>
@@ -352,7 +380,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator|(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 | v2; }, kOpTypeBase_Result, spv::OpBitwiseOr);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 | v2; }, kOpTypeBase_Result, spv::OpBitwiseOr);
 	}
 	// bitwise or with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
@@ -372,7 +400,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator^(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 ^ v2; }, kOpTypeBase_Result, spv::OpBitwiseXor);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 ^ v2; }, kOpTypeBase_Result, spv::OpBitwiseXor);
 	}
 	// bitwise xor with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
@@ -392,7 +420,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator&(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 & v2; }, kOpTypeBase_Result, spv::OpBitwiseAnd);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 & v2; }, kOpTypeBase_Result, spv::OpBitwiseAnd);
 	}
 	// bitwise and with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
@@ -412,7 +440,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 < v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThan, spv::OpSLessThan, spv::OpULessThan);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 < v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThan, spv::OpSLessThan, spv::OpULessThan);
 	}
 	// Less with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -432,7 +460,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<=(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 <= v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThanEqual, spv::OpSLessThanEqual, spv::OpULessThanEqual);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 <= v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThanEqual, spv::OpSLessThanEqual, spv::OpULessThanEqual);
 	}
 	// Less then equal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -452,7 +480,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 > v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThan, spv::OpSGreaterThan, spv::OpUGreaterThan);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 > v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThan, spv::OpSGreaterThan, spv::OpUGreaterThan);
 	}
 	// greater with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -472,7 +500,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> bool {return v1 >= v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThanEqual, spv::OpSGreaterThanEqual, spv::OpUGreaterThanEqual);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 >= v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThanEqual, spv::OpSGreaterThanEqual, spv::OpUGreaterThanEqual);
 	}
 	// Greater then equal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -492,7 +520,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator>>(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 >> v2; }, kOpTypeBase_Result, spv::OpShiftRightLogical);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 >> v2; }, kOpTypeBase_Result, spv::OpShiftRightLogical);
 	}
 	// logical shift right with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
@@ -512,7 +540,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator<<(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& v1, const T& v2)-> T {return v1 << v2; }, kOpTypeBase_Result, spv::OpShiftLeftLogical);
+		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 << v2; }, kOpTypeBase_Result, spv::OpShiftLeftLogical);
 	}
 	// logical shift left with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
@@ -532,7 +560,17 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_float<T>>>
 	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Dot(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
-		return make_op(l, r, [](const T& u, const T& v)-> base_type_t<T> {return glm::dot(u, v); }, kOpTypeBase_Result, spv::OpDot);
+		return make_op2(l, r, [](const T& u, const T& v)-> base_type_t<T> {return glm::dot(u, v); }, kOpTypeBase_Result, spv::OpDot);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Transpose Matrix
+	template <class M, bool Assemble, spv::StorageClass C1,
+		class RowT = row_type_t<M>, class ColT = col_type_t<M>, class R = mat_type_t<ColT, RowT>,
+		typename = std::enable_if_t<is_matrix<M>>>
+	inline var_t<R, Assemble, spv::StorageClassFunction> Transpose(const var_t<M, Assemble, C1>& _Mat)
+	{
+		return make_op1(_Mat, [](const M& m)-> R {return glm::transpose(m); }, spv::OpTranspose);
 	}
 
 	//---------------------------------------------------------------------------------------------------

@@ -73,6 +73,7 @@ namespace Tracy
 			matrix m;
 
 			m = Inverse(m);
+			float4x3 m43 = Transpose(m34);
 			auto det = Determinant(m);
 
 			c = Atan2(a, b);
