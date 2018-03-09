@@ -32,7 +32,7 @@ namespace Tracy
 		RenderTarget OutputColor;
 		SamplerState Sampler;
 		Texture2DEx<float3_t> InputImg;
-		SubPassColor SubPass;
+		//SubPassColor SubPass;
 		PushConstant<PushBlock> Push;
 		Array<float3_t, 4> TestArray;
 
@@ -66,8 +66,21 @@ namespace Tracy
 			});
 
 			float3x4 m34;
+
 			float3 v3 = { 1.f, 2.f, 3.f };
 			float3 a, b, c;
+
+			matrix m;
+
+			m = Inverse(m);
+			auto det = Determinant(m);
+
+			c = Atan2(a, b);
+			b = Pow(c, a);
+			a = Exp2(c);
+			c = Log(a);
+			b = InvSqrt(a + b);
+
 			v3 = Fma(a, float3{ 1.f, 2.f, 3.f }, c);
 			//v3 = Cross(a, b) * Dot(a, c);
 			quaternion q1 = quaternion(v3, sum);

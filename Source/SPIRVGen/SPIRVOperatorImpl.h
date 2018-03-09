@@ -205,11 +205,47 @@ namespace Tracy
 	{
 		return var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)l) *  r;
 	}
+
 	// mul with constant right
 	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<U>, typename = std::enable_if_t<is_convertible<V, BaseType>>>
 	inline var_t<U, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const V& r)
 	{
 		return l * var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)r);
+	}
+
+	// vector * matrix
+	template <class M, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
+	inline var_t<row_type_t<M>, Assemble, spv::StorageClassFunction> Mul(
+		const var_t<col_type_t<M>, Assemble, C1>& l,
+		const var_t<M, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const col_type_t<M>& v, const M& m)-> row_type_t<M> {return v * m; }, kOpTypeBase_Result, spv::OpVectorTimesMatrix);
+	}
+
+	// matrix * vector
+	template <class M, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
+	inline var_t<col_type_t<M>, Assemble, spv::StorageClassFunction> Mul(
+		const var_t<M, Assemble, C1>& l,
+		const var_t<row_type_t<M>, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const M& m, const row_type_t<M>& v)-> col_type_t<M> {return m * v; }, kOpTypeBase_Result, spv::OpMatrixTimesVector);
+	}
+
+	// matrix * matrix
+	template <bool Assemble,
+		spv::StorageClass C1, spv::StorageClass C2,
+		class M, class N,
+		class MRow = row_type_t<M>,
+		class MCol = col_type_t<M>,
+		class NRow = row_type_t<N>,
+		class NCol = col_type_t<N>,
+		class R = mat_type_t<NRow, MCol>,
+		typename = std::enable_if_t<std::is_same_v<MRow, NCol>>>
+		inline var_t<R, Assemble, spv::StorageClassFunction> Mul(
+			const var_t<M, Assemble, C1>& l,
+			const var_t<N, Assemble, C2>& r)
+	{
+		return make_op(l, r, [](const M& m, const N& n)-> R {return m * n; }, kOpTypeBase_Result, spv::OpMatrixTimesMatrix);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -582,57 +618,134 @@ namespace Tracy
 		return make_ext_op1(l, [](const T& v1) {return glm::acosh(v1); }, ExtGLSL450, GLSLstd450Acosh);
 	}
 	//---------------------------------------------------------------------------------------------------
+	// Result is undefined if abs x >= 1. Results are computed per component.
 	template <class T, bool Assemble, spv::StorageClass C1>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Atanh(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::atanh(v1); }, ExtGLSL450, GLSLstd450Atanh);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// TODO: atan2 etc
-
+	// Arc tangent. Result is an angle, in radians, whose tangent is y / x. The signs of x and y are used
+	// to determine what quadrant the angle is in. The range of result values is[-pi,pi].
+	// Result is undefined if x	and	y are both 0.
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Atan2(const var_t<T, Assemble, C1>& x, const var_t<T, Assemble, C2>& y)
+	{
+		return make_ext_op2(x, y, [](const T& _x, const T& _y) {return glm::atan(_x, _y); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Atan2);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// Exponential function x^y Results are computed per componen
+	// Result is undefined if x	< 0. Result is undefined if	x = 0 and y <= 0
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Pow(const var_t<T, Assemble, C1>& x, const var_t<T, Assemble, C2>& y)
+	{
+		return make_ext_op2(x, y, [](const T& v1, const T& v2) {return glm::pow(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Pow);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// Log Results are computed per componen
+	template <class T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Log(const var_t<T, Assemble, Class>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::log(v1); }, ExtGLSL450, GLSLstd450Log);
+	}	
+	//---------------------------------------------------------------------------------------------------
+	// Log2 Base 2 Results are computed per componen
+	template <class T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Log2(const var_t<T, Assemble, Class>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::log2(v1); }, ExtGLSL450, GLSLstd450Log2);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// Exponential function e^x
+	template <class T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Exp(const var_t<T, Assemble, Class>& x)
+	{
+		return make_ext_op1(x, [](const T& v1) {return glm::exp(v1); }, ExtGLSL450, GLSLstd450Exp);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// Exponential function base 2 2^x
+	template <class T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Exp2(const var_t<T, Assemble, Class>& x)
+	{
+		return make_ext_op1(x, [](const T& v1) {return glm::exp2(v1); }, ExtGLSL450, GLSLstd450Exp2);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// SquareRoot Results are computed per component.
 	template <class T, bool Assemble, spv::StorageClass Class>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Sqrt(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::sqrt(v1); }, ExtGLSL450, GLSLstd450Sqrt);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// NORMALIZE
+	// InverseSqrt Results are computed per component.
+	template <class T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> InvSqrt(const var_t<T, Assemble, Class>& l)
+	{
+		return make_ext_op1(l, [](const T& v1) {return glm::inversesqrt(v1); }, ExtGLSL450, GLSLstd450InverseSqrt);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Normalize
 	template <class T, bool Assemble, spv::StorageClass Class>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Normalize(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::normalize(v1); }, ExtGLSL450, GLSLstd450Normalize);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// LENGTH
+	// Length
 	template <class T, bool Assemble, spv::StorageClass Class>
 	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Length(const var_t<T, Assemble, Class>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::length(v1); }, ExtGLSL450, GLSLstd450Length);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// DISTANCE
+	// Distance
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<base_type_t<T>, Assemble, spv::StorageClassFunction> Distance(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
 		return make_ext_op2(l, r, [](const T& v1, const T& v2) {return glm::distance(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Distance);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// CROSS
+	// Cross product
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2/*, class T = vec_type_t<FloatT, 3>*/>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Cross(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
 	{
 		return make_ext_op2(l, r, [](const T& v1, const T& v2) -> T{return glm::cross(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Cross);
 	}
 	//---------------------------------------------------------------------------------------------------
-	// FMA
+	// FMA fused multiply add
 	template <class A, class B, class C, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3,
 		typename = std::enable_if_t<is_base_float<A> && is_base_float<B> && is_base_float<C>>>
 	inline auto Fma(const var_t<A, Assemble, C1>& va, const var_t<B, Assemble, C2>& vb, const var_t<C, Assemble, C3>& vc)
 	{
 		return make_ext_op3(va, vb, vc, [](const A& a, const B& b, const C& c) {return a * b + c; }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Fma);
 	}
+	//---------------------------------------------------------------------------------------------------
+	// MatrixInverse
+	//template <bool Assemble, spv::StorageClass Class, uint32_t Dim, class Mat = mat_type_dim_t<float, Dim, Dim>>
+	template <
+		class M, bool Assemble, spv::StorageClass Class,
+		class Row = row_type_t<M>, class Col = col_type_t<M>,
+		typename = std::enable_if_t<std::is_same_v<Row, Col>>> // Square matrix
+	inline var_t<M, Assemble, spv::StorageClassFunction> Inverse(const var_t<M, Assemble, Class>& _Mat)
+	{
+		return make_ext_op1(_Mat, [](const M& m) {return glm::inverse(m); }, ExtGLSL450, GLSLstd450MatrixInverse);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// MatrixDeterminant
+	template <
+		class M, bool Assemble, spv::StorageClass Class,
+		class Row = row_type_t<M>, class Col = col_type_t<M>, class R = base_type_t<M>,
+		typename = std::enable_if_t<std::is_same_v<Row, Col>>> // Square matrix
+		inline var_t<R, Assemble, spv::StorageClassFunction> Determinant(const var_t<M, Assemble, Class>& _Mat)
+	{
+		return make_ext_op1(_Mat, [](const M& m) {return glm::determinant(m); }, ExtGLSL450, GLSLstd450Determinant);
+	}
 
 	//---------------------------------------------------------------------------------------------------
+	// HELPER FUNCTIONS
+	//---------------------------------------------------------------------------------------------------
+
 	// LERP
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Lerp(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r, const var_t<float, Assemble, C3> t)
@@ -653,49 +766,8 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
 	inline var_t<T, Assemble, spv::StorageClassFunction> NDCToRange(const var_t<T, Assemble, C1>& ndc, const var_t<float, Assemble, C2>& low, const var_t<float, Assemble, C3> high)
 	{
-		return low + ((ndc + 1.f) * 0.5f * (high-low));
+		return low + ((ndc + 1.f) * 0.5f * (high - low));
 	}
-
-	//---------------------------------------------------------------------------------------------------
-	// MUL
-	// vector * matrix
-	template <class M, bool Assemble,spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
-		inline var_t<row_type_t<M>, Assemble, spv::StorageClassFunction> Mul(
-			const var_t<col_type_t<M>, Assemble, C1>& l,
-			const var_t<M, Assemble, C2>& r)
-	{
-		return make_op(l, r, [](const col_type_t<M>& v, const M& m)-> row_type_t<M> {return v * m; }, kOpTypeBase_Result, spv::OpVectorTimesMatrix);
-	}
-	//---------------------------------------------------------------------------------------------------
-	// matrix * vector
-	template <class M, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
-		inline var_t<col_type_t<M>, Assemble, spv::StorageClassFunction> Mul(
-			const var_t<M, Assemble, C1>& l,
-			const var_t<row_type_t<M>, Assemble, C2>& r)
-	{
-		return make_op(l, r, [](const M& m, const row_type_t<M>& v)-> col_type_t<M> {return m * v; }, kOpTypeBase_Result, spv::OpMatrixTimesVector);
-	}
-
-	// matrix * matrix
-	//---------------------------------------------------------------------------------------------------
-	template <bool Assemble,
-		spv::StorageClass C1, spv::StorageClass C2,
-		class M, class N,
-		class MRow = row_type_t<M>,
-		class MCol = col_type_t<M>,
-		class NRow = row_type_t<N>,
-		class NCol = col_type_t<N>,
-		class R = mat_type_t<NRow, MCol>,
-		typename = std::enable_if_t<std::is_same_v<MRow, NCol>>
-		>
-		inline var_t<R, Assemble, spv::StorageClassFunction> Mul(
-			const var_t<M, Assemble, C1>& l,
-			const var_t<N, Assemble, C2>& r)
-	{
-		return make_op(l, r, [](const M& m, const N& n)-> R {return m * n; }, kOpTypeBase_Result, spv::OpMatrixTimesMatrix);
-	}
-
-	//---------------------------------------------------------------------------------------------------
 
 }; //!Tracy
 
