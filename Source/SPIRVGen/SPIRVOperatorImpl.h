@@ -743,6 +743,29 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// Reflect: For the incident vector I and surface orientation N, the result is the reflection direction: I - 2 * dot(N,I) *	N
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Reflect(const var_t<T, Assemble, C1>& I, const var_t<T, Assemble, C2>& N)
+	{
+		return make_ext_op2(I, N, [](const T& i, const T& n) {return glm::reflect(i, n); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Reflect);
+	}
+	// Refract: For the incident vector I and surface normal N, and the ratio of indices of refraction eta, the result is the refraction vector.
+	// The result is computed by k = 1.0 - eta * eta * (1.0 - dot(N,I) * dot(N,I))
+	// if k < 0.0 the result is 0.0	otherwise, the result is eta * I - (eta	* dot(N,I) + sqrt(k)) *	N
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Refract(const var_t<T, Assemble, C1>& I, const var_t<T, Assemble, C2>& N, const var_t<base_type_t<T>, Assemble, C3>& ETA)
+	{
+		return make_ext_op3(I, N, ETA, [](const T& i, const T& n, const base_type_t<T>& eta) {return glm::refract(i, n, eta); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Refract);
+	}
+
+	// Refract with constant ETA
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Refract(const var_t<T, Assemble, C1>& I, const var_t<T, Assemble, C2>& N, const base_type_t<T>& ETA)
+	{
+		return Refract(I, N, var_t<base_type_t<T>, Assemble, spv::StorageClassFunction>(ETA));
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// HELPER FUNCTIONS
 	//---------------------------------------------------------------------------------------------------
 

@@ -80,6 +80,8 @@ namespace Tracy
 			a = Exp2(c);
 			c = Log(a);
 			b = InvSqrt(a + b);
+			a = Reflect(b, Normalize(c));
+			b = Refract(a, c, 0.5f);
 
 			v3 = Fma(a, float3{ 1.f, 2.f, 3.f }, c);
 			//v3 = Cross(a, b) * Dot(a, c);
