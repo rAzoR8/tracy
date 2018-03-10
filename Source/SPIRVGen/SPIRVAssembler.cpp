@@ -64,6 +64,7 @@ SPIRVModule SPIRVAssembler::Assemble()
 	Module.SetExecutionMode(m_kMode);
 	Module.SetExecutionModel(m_kModel);
 	Module.SetExtensions(m_Extensions);
+	Module.SetCapabilities(m_Capabilities);
 
 	// copy accumulated variable info
 	for (auto& kv : m_UsedVariables)
@@ -103,6 +104,7 @@ void SPIRVAssembler::Init(const std::unique_ptr<SPIRVProgram<true>>& _pProgram)
 	m_kModel = _pProgram->GetExecutionModel();
 	m_Extensions = _pProgram->GetExtensions();
 	m_sEntryPoint = _pProgram->GetEntryPoint();
+	m_Capabilities = _pProgram->GetCapabilities();
 
 	m_uResultId = 1u;
 	m_pOpEntryPoint = nullptr;
@@ -112,13 +114,11 @@ void SPIRVAssembler::Init(const std::unique_ptr<SPIRVProgram<true>>& _pProgram)
 	m_PreambleOpIds.clear();
 
 	//https://www.khronos.org/registry/spir-v/specs/1.2/SPIRV.pdf#subsection.2.4
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityShader)))));
 
-	// TODO: only add for fragment shaders!
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityInputAttachment)))));
-
-	//TODO: store capability info in SPIRVProgram
-	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityInt64)))));
+	for (const spv::Capability& Cap : m_Capabilities)
+	{
+		AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(Cap)))));
+	}
 
 	// OpExtension (unused)
 

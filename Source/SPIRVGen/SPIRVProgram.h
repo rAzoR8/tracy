@@ -138,7 +138,8 @@ namespace Tracy
 			const spv::ExecutionModel _kExecutionModel = spv::ExecutionModelFragment,
 			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
 			const std::string& _sEntryPoint = "main",
-			const std::vector<std::string>& _Extensions = { ExtGLSL450 });
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
+			const std::vector<spv::Capability>& _Capabilities = {spv::CapabilityShader});
 
 		virtual ~SPIRVProgram();
 
@@ -148,15 +149,21 @@ namespace Tracy
 		inline const spv::ExecutionModel GetExecutionModel() const { return m_kExecutionModel; }
 		inline const spv::ExecutionMode GetExecutionMode() const { return m_kExecutionMode; }
 		inline const std::string& GetEntryPoint() const { return m_sEntryPoint; }
+
 		inline const std::vector<std::string>& GetExtensions() const { return m_Extensions; }
 		// should only be called in the constructor of the derived program
 		inline void AddExtension(const std::string& _sExtension) { m_Extensions.push_back(_sExtension); }
+
+		inline const std::vector<spv::Capability>& GetCapabilities() const { return m_Capabilities; }
+		// should only be called in the constructor of the derived program
+		inline void AddCapability(const spv::Capability _kCapability) { m_Capabilities.push_back(_kCapability); }
 
 	protected:
 		const spv::ExecutionModel m_kExecutionModel;
 		const spv::ExecutionMode m_kExecutionMode;
 		const std::string m_sEntryPoint;
-		/*const*/ std::vector<std::string> m_Extensions;
+		std::vector<std::string> m_Extensions;
+		std::vector<spv::Capability> m_Capabilities;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -164,8 +171,11 @@ namespace Tracy
 	class VertexProgram : public SPIRVProgram<true>
 	{
 	public:
-		VertexProgram(const std::string& _sEntryPoint = "main",	const std::vector<std::string>& _Extensions = { ExtGLSL450 })
-			: SPIRVProgram<true>(spv::ExecutionModelVertex, spv::ExecutionModeMax, _sEntryPoint, _Extensions) {}
+		VertexProgram(
+			const std::string& _sEntryPoint = "vertex_main",
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
+			const std::vector<spv::Capability>& _Capabilities = { spv::CapabilityShader })
+			: SPIRVProgram<true>(spv::ExecutionModelVertex, spv::ExecutionModeMax, _sEntryPoint, _Extensions, _Capabilities) {}
 		virtual ~VertexProgram() {}
 	};
 
@@ -173,10 +183,11 @@ namespace Tracy
 	{
 	public:
 		FragmentProgram(
-			const std::string& _sEntryPoint = "main",
+			const std::string& _sEntryPoint = "fragment_main",
 			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
-			const std::vector<std::string>& _Extensions = { ExtGLSL450 })
-			: SPIRVProgram<true>(spv::ExecutionModelFragment, _kMode, _sEntryPoint, _Extensions) {}
+			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
+			const std::vector<spv::Capability>& _Capabilities = { spv::CapabilityShader, spv::CapabilityInputAttachment })
+			: SPIRVProgram<true>(spv::ExecutionModelFragment, _kMode, _sEntryPoint, _Extensions, _Capabilities) {}
 		virtual ~FragmentProgram() {}
 	};
 
@@ -188,11 +199,13 @@ namespace Tracy
 		const spv::ExecutionModel _kExecutionModel,
 		const spv::ExecutionMode _kExecutionMode,
 		const std::string& _sEntryPoint,
-		const std::vector<std::string>& _Extensions) :
+		const std::vector<std::string>& _Extensions,
+		const std::vector<spv::Capability>& _Capabilities) :
 		m_kExecutionModel(_kExecutionModel),
 		m_kExecutionMode(_kExecutionMode),
 		m_sEntryPoint(_sEntryPoint),
-		m_Extensions(_Extensions)
+		m_Extensions(_Extensions),
+		m_Capabilities(_Capabilities)
 	{
 	}
 

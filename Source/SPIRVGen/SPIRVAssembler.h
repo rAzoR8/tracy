@@ -81,6 +81,9 @@ namespace Tracy
 		void UseDefaultInputAttachmentIndex(const uint32_t _uStartIndex = 0u) noexcept;
 		void ConfigureOptimization(const OptimizationSettings& _Settings);
 
+		void RemoveUnusedOperations(const bool _bEnable = true) noexcept;
+		bool GetRemoveUnusedOperations() const noexcept;
+
 		void ForceNextLoads(const bool _bForce = true) noexcept;
 		bool GetForceNextLoads() const noexcept;
 
@@ -95,7 +98,6 @@ namespace Tracy
 		static SPIRVModule ExternalOptimize(const SPIRVModule& _Module, const OptimizationSettings& _Settings);
 
 	private:
-		// TODO: add support for compute mode settings (LocalSizeId etc)
 		void Init(const std::unique_ptr<SPIRVProgram<true>>& _pProgram);
 
 		void Resolve();
@@ -105,8 +107,6 @@ namespace Tracy
 		void AddInstruction(const SPIRVInstruction& _Instr);
 
 		void AssignId(SPIRVOperation& _Op);
-
-		//void RemoveUnused();
 
 		void FlagUnused();
 
@@ -143,7 +143,8 @@ namespace Tracy
 		std::string m_sEntryPoint;
 		spv::ExecutionModel m_kModel = spv::ExecutionModelMax;
 		spv::ExecutionMode m_kMode = spv::ExecutionModeMax;
-
+		std::vector<spv::Capability> m_Capabilities;
+		
 		std::vector<SPIRVInstruction> m_Instructions;
 
 		uint32_t m_uDefaultSet = HUNDEFINED32;
@@ -199,6 +200,16 @@ namespace Tracy
 	inline void SPIRVAssembler::ConfigureOptimization(const OptimizationSettings & _Settings)
 	{
 		m_OptSettings = _Settings;
+	}
+
+	inline void SPIRVAssembler::RemoveUnusedOperations(const bool _bEnable) noexcept
+	{
+		m_bRemoveUnused = _bEnable;
+	}
+
+	inline bool SPIRVAssembler::GetRemoveUnusedOperations() const noexcept
+	{
+		return m_bRemoveUnused;
 	}
 
 	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce) noexcept

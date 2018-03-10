@@ -40,7 +40,7 @@ namespace Tracy
 		SPIRVModule(const SPIRVModule& _Other);
 		SPIRVModule(const std::vector<uint32_t>& _Optimized, const SPIRVModule& _Other);
 		SPIRVModule(const uint32_t _uBounds = 4096) noexcept;
-		~SPIRVModule();
+		virtual ~SPIRVModule();
 
 		//bool Read(std::vector<uint32_t> _InstructionStream);
 		void Write(const std::vector<SPIRVInstruction>& _Instructions);
@@ -60,6 +60,9 @@ namespace Tracy
 
 		void SetExtensions(const std::vector<std::string>& _Extensions);
 		const std::vector<std::string>& GetExtensions() const noexcept;
+
+		void SetCapabilities(const std::vector<spv::Capability>& _Capabilities);
+		const std::vector<spv::Capability>& GetCapabilities() const noexcept;
 
 		void SetExecutionMode(const spv::ExecutionMode _kMode) noexcept;
 		void SetExecutionModel(const spv::ExecutionModel _kModel) noexcept;
@@ -90,6 +93,7 @@ namespace Tracy
 		spv::ExecutionModel m_kModel = spv::ExecutionModelMax;
 		spv::ExecutionMode m_kMode = spv::ExecutionModeMax;
 		std::vector<std::string> m_Extensions;
+		std::vector<spv::Capability> m_Capabilities;
 	};
 
 	inline const size_t& SPIRVModule::GetHash() const noexcept { return m_uHash; }
@@ -123,6 +127,14 @@ namespace Tracy
 	inline const std::vector<std::string>& SPIRVModule::GetExtensions() const noexcept
 	{
 		return m_Extensions;
+	}
+	inline void SPIRVModule::SetCapabilities(const std::vector<spv::Capability>& _Capabilities)
+	{
+		m_Capabilities = _Capabilities;
+	}
+	inline const std::vector<spv::Capability>& SPIRVModule::GetCapabilities() const noexcept
+	{
+		return m_Capabilities;
 	}
 	inline void SPIRVModule::SetExecutionMode(const spv::ExecutionMode _kMode) noexcept
 	{

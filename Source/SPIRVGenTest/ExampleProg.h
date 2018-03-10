@@ -11,7 +11,12 @@ namespace Tracy
 	class ExampleProg : public SPIRVProgram<Assemble>
 	{
 	public:
-		ExampleProg() : SPIRVProgram<Assemble>() { AddExtension(ExtAMD::ExtGCNShader); };
+		ExampleProg() : SPIRVProgram<Assemble>()
+		{ 
+			AddExtension(ExtAMD::ExtGCNShader);
+			AddCapability(spv::CapabilityInt64);
+		};
+
 		~ExampleProg() {};
 
 		struct B
@@ -42,7 +47,7 @@ namespace Tracy
 			u32 size = TestArray.Length();
 			f32 sum = 0.f;
 
-			auto time = ExtAMD::GCNShader::Time<!Assemble>();
+			auto time = ExtAMD::GCNShader::Time<Assemble>();
 
 			complex z1(3.0f, 4.0f);
 			complex z2(3.0f, -2.0f);
