@@ -8,6 +8,30 @@
 namespace Tracy
 {
 	//---------------------------------------------------------------------------------------------------
+	// create operation with no operands
+	template <bool Assemble, class OpFunc, class T = std::invoke_result_t<OpFunc>, class ...Ops>
+	inline var_t<T, Assemble, spv::StorageClassFunction> make_op0(const OpFunc& _OpFunc, const Ops ..._Ops)
+	{
+		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc();
+		}
+		else // Assemble
+		{
+			spv::Op kOpCode = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
+
+			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
+
+			var.uResultId = GlobalAssembler.AddOperation(Op);
+		}
+
+		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// create operation with one operand
 	template <class U, class OpFunc, bool Assemble, spv::StorageClass C1, class T = std::invoke_result_t<OpFunc, const U&>, class ...Ops>
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_op1(const var_t<U, Assemble, C1>& l, const OpFunc& _OpFunc, const Ops ..._Ops)
