@@ -117,6 +117,9 @@ void SPIRVAssembler::Init(const std::unique_ptr<SPIRVProgram<true>>& _pProgram)
 	// TODO: only add for fragment shaders!
 	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityInputAttachment)))));
 
+	//TODO: store capability info in SPIRVProgram
+	AddPreambleId(AddOperation(SPIRVOperation(spv::OpCapability, SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(spv::CapabilityInt64)))));
+
 	// OpExtension (unused)
 
 	// OpExtInstImport

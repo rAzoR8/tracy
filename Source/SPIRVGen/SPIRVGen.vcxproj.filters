@@ -69,6 +69,9 @@
     <ClInclude Include="SPIRVBranchOperations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SPIRVExtensionAMD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SPIRVAssembler.cpp">

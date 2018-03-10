@@ -94,6 +94,7 @@
   <ItemGroup>
     <ClInclude Include="SPIRVBinaryDefines.h" />
     <ClInclude Include="SPIRVComplex.h" />
+    <ClInclude Include="SPIRVExtensionAMD.h" />
     <ClInclude Include="SPIRVInlineAssembler.h" />
     <ClInclude Include="SPIRVQuaternion.h" />
     <ClInclude Include="SPIRVVariableTypes.h" />

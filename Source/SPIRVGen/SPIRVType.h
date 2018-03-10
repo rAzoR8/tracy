@@ -85,6 +85,8 @@ namespace Tracy
 		static SPIRVType Bool() { return SPIRVType(spv::OpTypeBool, 0u, false); }
 		static SPIRVType Int() { return SPIRVType(spv::OpTypeInt, 32u, true); }
 		static SPIRVType UInt() { return SPIRVType(spv::OpTypeInt, 32u, false); }
+		static SPIRVType Int64() { return SPIRVType(spv::OpTypeInt, 64u, true); }
+		static SPIRVType UInt64() { return SPIRVType(spv::OpTypeInt, 64u, false); }
 		static SPIRVType Short() { return SPIRVType(spv::OpTypeInt, 16u, true); }
 		static SPIRVType UShort() { return SPIRVType(spv::OpTypeInt, 16u, false); }
 		static SPIRVType Float() { return SPIRVType(spv::OpTypeFloat, 32u, true); }
@@ -257,7 +259,13 @@ namespace Tracy
 	inline SPIRVType SPIRVType::FromBaseType<int32_t>(){return SPIRVType::Primitive<int32_t>();}
 
 	template<>
+	inline SPIRVType SPIRVType::FromBaseType<int64_t>() { return SPIRVType::Primitive<int64_t>(); }
+
+	template<>
 	inline SPIRVType SPIRVType::FromBaseType<uint32_t>() { return SPIRVType::Primitive<uint32_t>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromBaseType<uint64_t>() { return SPIRVType::Primitive<uint64_t>(); }
 
 	template<>
 	inline SPIRVType SPIRVType::FromBaseType<int2_t>() { return SPIRVType::Vec<int32_t, 2>(); }

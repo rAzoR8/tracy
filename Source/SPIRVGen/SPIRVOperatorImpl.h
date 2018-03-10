@@ -61,6 +61,38 @@ namespace Tracy
 
 		return var;
 	}
+
+	//---------------------------------------------------------------------------------------------------
+	// extension operation with no operands
+	template <bool Assemble, class OpFunc, class T = std::invoke_result_t<OpFunc>, class ...Ops >
+	inline var_t<T, Assemble, spv::StorageClassFunction> make_ext_op0(const OpFunc& _OpFunc, const std::string& _sExt, const Ops ..._Ops)
+	{
+		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc();
+		}
+		else
+		{
+			uint32_t kOpCode = OpTypeDecider<base_type_t<T>>(_Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
+
+			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
+			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
+
+			SPIRVOperation Op(spv::OpExtInst, var.uTypeId, // result type
+				{
+					SPIRVOperand(kOperandType_Intermediate, uExtId),
+					SPIRVOperand(kOperandType_Literal, kOpCode) // instr opcode
+				});
+
+			var.uResultId = GlobalAssembler.AddOperation(Op);
+		}
+
+		return var;
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// extension operation with one operand
 	template <class U, class OpFunc, bool Assemble, spv::StorageClass C1, class T = std::invoke_result_t<OpFunc, const U&>, class ...Ops >

@@ -149,12 +149,14 @@ namespace Tracy
 		inline const spv::ExecutionMode GetExecutionMode() const { return m_kExecutionMode; }
 		inline const std::string& GetEntryPoint() const { return m_sEntryPoint; }
 		inline const std::vector<std::string>& GetExtensions() const { return m_Extensions; }
+		// should only be called in the constructor of the derived program
+		inline void AddExtension(const std::string& _sExtension) { m_Extensions.push_back(_sExtension); }
 
 	protected:
 		const spv::ExecutionModel m_kExecutionModel;
 		const spv::ExecutionMode m_kExecutionMode;
 		const std::string m_sEntryPoint;
-		const std::vector<std::string> m_Extensions;
+		/*const*/ std::vector<std::string> m_Extensions;
 	};
 
 	//---------------------------------------------------------------------------------------------------
