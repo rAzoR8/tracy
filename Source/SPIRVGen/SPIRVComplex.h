@@ -12,16 +12,6 @@ namespace Tracy
 	{
 		using var_t::var_t;
 
-		//SPRIVComplex() {};
-
-		// construct from real & imaginary
-		template <spv::StorageClass C1, spv::StorageClass C2>
-		SPIRVComplex(const var_t<float, Assemble, C1>& _rReal, const var_t<float, Assemble, C2>& _rImaginary);
-
-		// construct from float2
-		//template <spv::StorageClass C1>
-		//SPRIVComplex(const var_t<float2_t, Assemble, C1>& _vComplex);
-
 		template <spv::StorageClass C1>
 		const SPIRVComplex& operator=(const SPIRVComplex<Assemble, C1>& _Other) const;
 
@@ -32,19 +22,13 @@ namespace Tracy
 		// operators
 		template <spv::StorageClass C1>
 		const SPIRVComplex& operator*=(const SPIRVComplex<Assemble, C1>& _Other) const;
-		template <spv::StorageClass C1>
-		const SPIRVComplex& operator*=(const var_t<float, Assemble, C1>& _fScalar) const;
-
-		template <spv::StorageClass C1>
-		const SPIRVComplex& operator+=(const SPIRVComplex<Assemble, C1>& _Other) const;
-
-		template <spv::StorageClass C1>
-		const SPIRVComplex& operator-=(const SPIRVComplex<Assemble, C1>& _Other) const;
 
 		template <spv::StorageClass C1>
 		const SPIRVComplex& operator/=(const SPIRVComplex<Assemble, C1>& _Other) const;
 	};
 
+	//---------------------------------------------------------------------------------------------------
+	// assignment
 	template<bool Assemble, spv::StorageClass Class>
 	template <spv::StorageClass C1>
 	inline const SPIRVComplex<Assemble, Class>& SPIRVComplex<Assemble, Class>::operator=(const SPIRVComplex<Assemble, C1>& _Other) const
@@ -55,26 +39,19 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	template<bool Assemble, spv::StorageClass Class>
-	template<spv::StorageClass C1, spv::StorageClass C2>
-	inline SPIRVComplex<Assemble, Class>::SPIRVComplex(const var_t<float, Assemble, C1>& _rReal, const var_t<float, Assemble, C2>& _rImaginary)
-	{
-		x = _rReal;
-		y = _rImaginary;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-	template<bool Assemble, spv::StorageClass Class>
 	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Conjugate() const
 	{
 		return x*x + y*y;
 	}
+	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble, spv::StorageClass Class>
 	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Norm() const
 	{
 		return Sqrtf(Conjugate());
 	}
-
+	//---------------------------------------------------------------------------------------------------
+	// inverse
 	template<bool Assemble, spv::StorageClass Class>
 	inline SPIRVComplex<Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Inverse() const
 	{
@@ -106,87 +83,11 @@ namespace Tracy
 		return *this;
 	}
 
-	template<bool Assemble, spv::StorageClass Class>
-	template<spv::StorageClass C1>
-	inline const SPIRVComplex<Assemble, Class>& SPIRVComplex<Assemble, Class>::operator*=(const var_t<float, Assemble, C1>& _fScalar) const
-	{
-		x *= _fScalar;
-		y *= _fScalar;
-		return *this;
-	}
-
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator*(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2)
 	{
 		auto COut = SPIRVComplex<Assemble, spv::StorageClassFunction>();
 		CMul(_c1, _c2, COut);
-		return COut;
-	}
-
-	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator*(const SPIRVComplex<Assemble, C1>& _c1, const var_t<float, Assemble, C2>& _fScalar)
-	{
-		auto COut = SPIRVComplex<Assemble, spv::StorageClassFunction>();
-		COut.x = _c1.x * _fScalar;
-		COut.y = _c1.y * _fScalar;
-		return COut;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-	// Complex Sum
-	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
-	inline void CAdd(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2, SPIRVComplex<Assemble, C3>& _cOut)
-	{
-		// z1+z2 = (a1 + b1i)+(a2 + b2i) =
-		//		 = (a1+a2)+(b1+b2)i
-		const auto A1 = _c1.x; const auto B1 = _c2.y;
-		const auto A2 = _c2.x; const auto B2 = _c2.y;
-		_cOut.x = A1 + A2;
-		_cOut.y = B1 + B2;
-	}
-
-	template<bool Assemble, spv::StorageClass Class>
-	template<spv::StorageClass C1>
-	inline const SPIRVComplex<Assemble, Class>& SPIRVComplex<Assemble, Class>::operator+=(const SPIRVComplex<Assemble, C1>& _Other) const
-	{
-		CAdd(*this, _Other, *this);
-		return *this;
-	}
-
-	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator+(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2)
-	{
-		auto COut = SPIRVComplex<Assemble, spv::StorageClassFunction>();
-		CAdd(_c1, _c2, COut);
-		return COut;
-	}
-
-	//---------------------------------------------------------------------------------------------------
-	// Complex Subtraction
-	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
-	inline void CSub(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2, SPIRVComplex<Assemble, C3>& _cOut)
-	{
-		// z1+z2 = (a1 + b1i)-(a2 + b2i) =
-		//		 = (a1-a2)+(b1-b2)i
-		const auto A1 = _c1.x; const auto B1 = _c2.y;
-		const auto A2 = _c2.x; const auto B2 = _c2.y;
-		_cOut.x = A1 - A2;
-		_cOut.y = B1 - B2;
-	}
-
-	template<bool Assemble, spv::StorageClass Class>
-	template<spv::StorageClass C1>
-	inline const SPIRVComplex<Assemble, Class>& SPIRVComplex<Assemble, Class>::operator-=(const SPIRVComplex<Assemble, C1>& _Other) const
-	{
-		CSub(*this, _Other, *this);
-		return *this;
-	}
-
-	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator-(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2)
-	{
-		auto COut = SPIRVComplex<Assemble, spv::StorageClassFunction>();
-		CSub(_c1, _c2, COut);
 		return COut;
 	}
 
@@ -197,7 +98,7 @@ namespace Tracy
 	{
 		// z1+z2 = (a1 + b1i)/(a2 + b2i) =
 		//		 = (a1a2+b1b2)/(a2^2+b2^2) + (b1a2-a1b2)/(a2^2+b2^2)i
-		const auto A1 = _c1.x; const auto B1 = _c2.y;
+		const auto A1 = _c1.x; const auto B1 = _c1.y;
 		const auto A2 = _c2.x; const auto B2 = _c2.y;
 		const auto fRcpDenom = 1.0f / (A2 * A2 + B2 * B2);
 		_cOut.x = (A1*A2 + B1*B2) * fRcpDenom;
@@ -219,6 +120,33 @@ namespace Tracy
 		CDiv(_c1, _c2, COut);
 		return COut;
 	}
+
+	//---------------------------------------------------------------------------------------------------
+	// global operators from float2
+	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator*(const SPIRVComplex<Assemble, C1>& _c1, const var_t<float, Assemble, C2>& _fScalar)
+	{
+		return static_cast<const var_t<float2_t, Assemble, C1>&>(_c1) * static_cast<const var_t<float, Assemble, C2>&>(_fScalar);
+	}
+
+	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator/(const SPIRVComplex<Assemble, C1>& _c1, const var_t<float, Assemble, C2>& _fScalar)
+	{
+		return static_cast<const var_t<float2_t, Assemble, C1>&>(_c1) / static_cast<const var_t<float, Assemble, C2>&>(_fScalar);
+	}
+
+	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator+(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2)
+	{
+		return static_cast<const var_t<float2_t, Assemble, C1>&>(_c1) + static_cast<const var_t<float2_t, Assemble, C2>&>(_c2);
+	}
+
+	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline const SPIRVComplex<Assemble, spv::StorageClassFunction> operator-(const SPIRVComplex<Assemble, C1>& _c1, const SPIRVComplex<Assemble, C2>& _c2)
+	{
+		return static_cast<const var_t<float2_t, Assemble, C1>&>(_c1) - static_cast<const var_t<float2_t, Assemble, C2>&>(_c2);
+	}
+
 }
 
 

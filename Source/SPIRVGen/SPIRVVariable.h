@@ -5,6 +5,7 @@
 #include "SPIRVDecoration.h"
 #include "SPIRVType.h"
 #include "SPIRVAssembler.h"
+#include "HashUtils.h"
 //#include <string_view>
 
 namespace Tracy
@@ -15,6 +16,12 @@ namespace Tracy
 		kOpTypeBase_Operand1,
 		kOpTypeBase_Operand2,
 		kOpTypeBase_Operand3
+	};
+
+	struct ComponentInfo
+	{
+		uint32_t uComponentId = HUNDEFINED32;
+		uint32_t uLastStoredId = HUNDEFINED32; // last result written to this var
 	};
 
 	constexpr uint32_t kAlignmentSize = 16u;
@@ -80,6 +87,9 @@ namespace Tracy
 
 		SPIRVType Type;
 		mutable std::vector<SPIRVDecoration> Decorations;
+
+		// dim & indices -> component
+		mutable std::unordered_map<uint64_t, ComponentInfo> ExtractedComponents;
 
 		void Decorate(const SPIRVDecoration& _Decoration);
 		void MaterializeDecorations() const;
@@ -470,6 +480,20 @@ namespace Tracy
 					return var;
 				}
 
+				const uint64_t uComponentHash = hlx::Hash(Dim, v0, v1, v2, v3);
+				auto comp_it = ExtractedComponents.find(uComponentHash);
+				
+				// check if this component has already been extracted and variable was not overwritten since then
+				if (comp_it != ExtractedComponents.end())
+				{
+					const ComponentInfo& Comp = comp_it->second;
+					if (Comp.uLastStoredId == uLastStoredId)
+					{
+						var.uResultId = Comp.uComponentId;
+						return var;
+					}
+				}
+
 				const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<T>>());
 				std::array<uint32_t, 4> Indices = { v0, v1, v2, v3 };
 				SPIRVOperation Op;
@@ -512,6 +536,13 @@ namespace Tracy
 				}
 
 				var.uResultId = GlobalAssembler.AddOperation(Op);
+
+				// cache extracted component
+				ComponentInfo Comp{};
+				Comp.uLastStoredId = uLastStoredId;
+				Comp.uComponentId = var.uResultId;
+
+				ExtractedComponents.insert_or_assign(uComponentHash, Comp);
 			}
 
 			return var;

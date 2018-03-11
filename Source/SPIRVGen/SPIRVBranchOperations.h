@@ -157,7 +157,7 @@ namespace Tracy
 			const uint32_t uConditionLabelId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 			pOpBranch->AddIntermediate(uConditionLabelId);
 
-			GlobalAssembler.ForceNextLoads();
+			//GlobalAssembler.ForceNextLoads();
 
 			// tranlate condition var
 			const auto& CondVar = _CondFunc();
@@ -187,7 +187,7 @@ namespace Tracy
 
 			pOpBranchCond->AddIntermediate(uExitId); // structured merge
 
-			GlobalAssembler.ForceNextLoads(false);
+			//GlobalAssembler.ForceNextLoads(false);
 		}
 	}
 	//---------------------------------------------------------------------------------------------------
