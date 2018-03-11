@@ -402,18 +402,34 @@ namespace Tracy
 	template <class T>
 	constexpr bool is_square_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float4x4_t>();
 
-	// TODO: half & unorm etc
+	// TODO: unorm etc
 	template <class T>
-	constexpr bool is_base_float = hlx::is_of_type<base_type_t<T>, float, double>();
+	constexpr bool is_int_type = hlx::is_of_type<T, int8_t, int16_t, int32_t, int64_t>();
 
 	template <class T>
-	constexpr bool is_base_int = hlx::is_of_type<base_type_t<T>, int32_t, int64_t>();
+	constexpr bool is_uint_type = hlx::is_of_type<T, uint8_t, uint16_t, uint32_t, uint64_t>();
 
 	template <class T>
-	constexpr bool is_base_uint = hlx::is_of_type<base_type_t<T>, uint32_t, uint64_t>();
+	constexpr bool is_float_type = hlx::is_of_type<T, float, double>();
+
+	template <class T>
+	constexpr bool is_numeric_type = hlx::is_of_type<T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double>();
+
+	template <class T>
+	constexpr bool is_base_float = is_float_type<base_type_t<T>>;
+
+	template <class T>
+	constexpr bool is_base_int = is_int_type<base_type_t<T>>;
+
+	template <class T>
+	constexpr bool is_base_uint = is_uint_type<base_type_t<T>>;
 
 	template <class T>
 	constexpr bool is_base_integer = is_base_int<T> || is_base_uint<T>;
+
+	// not c++ convertible but OpConvertXtoY should exist for this type
+	template <class U, class V> // rename to numeric convertible?
+	constexpr bool is_convertible = /*Dimmension<U> == Dimmension<V> &&*/ is_numeric_type<base_type_t<U>> && is_numeric_type<base_type_t<V>>;
 
 #pragma region texture_types
 
@@ -530,13 +546,6 @@ namespace Tracy
 	template <class T>
 	constexpr bool is_valid_type = !std::is_same_v<std::false_type, T>;
 
-	// // why is there a float again? better rename to numeric type
-	template <class T>
-	constexpr bool is_base_integral_type = hlx::is_of_type<T, int32_t, uint32_t, float>();
-
-	template <class U, class V>
-	constexpr bool is_convertible = is_base_integral_type<U> && is_base_integral_type<V>;
-
 	template <class U, class V>
 	using longer_type_t = cond_t<Dimmension<U> >= Dimmension<V>, U, V>;
 
@@ -569,13 +578,13 @@ namespace Tracy
 	template <class U, class V, typename = std::enable_if_t<Dimmension<U> == Dimmension<V>>>
 	constexpr spv::Op GetConvertOp()
 	{
-		if constexpr(std::is_same_v<base_type_t<U>, float> && std::is_same_v<base_type_t<V>, int32_t>)
+		if constexpr(is_base_float<U> && is_base_int<V>)
 			return spv::OpConvertFToS;
-		else if constexpr(std::is_same_v<base_type_t<U>, float> && std::is_same_v<base_type_t<V>, uint32_t>)
+		else if constexpr(is_base_float<U> && is_base_uint<V>)
 			return spv::OpConvertFToU;
-		else if constexpr(std::is_same_v<base_type_t<U>, int32_t> && std::is_same_v<base_type_t<V>, float>)
+		else if constexpr(is_base_int<U> && is_base_float<V>)
 			return spv::OpConvertSToF;
-		else if constexpr(std::is_same_v<base_type_t<U>, uint32_t> && std::is_same_v<base_type_t<V>, float>)
+		else if constexpr(is_base_uint<U> && is_base_float<V>)
 			return spv::OpConvertUToF;
 		else
 			return spv::OpNop;

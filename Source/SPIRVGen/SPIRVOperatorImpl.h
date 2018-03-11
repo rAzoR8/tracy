@@ -237,13 +237,13 @@ namespace Tracy
 		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 + v2; }, kOpTypeBase_Result, spv::OpFAdd, spv::OpIAdd);
 	}
 	// add with constant left
-	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_convertible<V, T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator+(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) + r;
 	}
 	// add with constant right
-	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_convertible<V, T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator+(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l + var_t<T, Assemble, spv::StorageClassFunction>((T)r);
@@ -256,13 +256,13 @@ namespace Tracy
 		return make_op2(l, r, [](const T& v1, const T& v2)-> T {return v1 - v2; }, kOpTypeBase_Result, spv::OpFSub, spv::OpISub);
 	}
 	// sub with constant left
-	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_convertible<V, T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator-(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) - r;
 	}
 	// sub with constant right
-	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_convertible<V, T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator-(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l - var_t<T, Assemble, spv::StorageClassFunction>((T)r);

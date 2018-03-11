@@ -12,6 +12,9 @@ namespace Tracy
 	{
 		using var_t::var_t;
 
+		//template <class ...Ts>
+		//SPIRVComplex(const Ts& ... args) : VarType(args...) {}
+
 		template <spv::StorageClass C1>
 		const SPIRVComplex& operator=(const SPIRVComplex<Assemble, C1>& _Other) const;
 
@@ -146,7 +149,6 @@ namespace Tracy
 	{
 		return static_cast<const var_t<float2_t, Assemble, C1>&>(_c1) - static_cast<const var_t<float2_t, Assemble, C2>&>(_c2);
 	}
-
 }
 
 

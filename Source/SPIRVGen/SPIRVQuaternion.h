@@ -5,15 +5,16 @@
 //http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
 namespace Tracy
 {
+	// from Assembly pov it might make more sense to define quaternion_t as {float s, float3_t v} to spare all the extract & insert operations when accessing components
+	// but the main benefit is that quaternion_t is a float4_t equivalent and can be indexed & transformed in the same way
+	// the previous version used the glm:quat type but since it does not derive from vec4 to inherit all the implemented operations & traits, float4_t is used here
+
 	template <bool Assemble = true, spv::StorageClass Class = spv::StorageClassFunction>
-	struct SPIRVQuaternion : public var_t<quaternion_t, Assemble, Class>
+	struct SPIRVQuaternion : public var_t<float4_t, Assemble, Class>
 	{
 		using var_t::var_t;
 
-		SPIRVQuaternion() {};
-
-		//template <spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, spv::StorageClass C4>
-		//SPIRVQuaternion(const var_t<float, Assemble, C1>& x, const var_t<float, Assemble, C2>& y, const var_t<float, Assemble, C3>& z, const var_t<float, Assemble, C3>& w);
+		SPIRVQuaternion() {}
 
 		// construct from rotation axis & radian angle
 		template <spv::StorageClass C1, spv::StorageClass C2>
@@ -21,29 +22,19 @@ namespace Tracy
 
 		template <spv::StorageClass C1>
 		const SPIRVQuaternion& operator*=(const SPIRVQuaternion<Assemble, C1>& _Other) const;
+
+		SPIRVQuaternion<Assemble, spv::StorageClassFunction> Conjugate() const;
 	};
 
-	//template<bool Assemble, spv::StorageClass Class>
-	//template<spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, spv::StorageClass C4>
-	//inline SPIRVQuaternion<Assemble, Class>::SPIRVQuaternion(const var_t<float, Assemble, C1>& x, const var_t<float, Assemble, C2>& y, const var_t<float, Assemble, C3>& z, const var_t<float, Assemble, C3>& w) :
-	//{
-	//}
 
 	//---------------------------------------------------------------------------------------------------
 	template<bool Assemble, spv::StorageClass Class>
 	template<spv::StorageClass C1, spv::StorageClass C2>
 	inline SPIRVQuaternion<Assemble, Class>::SPIRVQuaternion(const var_t<float3_t, Assemble, C1>& _vAxis, const var_t<float, Assemble, C2>& _fAngleRad)
 	{
-		if constexpr(Assemble == false)
-		{
-			Value = glm::angleAxis(_fAngleRad.Value, _vAxis.Value); //glm::degrees(_fAngleRad)
-		}
-		else
-		{
-			const auto a = _fAngleRad * 0.5f;
-			xyz = _vAxis * Sin(a);
-			w = Cos(a);
-		}
+		const auto a = _fAngleRad * 0.5f;
+		xyz = _vAxis * Sin(a);
+		w = Cos(a);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -52,31 +43,25 @@ namespace Tracy
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
 	inline void QMul(const SPIRVQuaternion<Assemble, C1>& q1, const SPIRVQuaternion<Assemble, C2>& q2, const SPIRVQuaternion<Assemble, C3>& qout)
 	{
-		if constexpr(Assemble == false)
-		{
-			qout.Value = q1.Value * q2.Value; //glm
-		}
-		else
-		{
-			//https://gist.github.com/mattatz/40a91588d5fb38240403f198a938a593
-			//var.xyz = q2.xyz * q1.w + q1.xyz * q2.w + cross(q1.xyz, q2.xyz);
-			//var.w = q1.w * q2.w - dot(q1.xyz, q2.xyz);
+		//https://gist.github.com/mattatz/40a91588d5fb38240403f198a938a593
+		//var.xyz = q2.xyz * q1.w + q1.xyz * q2.w + cross(q1.xyz, q2.xyz);
+		//var.w = q1.w * q2.w - dot(q1.xyz, q2.xyz);
 
-			const auto q1axis = q1.xyz; const auto q1angle = q1.w;
-			const auto q2axis = q2.xyz; const auto q2angle = q2.w;
-			qout.xyz = q2axis * q1angle + q1axis * q2angle + Cross(q1axis, q2axis);
-			qout.w = q1angle * q2angle - Dot(q1axis, q2axis);
-		}
+		const auto q1axis = q1.xyz; const auto q1angle = q1.w;
+		const auto q2axis = q2.xyz; const auto q2angle = q2.w;
+		qout.xyz = q2axis * q1angle + q1axis * q2angle + Cross(q1axis, q2axis);
+		qout.w = q1angle * q2angle - Dot(q1axis, q2axis);
 	}
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline SPIRVQuaternion<Assemble, spv::StorageClassFunction> operator*(const SPIRVQuaternion<Assemble, C1>& q1, const SPIRVQuaternion<Assemble, C2>& q2)
+	inline SPIRVQuaternion<Assemble, spv::StorageClassFunction> operator*(const SPIRVQuaternion<Assemble, C1>& l, const SPIRVQuaternion<Assemble, C2>& r)
 	{
 		auto var = SPIRVQuaternion<Assemble, spv::StorageClassFunction>();	
-		QMul(q1, q2, var);
+		QMul(l, r, var);
 		return var;
 	}
+
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble, spv::StorageClass Class>
@@ -86,6 +71,15 @@ namespace Tracy
 		QMul(*this, _Other, *this);
 		return *this;
 	}
+
+	//---------------------------------------------------------------------------------------------------
+
+	template<bool Assemble, spv::StorageClass Class>
+	inline SPIRVQuaternion<Assemble, spv::StorageClassFunction> SPIRVQuaternion<Assemble, Class>::Conjugate() const
+	{
+		return SPIRVQuaternion<Assemble, spv::StorageClassFunction>(xyz * -1.f, w);
+	}
+
 }//
 
 #endif // !TRACY_SPIRVQUATERNION_H

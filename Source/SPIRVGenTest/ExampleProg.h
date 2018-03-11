@@ -99,6 +99,7 @@ namespace Tracy
 
 			auto q = q1 * q2;
 			q *= q2;
+			q = q + q2;
 
 			auto sp = SpecConst<float>(2.f);
 
