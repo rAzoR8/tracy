@@ -44,14 +44,15 @@ namespace Tracy
 	template<bool Assemble, spv::StorageClass Class>
 	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Conjugate() const
 	{
-		return x*x + y*y;
+		return Dot(*this, *this)
+		//return x*x + y*y;
 	}
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble, spv::StorageClass Class>
 	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Norm() const
 	{
-		return Sqrtf(Conjugate());
+		return Sqrt(Conjugate());
 	}
 	//---------------------------------------------------------------------------------------------------
 	// inverse

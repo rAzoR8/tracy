@@ -334,10 +334,21 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// DIV
-	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class T = longer_type_t<U, V>>
+	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2,
+		class T = longer_type_t<U, V>,
+		class BaseType = base_type_t<V>,
+		typename = std::enable_if_t<std::is_same_v<V, base_type_t<U>> || std::is_same_v<U, V>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator/(const var_t<U, Assemble, C1>& l, const var_t<V, Assemble, C2>& r)
 	{
-		return make_op2(l, r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, kOpTypeBase_Result, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv); // kOpTypeBase_Operand1
+		//The types of Operand 1 and Operand 2 both must be the same as Result Type
+		if constexpr(std::is_same_v<U, V>)
+		{
+			return make_op2(l, r, [](const U& v1, const V& v2)-> T {return v1 / v2; }, kOpTypeBase_Result, spv::OpFDiv, spv::OpSDiv, spv::OpUDiv);
+		}
+		else // if right operand is a scalar, multiply with inverse
+		{
+			return l * var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)1 / r);
+		}
 	}
 	// div with constant left
 	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<V>, typename = std::enable_if_t<is_convertible<U, BaseType>>>

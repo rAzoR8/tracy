@@ -24,6 +24,13 @@ namespace Tracy
 		const SPIRVQuaternion& operator*=(const SPIRVQuaternion<Assemble, C1>& _Other) const;
 
 		SPIRVQuaternion<Assemble, spv::StorageClassFunction> Conjugate() const;
+		var_t<float, Assemble, spv::StorageClassFunction> Norm() const;
+		SPIRVQuaternion<Assemble, spv::StorageClassFunction> Inverse() const;
+
+		var_t<float3_t, Assemble, spv::StorageClassFunction> Rotate(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const;
+
+		// assumes quaternion has unit length => q^-1 = conjugate(q)
+		var_t<float3_t, Assemble, spv::StorageClassFunction> RotateUnit(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const;
 	};
 
 
@@ -78,6 +85,30 @@ namespace Tracy
 	inline SPIRVQuaternion<Assemble, spv::StorageClassFunction> SPIRVQuaternion<Assemble, Class>::Conjugate() const
 	{
 		return SPIRVQuaternion<Assemble, spv::StorageClassFunction>(xyz * -1.f, w);
+	}
+
+	template<bool Assemble, spv::StorageClass Class>
+	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVQuaternion<Assemble, Class>::Norm() const
+	{
+		return Sqrt(Dot(*this, *this));
+	}
+
+	template<bool Assemble, spv::StorageClass Class>
+	inline SPIRVQuaternion<Assemble, spv::StorageClassFunction> SPIRVQuaternion<Assemble, Class>::Inverse() const
+	{
+		return Conjugate() / Dot(*this, *this);
+	}
+
+	template<bool Assemble, spv::StorageClass Class>
+	inline var_t<float3_t, Assemble, spv::StorageClassFunction> SPIRVQuaternion<Assemble, Class>::Rotate(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const
+	{
+		return (*this * SPIRVQuaternion<Assemble, spv::StorageClassFunction>(_Point, 0.f) * Inverse()).xyz;
+	}
+
+	template<bool Assemble, spv::StorageClass Class>
+	inline var_t<float3_t, Assemble, spv::StorageClassFunction> SPIRVQuaternion<Assemble, Class>::RotateUnit(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const
+	{
+		return (*this * SPIRVQuaternion<Assemble, spv::StorageClassFunction>(_Point, 0.f) * Conjugate()).xyz;
 	}
 
 }//

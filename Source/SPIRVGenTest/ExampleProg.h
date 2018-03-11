@@ -101,6 +101,9 @@ namespace Tracy
 			q *= q2;
 			q = q + q2;
 
+			v3 = q.Rotate(v3);
+			v3 = q.RotateUnit(v3);
+
 			auto sp = SpecConst<float>(2.f);
 
 			auto res = m34 * v3 * sp; // instead of using mul
