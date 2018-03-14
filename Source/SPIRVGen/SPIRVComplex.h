@@ -44,7 +44,7 @@ namespace Tracy
 	template<bool Assemble, spv::StorageClass Class>
 	inline var_t<float, Assemble, spv::StorageClassFunction> SPIRVComplex<Assemble, Class>::Conjugate() const
 	{
-		return Dot(*this, *this)
+		return Dot(*this, *this);
 		//return x*x + y*y;
 	}
 	//---------------------------------------------------------------------------------------------------

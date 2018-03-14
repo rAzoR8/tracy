@@ -854,6 +854,8 @@ namespace Tracy
 	{
 		return make_ext_op2(I, N, [](const T& i, const T& n) {return glm::reflect(i, n); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Reflect);
 	}
+	//---------------------------------------------------------------------------------------------------
+
 	// Refract: For the incident vector I and surface normal N, and the ratio of indices of refraction eta, the result is the refraction vector.
 	// The result is computed by k = 1.0 - eta * eta * (1.0 - dot(N,I) * dot(N,I))
 	// if k < 0.0 the result is 0.0	otherwise, the result is eta * I - (eta	* dot(N,I) + sqrt(k)) *	N
@@ -871,6 +873,48 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// Clamp
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Clamp(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Min, const var_t<T, Assemble, C3>& Max)
+	{
+		return make_ext_op3(X, Min, Max, [](const T& x, const T& min, const T& max) -> T{return glm::clamp(x, min, max); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FClamp, GLSLstd450SClamp, GLSLstd450UClamp);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// Min
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y)
+	{
+		return make_ext_op2(X, Y, [](const T& x, const T& y) -> T {return glm::min(x, y); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FMin, GLSLstd450SMin, GLSLstd450UMin);
+	}
+	//---------------------------------------------------------------------------------------------------
+	//Max
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y)
+	{
+		return make_ext_op2(X, Y, [](const T& x, const T& y) -> T {return glm::max(x, y); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FMax, GLSLstd450SMax, GLSLstd450UMax);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// Mix  linear blend of x and y , i.e., x * (1-a) + y*a
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Mix(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const var_t<T, Assemble, C3>& A)
+	{
+		return make_ext_op3(X, Y, A, [](const T& x, const T& y, const T& a) -> T {return glm::mix(x, y, a); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FMix, GLSLstd450IMix);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// Step Result is 0.0 if x < edge; otherwise result is 1.0
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Step(const var_t<T, Assemble, C1>& Edge, const var_t<T, Assemble, C2>& X)
+	{
+		return make_ext_op2(Edge, X, [](const T& e, const T& x) -> T {return glm::step(e, x); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Step);
+	}
+	//---------------------------------------------------------------------------------------------------
+	// SmoothStep 
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> SmoothStep(const var_t<T, Assemble, C1>& Edge1, const var_t<T, Assemble, C2>& Edge2, const var_t<T, Assemble, C3>& X)
+	{
+		return make_ext_op3(Edge1, Edge2, X, [](const T& e1, const T& e2, const T& x) -> T {return glm::smoothstep(e1, e2, x); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450SmoothStep);
+	}
+	//---------------------------------------------------------------------------------------------------
 	// HELPER FUNCTIONS
 	//---------------------------------------------------------------------------------------------------
 
@@ -878,7 +922,8 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Lerp(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r, const var_t<float, Assemble, C3> t)
 	{
-		return l * (1.f - t) + r * t;
+		//return l * (1.f - t) + r * t;
+		return Mix(l, r, t);
 	}
 
 	//---------------------------------------------------------------------------------------------------
