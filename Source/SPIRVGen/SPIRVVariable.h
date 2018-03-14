@@ -10,6 +10,30 @@
 
 namespace Tracy
 {
+	// get value of var_t<> based on type
+	template<class T>
+	auto get_arg_value(const T& var)
+	{
+		if constexpr(is_var<T>)
+		{
+			return var.Value;
+		}
+		else
+		{
+			return var;
+		}
+	}
+
+	template <class T, class ...Ts>
+	const T& get_first_arg(const T& _first, const Ts& ..._args) { return _first; }
+
+	//forward decl
+	template <class T, bool Assemble, spv::StorageClass Class>
+	struct var_t;
+
+	template <class T, bool Assemble, spv::StorageClass Class, class ...Ts>
+	const var_t<T, Assemble, Class>& get_first_var(const var_t<T, Assemble, Class>& _first, const Ts& ..._args) { return _first; }
+
 	enum EOpTypeBase : uint32_t
 	{
 		kOpTypeBase_Result,
@@ -262,7 +286,7 @@ namespace Tracy
 #include "SPIRVVectorComponentAccess.h"
 #pragma endregion
 
-#pragma region sample tex
+#pragma region sample_tex
 		template <
 			spv::StorageClass C1,
 			spv::StorageClass C2,
@@ -305,6 +329,7 @@ namespace Tracy
 				const uint32_t uSampleResultId = GlobalAssembler.AddOperation(OpSampleImageImplicitLod);
 				if constexpr(std::is_same_v<TexCompT, ReturnType> == false)
 				{
+					// TODO: use vector access instead
 					const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<TexCompT>());
 					const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<BaseRetType>());
 
@@ -331,6 +356,46 @@ namespace Tracy
 			return var;
 		}
 
+#pragma endregion
+
+#pragma region texture_size
+		template <class Tex = T, class ...Ts> // args must be emty or var_t<int32> for LoD
+		inline std::enable_if_t<is_texture<Tex>, var_t<vec_type_t<int32_t, tex_real_dim_v<Tex>>, Assemble, spv::StorageClassFunction>> Dimmensions(const Ts& ... _args) const
+		{
+			auto var = var_t<vec_type_t<int32_t, tex_real_dim_v<Tex>>, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+			constexpr size_t uArgs = sizeof...(_args);
+
+			std::vector<SPIRVOperand> Operands(1u, SPIRVOperand::Intermediate(Load()));
+
+			if constexpr(Assemble)
+			{
+				spv::Op kSizeOp = spv::OpNop;
+				if constexpr (uArgs > 0)
+				{
+					const auto& lod = get_first_var(_args...);
+					//using LodType = decltype(lod);
+					//static_assert(is_integer_type<typename LodType::ValueType>, "LoD argument type must be int32_t");
+
+					kSizeOp = spv::OpImageQuerySizeLod;
+					Operands.push_back(SPIRVOperand::Intermediate(lod.Load()));
+				}
+				else
+				{
+					kSizeOp = spv::OpImageQuerySize;
+				}
+
+				SPIRVOperation OpImageQuerySize(kSizeOp, var.uTypeId, Operands);
+
+				var.uResultId = GlobalAssembler.AddOperation(OpImageQuerySize);
+			}
+			else
+			{
+				// TODO: no image size info implemented atm
+			}
+
+			return var;
+		}
 #pragma endregion
 
 	private:
@@ -1118,27 +1183,6 @@ namespace Tracy
 			ExtractCompnents(_Op, _Rest...);
 		}
 	}
-
-	//---------------------------------------------------------------------------------------------------
-	// get value of var_t<> based on type
-	template<class T>
-	auto get_arg_value(const T& var)
-	{
-		if constexpr(is_var<T>)
-		{
-			return var.Value;
-		}
-		else
-		{
-			return var;
-		}
-	}
-
-	template <class T, class ...Ts>
-	const T& get_first_arg(const T& _first, const Ts& ..._args) { return _first; }
-
-	template <class T, bool Assemble, spv::StorageClass Class, class ...Ts>
-	const var_t<T, Assemble, Class>& get_first_var(const var_t<T, Assemble, Class>& _first, const Ts& ..._args) { return _first; }
 
 	//---------------------------------------------------------------------------------------------------
 	template<typename T, bool Assemble, spv::StorageClass Class>

@@ -410,6 +410,9 @@ namespace Tracy
 	constexpr bool is_uint_type = hlx::is_of_type<T, uint8_t, uint16_t, uint32_t, uint64_t>();
 
 	template <class T>
+	constexpr bool is_integer_type = is_int_type<T> || is_uint_type<T>;
+
+	template <class T>
 	constexpr bool is_float_type = hlx::is_of_type<T, float, double>();
 
 	template <class T>
@@ -522,6 +525,12 @@ namespace Tracy
 
 	template <class TexT> // TexT = tex_t variant
 	using tex_coord_t = typename TexT::TexCoordType;
+
+	template <class TexT> // TexT = tex_t variant
+	constexpr spv::Dim tex_dim_v = TexT::Dim;
+
+	template <class TexT> // TexT = tex_t variant
+	constexpr uint32_t tex_real_dim_v = SPVDimToRealDim(TexT::Dim);
 
 #pragma endregion
 

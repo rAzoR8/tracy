@@ -15,6 +15,8 @@ namespace Tracy
 		{ 
 			AddExtension(ExtAMD::ExtGCNShader);
 			AddCapability(spv::CapabilityInt64);
+			AddCapability(spv::CapabilityImageQuery);
+			GlobalAssembler.RemoveUnusedOperations(false); // for debugging
 		};
 
 		~ExampleProg() {};
@@ -45,6 +47,10 @@ namespace Tracy
 		inline void operator()()
 		{
 			u32 size = TestArray.Length();
+
+			auto dims = InputImg.Dimmensions(size);
+			//v3.xy = dims;
+
 			f32 sum = 0.f;
 
 			auto time = ExtAMD::GCNShader::Time<Assemble>();
