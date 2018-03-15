@@ -60,6 +60,20 @@ namespace Tracy
 
 	using TImageOperands = hlx::Flag<spv::ImageOperandsMask>;
 
+	inline const uint32_t MakeSampledImage(const SPIRVType& _ImgType, const uint32_t _uImageId, const uint32_t _uSamplerId)
+	{
+		// create SampledImageType if it did not exist yet
+		const uint32_t uSampledImgType = GlobalAssembler.AddType(SPIRVType::SampledImage(_ImgType));
+
+		// OpSampledImage uSampledImgType ImgId SamplerId
+		SPIRVOperation OpSampledImage(spv::OpSampledImage, uSampledImgType);
+		OpSampledImage.AddIntermediate(_uImageId);
+		OpSampledImage.AddIntermediate(_uSamplerId);
+		// TODO: store uOpSampledImageId in a map in case the same sampler is reused with this image
+
+		return GlobalAssembler.AddOperation(OpSampledImage);
+	}
+
 	enum EOpTypeBase : uint32_t
 	{
 		kOpTypeBase_Result,
@@ -314,17 +328,16 @@ namespace Tracy
 
 #pragma region sample_tex
 		template <
-			class ReturnType = tex_component_t<T>,
+			class ReturnType,
 			spv::StorageClass C1,
-			spv::StorageClass C2,
 			class TexCoordT = tex_coord_t<T>,
 			class ...Ts, // image operands variables
 			typename = std::enable_if_t<is_texture<T>>>
-			var_t<ReturnType, Assemble, spv::StorageClassFunction> Sample(
-				const var_t<sampler_t, Assemble, C1>& _Sampler,
-				const var_t<TexCoordT, Assemble, C2>& _Coords,
-				const spv::Op _kSampleOp = spv::OpImageSampleImplicitLod,
-				const uint32_t _uDRefVarId = HUNDEFINED32, // only valid when used with Dref image operations, _uDRefVarId is the result of a Load() operation
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> TextureAccess(
+				const uint32_t _uImageId, // _uImageId is either the result of a image.Load() or OpSampledImage operation
+				const var_t<TexCoordT, Assemble, C1>& _Coords,
+				const spv::Op _kSampleOp,
+				const uint32_t _uDRefOrCompId = HUNDEFINED32, // only valid when used with Dref image operations, _uDRefVarId is the result of a Load() operation
 				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
 				const Ts& ..._ImageOperands) const
 		{
@@ -339,28 +352,15 @@ namespace Tracy
 				using BaseRetType = base_type_t<ReturnType>;
 				using FullSampleType = vec_type_t<BaseRetType, 4>;
 
-				const uint32_t uReturnTypeId = _uDRefVarId == HUNDEFINED32 ? GlobalAssembler.AddType(SPIRVType::FromType<FullSampleType>()) : GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
-
-				// create SampledImageType if it did not exist yet
-				const uint32_t uSampledImgType = GlobalAssembler.AddType(SPIRVType::SampledImage(Type));
-
-				const uint32_t uImageId = Load();
-				const uint32_t uSamplerId = _Sampler.Load();
-
-				// OpSampledImage uSampledImgType ImgId SamplerId
-				SPIRVOperation OpSampledImage(spv::OpSampledImage, uSampledImgType);
-				OpSampledImage.AddIntermediate(uImageId);
-				OpSampledImage.AddIntermediate(uSamplerId);
-
-				const uint32_t uOpSampledImageId = GlobalAssembler.AddOperation(OpSampledImage);
+				const uint32_t uReturnTypeId = _uDRefOrCompId == HUNDEFINED32 ? GlobalAssembler.AddType(SPIRVType::FromType<FullSampleType>()) : GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
 				const uint32_t uCoordId = _Coords.Load();
 
-				std::vector<SPIRVOperand> SampleOperands = { SPIRVOperand::Intermediate(uOpSampledImageId),  SPIRVOperand::Intermediate(uCoordId) };
+				std::vector<SPIRVOperand> SampleOperands = { SPIRVOperand::Intermediate(_uImageId),  SPIRVOperand::Intermediate(uCoordId) };
 
 				// add Dref <id> after CoordId and before following ImageOperands
-				if (_uDRefVarId != HUNDEFINED32)
+				if (_uDRefOrCompId != HUNDEFINED32)
 				{
-					SampleOperands.push_back(SPIRVOperand::Intermediate(_uDRefVarId));
+					SampleOperands.push_back(SPIRVOperand::Intermediate(_uDRefOrCompId));
 				}
 
 				// variable number of image operations
@@ -376,7 +376,7 @@ namespace Tracy
 				SPIRVOperation OpSampleImage(_kSampleOp, uReturnTypeId, SampleOperands);
 
 				const uint32_t uSampleResultId = GlobalAssembler.AddOperation(OpSampleImage);
-				if (std::is_same_v<FullSampleType, ReturnType> == false && _uDRefVarId == HUNDEFINED32)
+				if (std::is_same_v<FullSampleType, ReturnType> == false && _uDRefOrCompId == HUNDEFINED32)
 				{
 					// TODO: use vector access instead
 					const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
@@ -406,6 +406,25 @@ namespace Tracy
 		}
 
 		//---------------------------------------------------------------------------------------------------
+		// Sample an image with an implicit level of detail.
+		template <
+			class ReturnType = tex_component_t<T>,
+			spv::StorageClass C1,
+			spv::StorageClass C2,
+			class TexCoordT = tex_coord_t<T>,
+			class ...Ts, // image operands variables
+			typename = std::enable_if_t<is_texture<T>>>
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> Sample(
+				const var_t<sampler_t, Assemble, C1>& _Sampler,
+				const var_t<TexCoordT, Assemble, C2>& _Coords,
+				const spv::Op _kSampleOp = spv::OpImageSampleImplicitLod,
+				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
+				const Ts& ..._ImageOperands) const
+		{
+			return TextureAccess<ReturnType>(MakeSampledImage(Type, Load(), _Sampler.Load()), _Coords, _kSampleOp, HUNDEFINED32, _kImageOps, _ImageOperands...);
+		}
+
+		//---------------------------------------------------------------------------------------------------
 
 		// Sample an image doing depth-comparison with an implicit level of detail. (assuming OpImageSampleDrefImplicitLod)
 		template <
@@ -424,7 +443,7 @@ namespace Tracy
 				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
 				const Ts& ..._ImageOperands) const
 		{
-			return Sample<ReturnType>(_Sampler, _Coords, _kSampleOp, _Dref.Load(), _kImageOps, _ImageOperands...);
+			return TextureAccess<ReturnType>(MakeSampledImage(Type, Load(), _Sampler.Load()), _Coords, _kSampleOp, _Dref.Load(), _kImageOps, _ImageOperands...);
 		}
 #pragma endregion
 
