@@ -5,8 +5,7 @@
 #include "DefaultShaderIdentifiers.h"
 
 namespace Tracy
-{
-	
+{	
 	template <bool Assemble>
 	struct SST_VSOUT
 	{ 

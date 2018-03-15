@@ -886,6 +886,12 @@ namespace Tracy
 	{
 		return make_ext_op2(X, Y, [](const T& x, const T& y) -> T {return glm::min(x, y); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FMin, GLSLstd450SMin, GLSLstd450UMin);
 	}
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class ...Ts>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const Ts& ..._Args)
+	{
+		return Min(Min(X, Y), _Args...);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	//Max
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
@@ -893,6 +899,12 @@ namespace Tracy
 	{
 		return make_ext_op2(X, Y, [](const T& x, const T& y) -> T {return glm::max(x, y); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FMax, GLSLstd450SMax, GLSLstd450UMax);
 	}
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class ...Ts>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const Ts& ..._Args)
+	{
+		return Max(Max(X, Y), _Args...);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// Mix  linear blend of x and y , i.e., x * (1-a) + y*a
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
