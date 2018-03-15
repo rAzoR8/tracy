@@ -34,6 +34,32 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass Class, class ...Ts>
 	const var_t<T, Assemble, Class>& get_first_var(const var_t<T, Assemble, Class>& _first, const Ts& ..._args) { return _first; }
 
+	// convert a list of arguments to a vector of SPIRVOperands, if the argument is a variable, its result ID will be pushed to the vector, otherwise it will be decomposed to uint32_t literals
+	inline void GetOperandsFromArgumentList(std::vector<SPIRVOperand>& _OutOperands) {}
+
+	template <class T, class ...Ts>
+	inline void GetOperandsFromArgumentList(std::vector<SPIRVOperand>& _OutOperands, const T& _First, const Ts& ... _Args)
+	{
+		if constexpr(is_var<T>)
+		{
+			_OutOperands.push_back(SPIRVOperand::Intermediate(_First.Load()));
+		}
+		else
+		{
+			for (const uint32_t& uLiteral : MakeLiterals(_First))
+			{
+				_OutOperands.push_back(SPIRVOperand::Literal(uLiteral));
+			}
+		}
+
+		if constexpr(sizeof...(_Args) > 0)
+		{		
+			GetOperandsFromArgumentList(_OutOperands, _Args...);
+		}
+	}
+
+	using TImageOperands = hlx::Flag<spv::ImageOperandsMask>;
+
 	enum EOpTypeBase : uint32_t
 	{
 		kOpTypeBase_Result,
@@ -288,14 +314,21 @@ namespace Tracy
 
 #pragma region sample_tex
 		template <
+			class ReturnType,
 			spv::StorageClass C1,
 			spv::StorageClass C2,
-			class TexCompT = tex_component_t<T>,
 			class TexCoordT = tex_coord_t<T>,
+			class ...Ts, // image operands variables
 			typename = std::enable_if_t<is_texture<T>>>
-			var_t<TexCompT, Assemble, spv::StorageClassFunction> Sample(const var_t<sampler_t, Assemble, C1>& _Sampler, const var_t<TexCoordT, Assemble, C2>& _Coords) const
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> SampleImpl(
+				const var_t<sampler_t, Assemble, C1>& _Sampler,
+				const var_t<TexCoordT, Assemble, C2>& _Coords,
+				const spv::Op _kSampleOp = spv::OpImageSampleImplicitLod,
+				const uint32_t _uDRefVarId = HUNDEFINED32, // only valid when used with Dref image operations, _uDRefVarId is the result of a Load() operation
+				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
+				const Ts& ..._ImageOperands) const
 		{
-			auto var = var_t<TexCompT, Assemble, spv::StorageClassFunction>(TIntermediate());
+			auto var = var_t<ReturnType, Assemble, spv::StorageClassFunction>(TIntermediate());
 
 			if constexpr(Assemble)
 			{
@@ -303,9 +336,10 @@ namespace Tracy
 
 				// Result Type must be a vector of four components of floating point type or integer type.
 				// Its components must be the same as Sampled Type of the underlying OpTypeImage(unless that underlying	Sampled Type is OpTypeVoid).
-				using BaseRetType = base_type_t<TexCompT>;
-				using ReturnType = vec_type_t<BaseRetType, 4>;
-				const uint32_t uReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
+				using BaseRetType = base_type_t<ReturnType>;
+				using FullSampleType = vec_type_t<BaseRetType, 4>;
+
+				const uint32_t uReturnTypeId = _uDRefVarId == HUNDEFINED32 ? GlobalAssembler.AddType(SPIRVType::FromType<FullSampleType>()) : GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
 
 				// create SampledImageType if it did not exist yet
 				const uint32_t uSampledImgType = GlobalAssembler.AddType(SPIRVType::SampledImage(Type));
@@ -321,21 +355,36 @@ namespace Tracy
 				const uint32_t uOpSampledImageId = GlobalAssembler.AddOperation(OpSampledImage);
 				const uint32_t uCoordId = _Coords.Load();
 
-				// OpImageSampleImplicitLod uReturnTypeId uOpSampledImageId uCoordId
-				SPIRVOperation OpSampleImageImplicitLod(spv::OpImageSampleImplicitLod, uReturnTypeId);
-				OpSampleImageImplicitLod.AddIntermediate(uOpSampledImageId);
-				OpSampleImageImplicitLod.AddIntermediate(uCoordId);
+				std::vector<SPIRVOperand> SampleOperands = { SPIRVOperand::Intermediate(uOpSampledImageId),  SPIRVOperand::Intermediate(uCoordId) };
 
-				const uint32_t uSampleResultId = GlobalAssembler.AddOperation(OpSampleImageImplicitLod);
-				if constexpr(std::is_same_v<TexCompT, ReturnType> == false)
+				// add Dref <id> after CoordId and before following ImageOperands
+				if (_uDRefVarId != HUNDEFINED32)
+				{
+					SampleOperands.push_back(SPIRVOperand::Intermediate(_uDRefVarId));
+				}
+
+				// variable number of image operations
+				if (_kImageOps.None() == false)
+				{
+					SampleOperands.push_back(SPIRVOperand::Literal(static_cast<uint32_t>(_kImageOps)));
+					GetOperandsFromArgumentList(SampleOperands, _ImageOperands...);
+				}
+
+				// TODO: check for some operations like OpImageSampleProjExplicitLod ImageOperands are mandatory so _ImageOperands... must not be empty
+
+				// OpImageSampleImplicitLod uReturnTypeId uOpSampledImageId uCoordId
+				SPIRVOperation OpSampleImage(_kSampleOp, uReturnTypeId, SampleOperands);
+
+				const uint32_t uSampleResultId = GlobalAssembler.AddOperation(OpSampleImage);
+				if (std::is_same_v<FullSampleType, ReturnType> == false && _uDRefVarId == HUNDEFINED32)
 				{
 					// TODO: use vector access instead
-					const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<TexCompT>());
-					const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<BaseRetType>());
+					const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
+					const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<ReturnType>>());
 
 					SPIRVOperation OpConstruct(spv::OpCompositeConstruct, uRealReturnTypeId);
 
-					for (uint32_t n = 0u; n < Dimmension<TexCompT>; ++n)
+					for (uint32_t n = 0u; n < Dimmension<ReturnType>; ++n)
 					{
 						SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uSampleResultId)); // var id to extract from
 						OpExtract.AddLiteral(n); // extraction index
@@ -355,7 +404,45 @@ namespace Tracy
 
 			return var;
 		}
+		//---------------------------------------------------------------------------------------------------
 
+		template <
+			class ReturnType = tex_component_t<T>,
+			spv::StorageClass C1,
+			spv::StorageClass C2,
+			class TexCoordT = tex_coord_t<T>,
+			class ...Ts, // image operands variables
+			typename = std::enable_if_t<is_texture<T>>>
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> Sample(
+				const var_t<sampler_t, Assemble, C1>& _Sampler,
+				const var_t<TexCoordT, Assemble, C2>& _Coords,
+				const spv::Op _kSampleOp = spv::OpImageSampleImplicitLod,
+				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
+				const Ts& ..._ImageOperands) const
+		{
+			return SampleImpl<ReturnType>(_Sampler, _Coords, _kSampleOp, HUNDEFINED32, _kImageOps, _ImageOperands...);
+		}
+		//---------------------------------------------------------------------------------------------------
+
+		// Sample an image doing depth-comparison with an implicit level of detail. (assuming OpImageSampleDrefImplicitLod)
+		template <
+			class ReturnType = base_type_t<tex_component_t<T>>,
+			spv::StorageClass C1,
+			spv::StorageClass C2,
+			spv::StorageClass C3,
+			class TexCoordT = tex_coord_t<T>,
+			class ...Ts, // image operands variables
+			typename = std::enable_if_t<is_texture<T>>>
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> SampleDref(
+				const var_t<sampler_t, Assemble, C1>& _Sampler,
+				const var_t<TexCoordT, Assemble, C2>& _Coords,
+				const var_t<float, Assemble, C3>& _Dref, // depth-comparison reference value 
+				const spv::Op _kSampleOp = spv::OpImageSampleDrefImplicitLod,
+				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
+				const Ts& ..._ImageOperands) const
+		{
+			return SampleImpl<ReturnType>(_Sampler, _Coords, _kSampleOp, _Dref.Load(), _kImageOps, _ImageOperands...);
+		}
 #pragma endregion
 
 #pragma region texture_size

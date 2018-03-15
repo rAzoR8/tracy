@@ -110,6 +110,8 @@ namespace Tracy
 	template<class T, class ...Ts>
 	inline std::vector<uint32_t> MakeLiterals(const T& _Constant, const Ts& ..._args)
 	{
+		// TODO: check if T is a std::string and call MakeLiteralString
+
 		// compute number of uint32_t chunks needed to represent the constants
 		const size_t uCount = std::max<size_t>(LiteralCount(sizeof(T)), 1ull);
 		std::vector<uint32_t> ConstData(uCount, 0u);

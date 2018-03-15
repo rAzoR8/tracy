@@ -53,6 +53,8 @@ namespace Tracy
 
 			f32 sum = 0.f;
 
+			auto sampl = InputImg.SampleDref(Sampler, float2(0.5f, 0.5f), sum);
+
 			auto time = ExtAMD::GCNShader::Time<Assemble>();
 
 			complex z1(3.0f, 4.0f);
