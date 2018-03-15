@@ -6,6 +6,35 @@
 
 namespace Tracy
 {
+	
+	template <bool Assemble>
+	struct SST_VSOUT
+	{ 
+		var_t<float2_t, Assemble, spv::StorageClassFunction> UVCoords; // if not assigned, the assember will remove the variable from the instruction stream
+		var_t<float4_t, Assemble, spv::StorageClassFunction> Position;
+	};
+
+	template <bool Assemble>
+	inline SST_VSOUT<Assemble> ComputeScreenSpaceTriangle(const var_builtin_t<spv::BuiltInVertexIndex, int, Assemble, spv::StorageClassInput>& _kVertexIndex, const TVertexPermutation _Perm = {})
+	{
+		using f32 = var_t<float, Assemble, spv::StorageClassFunction>;
+
+		SST_VSOUT<Assemble> VS_OUT;
+
+		f32 x = -1.0f + f32((_kVertexIndex & 1) << 2);
+		f32 y = -1.0f + f32((_kVertexIndex & 2) << 1);
+
+		if (_Perm.CheckFlag(kVertexPerm_UVCoords))
+		{
+			VS_OUT.UVCoords.x = NDCToZeroOne(x);
+			VS_OUT.UVCoords.y = NDCToZeroOne(y);
+		}
+
+		VS_OUT.Position = {x, y, 0.f, 1.f };
+
+		return VS_OUT;
+	}
+
 	class ScreenSpaceTriangle : public VertexProgram
 	{
 	public:
