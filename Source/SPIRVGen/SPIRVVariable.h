@@ -349,15 +349,15 @@ namespace Tracy
 
 				// Result Type must be a vector of four components of floating point type or integer type.
 				// Its components must be the same as Sampled Type of the underlying OpTypeImage(unless that underlying	Sampled Type is OpTypeVoid).
-				using BaseRetType = base_type_t<ReturnType>;
-				using FullSampleType = vec_type_t<BaseRetType, 4>;
+				using SampleType = tex_sample_t<T>;
 
-				const uint32_t uReturnTypeId = _uDRefOrCompId == HUNDEFINED32 ? GlobalAssembler.AddType(SPIRVType::FromType<FullSampleType>()) : GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
+				const uint32_t uReturnTypeId = _uDRefOrCompId == HUNDEFINED32 ? GlobalAssembler.AddType(SPIRVType::FromType<SampleType>()) : GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
 				const uint32_t uCoordId = _Coords.Load();
 
 				std::vector<SPIRVOperand> SampleOperands = { SPIRVOperand::Intermediate(_uImageId),  SPIRVOperand::Intermediate(uCoordId) };
 
-				// add Dref <id> after CoordId and before following ImageOperands
+				// TODO: replace _uDRefOrCompId with a vector if Ids to be inserted after coords (for OpImageDrefGather)
+				// add Dref <id> or Component <id> after CoordId and before following ImageOperands
 				if (_uDRefOrCompId != HUNDEFINED32)
 				{
 					SampleOperands.push_back(SPIRVOperand::Intermediate(_uDRefOrCompId));
@@ -376,7 +376,7 @@ namespace Tracy
 				SPIRVOperation OpSampleImage(_kSampleOp, uReturnTypeId, SampleOperands);
 
 				const uint32_t uSampleResultId = GlobalAssembler.AddOperation(OpSampleImage);
-				if (std::is_same_v<FullSampleType, ReturnType> == false && _uDRefOrCompId == HUNDEFINED32)
+				if (std::is_same_v<SampleType, ReturnType> == false && _uDRefOrCompId == HUNDEFINED32)
 				{
 					// TODO: use vector access instead
 					const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
@@ -395,6 +395,8 @@ namespace Tracy
 
 					// composite constructs treated as intermediates as they cant be loaded
 					var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+
+					// TODO: store Extracted ids
 				}
 				else
 				{
@@ -444,6 +446,42 @@ namespace Tracy
 				const Ts& ..._ImageOperands) const
 		{
 			return TextureAccess<ReturnType>(MakeSampledImage(Type, Load(), _Sampler.Load()), _Coords, _kSampleOp, _Dref.Load(), _kImageOps, _ImageOperands...);
+		}
+
+		//---------------------------------------------------------------------------------------------------
+		// Fetch a single texel from a sampled image
+		template <
+			class ReturnType = tex_component_t<T>,
+			spv::StorageClass C1,
+			class TexCoordT = tex_gather_coord_t<T>, // uint vector
+			class ...Ts, // image operands variables
+			typename = std::enable_if_t<is_texture<T>>>
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> Fetch(
+				const var_t<TexCoordT, Assemble, C1>& _Coords,
+				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
+				const Ts& ..._ImageOperands) const
+		{
+			return TextureAccess<ReturnType>(Load(), _Coords, spv::OpImageFetch, HUNDEFINED32, _kImageOps, _ImageOperands...);
+		}
+
+		//---------------------------------------------------------------------------------------------------
+		// Gathers the requested component from four texels.
+		template <
+			class ReturnType = tex_sample_t<T>,
+			spv::StorageClass C1,
+			spv::StorageClass C2,
+			spv::StorageClass C3,
+			class TexCoordT = tex_coord_t<T>,
+			class ...Ts, // image operands variables
+			typename = std::enable_if_t<is_texture<T>>>
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> Gather(
+				const var_t<sampler_t, Assemble, C1>& _Sampler,
+				const var_t<TexCoordT, Assemble, C2>& _Coords,
+				const var_t<uint32_t, Assemble, C3>& _Component, // Component is the component number that will be gathered from all four texels. It must be 0, 1, 2 or 3
+				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
+				const Ts& ..._ImageOperands) const
+		{
+			return TextureAccess<ReturnType>(MakeSampledImage(Type, Load(), _Sampler.Load()), _Coords, spv::OpImageGather, _Component.Load(), _kImageOps, _ImageOperands...);
 		}
 #pragma endregion
 

@@ -476,8 +476,10 @@ namespace Tracy
 		ETexSamplerAccess _SAccess = kTexSamplerAccess_Sampled>
 	struct tex_t
 	{
-		typedef T TexComponentType; // result type of sample
+		typedef T TexComponentType; // pixel storage type
+		typedef vec_type_t<base_type_t<T>, 4> TexSampleType; // returned by a sample / fetch
 		typedef vec_type_t<float, SPVDimToRealDim(_Dim) + _Array> TexCoordType; // UV coord vector type
+		typedef vec_type_t<uint32_t, SPVDimToRealDim(_Dim) + _Array> TexGatherCoordType; // UV coord vector type
 		static constexpr spv::Dim Dim = _Dim; // 1 2 3
 		static constexpr bool Array = _Array; // is array
 		static constexpr ETexDepthType DepthType = _DType;
@@ -525,6 +527,12 @@ namespace Tracy
 
 	template <class TexT> // TexT = tex_t variant
 	using tex_coord_t = typename TexT::TexCoordType;
+
+	template <class TexT> // TexT = tex_t variant
+	using tex_gather_coord_t = typename TexT::TexGatherCoordType;
+
+	template <class TexT> // TexT = tex_t variant
+	using tex_sample_t = typename TexT::TexSampleType;
 
 	template <class TexT> // TexT = tex_t variant
 	constexpr spv::Dim tex_dim_v = TexT::Dim;
