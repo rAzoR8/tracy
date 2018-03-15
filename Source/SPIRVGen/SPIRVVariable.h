@@ -314,13 +314,13 @@ namespace Tracy
 
 #pragma region sample_tex
 		template <
-			class ReturnType,
+			class ReturnType = tex_component_t<T>,
 			spv::StorageClass C1,
 			spv::StorageClass C2,
 			class TexCoordT = tex_coord_t<T>,
 			class ...Ts, // image operands variables
 			typename = std::enable_if_t<is_texture<T>>>
-			var_t<ReturnType, Assemble, spv::StorageClassFunction> SampleImpl(
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> Sample(
 				const var_t<sampler_t, Assemble, C1>& _Sampler,
 				const var_t<TexCoordT, Assemble, C2>& _Coords,
 				const spv::Op _kSampleOp = spv::OpImageSampleImplicitLod,
@@ -404,24 +404,7 @@ namespace Tracy
 
 			return var;
 		}
-		//---------------------------------------------------------------------------------------------------
 
-		template <
-			class ReturnType = tex_component_t<T>,
-			spv::StorageClass C1,
-			spv::StorageClass C2,
-			class TexCoordT = tex_coord_t<T>,
-			class ...Ts, // image operands variables
-			typename = std::enable_if_t<is_texture<T>>>
-			var_t<ReturnType, Assemble, spv::StorageClassFunction> Sample(
-				const var_t<sampler_t, Assemble, C1>& _Sampler,
-				const var_t<TexCoordT, Assemble, C2>& _Coords,
-				const spv::Op _kSampleOp = spv::OpImageSampleImplicitLod,
-				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
-				const Ts& ..._ImageOperands) const
-		{
-			return SampleImpl<ReturnType>(_Sampler, _Coords, _kSampleOp, HUNDEFINED32, _kImageOps, _ImageOperands...);
-		}
 		//---------------------------------------------------------------------------------------------------
 
 		// Sample an image doing depth-comparison with an implicit level of detail. (assuming OpImageSampleDrefImplicitLod)
@@ -441,7 +424,7 @@ namespace Tracy
 				const TImageOperands _kImageOps = spv::ImageOperandsMaskNone, // number of bits set needs to equal number of _ImageOperands arguments
 				const Ts& ..._ImageOperands) const
 		{
-			return SampleImpl<ReturnType>(_Sampler, _Coords, _kSampleOp, _Dref.Load(), _kImageOps, _ImageOperands...);
+			return Sample<ReturnType>(_Sampler, _Coords, _kSampleOp, _Dref.Load(), _kImageOps, _ImageOperands...);
 		}
 #pragma endregion
 
