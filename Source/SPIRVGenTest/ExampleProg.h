@@ -53,18 +53,17 @@ namespace Tracy
 			float3 l, v, h, n;
 
 			auto f = FresnelSchlick(l, h, sum);
-
 			auto d = BlinnPhongDistribution(n, h, sum);
-
 			auto geoi = GeoImplicit(n, l, v);
-
 			auto geotc = GeoCookTorrance(n, l, v, h);
-
 			u32 size = TestArray.Length();
+			//size = SizeOf(TestArray);
+
+			auto dif = Ddx(l);
+			dif = dif + Ddy(v);
 
 			auto dims = InputImg.Dimmensions(size);
 			//v3.xy = dims;
-
 
 			auto sampldrf = InputImg.SampleDref(Sampler, float2(0.5f, 0.5f), sum);
 			auto fetch = InputImg.Fetch(int2(1, 1));

@@ -641,6 +641,24 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// Fragment derivative ddx
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Ddx(const var_t<T, Assemble, C1>& P)
+	{
+		// TODO: DDX not implemented for CPU execution
+		return make_op1(P, [](const T& p)-> T {return p; }, spv::OpDPdx);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Fragment derivative ddy
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Ddy(const var_t<T, Assemble, C1>& P)
+	{
+		// TODO: DDY not implemented for CPU execution
+		return make_op1(P, [](const T& p)-> T {return p; }, spv::OpDPdy);
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// GLSLstd450 EXTENSION
 	//---------------------------------------------------------------------------------------------------
 	// https://www.khronos.org/registry/spir-v/specs/unified1/GLSL.std.450.pdf
@@ -952,6 +970,23 @@ namespace Tracy
 	inline var_t<T, Assemble, spv::StorageClassFunction> NDCToRange(const var_t<T, Assemble, C1>& ndc, const var_t<float, Assemble, C2>& low, const var_t<float, Assemble, C3> high)
 	{
 		return low + ((ndc + 1.f) * 0.5f * (high - low));
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// returns size of the encapsulated type
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<uint32_t, Assemble, spv::StorageClassFunction> SizeOf(const var_t<T, Assemble, C1>& var)
+	{
+		// create variable initialized with constant
+		if constexpr(Assemble)
+		{
+			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(var.Type.GetSize());
+		}
+		else
+		{
+			static_assert(is_struct<T> == false, "FromType not implemented for structures");
+			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(SPIRVType::FromType<T>().GetSize());
+		}
 	}
 
 }; //!Tracy
