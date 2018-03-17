@@ -978,8 +978,8 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Lerp(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r, const var_t<float, Assemble, C3> t)
 	{
-		//return l * (1.f - t) + r * t;
-		return Mix(l, r, t);
+		return l * (1.f - t) + r * t;
+		//return Mix(l, r, t);
 	}
 
 	//---------------------------------------------------------------------------------------------------

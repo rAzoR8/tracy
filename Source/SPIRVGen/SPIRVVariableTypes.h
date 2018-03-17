@@ -592,9 +592,11 @@ namespace Tracy
 #pragma endregion
 
 	// convert U to V
-	template <class U, class V, typename = std::enable_if_t<Dimmension<U> == Dimmension<V>>>
+	template <class U, class V/*, typename = std::enable_if_t<Dimmension<U> == Dimmension<V>>*/>
 	constexpr spv::Op GetConvertOp()
 	{
+		static_assert(Dimmension<U> == Dimmension<V>, "Type dimmensions mismatch");
+
 		if constexpr(is_base_float<U> && is_base_int<V>)
 			return spv::OpConvertFToS;
 		else if constexpr(is_base_float<U> && is_base_uint<V>)
