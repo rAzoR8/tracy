@@ -12,7 +12,7 @@ namespace Tracy
 		Mandelbrot() : FragmentProgram("Mandelbrot"){};
 		~Mandelbrot() {};
 
-		CBuffer<float3_t> FrameBufferDim = BufferSources::sFrameBufferDimension;
+		//CBuffer<float3_t> FrameBufferDim = BufferSources::sFrameBufferDimension;
 		RenderTarget OutputColor;
 
 		inline void operator()()

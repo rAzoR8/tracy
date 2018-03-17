@@ -51,6 +51,39 @@ namespace Tracy
 		const CSGObject<Assemble>* m_pRight;
 
 	};
+
+	//---------------------------------------------------------------------------------------------------
+	template <bool Assemble>
+	class CSGScene
+	{
+		CSGScene(std::initializer_list<const CSGObject<Assemble*>> _Objects) : m_Objects(_Objects) {}
+		CSGScene(std::vector<const CSGObject<Assemble*>> _Objects) : m_Objects(_Objects) {}
+
+		virtual ~CSGScene() {}
+
+		template <spv::StorageClass C1>
+		inline var_t<float, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, C1>& _Point) const
+		{
+			var_t<float, Assemble, spv::StorageClassFunction> dist = 0.f;
+
+			for (const auto pObj : _Objects)
+			{
+				dist = UnionSDF(pObj->Eval(_Point), dist);
+			}
+
+			return dist;
+		}
+
+		template <spv::StorageClass C1, spv::StorageClass C2>
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const
+		{
+			return ForwardDiffNormal(_Point, _Epsilon, [&](const auto& v) {return this->Eval(v); })
+		}
+
+	private:
+		std::vector<const CSGObject<Assemble*>> m_Objects;
+	};
+
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
