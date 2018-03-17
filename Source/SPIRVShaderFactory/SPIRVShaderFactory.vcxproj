@@ -77,12 +77,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonBufferSourceNames.h" />
+    <ClInclude Include="CSGObject.h" />
     <ClInclude Include="DefaultShaderFactory.h" />
     <ClInclude Include="ClearColor.h" />
     <ClInclude Include="Mandelbrot.h" />
     <ClInclude Include="MicrofacetReflection.h" />
     <ClInclude Include="ScreenSpaceTriangle.h" />
     <ClInclude Include="DefaultShaderIdentifiers.h" />
+    <ClInclude Include="SDFObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">

@@ -1,7 +1,6 @@
 #ifndef TRACY_SPIRVPROGRAM_H
 #define TRACY_SPIRVPROGRAM_H
 
-#include "SPIRVOperatorImpl.h"
 #include "SPIRVQuaternion.h"
 #include "SPIRVComplex.h"
 #include "SPIRVBranchOperations.h"
