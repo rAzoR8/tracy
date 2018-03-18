@@ -62,7 +62,7 @@ namespace Tracy
 			auto dif = Ddx(l);
 			dif = dif + Ddy(v);
 
-			auto dims = InputImg.Dimmensions(size);
+			auto dims = InputImg.Dimensions(size);
 			//v3.xy = dims;
 
 			auto sampldrf = InputImg.SampleDref(Sampler, float2(0.5f, 0.5f), sum);

@@ -152,9 +152,6 @@ namespace Tracy
 			return SPIRVType();
 		}
 
-		//template<class T, typename = std::enable_if_t<is_struct<T>>>
-		//static SPIRVType FromStructType() { return SPIRVType::Int(); }
-
 		template <class T, size_t n = 0, size_t N = 0, class Parent = T>
 		static SPIRVType FromType(SPIRVType* _pStructType = nullptr)
 		{

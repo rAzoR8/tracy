@@ -131,10 +131,10 @@ namespace Tracy
 			_vShadowPosH.xyz /= _vShadowPosH.w;
 			f32 fDepth = _vShadowPosH.z; // NDC-Space -> [0,1]
 
-			auto Dimensions = gShadowMap.Dimmensions();
+			auto Dimensions = gShadowMap.Dimensions();
 
 			f32 fDX = 1.0f / Dimensions.x;
-			f32 fDXNeg = fDX * -1.0f;
+			f32 fDXNeg = -fDX;
 
 			f32 fPercentLit = 0.0f;
 			const float2 Offsets[9] =
@@ -144,7 +144,7 @@ namespace Tracy
 				float2(fDXNeg, fDX),	float2(0.0f, fDX),		float2(fDX, fDX)
 			};
 
-			for (int i = 0; i < 9; ++i)
+			for (int i = 0; i < 9; ++i) // this is equivalent to unrolling the loop
 			{
 				//SampleCmpLevelZero
 				fPercentLit += gShadowMap.SampleDref(SamplerShadowMap, _vShadowPosH.xy + Offsets[i], fDepth);
@@ -153,7 +153,7 @@ namespace Tracy
 			return fPercentLit / 9.0f;
 		}
 
-		LightingResult CalculateDirectionalLight(DirectionalLight& _Light, float3 _vToEye, float3 _vNormal, f32 _fRoughness, float3 _vF0)
+		LightingResult CalculateDirectionalLight(const ArrayElement<DirectionalLight>& _Light, const float3& _vToEye, const float3& _vNormal, const f32& _fRoughness, const float3& _vF0)
 		{
 			// TODO
 			return LightingResult();
@@ -161,46 +161,25 @@ namespace Tracy
 
 		LightingResult ComputeLighting(const float3& _vViewDir, const float3& _vPosWS, const float3& _vNormal, const f32& _fMetallic, const f32& _fRoughness, const float3& _vF0)
 		{
-			LightingResult Result;
+			LightingResult Result = CalculateDirectionalLight(cbDirectionalLight[0u], _vViewDir, _vNormal, _fRoughness, _vF0);
 
-
-			f32 fShadowFactor = 0.0f;
 			if (mPerm.CheckFlag(kDLPermutation_Shadow))
 			{
 				float4 vShadowPosH = float4(_vPosWS, 1.0f) * cbDeferredLighting->mShadowTransform;
-				fShadowFactor = CalculateShadowFactor(vShadowPosH);
+				f32 fShadowFactor = CalculateShadowFactor(vShadowPosH);
+
+				// First light supports shadows
+				Result.vDiffuse *= fShadowFactor;
+				Result.vSpecular *= fShadowFactor;
 			}
 
-			// Dir Lights
-			// First light supports shadows
-			//auto DirLight = cbDirectionalLight[u32(0)];
-			//LightingResult CurResult = CalculateDirectionalLight(DirLight, _vViewDir, _vNormal, _fRoughness, _vF0);
-			//if (mPerm.CheckFlag(kDLPermutation_Shadow))
-			//{
-			//	Result.vDiffuse += fShadowFactor * CurResult.vDiffuse;
-			//	Result.vSpecular += fShadowFactor * CurResult.vSpecular;
-			//}
-			//else
-			//{
-			//	Result.vDiffuse += CurResult.vDiffuse;
-			//	Result.vSpecular += CurResult.vSpecular;
-			//}
+			For (u32 d = 1, d < DirLightRange, ++d)
+			{
+				LightingResult CurResult = CalculateDirectionalLight(cbDirectionalLight[d], _vViewDir, _vNormal, _fRoughness, _vF0);
 
-			//For (u32 d = 1, d < DirLightRange, ++d)
-			//{
-			//	auto DirLight = cbDirectionalLight[d];
-			//	LightingResult CurResult = CalculateDirectionalLight(DirLight, _vViewDir, _vNormal, _fRoughness, _vF0);
-			//	if (mPerm.CheckFlag(kDLPermutation_Shadow))
-			//	{
-			//		Result.vDiffuse += fShadowFactor * CurResult.vDiffuse;
-			//		Result.vSpecular += fShadowFactor * CurResult.vSpecular;
-			//	}
-			//	else
-			//	{
-			//		Result.vDiffuse += CurResult.vDiffuse;
-			//		Result.vSpecular += CurResult.vSpecular;
-			//	}
-			//});
+				Result.vDiffuse += CurResult.vDiffuse;
+				Result.vSpecular += CurResult.vSpecular;
+			});
 
 			//for (int p = 0; p < PointLightRange; ++p)
 			//{
@@ -288,16 +267,17 @@ namespace Tracy
 			/// Calculate Indirect Specular Light by "Texture" lights like the skybox
 			float3 vIndirectSpecularLight = { 0.f, 0.f, 0.f };
 
-#ifdef HPMPS_EnvironmentMapping
-			float3 vReflection = reflect(-vToEye, vNormal);
-			float3 vCubeDimension = GetTextureDimensionCube(gEnvMap);
-			float fNumMipMap = vCubeDimension.z;
-			float fMipmapIndex = fRoughness * (fNumMipMap - 1.0f);
-			float3 vEnvSpecular = gEnvMap.SampleLevel(SamplerLinearClamp, vReflection, fMipmapIndex).rgb;
+			if (mPerm.CheckFlag(kDLPermutation_EnvMap))
+			{
+				float3 vReflection = Reflect(-vToEye, vNormal);
+				//float3 vCubeDimension = GetTextureDimensionCube(gEnvMap);
+				//float fNumMipMap = vCubeDimension.z;
+				//float fMipmapIndex = fRoughness * (fNumMipMap - 1.0f);
+				//float3 vEnvSpecular = gEnvMap.SampleLevel(SamplerLinearClamp, vReflection, fMipmapIndex).rgb;
 
-			vIndirectSpecularLight = FresnelSchlickWithRoughness(vF0, vToEye, vNormal, 1.0f - fRoughness);
-			vIndirectSpecularLight *= vEnvSpecular;
-#endif
+				//vIndirectSpecularLight = FresnelSchlickWithRoughness(vF0, vToEye, vNormal, 1.0f - fRoughness);
+				//vIndirectSpecularLight *= vEnvSpecular;
+			}
 
 			/// Subsurface normal light leak fix -> http://marmosetco.tumblr.com/post/81245981087
 			vMetallicHorizon.y *= vMetallicHorizon.y;

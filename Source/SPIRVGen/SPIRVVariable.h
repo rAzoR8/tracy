@@ -306,6 +306,9 @@ namespace Tracy
 		const var_t& operator--() const; // mutable
 		var_t<T, Assemble, spv::StorageClassFunction> operator--(int) const; // immutable
 
+		// negation
+		var_t<T, Assemble, spv::StorageClassFunction> operator-() const;
+
 		const T* operator->() const { return &Value; }
 
 #pragma region ArrayAccess
@@ -315,8 +318,8 @@ namespace Tracy
 			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(T::Size);
 		}
 
-		template <spv::StorageClass C1, class U = T, typename = std::enable_if_t<is_array<U>>>
-		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const var_t<uint32_t, Assemble, C1>& _Index) const
+		template <class Index, spv::StorageClass C1, class U = T, typename = std::enable_if_t<is_array<U> && is_integer_type<Index>>>
+		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const var_t<Index, Assemble, C1>& _Index) const
 		{
 			static_assert(is_array<U>, "Unsupported type (array expected)");
 			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate(), Value[_Index.Value]);
@@ -341,8 +344,8 @@ namespace Tracy
 			return var;
 		}
 
-		template <spv::StorageClass C1, class U = T, typename = std::enable_if_t<is_array<U>>>
-		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const uint32_t& _Index) const
+		template <class Index, class U = T, typename = std::enable_if_t<is_array<U> && is_integer_type<Index>>>
+		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const Index& _Index) const
 		{
 			return this->operator[](make_const<Assemble>(_Index));
 		}
@@ -520,7 +523,7 @@ namespace Tracy
 
 #pragma region texture_size
 		template <class Tex = T, class ...Ts> // args must be emty or var_t<int32> for LoD
-		inline std::enable_if_t<is_texture<Tex>, var_t<vec_type_t<int32_t, tex_real_dim_v<Tex>>, Assemble, spv::StorageClassFunction>> Dimmensions(const Ts& ... _args) const
+		inline std::enable_if_t<is_texture<Tex>, var_t<vec_type_t<int32_t, tex_real_dim_v<Tex>>, Assemble, spv::StorageClassFunction>> Dimensions(const Ts& ... _args) const
 		{
 			auto var = var_t<vec_type_t<int32_t, tex_real_dim_v<Tex>>, Assemble, spv::StorageClassFunction>(TIntermediate());
 
@@ -939,7 +942,7 @@ namespace Tracy
 		{
 			Load();
 
-			spv::Op kOpCode = OpTypeDecider<BaseType>(_Ops...);
+			spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 			HASSERT(uTypeId != HUNDEFINED32, "Invalid type");
 
@@ -1517,11 +1520,11 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	// negation
+	// logical negation
 	template<typename T, bool Assemble, spv::StorageClass Class>
 	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::operator!() const
 	{
-		return make_op1_immutable([](T& _Value) -> T { return !_Value; }, spv::OpFNegate, spv::OpSNegate, spv::OpNop, spv::OpLogicalNot);
+		return make_op1_immutable([](T& _Value) -> T { return !_Value; }, spv::OpLogicalNot);
 	}
 
 	// increment mutable
@@ -1555,6 +1558,12 @@ namespace Tracy
 		var_t<T, Assemble, spv::StorageClassFunction> PreEval(*this);
 		--(*this); // call mutable decrement
 		return PreEval;
+	}
+	// Arithmetic Negation
+	template<typename T, bool Assemble, spv::StorageClass Class>
+	inline var_t<T, Assemble, spv::StorageClassFunction> var_t<T, Assemble, Class>::operator-() const
+	{
+		return make_op1_immutable([](T& _Value) -> T { return -_Value; }, spv::OpFNegate, spv::OpSNegate);
 	}
 	//---------------------------------------------------------------------------------------------------
 #pragma endregion
