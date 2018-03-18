@@ -16,11 +16,14 @@ namespace Tracy
 	class DeferredLighting : public FragmentProgram
 	{
 	public:
-		DeferredLighting(const TDLPerm& _Perm = {})
+		DeferredLighting(const TDLPerm& _Perm = {}) :
+			mPerm(_Perm)
 		{		
 		}
 
 		~DeferredLighting() {};
+
+		const TDLPerm& mPerm;
 
 		var_in_t<float4_t> vPosition;
 		var_in_t<float2_t> vTexCoord;
@@ -39,10 +42,16 @@ namespace Tracy
 		SamplerState SamplerPointClamp;
 		SamplerState SamplerPointWrap;
 		SamplerState SamplerLinearWrap;
+		SamplerState SamplerShadowMap;
 
 		RenderTarget Diffuse;
 		RenderTarget Specular;
 
+		// Definitions ------------------------------------------
+		static constexpr uint32_t DirLightRange = 10u;
+		static constexpr uint32_t PointLightRange = 10u;
+
+		// CBuffer ----------------------------------------------
 		struct ShadowData
 		{
 			SPVStruct
@@ -52,7 +61,6 @@ namespace Tracy
 			float fPointShadowDepthOffset;
 			float2 DeferredLightingPAD;
 		};
-
 		CBuffer<ShadowData> cbDeferredLighting;
 
 		struct CameraData
@@ -79,9 +87,27 @@ namespace Tracy
 			f32 fAspectRatio;
 			float3 vLookDir;
 		};
-
 		CBuffer<CameraData> cbPerCamera;
 
+		struct DirectionalLight
+		{
+			SPVStruct
+
+			float3 vDirection;
+			f32 vPad0;
+			float3 vColor;
+			f32 vPad1;
+		};
+		Array<DirectionalLight, DirLightRange> cbDirectionalLight;
+
+		// Structs ---------------------------------------------------
+		struct LightingResult
+		{
+			float3 vDiffuse;
+			float3 vSpecular;
+		};
+
+		// Functions ----------------------------------------------------------------------------------
 		float2 NormalEncode(const float3& _vNormal)
 		{
 			return float2(Atan2(_vNormal.y, _vNormal.x) / glm::pi<float>(), _vNormal.z);
@@ -99,17 +125,142 @@ namespace Tracy
 			auto phi = Sqrt(1.0f - vAngles.y * vAngles.y);
 			return float3(vSinCosTheta.y * phi, vSinCosTheta.x * phi, vAngles.y);
 		}
-
-		struct LightingResult
+		
+		f32 CalculateShadowFactor(float4 _vShadowPosH)
 		{
-			float3 vDiffuse;
-			float3 vSpecular;
-		};
+			_vShadowPosH.xyz /= _vShadowPosH.w;
+			f32 fDepth = _vShadowPosH.z; // NDC-Space -> [0,1]
+
+			auto Dimensions = gShadowMap.Dimmensions();
+
+			f32 fDX = 1.0f / Dimensions.x;
+			f32 fDXNeg = fDX * -1.0f;
+
+			f32 fPercentLit = 0.0f;
+			const float2 Offsets[9] =
+			{
+				float2(fDXNeg, fDXNeg), float2(0.0f, fDXNeg),	float2(fDX, fDXNeg),
+				float2(fDXNeg, 0.0f),	float2(0.0f, 0.0f),		float2(fDX, 0.0f),
+				float2(fDXNeg, fDX),	float2(0.0f, fDX),		float2(fDX, fDX)
+			};
+
+			for (int i = 0; i < 9; ++i)
+			{
+				//SampleCmpLevelZero
+				fPercentLit += gShadowMap.SampleDref(SamplerShadowMap, _vShadowPosH.xy + Offsets[i], fDepth);
+			}
+
+			return fPercentLit / 9.0f;
+		}
+
+		LightingResult CalculateDirectionalLight(DirectionalLight& _Light, float3 _vToEye, float3 _vNormal, f32 _fRoughness, float3 _vF0)
+		{
+			// TODO
+			return LightingResult();
+		}
 
 		LightingResult ComputeLighting(const float3& _vViewDir, const float3& _vPosWS, const float3& _vNormal, const f32& _fMetallic, const f32& _fRoughness, const float3& _vF0)
 		{
 			LightingResult Result;
 
+
+			f32 fShadowFactor = 0.0f;
+			if (mPerm.CheckFlag(kDLPermutation_Shadow))
+			{
+				float4 vShadowPosH = float4(_vPosWS, 1.0f) * cbDeferredLighting->mShadowTransform;
+				fShadowFactor = CalculateShadowFactor(vShadowPosH);
+			}
+
+			// Dir Lights
+			// First light supports shadows
+			//auto DirLight = cbDirectionalLight[u32(0)];
+			//LightingResult CurResult = CalculateDirectionalLight(DirLight, _vViewDir, _vNormal, _fRoughness, _vF0);
+			//if (mPerm.CheckFlag(kDLPermutation_Shadow))
+			//{
+			//	Result.vDiffuse += fShadowFactor * CurResult.vDiffuse;
+			//	Result.vSpecular += fShadowFactor * CurResult.vSpecular;
+			//}
+			//else
+			//{
+			//	Result.vDiffuse += CurResult.vDiffuse;
+			//	Result.vSpecular += CurResult.vSpecular;
+			//}
+
+			//For (u32 d = 1, d < DirLightRange, ++d)
+			//{
+			//	auto DirLight = cbDirectionalLight[d];
+			//	LightingResult CurResult = CalculateDirectionalLight(DirLight, _vViewDir, _vNormal, _fRoughness, _vF0);
+			//	if (mPerm.CheckFlag(kDLPermutation_Shadow))
+			//	{
+			//		Result.vDiffuse += fShadowFactor * CurResult.vDiffuse;
+			//		Result.vSpecular += fShadowFactor * CurResult.vSpecular;
+			//	}
+			//	else
+			//	{
+			//		Result.vDiffuse += CurResult.vDiffuse;
+			//		Result.vSpecular += CurResult.vSpecular;
+			//	}
+			//});
+
+			//for (int p = 0; p < PointLightRange; ++p)
+			//{
+			//	cbPointLightTYPE PointLight = cbPointLightArray[p];
+
+			//	float fShadowFactorDP = 1.0f;
+
+
+			//	LightingResult CurResult = CalculatePointLight(PointLight, _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
+			//	TotalResult.vDiffuse += fShadowFactorDP * CurResult.vDiffuse;
+			//	TotalResult.vSpecular += fShadowFactorDP * CurResult.vSpecular;
+			//}
+
+			// ----------------------------------- TODO -----------------------------------------------------
+
+//			for (uint p = 0; p < PointLightRange; ++p)
+//			{
+//				cbPointLightTYPE PointLight = cbPointLightArray[p];
+//
+//				float fShadowFactorDP = 1.0f;
+//
+//				//if(PointLight.iShadowIndex > -1)
+//				//{
+//				//	cbPointLightShadowTYPE ShadowProps = cbPointLightShadowArray[PointLight.iShadowIndex];
+//
+//				//	float4 vPosDP = TransformToParaboloid(_vPosWS, ShadowProps);
+//				//	/// TODO: delete subtraction hack!
+//				//	float fSceneDepthDP = vPosDP.w - fPointShadowDepthOffset;// 0.005f;
+//				//	float3 vTexCoordDP = ConvertParaboloidToTexCoord(vPosDP);
+//
+//				//	fShadowFactorDP = CalculateParaboloidShadowFactor(gParaboloidPointShadowMap, vTexCoordDP, fSceneDepthDP, ShadowProps);
+//				//}
+//
+//				LightingResult CurResult = CalculatePointLight(PointLight, _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
+//				TotalResult.vDiffuse += fShadowFactorDP * CurResult.vDiffuse;
+//				TotalResult.vSpecular += fShadowFactorDP * CurResult.vSpecular;
+//			}
+//
+//			for (uint s = 0; s < SpotLightRange; ++s)
+//			{
+//				cbSpotLightTYPE SpotLight = cbSpotLightArray[s];
+//
+//				float fShadowFactorPS = 1.0f;
+//
+//				if (SpotLight.iShadowIndex > -1)
+//				{
+//					cbSpotLightShadowTYPE ShadowProps = cbSpotLightShadowArray[SpotLight.iShadowIndex];
+//
+//					float4 vPosPS = TransformToProjected(_vPosWS, ShadowProps);
+//					fShadowFactorPS = CalculateProjectedShadowFactor(gProjectedSpotShadowMap, vPosPS, ShadowProps, fSpotShadowDepthOffset);
+//				}
+//
+//				LightingResult CurResult = CalculateSpotLight(SpotLight, _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
+//				TotalResult.vDiffuse += fShadowFactorPS * CurResult.vDiffuse;
+//				TotalResult.vSpecular += fShadowFactorPS * CurResult.vSpecular;
+//			}
+//
+//			TotalResult.vDiffuse = (1.0f - _fMetallic) * TotalResult.vDiffuse;
+//			TotalResult.vSpecular = TotalResult.vSpecular;
+//
 
 			return Result;
 		}

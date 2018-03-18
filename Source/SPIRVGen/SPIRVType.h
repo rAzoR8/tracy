@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdint.h>
 #include "SPIRVVariableTypes.h"
+#include "GetStructMember.h"
 
 namespace Tracy
 {
@@ -137,30 +138,75 @@ namespace Tracy
 			return SPIRVType(spv::OpTypeMatrix, Vec<T>(col), row);
 		}
 
-		template<class T, typename = std::enable_if_t<is_texture<T>> >
-		static SPIRVType FromImageType() { return SPIRVType::Image(FromBaseType<base_type_t<T::TexComponentType>>(), T::Dim, T::Array, T::DepthType, T::MultiSampled, T::SamplerAccess); }
+		template<class T>
+		static SPIRVType FromImageType();
 
-		template<class T, typename = std::enable_if_t<is_array<T>>>
-		static SPIRVType FromArrayType() { return SPIRVType::Array(FromBaseType<T::ElementType>(), T::Size); }
-
-		template <class T>
-		static SPIRVType FromBaseType() {static_assert(false, "Unsupported type");}
+		template<class T>
+		static SPIRVType FromArrayType();
 
 		template <class T>
-		static SPIRVType FromType()
+		static SPIRVType FromBaseType()
+		{ 
+			//auto name = typeid(T).name();
+			static_assert(false, "Unsupported type");
+			return SPIRVType();
+		}
+
+		//template<class T, typename = std::enable_if_t<is_struct<T>>>
+		//static SPIRVType FromStructType() { return SPIRVType::Int(); }
+
+		template <class T, size_t n = 0, size_t N = 0, class Parent = T>
+		static SPIRVType FromType(SPIRVType* _pStructType = nullptr)
 		{
+			SPIRVType Type{};
+
 			if constexpr(is_texture<T>)
 			{
-				return FromImageType<T>();
+				Type = FromImageType<T>();
 			}
 			else if constexpr(is_array<T>)
 			{
-				return FromArrayType<T>();
+				Type = FromArrayType<T>();
+			}
+			else if constexpr(is_struct<T>)
+			{
+				Type = SPIRVType(spv::OpTypeStruct);
+
+				constexpr size_t M = hlx::aggregate_arity<T>;
+
+				if constexpr(M > 0)
+				{
+					using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(hlx::get<0>(T{}))>>;
+
+					FromType<MemberType, 0, M, T>(&Type);
+				}
+			}
+			else if constexpr (is_var<T>)
+			{
+				Type = FromType<T::ValueType>();
 			}
 			else
 			{
-				return FromBaseType<T>();
+				Type = FromBaseType<T>();
 			}
+
+			//if constexpr(n < N)
+			{
+				//HASSERT(_pStructType != nullptr, "Invalid parent struct type");
+
+				if (_pStructType != nullptr)
+				{
+					_pStructType->Member(Type);
+				}
+
+				if constexpr (n + 1 < N)
+				{
+					using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(hlx::get<n + 1>(Parent{})) >> ;
+					FromType<MemberType, n + 1, N, Parent>(&Type);
+				}
+			}
+
+			return Type;
 		}
 
 	private:
@@ -243,6 +289,20 @@ namespace Tracy
 			Func.Member(Param);
 		}
 		return Func;
+	}
+
+	template<class T/*, typename = std::enable_if_t<is_texture<T>>*/>
+	static SPIRVType SPIRVType::FromImageType()
+	{ 
+		static_assert(is_texture<T>, "Type is not a texture");
+		return SPIRVType::Image(FromBaseType<base_type_t<T::TexComponentType>>(), T::Dim, T::Array, T::DepthType, T::MultiSampled, T::SamplerAccess);
+	}
+
+	template<class T/*, typename = std::enable_if_t<is_array<T>>*/>
+	static SPIRVType SPIRVType::FromArrayType()
+	{
+		static_assert(is_array<T>, "Type is not a array");
+		return SPIRVType::Array(FromType<T::ElementType>(), T::Size);
 	}
 
 #pragma region FromType

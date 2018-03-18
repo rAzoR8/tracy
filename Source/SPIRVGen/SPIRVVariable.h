@@ -31,6 +31,32 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass Class>
 	struct var_t;
 
+	//---------------------------------------------------------------------------------------------------
+
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> make_intermediate(const var_t<T, Assemble, C1>& _Var)
+	{
+		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble)
+		{
+			var.uResultId = _Var.Load();
+		}
+		else
+		{
+			var.Value = _Var.Value;
+		}
+
+		return var;
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	template < bool Assemble, class ...Ts, class Ret = va_type_t<Ts...>>
+	inline var_t<Ret, Assemble, spv::StorageClassFunction> make_const(const Ts& ..._Args)
+	{
+		return var_t<Ret, Assemble, spv::StorageClassFunction>(_Args...);
+	}
+
 	template <class T, bool Assemble, spv::StorageClass Class, class ...Ts>
 	const var_t<T, Assemble, Class>& get_first_var(const var_t<T, Assemble, Class>& _first, const Ts& ..._args) { return _first; }
 
@@ -185,6 +211,7 @@ namespace Tracy
 		typedef T ValueType;
 		typedef base_type_t<T> BaseType;
 		typedef var_t<T, Assemble, Class> VarType;
+		//typedef std::conditional_t<is_array<ValueType>, var_t<array_element_t<ValueType>, Assemble, spv::StorageClassFunction>, var_t<ValueType, Assemble, spv::StorageClassFunction>> VarElementType;
 
 		static constexpr bool AssembleMode = Assemble;
 		static constexpr spv::StorageClass StorageClass = Class;
@@ -289,7 +316,7 @@ namespace Tracy
 		}
 
 		template <spv::StorageClass C1, class U = T, typename = std::enable_if_t<is_array<U>>>
-		var_t<array_element_t<U>, Assemble, Class> operator[](const var_t<uint32_t, Assemble, C1>& _Index) const
+		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const var_t<uint32_t, Assemble, C1>& _Index) const
 		{
 			static_assert(is_array<U>, "Unsupported type (array expected)");
 			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate(), Value[_Index.Value]);
@@ -312,6 +339,12 @@ namespace Tracy
 			}
 
 			return var;
+		}
+
+		template <spv::StorageClass C1, class U = T, typename = std::enable_if_t<is_array<U>>>
+		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const uint32_t& _Index) const
+		{
+			return this->operator[](make_const<Assemble>(_Index));
 		}
 
 #pragma endregion

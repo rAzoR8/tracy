@@ -8,32 +8,6 @@
 namespace Tracy
 {
 	//---------------------------------------------------------------------------------------------------
-
-	template <class T, bool Assemble, spv::StorageClass C1>
-	inline var_t<T, Assemble, spv::StorageClassFunction> make_intermediate(const var_t<T, Assemble, C1>& _Var)
-	{
-		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
-
-		if constexpr(Assemble)
-		{
-			var.uResultId = _Var.Load();
-		}
-		else
-		{
-			var.Value = _Var.Value;
-		}
-
-		return var;
-	}
-	//---------------------------------------------------------------------------------------------------
-
-	template < bool Assemble, class ...Ts, class Ret = va_type_t<Ts...>>
-	inline var_t<Ret, Assemble, spv::StorageClassFunction> make_const(const Ts& ..._Args)
-	{
-		return var_t<Ret, Assemble, spv::StorageClassFunction>(_Args...);
-	}
-
-	//---------------------------------------------------------------------------------------------------
 	// create operation with no operands
 	template <bool Assemble, class OpFunc, class T = std::invoke_result_t<OpFunc>, class ...Ops>
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_op0(const OpFunc& _OpFunc, const Ops ..._Ops)
