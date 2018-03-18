@@ -7,6 +7,7 @@
 #include <vulkan\spirv.hpp>
 #include "FunctionalUtils.h"
 #include <array>
+//#include <vector>
 
 namespace Tracy
 {
@@ -617,7 +618,19 @@ namespace Tracy
 		typedef TSPVArrayTag SPVArrayTag;
 		typedef T ElementType;
 		static constexpr uint32_t Size = _Size;
+		static constexpr bool bDynamic = false;
 	};
+
+	//template <class T>
+	//struct dyn_array_t : public std::vector<T>
+	//{
+	//	dyn_array_t(const uint32_t& _Size) : std::vector<T>(_Size), Size(_Size){}
+
+	//	typedef TSPVArrayTag SPVArrayTag;
+	//	typedef T ElementType;
+	//	const uint32_t Size;
+	//	static constexpr bool bDynamic = false;
+	//};
 
 	template<class, class = std::void_t<> >
 	struct is_array_impl : std::false_type { };

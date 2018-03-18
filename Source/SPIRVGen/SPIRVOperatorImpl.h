@@ -984,7 +984,7 @@ namespace Tracy
 		}
 		else
 		{
-			static_assert(is_struct<T> == false, "FromType not implemented for structures");
+			//static_assert(is_struct<T> == false, "FromType not implemented for structures");
 			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(SPIRVType::FromType<T>().GetSize());
 		}
 	}

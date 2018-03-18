@@ -13,18 +13,20 @@ namespace Tracy
 
 	using TDLPerm = hlx::Flag<EDLPermutation>;
 
+	template <uint32_t DirLightRange = 10u, uint32_t PointLightRange = 10u>
 	class DeferredLighting : public FragmentProgram
 	{
 	public:
 		DeferredLighting(const TDLPerm& _Perm = {}) :
-			mPerm(_Perm)
+			m_kPerm(_Perm)
 		{		
 		}
 
 		~DeferredLighting() {};
 
-		const TDLPerm& mPerm;
+		const TDLPerm m_kPerm;
 
+		// Inputs
 		var_in_t<float4_t> vPosition;
 		var_in_t<float2_t> vTexCoord;
 		var_in_t<float3_t> vViewRay;
@@ -44,12 +46,13 @@ namespace Tracy
 		SamplerState SamplerLinearWrap;
 		SamplerState SamplerShadowMap;
 
+		// Outputs
 		RenderTarget Diffuse;
 		RenderTarget Specular;
 
 		// Definitions ------------------------------------------
-		static constexpr uint32_t DirLightRange = 10u;
-		static constexpr uint32_t PointLightRange = 10u;
+		//static constexpr uint32_t DirLightRange = 10u;
+		//static constexpr uint32_t PointLightRange = 10u;
 
 		// CBuffer ----------------------------------------------
 		struct ShadowData
@@ -163,7 +166,7 @@ namespace Tracy
 		{
 			LightingResult Result = CalculateDirectionalLight(cbDirectionalLight[0u], _vViewDir, _vNormal, _fRoughness, _vF0);
 
-			if (mPerm.CheckFlag(kDLPermutation_Shadow))
+			if (m_kPerm.CheckFlag(kDLPermutation_Shadow))
 			{
 				float4 vShadowPosH = float4(_vPosWS, 1.0f) * cbDeferredLighting->mShadowTransform;
 				f32 fShadowFactor = CalculateShadowFactor(vShadowPosH);
@@ -261,13 +264,13 @@ namespace Tracy
 
 			vF0 = Lerp(float3(0.04f, 0.04f, 0.04f), vF0, vMetallicHorizon.x); /// dielectric have F0 reflectance of ~0.04
 
-			/// Calculate Direct Diffuse and Direct Specular Lighting by point light sources
+			// Calculate Direct Diffuse and Direct Specular Lighting by point light sources
 			LightingResult LightResult = ComputeLighting(vToEye, vPosWS, vNormal, vMetallicHorizon.x, fRoughness, vF0);
 
-			/// Calculate Indirect Specular Light by "Texture" lights like the skybox
+			// Calculate Indirect Specular Light by "Texture" lights like the skybox
 			float3 vIndirectSpecularLight = { 0.f, 0.f, 0.f };
 
-			if (mPerm.CheckFlag(kDLPermutation_EnvMap))
+			if (m_kPerm.CheckFlag(kDLPermutation_EnvMap))
 			{
 				float3 vReflection = Reflect(-vToEye, vNormal);
 				//float3 vCubeDimension = GetTextureDimensionCube(gEnvMap);

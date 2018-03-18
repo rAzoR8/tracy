@@ -134,6 +134,8 @@ namespace Tracy
 		constexpr bool SupportedType = std::is_same_v<T, bool> || is_scalar<T> || is_vector<T> || is_matrix<T>;
 		static_assert(SupportedType, "Type not supported for spirv constant");
 
+		// TODO: implement arrays!
+
 		if constexpr(std::is_same_v<T, bool>)
 		{
 			if (_bSpec)

@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DeferredLightingExample.h" />
     <ClInclude Include="ExampleProg.h" />
     <ClInclude Include="GenerateSwizzleHeader.h" />
   </ItemGroup>

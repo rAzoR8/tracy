@@ -5,7 +5,6 @@
 #include "ClearColor.h"
 #include "ScreenSpaceTriangle.h"
 #include "Mandelbrot.h"
-#include "DeferredLightingExample.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
@@ -53,9 +52,6 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 		break;
 	case kDefaultShader_Mandelbrot:
 		Shader = GlobalAssembler.AssembleSimple<Mandelbrot>();
-		break;
-	case kDefaultShader_DeferredLighting:
-		Shader = GlobalAssembler.AssembleSimple<DeferredLighting>();
 		break;
 	default:
 		HERROR("Unknown shader %s", WCSTR(_ShaderIdentifier.GetString()));

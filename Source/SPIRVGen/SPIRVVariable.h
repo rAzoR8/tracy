@@ -322,7 +322,7 @@ namespace Tracy
 		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const var_t<Index, Assemble, C1>& _Index) const
 		{
 			static_assert(is_array<U>, "Unsupported type (array expected)");
-			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate(), Value[_Index.Value]);
+			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate()/*, Value[_Index.Value]*/);
 
 			if constexpr(Assemble)
 			{
@@ -339,6 +339,10 @@ namespace Tracy
 				OpAccessChain.AddIntermediate(uIndexId);
 
 				var.uVarId = GlobalAssembler.AddOperation(OpAccessChain);
+			}
+			else
+			{
+				var.Value = Value[_Index.Value];
 			}
 
 			return var;
