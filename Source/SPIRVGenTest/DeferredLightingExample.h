@@ -5,10 +5,11 @@
 
 namespace Tracy
 {
-	enum EDLPermutation
+	enum EDLPermutation : uint32_t
 	{
 		kDLPermutation_EnvMap = 1 << 0,
-		kDLPermutation_Shadow = 1 << 1
+		kDLPermutation_Shadow = 1 << 1,
+		kDLPermutation_NumOf = 2
 	};
 
 	using TDLPerm = hlx::Flag<EDLPermutation>;

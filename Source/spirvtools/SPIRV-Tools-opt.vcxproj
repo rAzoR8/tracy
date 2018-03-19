@@ -283,13 +283,20 @@
     <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\unify_const_pass.h" />
     <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\value_number_table.h" />
     <ClInclude Include="$(VULKAN_SDK)\spirv-tools\source\opt\workaround1209.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="SPIRV-Tools.vcxproj">
+      <Project>{77010e12-2028-34a4-bafe-f5a8b538c87b}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\aggressive_dead_code_elim_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\basic_block.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\block_merge_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\build_module.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ccp_pass.cpp" />
-    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg_cleanup_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\cfg_cleanup_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\common_uniform_elim_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\compact_ids_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\composite.cpp" />
@@ -319,6 +326,7 @@
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\instruction_list.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_context.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\ir_loader.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\licm_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_access_chain_convert_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_redundancy_elimination.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\local_single_block_elim_pass.cpp" />
@@ -339,18 +347,14 @@
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\replace_invalid_opc.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\scalar_replacement_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\set_spec_constant_default_value_pass.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\simplification_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\strength_reduction_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\strip_debug_info_pass.cpp" />
-    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\type_manager.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\types.cpp" />
+    <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\type_manager.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\unify_const_pass.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\value_number_table.cpp" />
     <ClCompile Include="$(VULKAN_SDK)\spirv-tools\source\opt\workaround1209.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="SPIRV-Tools.vcxproj">
-      <Project>{77010e12-2028-34a4-bafe-f5a8b538c87b}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
