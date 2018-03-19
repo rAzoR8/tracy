@@ -52,6 +52,8 @@ namespace Tracy
 
 			float3 l, v, h, n;
 
+			//auto s = Select(sum == 0.f, sum + 1.f, sum - 1.f);
+
 			auto f = FresnelSchlick(l, h, sum);
 			auto d = BlinnPhongDistribution(n, h, sum);
 			auto geoi = GeoImplicit(n, l, v);

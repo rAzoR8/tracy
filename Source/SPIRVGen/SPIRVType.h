@@ -343,6 +343,15 @@ namespace Tracy
 	inline SPIRVType SPIRVType::FromBaseType<uint4_t>() { return SPIRVType::Vec<uint32_t, 4>(); }
 
 	template<>
+	inline SPIRVType SPIRVType::FromBaseType<bool2_t>() { return SPIRVType::Vec<bool, 2>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromBaseType<bool3_t>() { return SPIRVType::Vec<bool, 3>(); }
+
+	template<>
+	inline SPIRVType SPIRVType::FromBaseType<bool4_t>() { return SPIRVType::Vec<bool, 4>(); }
+
+	template<>
 	inline SPIRVType SPIRVType::FromBaseType<float2_t>() { return SPIRVType::Vec<float, 2>(); }
 
 	template<>

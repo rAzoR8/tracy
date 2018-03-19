@@ -152,7 +152,7 @@ namespace Tracy
 		}
 		else if constexpr(is_vector<T>)
 		{
-			constexpr uint32_t N{ Dimmension<T> };
+			constexpr uint32_t N{ Dimension<T> };
 			std::vector<SPIRVConstant> Components; // elements
 			for (uint32_t i = 0; i < N; ++i)
 			{

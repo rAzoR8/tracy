@@ -2,7 +2,7 @@
 //#include "SPIRVInlineAssembler.h"
 //#include "GenerateSwizzleHeader.h"
 
-//#include "ExampleProg.h"
+#include "ExampleProg.h"
 #include "DeferredLightingExample.h"
 
 using namespace Tracy;
@@ -36,6 +36,10 @@ int main(int argc, char* argv[])
 	//ExampleProg<false> prog;
 	//prog();
 
+	GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
+	system("spirv-dis test.spv");
+	system("spirv-val test.spv");
+
 	std::vector<SPIRVModule> Modules;
 
 	for (uint32_t p = 0; p < kDLPermutation_NumOf; ++p)
@@ -43,9 +47,6 @@ int main(int argc, char* argv[])
 		compile<1, 10, 2, 1, 10, 2>(Modules, TDLPerm(p));
 	}
 
-	//GlobalAssembler.AssembleSimple<DeferredLighting<>>().Save("test.spv");
-	//system("spirv-dis test.spv");
-	//system("spirv-val test.spv");
 	system("pause");
 
 	return 0;

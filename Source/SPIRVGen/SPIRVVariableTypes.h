@@ -27,6 +27,10 @@ namespace Tracy
 	using uint3_t = glm::u32vec3;
 	using uint4_t = glm::u32vec4;
 
+	using bool2_t = std::array<bool, 2>;
+	using bool3_t = std::array<bool, 3>;
+	using bool4_t = std::array<bool, 4>;
+
 	using float2x2_t = glm::mat2x2;
 	using float3x3_t = glm::mat3x3;
 	using float3x4_t = glm::mat3x4; // transposed wrt to open gl
@@ -109,7 +113,7 @@ namespace Tracy
 #pragma endregion
 
 	template <class T>
-	constexpr size_t Dimmension = sizeof(T) / sizeof(base_type_t<T>);
+	constexpr size_t Dimension = sizeof(T) / sizeof(base_type_t<T>);
 
 #pragma region primitive_type
 
@@ -242,7 +246,7 @@ namespace Tracy
 
 #pragma region mat_dims
 	template <class T, class Row = row_type_t<T>, class Col = col_type_t<T>>
-	struct mat_dim { static constexpr uint32_t Rows = Dimmension<Row>; static constexpr uint32_t Cols = Dimmension<Col>; };
+	struct mat_dim { static constexpr uint32_t Rows = Dimension<Row>; static constexpr uint32_t Cols = Dimension<Col>; };
 #pragma endregion
 
 #pragma region va_type
@@ -370,6 +374,18 @@ namespace Tracy
 	template<>
 	struct vec_type<uint32_t, 4> { typedef uint4_t type; };
 
+	template<>
+	struct vec_type<bool, 1> { typedef bool type; };
+
+	template<>
+	struct vec_type<bool, 2> { typedef bool2_t type; };
+
+	template<>
+	struct vec_type<bool, 3> { typedef bool3_t type; };
+
+	template<>
+	struct vec_type<bool, 4> { typedef bool4_t type; };
+
 	template <class T, size_t Dim>
 	using vec_type_t = typename vec_type<T, Dim>::type;
 #pragma endregion
@@ -433,7 +449,7 @@ namespace Tracy
 
 	// not c++ convertible but OpConvertXtoY should exist for this type
 	template <class U, class V> // rename to numeric convertible?
-	constexpr bool is_convertible = /*Dimmension<U> == Dimmension<V> &&*/ is_numeric_type<base_type_t<U>> && is_numeric_type<base_type_t<V>>;
+	constexpr bool is_convertible = /*Dimension<U> == Dimension<V> &&*/ is_numeric_type<base_type_t<U>> && is_numeric_type<base_type_t<V>>;
 
 #pragma region texture_types
 
@@ -553,7 +569,7 @@ namespace Tracy
 	{
 		if constexpr(is_vector<T> || is_matrix<T>)
 		{
-			return Index < Dimmension<T>;
+			return Index < Dimension<T>;
 		}
 		else
 		{
@@ -565,7 +581,7 @@ namespace Tracy
 	constexpr bool is_valid_type = !std::is_same_v<std::false_type, T>;
 
 	template <class U, class V>
-	using longer_type_t = cond_t<Dimmension<U> >= Dimmension<V>, U, V>;
+	using longer_type_t = cond_t<Dimension<U> >= Dimension<V>, U, V>;
 
 #pragma region mul result tpye
 	// result type of a multiplication
@@ -593,10 +609,10 @@ namespace Tracy
 #pragma endregion
 
 	// convert U to V
-	template <class U, class V/*, typename = std::enable_if_t<Dimmension<U> == Dimmension<V>>*/>
+	template <class U, class V/*, typename = std::enable_if_t<Dimension<U> == Dimension<V>>*/>
 	constexpr spv::Op GetConvertOp()
 	{
-		static_assert(Dimmension<U> == Dimmension<V>, "Type dimmensions mismatch");
+		static_assert(Dimension<U> == Dimension<V>, "Type dimmensions mismatch");
 
 		if constexpr(is_base_float<U> && is_base_int<V>)
 			return spv::OpConvertFToS;

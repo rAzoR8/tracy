@@ -87,6 +87,41 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// create operation with three operands
+	template <class U, class V, class W, class OpFunc, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, class T = std::invoke_result_t<OpFunc, const U&, const V&, const W&>, class ...Ops>
+	inline var_t<T, Assemble, spv::StorageClassFunction> make_op3(
+		const var_t<U, Assemble, C1>& v1,
+		const var_t<V, Assemble, C2>& v2,
+		const var_t<W, Assemble, C3>& v3,
+		const OpFunc& _OpFunc,
+		const EOpTypeBase _kOpTypeBase,
+		const Ops ..._Ops)
+	{
+		auto var = var_t<T, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			var.Value = _OpFunc(l.Value, r.Value);
+		}
+		else // Assemble
+		{
+			LoadVariables(v1, v2, v3);
+
+			spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V, W>(_kOpTypeBase, _Ops...);
+			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
+
+			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
+			Op.AddIntermediate(v1.uResultId); // operand1
+			Op.AddIntermediate(v2.uResultId); // operand2
+			Op.AddIntermediate(v3.uResultId); // operand3
+
+			var.uResultId = GlobalAssembler.AddOperation(Op);
+		}
+
+		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// extension operation with no operands
 	template <bool Assemble, class OpFunc, class T = std::invoke_result_t<OpFunc>, class ...Ops >
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_ext_op0(const OpFunc& _OpFunc, const std::string& _sExt, const Ops ..._Ops)
@@ -656,6 +691,31 @@ namespace Tracy
 	{
 		// TODO: DDY not implemented for CPU execution
 		return make_op1(P, [](const T& p)-> T {return p; }, spv::OpDPdy);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Select from two objects
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, size_t N = Dimension<T>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Select(const var_t<vec_type_t<bool, N>, Assemble, C1>& Condition, const var_t<T, Assemble, C2>& TrueVar, const var_t<T, Assemble, C3>& FalseVar)
+	{
+		if constexpr(N > 1)
+		{
+			const auto select = [](const CondT& cond, const T& t, const T& f)->T
+			{
+				T ret;
+				for (size_t = i; i < N; ++i)
+				{
+					ret[i] = cond[i] ? t[i] : f[i];
+				}
+				return ret;
+			};
+
+			return make_op3(Condition, TrueVar, FalseVar, select, kOpTypeBase_Result, spv::OpSelect);
+		}
+		else
+		{
+			return make_op3(Condition, TrueVar, FalseVar, [](const bool& cond, const T& t, const T& f)-> T {return cond ? t : f;}, kOpTypeBase_Result, spv::OpSelect);
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------

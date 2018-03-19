@@ -244,7 +244,7 @@ namespace Tracy
 		template <class U, spv::StorageClass C1>
 		const var_t& operator=(const var_t<U, Assemble, C1>& _Other) const
 		{
-			constexpr bool bConvertible = is_convertible<U, BaseType> && Dimmension<U> == Dimmension<T>;
+			constexpr bool bConvertible = is_convertible<U, BaseType> && Dimension<U> == Dimension<T>;
 			if constexpr(std::is_same_v<U, T>)
 			{
 				var_decoration<Assemble>::operator=(_Other);
@@ -424,7 +424,7 @@ namespace Tracy
 
 					SPIRVOperation OpConstruct(spv::OpCompositeConstruct, uRealReturnTypeId);
 
-					for (uint32_t n = 0u; n < Dimmension<ReturnType>; ++n)
+					for (uint32_t n = 0u; n < Dimension<ReturnType>; ++n)
 					{
 						SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uSampleResultId)); // var id to extract from
 						OpExtract.AddLiteral(n); // extraction index
@@ -579,7 +579,7 @@ namespace Tracy
 			uint32_t v2 = HUNDEFINED32,
 			uint32_t v3 = HUNDEFINED32,
 			spv::StorageClass C1,
-			typename = std::enable_if_t<is_vector<T> && Dim == Dimmension<T> && Monotonic<Dim, v0, v1, v2, v3>>>
+			typename = std::enable_if_t<is_vector<T> && Dim == Dimension<T> && Monotonic<Dim, v0, v1, v2, v3>>>
 			const var_t& InsertComponent(const var_t<T, Assemble, C1>& _Var) const
 		{
 			return operator=(_Var);
@@ -608,7 +608,7 @@ namespace Tracy
 				}
 				else
 				{
-					if constexpr(Dimmension<T> > 1 && is_valid_index<T, v0>())
+					if constexpr(Dimension<T> > 1 && is_valid_index<T, v0>())
 					{
 						Value[v0] = _Var.Value;
 					}
@@ -620,7 +620,7 @@ namespace Tracy
 			}
 			else if (uSpecConstId == HUNDEFINED32)
 			{
-				constexpr uint32_t N = Dimmension<T>;
+				constexpr uint32_t N = Dimension<T>;
 				Load();
 				_Var.Load();
 
@@ -1313,7 +1313,7 @@ namespace Tracy
 		if constexpr(is_var<T>)
 		{
 			using VarT = decltype(_First.Value);
-			constexpr size_t N = Dimmension<VarT>;
+			constexpr size_t N = Dimension<VarT>;
 			uint32_t uTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<VarT>>());
 			_First.Load();
 
