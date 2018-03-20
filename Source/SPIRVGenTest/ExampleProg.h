@@ -58,6 +58,10 @@ namespace Tracy
 
 			uint3 u1, u2;
 
+			auto rep = Replicate<3>(sum);
+
+			l += rep;
+
 			auto u = Select(bl, u1, u2);
 
 			auto bit = u1 >= u2;
