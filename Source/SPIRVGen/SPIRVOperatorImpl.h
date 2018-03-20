@@ -262,6 +262,34 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+	// Create a vector with dimension N from variable x
+	template <uint32_t N, class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> Replicate(const var_t<T, Assemble, C1>& _Var)
+	{
+		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			for (uint32_t i = 0; i < N; ++i)
+			{
+				var.Value[i] = _Var.Value;
+			}
+		}
+		else
+		{
+			const uint32_t uId = _Var.Load();
+			SPIRVOperation OpConstruct(spv::OpCompositeConstruct, var.uTypeId);
+			for (uint32_t i = 0; i < N; ++i)
+			{
+				OpConstruct.AddIntermediate(uId);
+			}
+			var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+		}
+
+		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// OPERATOR IMPLEMENTATIONS
 	//---------------------------------------------------------------------------------------------------
 
@@ -829,12 +857,6 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// Select from two objects
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, typename = std::enable_if_t<is_scalar<T>>>
-	inline var_t<T, Assemble, spv::StorageClassFunction> Select(const var_t<bool, Assemble, C1>& Condition, const var_t<T, Assemble, C2>& TrueVar, const var_t<T, Assemble, C3>& FalseVar)
-	{
-		return make_op3(Condition, TrueVar, FalseVar, [](const bool& cond, const T& l, const T& r) -> T {cond ? l : r; }, kOpTypeBase_Result, spv::OpSelect);
-	}
-
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, typename = std::enable_if_t<is_vector<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Select(const var_t<condition_t<T>, Assemble, C1>& Condition, const var_t<T, Assemble, C2>& TrueVar, const var_t<T, Assemble, C3>& FalseVar)
 	{
@@ -843,6 +865,19 @@ namespace Tracy
 			return ComponentWiseOp<T>([&](const uint32_t& i) {return (cond[i]) ? l[i] : r[i]; });
 		};
 		return make_op3(Condition, TrueVar, FalseVar, select, kOpTypeBase_Result, spv::OpSelect);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Select(const var_t<bool, Assemble, C1>& Condition, const var_t<T, Assemble, C2>& TrueVar, const var_t<T, Assemble, C3>& FalseVar)
+	{
+		if constexpr(is_scalar<T>)
+		{
+			return make_op3(Condition, TrueVar, FalseVar, [](const bool& cond, const T& l, const T& r) -> T {cond ? l : r; }, kOpTypeBase_Result, spv::OpSelect);
+		}
+		else
+		{
+			return Select(Replicate<Dimension<T>>(Condition), TrueVar, FalseVar);
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -1134,33 +1169,6 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// HELPER FUNCTIONS
 	//---------------------------------------------------------------------------------------------------
-
-	// Create a vector with dimension N from variable x
-	template <uint32_t N, class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_scalar<T>>>
-	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> Replicate(const var_t<T, Assemble, C1>& _Var)
-	{
-		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());
-
-		if constexpr(Assemble == false)
-		{
-			for (uint32_t i = 0; i < N; ++i)
-			{
-				var.Value[i] = _Var.Value;
-			}
-		}
-		else
-		{
-			const uint32_t uId = _Var.Load();
-			SPIRVOperation OpConstruct(spv::OpCompositeConstruct, var.uTypeId);
-			for (uint32_t i = 0; i < N; ++i)
-			{
-				OpConstruct.AddIntermediate(uId);
-			}
-			var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
-		}
-
-		return var;
-	}
 
 	//---------------------------------------------------------------------------------------------------
 	// LERP

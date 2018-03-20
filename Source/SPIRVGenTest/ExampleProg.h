@@ -62,7 +62,7 @@ namespace Tracy
 
 			l += rep;
 
-			auto u = Select(bl, u1, u2);
+			auto u = Select(an, u1, u2);
 
 			auto bit = u1 >= u2;
 			auto bit2 = sum >= 1.f;
