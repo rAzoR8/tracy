@@ -49,10 +49,21 @@ namespace Tracy
 		inline void operator()()
 		{
 			f32 sum = 0.f;
+			f32 sum2 = 1.f;
 
 			float3 l, v, h, n;
 
-			//auto s = Select(sum == 0.f, sum + 1.f, sum - 1.f);
+			auto bl = l != v && l == n;
+			auto an = Any(bl);
+
+			uint3 u1, u2;
+
+			auto u = Select(bl, u1, u2);
+
+			auto bit = u1 >= u2;
+			auto bit2 = sum >= 1.f;
+
+			auto k = Select(an, sum, sum2);
 
 			auto f = FresnelSchlick(l, h, sum);
 			auto d = BlinnPhongDistribution(n, h, sum);
@@ -131,7 +142,7 @@ namespace Tracy
 			auto sp = SpecConst<float>(2.f);
 
 			auto res = m34 * v3 * sp; // instead of using mul
-			auto k = Length(res.xyz);
+			auto baj = Length(res.xyz);
 
 			float2 offset = BufferBlock->Offset;
 			For(u32 i = 0u, i < BufferBlock->SampleCount, ++i)

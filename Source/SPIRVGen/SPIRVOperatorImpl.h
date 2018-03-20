@@ -101,7 +101,7 @@ namespace Tracy
 
 		if constexpr(Assemble == false)
 		{
-			var.Value = _OpFunc(l.Value, r.Value);
+			var.Value = _OpFunc(v1.Value, v2.Value, v3.Value);
 		}
 		else // Assemble
 		{
@@ -399,40 +399,71 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+
+	template<class ResultT, class ComponentOp>
+	inline ResultT ComponentWiseOp(const ComponentOp& _CompFunc)
+	{
+		constexpr size_t N = Dimension<ResultT>;
+		ResultT ret;
+		for (uint32_t i = 0u; i < N; ++i)
+		{
+			ret[i] = _CompFunc(i);
+		}
+
+		return ret;
+	}
+
+	//---------------------------------------------------------------------------------------------------
 	// EQUAL
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
-		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 == v2; }, kOpTypeBase_Result, spv::OpLogicalEqual);
+		const auto equal = [](const T& l, const T& r)->condition_t<T>
+		{
+			if constexpr(Dimension<T> > 1)
+				return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] == r[i];});
+			else
+				return l == r;
+		};
+
+		return make_op2(L, R, equal, kOpTypeBase_Operand1, spv::OpFOrdEqual, spv::OpIEqual, spv::OpNop, spv::OpLogicalEqual);
 	}
 	// equal with constant left
-	template <class T, class V, bool Assemble, spv::StorageClass C1/*, typename = std::enable_if_t<is_convertible<T,V>>*/>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const V& l, const var_t<T, Assemble, C1>& r)
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator==(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) == r;
 	}
 	// equal with constant right
-	template <class T, class V, bool Assemble, spv::StorageClass C1/*, typename = std::enable_if_t<is_convertible<T, V>>*/>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& l, const V& r)
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l == var_t<T, Assemble, spv::StorageClassFunction>((T)r);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// UNEQUAL
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
-		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 != v2; }, kOpTypeBase_Result, spv::OpLogicalNotEqual);
+		const auto equal = [](const T& l, const T& r)->condition_t<T>
+		{
+			if constexpr(Dimension<T> > 1)
+				return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] != r[i]; });
+			else
+				return l != r;
+		};
+
+		return make_op2(L, R, equal, kOpTypeBase_Operand1, spv::OpFOrdNotEqual, spv::OpINotEqual, spv::OpNop, spv::OpLogicalNotEqual);
 	}
 	// unequal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const V& l, const var_t<T, Assemble, C1>& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator!=(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) != r;
 	}
 	// unequal with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& l, const V& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l != var_t<T, Assemble, spv::StorageClassFunction>((T)r);
 	}
@@ -440,10 +471,21 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// LOGICAL OR
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const var_t<bool, Assemble, C1>& l, const var_t<bool, Assemble, C2>& r)
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const var_t<bool, Assemble, C1>& L, const var_t<bool, Assemble, C2>& R)
 	{
 		return make_op2(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 || v2; }, kOpTypeBase_Result, spv::OpLogicalOr);
 	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_bool<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator||(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		const auto or = [](const T& l, const T& r)->T
+		{
+			return ComponentWiseOp<T>([&](const uint32_t i) {return l[i] || r[i]; });
+		};
+		return make_op2(L, R, or, kOpTypeBase_Operand1, spv::OpLogicalOr);
+	}
+
 	// logical or with constant left
 	template <bool Assemble, spv::StorageClass C1>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const bool& l, const var_t<bool, Assemble, C1>& r)
@@ -464,6 +506,17 @@ namespace Tracy
 	{
 		return make_op2(l, r, [](const bool& v1, const bool& v2)-> bool {return v1 && v2; }, kOpTypeBase_Result, spv::OpLogicalAnd);
 	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector_bool<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator&&(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		const auto and = [](const T& l, const T& r)->T
+		{
+			return ComponentWiseOp<T>([&](const uint32_t i) {return l[i] && r[i]; });
+		};
+		return make_op2(L, R, and , kOpTypeBase_Operand1, spv::OpLogicalAnd);
+	}
+
 	// logical and with constant left
 	template <bool Assemble, spv::StorageClass C1>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const bool& l, const var_t<bool, Assemble, C1>& r)
@@ -539,80 +592,123 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// Less
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
-		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 < v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThan, spv::OpSLessThan, spv::OpULessThan);
+		return make_op2(L, R, [](const T& v1, const T& v2)-> bool {return v1 < v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThan, spv::OpSLessThan, spv::OpULessThan);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector<T>>>
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		const auto less = [](const T& l, const T& r)->condition_t<T>
+		{
+			return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] < r[i]; });
+		};
+		return make_op2(L, R, less, kOpTypeBase_Operand1, spv::OpFOrdLessThan, spv::OpSLessThan, spv::OpULessThan);
 	}
 	// Less with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<(const V& l, const var_t<T, Assemble, C1>& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) < r;
 	}
 	// Less with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& l, const V& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l < var_t<T, Assemble, spv::StorageClassFunction>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
 	// Less then equal
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<=(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<=(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
-		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 <= v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThanEqual, spv::OpSLessThanEqual, spv::OpULessThanEqual);
+		return make_op2(L, R, [](const T& v1, const T& v2)-> bool {return v1 <= v2; }, kOpTypeBase_Operand1, spv::OpFOrdLessThanEqual, spv::OpSLessThanEqual, spv::OpULessThanEqual);
 	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector<T>>>
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<=(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		const auto lessthan = [](const T& l, const T& r)->condition_t<T>
+		{
+			return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] <= r[i]; });
+		};
+		return make_op2(L, R, lessthan, kOpTypeBase_Operand1, spv::OpFOrdLessThanEqual, spv::OpSLessThanEqual, spv::OpULessThanEqual);
+	}
+
 	// Less then equal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<=(const V& l, const var_t<T, Assemble, C1>& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<=(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) <= r;
 	}
 	// Less then equal with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator<=(const var_t<T, Assemble, C1>& l, const V& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<=(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l <= var_t<T, Assemble, spv::StorageClassFunction>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
 	// GREATER
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
-		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 > v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThan, spv::OpSGreaterThan, spv::OpUGreaterThan);
+		return make_op2(L, R, [](const T& v1, const T& v2)-> bool {return v1 > v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThan, spv::OpSGreaterThan, spv::OpUGreaterThan);
 	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector<T>>>
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		const auto greater = [](const T& l, const T& r)->condition_t<T>
+		{
+			return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] > r[i]; });
+		};
+		return make_op2(L, R, greater, kOpTypeBase_Operand1, spv::OpFOrdGreaterThan, spv::OpSGreaterThan, spv::OpUGreaterThan);
+	}
+
 	// greater with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>(const V& l, const var_t<T, Assemble, C1>& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) > r;
 	}
 	// greater with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>(const var_t<T, Assemble, C1>& l, const V& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l > var_t<T, Assemble, spv::StorageClassFunction>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
 	// Greater then equal
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
-		return make_op2(l, r, [](const T& v1, const T& v2)-> bool {return v1 >= v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThanEqual, spv::OpSGreaterThanEqual, spv::OpUGreaterThanEqual);
+		return make_op2(L, R, [](const T& v1, const T& v2)-> bool {return v1 >= v2; }, kOpTypeBase_Operand1, spv::OpFOrdGreaterThanEqual, spv::OpSGreaterThanEqual, spv::OpUGreaterThanEqual);
 	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_vector<T>>>
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		const auto greaterthan = [](const T& l, const T& r)->condition_t<T>
+		{
+			return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] >= r[i]; });
+		};
+		return make_op2(L, R, greaterthan, kOpTypeBase_Operand1, spv::OpFOrdGreaterThanEqual, spv::OpSGreaterThanEqual, spv::OpUGreaterThanEqual);
+	}
+
 	// Greater then equal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>=(const V& l, const var_t<T, Assemble, C1>& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>=(const V& l, const var_t<T, Assemble, C1>& r)
 	{
 		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) >= r;
 	}
 	// Greater then equal with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
-	inline var_t<bool, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& l, const V& r)
+	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& l, const V& r)
 	{
 		return l >= var_t<T, Assemble, spv::StorageClassFunction>((T)r);
 	}
@@ -694,28 +790,59 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	// Select from two objects
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, size_t N = Dimension<T>>
-	inline var_t<T, Assemble, spv::StorageClassFunction> Select(const var_t<vec_type_t<bool, N>, Assemble, C1>& Condition, const var_t<T, Assemble, C2>& TrueVar, const var_t<T, Assemble, C3>& FalseVar)
+	// Result is true if any component is true
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_bool<T>>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> Any(const var_t<T, Assemble, C1>& _Bools)
 	{
-		if constexpr(N > 1)
+		const auto any = [](const T& b)-> bool
 		{
-			const auto select = [](const CondT& cond, const T& t, const T& f)->T
+			for (uint32_t i = 0; i < Dimension<T>; ++i)
 			{
-				T ret;
-				for (size_t = i; i < N; ++i)
-				{
-					ret[i] = cond[i] ? t[i] : f[i];
-				}
-				return ret;
+				if (b[i])
+					return true;
 			};
 
-			return make_op3(Condition, TrueVar, FalseVar, select, kOpTypeBase_Result, spv::OpSelect);
-		}
-		else
+			return false;
+		};
+
+		return make_op1(_Bools, any, spv::OpAny);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Result is true if all components are true
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_bool<T>>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> All(const var_t<T, Assemble, C1>& _Bools)
+	{
+		const auto any = [](const T& b)-> bool
 		{
-			return make_op3(Condition, TrueVar, FalseVar, [](const bool& cond, const T& t, const T& f)-> T {return cond ? t : f;}, kOpTypeBase_Result, spv::OpSelect);
-		}
+			for (uint32_t i = 0; i < Dimension<T>; ++i)
+			{
+				if (b[i] == false)
+					return false;
+			};
+
+			return true;
+		};
+
+		return make_op1(_Bools, any, spv::OpAll);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Select from two objects
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Select(const var_t<bool, Assemble, C1>& Condition, const var_t<T, Assemble, C2>& TrueVar, const var_t<T, Assemble, C3>& FalseVar)
+	{
+		return make_op3(Condition, TrueVar, FalseVar, [](const bool& cond, const T& l, const T& r) -> T {cond ? l : r; }, kOpTypeBase_Result, spv::OpSelect);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, typename = std::enable_if_t<is_vector<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Select(const var_t<condition_t<T>, Assemble, C1>& Condition, const var_t<T, Assemble, C2>& TrueVar, const var_t<T, Assemble, C3>& FalseVar)
+	{
+		const auto select = [](const condition_t<T>& cond, const T& l, const T& r)->T
+		{
+			return ComponentWiseOp<T>([&](const uint32_t& i) {return (cond[i]) ? l[i] : r[i]; });
+		};
+		return make_op3(Condition, TrueVar, FalseVar, select, kOpTypeBase_Result, spv::OpSelect);
 	}
 
 	//---------------------------------------------------------------------------------------------------

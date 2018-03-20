@@ -7,6 +7,7 @@
 #include <vulkan\spirv.hpp>
 #include "FunctionalUtils.h"
 #include <array>
+#include "Vector.h"
 //#include <vector>
 
 namespace Tracy
@@ -27,9 +28,9 @@ namespace Tracy
 	using uint3_t = glm::u32vec3;
 	using uint4_t = glm::u32vec4;
 
-	using bool2_t = std::array<bool, 2>;
-	using bool3_t = std::array<bool, 3>;
-	using bool4_t = std::array<bool, 4>;
+	using bool2_t = hlx::VecType<bool, 2>;
+	using bool3_t = hlx::VecType<bool, 3>;
+	using bool4_t = hlx::VecType<bool, 4>;
 
 	using float2x2_t = glm::mat2x2;
 	using float3x3_t = glm::mat3x3;
@@ -44,6 +45,15 @@ namespace Tracy
 
 	template <>
 	struct base_type<bool> { typedef bool type; };
+
+	template <>
+	struct base_type<bool2_t> { typedef bool type; };
+
+	template <>
+	struct base_type<bool3_t> { typedef bool type; };
+
+	template <>
+	struct base_type<bool4_t> { typedef bool type; };
 
 	template <>
 	struct base_type<float> { typedef float type; };
@@ -391,11 +401,15 @@ namespace Tracy
 #pragma endregion
 
 	template <class T>
+	using condition_t = vec_type_t<bool, Dimension<T>>; // result vector of conditional operation on T
+
+	template <class T>
 	constexpr bool is_scalar = std::is_same_v<T, base_type_t<T>>;
 
 	template <class T>
 	constexpr bool is_vector =
 		hlx::is_of_type<T,
+		bool2_t, bool3_t, bool4_t,
 		int2_t, int3_t, int4_t,
 		uint2_t, uint3_t, uint4_t,
 		float2_t, float3_t, float4_t,
@@ -411,6 +425,9 @@ namespace Tracy
 	constexpr bool is_vector_uint = hlx::is_of_type<T, uint2_t, uint3_t, uint4_t>();
 
 	template <class T>
+	constexpr bool is_vector_bool = hlx::is_of_type<T, bool2_t, bool3_t, bool4_t>();
+
+	template <class T>
 	constexpr bool is_vector_integer = hlx::is_of_type<T, int2_t, int3_t, int4_t, uint2_t, uint3_t, uint4_t>();
 
 	template <class T>
@@ -420,6 +437,9 @@ namespace Tracy
 	constexpr bool is_square_matrix = hlx::is_of_type<T, float2x2_t, float3x3_t, float4x4_t>();
 
 	// TODO: unorm etc
+	template <class T>
+	constexpr bool is_bool_type = std::is_same_v<T, bool>;
+
 	template <class T>
 	constexpr bool is_int_type = hlx::is_of_type<T, int8_t, int16_t, int32_t, int64_t>();
 
@@ -434,6 +454,9 @@ namespace Tracy
 
 	template <class T>
 	constexpr bool is_numeric_type = hlx::is_of_type<T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double>();
+
+	template <class T>
+	constexpr bool is_base_bool = std::is_same_v<bool, base_type_t<T>>;
 
 	template <class T>
 	constexpr bool is_base_float = is_float_type<base_type_t<T>>;

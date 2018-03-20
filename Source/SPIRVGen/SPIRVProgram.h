@@ -80,9 +80,10 @@ namespace Tracy
 		using float2 = var<float2_t>;
 		using float3 = var<float3_t>;
 		using float4 = var<float4_t>;
-		using quaternion = SPIRVQuaternion<Assemble, spv::StorageClassFunction>;
 
+		using quaternion = SPIRVQuaternion<Assemble, spv::StorageClassFunction>;
 		using complex = SPIRVComplex<Assemble, spv::StorageClassFunction>;
+		using boolean = var<bool>;
 
 		using float2x2 = var<float2x2_t>;
 		using float3x3 = var<float3x3_t>;

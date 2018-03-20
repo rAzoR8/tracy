@@ -42,10 +42,10 @@ int main(int argc, char* argv[])
 
 	std::vector<SPIRVModule> Modules;
 
-	for (uint32_t p = 0; p < kDLPermutation_NumOf; ++p)
-	{
-		compile<1, 10, 2, 1, 10, 2>(Modules, TDLPerm(p));
-	}
+	//for (uint32_t p = 0; p < kDLPermutation_NumOf; ++p)
+	//{
+	//	compile<1, 10, 2, 1, 10, 2>(Modules, TDLPerm(p));
+	//}
 
 	system("pause");
 
