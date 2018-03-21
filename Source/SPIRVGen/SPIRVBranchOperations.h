@@ -38,7 +38,6 @@ namespace Tracy
 		if constexpr(Assemble)
 		{
 			_Cond.Load();
-			HASSERT(_Cond.uResultId != HUNDEFINED32, "Invalid condition variable");
 
 			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpSelectionMerge,
 				{
@@ -46,9 +45,7 @@ namespace Tracy
 					SPIRVOperand(kOperandType_Literal, (const uint32_t)_kMask) // selection class
 				}), &Node.pSelectionMerge);
 
-			GlobalAssembler.AddOperation(
-				SPIRVOperation(spv::OpBranchConditional, SPIRVOperand(kOperandType_Intermediate, _Cond.uResultId)),
-				&Node.pBranchConditional);
+			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranchConditional, SPIRVOperand(kOperandType_Intermediate, _Cond.uResultId)), &Node.pBranchConditional);
 		}
 		else
 		{
@@ -59,16 +56,14 @@ namespace Tracy
 		{
 			if constexpr(Assemble)
 			{
-				const uint32_t uTrueLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-				Node.pBranchConditional->AddIntermediate(uTrueLableId);
+				Node.pBranchConditional->AddIntermediate(GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel))); // add true label
 			}
 
 			_Func();
 
 			if constexpr(Assemble)
 			{
-				// end of then block
-				GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &Node.pThenBranch);
+				GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &Node.pThenBranch); // end of then block
 
 				const uint32_t uFalseLableId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 				Node.pThenBranch->AddIntermediate(uFalseLableId);

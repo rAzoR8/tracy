@@ -22,6 +22,9 @@ namespace Tracy
 
 		~SPIRVConstant();		
 
+		template<class Container, class T = typename Container::value_type>
+		static SPIRVConstant MakeVec(const Container& _Elements, const bool _bSpec = false);
+
 		// null
 		inline static SPIRVConstant Make() { return SPIRVConstant(spv::OpConstantNull); };
 
@@ -127,6 +130,21 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+
+	template<class Container, class T>
+	inline SPIRVConstant SPIRVConstant::MakeVec(const Container& _Elements, const bool _bSpec)
+	{
+		std::vector<SPIRVConstant> Components;
+		for (const T& c : _Elements)
+		{
+			Components.emplace_back(Make(c, _bSpec));
+		}
+
+		return SPIRVConstant(
+			_bSpec ? spv::OpSpecConstantComposite : spv::OpConstantComposite,
+			SPIRVType::Vec<T>(static_cast<uint32_t>(_Elements.size())),
+			Components);
+	}
 
 	template<class T>
 	inline SPIRVConstant SPIRVConstant::Make(const T& _const, const bool _bSpec)

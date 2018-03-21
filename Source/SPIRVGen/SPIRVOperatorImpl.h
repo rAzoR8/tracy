@@ -262,9 +262,9 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	// Create a vector with dimension N from variable x
+	// Create a intermediate vector with dimension N from variable x
 	template <uint32_t N, class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_scalar<T>>>
-	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> Replicate(const var_t<T, Assemble, C1>& _Var)
+	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> replicate(const var_t<T, Assemble, C1>& _Var)
 	{
 		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());
 
@@ -282,6 +282,33 @@ namespace Tracy
 			for (uint32_t i = 0; i < N; ++i)
 			{
 				OpConstruct.AddIntermediate(uId);
+			}
+			var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+		}
+
+		return var;
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Create a intermediate vector with dimension N from constants _Values
+	template <uint32_t N, class T, bool Assemble, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> make_const_vec(const std::array<T, N>& _Values)
+	{
+		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			for (uint32_t i = 0; i < N; ++i)
+			{
+				var.Value[i] = _Values[i];
+			}
+		}
+		else
+		{
+			SPIRVOperation OpConstruct(spv::OpCompositeConstruct, var.uTypeId);
+			for (uint32_t i = 0; i < N; ++i)
+			{
+				OpConstruct.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(_Values[i])));
 			}
 			var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
 		}
@@ -443,19 +470,23 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// EQUAL
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<Dimension<T> == 1>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		return make_op2(L, R, [](const T& l, const T& r)->bool { return l == r; }, kOpTypeBase_Operand1, spv::OpFOrdEqual, spv::OpIEqual, spv::OpNop, spv::OpLogicalEqual);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<Dimension<T> != 1>>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
 		const auto equal = [](const T& l, const T& r)->condition_t<T>
 		{
-			if constexpr(Dimension<T> > 1)
-				return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] == r[i];});
-			else
-				return l == r;
+			return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] == r[i]; });
 		};
 
 		return make_op2(L, R, equal, kOpTypeBase_Operand1, spv::OpFOrdEqual, spv::OpIEqual, spv::OpNop, spv::OpLogicalEqual);
 	}
+
 	// equal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator==(const V& l, const var_t<T, Assemble, C1>& r)
@@ -470,19 +501,23 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 	// UNEQUAL
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<Dimension<T> == 1>>
+	inline var_t<bool, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
+	{
+		return make_op2(L, R, [](const T& l, const T& r)->bool {return l != r; }, kOpTypeBase_Operand1, spv::OpFOrdNotEqual, spv::OpINotEqual, spv::OpNop, spv::OpLogicalNotEqual);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<Dimension<T> != 1>>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& L, const var_t<T, Assemble, C2>& R)
 	{
 		const auto equal = [](const T& l, const T& r)->condition_t<T>
 		{
-			if constexpr(Dimension<T> > 1)
-				return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] != r[i]; });
-			else
-				return l != r;
+			return ComponentWiseOp<condition_t<T>>([&](const uint32_t i) {return l[i] != r[i]; });
 		};
 
 		return make_op2(L, R, equal, kOpTypeBase_Operand1, spv::OpFOrdNotEqual, spv::OpINotEqual, spv::OpNop, spv::OpLogicalNotEqual);
 	}
+
 	// unequal with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator!=(const V& l, const var_t<T, Assemble, C1>& r)
@@ -876,7 +911,7 @@ namespace Tracy
 		}
 		else
 		{
-			return Select(Replicate<Dimension<T>>(Condition), TrueVar, FalseVar);
+			return Select(replicate<Dimension<T>>(Condition), TrueVar, FalseVar);
 		}
 	}
 
@@ -1169,6 +1204,17 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// HELPER FUNCTIONS
 	//---------------------------------------------------------------------------------------------------
+
+	// Clamp X between 0 and 1 componentwise
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Saturate(const var_t<T, Assemble, C1>& x)
+	{
+		constexpr uint32_t N{ Dimension<T> };
+		std::array<T, N> Zero; Zero.fill(T(0));
+		std::array<T, N> One; One.fill(T(1));
+
+		return Clamp(x, make_const_vec<N, T, Assemble>(Zero), make_const_vec<N, T, Assemble>(One));
+	}
 
 	//---------------------------------------------------------------------------------------------------
 	// LERP

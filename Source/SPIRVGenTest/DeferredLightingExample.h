@@ -157,10 +157,77 @@ namespace Tracy
 			return fPercentLit / 9.0f;
 		}
 
+		/// GGX PBS
+		float2 DirectSpecularGGX_FV(const f32& _fDotLH, const f32& _fRoughness)
+		{
+
+			// F
+			f32 fDotLH5 = Pow(1.0f - _fDotLH, f32(5.f));
+
+			// V
+			f32 fK = (_fRoughness * _fRoughness) / 2.0f;
+			f32 fK2 = fK * fK;
+			f32 fInvK2 = 1.0f - fK2;
+			f32 fVis = 1.f / (_fDotLH * _fDotLH * fInvK2 + fK2);
+
+			return float2(fVis, fDotLH5 * fVis);
+		}
+
+		f32 DirectSpecularGGX_D(const f32& _fDotNH, const f32& _fRoughness)
+		{
+			f32 fAlpha = _fRoughness * _fRoughness;
+			f32 fAlphaSqr = fAlpha * fAlpha;
+
+			/// if fDotNH == 1.0f && fAlphaSqr = 0.f ->  _fDotNH * _fDotNH *(fAlphaSqr - 1.0) = -1.0f -> -1 + 1 = 0
+			f32 fDenom = _fDotNH * _fDotNH * (fAlphaSqr - 1.0) + 1.0f;
+
+			/// -> NaN division
+			f32 fD = Select(fDenom == 0.f, f32(0.f), fAlphaSqr / (glm::pi<float>() * fDenom * fDenom));
+			return fD;
+		}
+
+		float3 DirectSpecularGGX(const float3& _vNormal, const float3& _vToEye, const float3& _vToLight, const f32& _fRoughness, const float3& _vF0)
+		{
+			float3 fH = Normalize(_vToEye + _vToLight);
+
+			f32 fDotLH = Saturate(Dot(_vToLight, fH));
+			f32 fDotNH = Saturate(Dot(_vNormal, fH));
+
+			f32 fD = DirectSpecularGGX_D(fDotNH, _fRoughness);
+
+			float2 vFVHelp = DirectSpecularGGX_FV(fDotLH, _fRoughness);
+
+			// basically a lerp
+			float3 vFV = _vF0 * vFVHelp.x + (1.0f - _vF0) * vFVHelp.y;
+
+			float3 vSpecular = fD * vFV;
+			return vSpecular;
+		}
+
+		float3 CalculateSpecularColor(const float3& _vLightColor, const f32& _fDotNL, const float3& _vToLight, const float3& _vToEye, const float3& _vNormal, const f32& _fRoughness, const float3& _vF0)
+		{
+			/// PBR approach
+			float3 vBRDF = DirectSpecularGGX(_vNormal, _vToEye, _vToLight, _fRoughness, _vF0);
+			return vBRDF * _vLightColor * _fDotNL;
+		}
+
+		float3 CalculateDiffuseColor(const float3& _vLightColor, const f32& _fDotNL)
+		{
+			return _vLightColor * _fDotNL;
+		}
+
 		LightingResult CalculateDirectionalLight(const ArrayElement<DirectionalLight>& _Light, const float3& _vToEye, const float3& _vNormal, const f32& _fRoughness, const float3& _vF0)
 		{
-			// TODO
-			return LightingResult();
+			// Light vector from vertex pos to light
+			float3 vL = -_Light->vDirection;
+			f32 fDotNL = Saturate(Dot(_vNormal, vL));
+
+			LightingResult Result;
+
+			Result.vDiffuse = CalculateDiffuseColor(_Light->vColor, fDotNL);
+			Result.vSpecular = CalculateSpecularColor(_Light->vColor, fDotNL, vL, _vToEye, _vNormal, _fRoughness, _vF0);
+
+			return Result;
 		}
 
 		LightingResult ComputeLighting(const float3& _vViewDir, const float3& _vPosWS, const float3& _vNormal, const f32& _fMetallic, const f32& _fRoughness, const float3& _vF0)
