@@ -20,7 +20,8 @@ namespace Tracy
 	public:
 		DeferredLighting(const TDLPerm& _Perm = {}) :
 			m_kPerm(_Perm)
-		{		
+		{
+			AddCapability(spv::CapabilityImageQuery);
 		}
 
 		~DeferredLighting() {};
@@ -244,13 +245,13 @@ namespace Tracy
 				Result.vSpecular *= fShadowFactor;
 			}
 
-			For (u32 d = 1, d < DirLightRange, ++d)
+			for (int d = 1; d < DirLightRange; ++d) // unrolled
 			{
 				LightingResult CurResult = CalculateDirectionalLight(cbDirectionalLight[d], _vViewDir, _vNormal, _fRoughness, _vF0);
 
 				Result.vDiffuse += CurResult.vDiffuse;
 				Result.vSpecular += CurResult.vSpecular;
-			});
+			}
 
 			//for (int p = 0; p < PointLightRange; ++p)
 			//{

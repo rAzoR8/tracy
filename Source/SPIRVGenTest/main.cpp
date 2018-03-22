@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
 	//GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
 	TDLPerm Perm = kDLPermutation_Shadow;
-	GlobalAssembler.AssembleSimple<DeferredLighting<10u, 10u>>(true, Perm);
+	GlobalAssembler.AssembleSimple<DeferredLighting<1u, 1u>>(true, Perm).Save("test.spv");
 	system("spirv-dis test.spv");
 	system("spirv-val test.spv");
 

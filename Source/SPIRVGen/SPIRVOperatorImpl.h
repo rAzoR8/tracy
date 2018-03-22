@@ -268,6 +268,12 @@ namespace Tracy
 	{
 		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());
 
+		if constexpr (N == 1)
+		{
+			var = _Var;
+			return var;
+		}
+
 		if constexpr(Assemble == false)
 		{
 			for (uint32_t i = 0; i < N; ++i)
@@ -298,19 +304,33 @@ namespace Tracy
 
 		if constexpr(Assemble == false)
 		{
-			for (uint32_t i = 0; i < N; ++i)
+			if constexpr(N > 1)
 			{
-				var.Value[i] = _Values[i];
+				for (uint32_t i = 0; i < N; ++i)
+				{
+					var.Value[i] = _Values[i];
+				}
+			}
+			else
+			{
+				var.Value = _Values.front();
 			}
 		}
 		else
 		{
-			SPIRVOperation OpConstruct(spv::OpCompositeConstruct, var.uTypeId);
-			for (uint32_t i = 0; i < N; ++i)
+			if constexpr(N > 1)
 			{
-				OpConstruct.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(_Values[i])));
+				SPIRVOperation OpConstruct(spv::OpCompositeConstruct, var.uTypeId);
+				for (uint32_t i = 0; i < N; ++i)
+				{
+					OpConstruct.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(_Values[i])));
+				}
+				var.uResultId = GlobalAssembler.AddOperation(OpConstruct);			
 			}
-			var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+			else
+			{
+				var.uResultId = GlobalAssembler.AddConstant(SPIRVConstant::Make(_Values.front()));
+			}
 		}
 
 		return var;

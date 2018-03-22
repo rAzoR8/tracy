@@ -419,22 +419,35 @@ namespace Tracy
 				if (std::is_same_v<SampleType, ReturnType> == false && _uDRefOrCompId == HUNDEFINED32)
 				{
 					// TODO: use vector access instead
-					const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
 					const uint32_t uElemTypeId = GlobalAssembler.AddType(SPIRVType::FromType<base_type_t<ReturnType>>());
 
-					SPIRVOperation OpConstruct(spv::OpCompositeConstruct, uRealReturnTypeId);
+					constexpr uint32_t N{ Dimension<ReturnType> };
 
-					for (uint32_t n = 0u; n < Dimension<ReturnType>; ++n)
+					if constexpr (N > 1)
 					{
-						SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uSampleResultId)); // var id to extract from
-						OpExtract.AddLiteral(n); // extraction index
+						const uint32_t uRealReturnTypeId = GlobalAssembler.AddType(SPIRVType::FromType<ReturnType>());
+						SPIRVOperation OpConstruct(spv::OpCompositeConstruct, uRealReturnTypeId);
 
-						uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
-						OpConstruct.AddIntermediate(uId);
+						for (uint32_t n = 0u; n < Dimension<ReturnType>; ++n)
+						{
+							SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uSampleResultId)); // var id to extract from
+							OpExtract.AddLiteral(n); // extraction index
+
+							uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
+							OpConstruct.AddIntermediate(uId);
+						}
+
+						// composite constructs treated as intermediates as they cant be loaded
+						var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
 					}
+					else
+					{
+						SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId); 
+						OpExtract.AddIntermediate(uSampleResultId); // var id to extract from
+						OpExtract.AddLiteral(0u); // extraction index
 
-					// composite constructs treated as intermediates as they cant be loaded
-					var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+						var.uResultId = GlobalAssembler.AddOperation(OpExtract);
+					}
 
 					// TODO: store Extracted ids
 				}
@@ -753,7 +766,6 @@ namespace Tracy
 							if (i < 4u)
 							{
 								SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
-								OpExtract.AddLiterals(AccessChain);
 								OpExtract.AddLiteral(i); // extraction index
 								Op.AddIntermediate(GlobalAssembler.AddOperation(OpExtract));
 							}
@@ -1274,33 +1286,35 @@ namespace Tracy
 		SPIRVType& _Type,
 		std::vector<var_decoration<true>*>& _Members,
 		std::vector<uint32_t> _AccessChain,
+		const uint32_t _uMemberIndex,
 		const spv::StorageClass _kStorageClass,
 		uint32_t& _uCurOffset,
 		uint32_t& _uCurBoundary)
 	{
 		if constexpr(n < N && has_struct_tag<T>::value)
 		{
+			uint32_t uIndex = _uMemberIndex;
 			auto& member = hlx::get<n>(_Struct);
 			using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(member)>>;
 
 			if constexpr(has_struct_tag<MemberType>::value)
 			{
-				member.uMemberIndex = static_cast<uint32_t>(n);
-				_AccessChain.push_back(n);
+				member.uMemberIndex = uIndex++;
+				_AccessChain.push_back(member.uMemberIndex);
 				SPIRVType NestedType(spv::OpTypeStruct);
-				InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain, _kStorageClass, _uCurOffset, _uCurBoundary);
+				InitStruct<0, hlx::aggregate_arity<decltype(member)>, MemberType>(member, NestedType, _AccessChain, uIndex, _kStorageClass, _uCurOffset, _uCurBoundary);
 				_Type.Member(NestedType);
 			}
 			else if constexpr(has_var_tag<MemberType>::value)
 			{
-				member.uMemberIndex = static_cast<uint32_t>(n);
+				member.uMemberIndex = uIndex++;
 				std::vector<uint32_t> FinalChain(_AccessChain);
-				FinalChain.push_back(n);
+				FinalChain.push_back(member.uMemberIndex);
 				InitVar(member, _Type, FinalChain, _kStorageClass, _uCurOffset, _uCurBoundary);
 				_Members.push_back(&member);
 			}
 
-			InitStruct<n + 1, N, T>(_Struct, _Type, _Members, _AccessChain, _kStorageClass, _uCurOffset, _uCurBoundary);
+			InitStruct<n + 1, N, T>(_Struct, _Type, _Members, _AccessChain, uIndex, _kStorageClass, _uCurOffset, _uCurBoundary);
 		}
 	}
 
@@ -1367,7 +1381,7 @@ namespace Tracy
 
 				uint32_t uMemberOffset = 0u;
 				uint32_t uAlignmentBoundary = kAlignmentSize;
-				InitStruct<0, hlx::aggregate_arity<T>, T>(Value, Type, Members, {}, kStorageClass, uMemberOffset, uAlignmentBoundary);
+				InitStruct<0, hlx::aggregate_arity<T>, T>(Value, Type, Members, {}, 0u, kStorageClass, uMemberOffset, uAlignmentBoundary);
 
 				uTypeId = GlobalAssembler.AddType(Type);
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBlock).MakeOperation(uTypeId));
