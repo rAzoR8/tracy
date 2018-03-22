@@ -67,22 +67,11 @@ void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 	{
 		Put(Instr);
 	}
-
-	// spirv module size must be multiple of 4
-	//if (m_InstructionStream.size() % 4 != 0)
-	//{
-	//	uint32_t uNewSize = static_cast<uint32_t>(std::ceilf(m_InstructionStream.size() / 4.f) * 4u);
-	//	const SPIRVInstruction Nop(spv::OpNop);
-	//	while (m_InstructionStream.size() < uNewSize)
-	//	{
-	//		Put(Nop);
-	//	}
-	//}
 }
 
 //---------------------------------------------------------------------------------------------------
 
-bool SPIRVModule::Save(const std::string& _sFilePath)
+bool SPIRVModule::Save(const std::string& _sFilePath) const
 {
 	std::ofstream File(_sFilePath, std::ios::out | std::ios::binary);
 

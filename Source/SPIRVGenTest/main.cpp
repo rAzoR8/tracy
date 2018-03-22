@@ -2,7 +2,7 @@
 //#include "SPIRVInlineAssembler.h"
 //#include "GenerateSwizzleHeader.h"
 
-//#include "ExampleProg.h"
+#include "ExampleProg.h"
 #include "DeferredLightingExample.h"
 
 using namespace Tracy;
@@ -37,15 +37,27 @@ int main(int argc, char* argv[])
 	//prog();
 
 	//GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
-	//system("spirv-dis test.spv");
-	//system("spirv-val test.spv");
+	TDLPerm Perm = kDLPermutation_Shadow;
+	GlobalAssembler.AssembleSimple<DeferredLighting<10u, 10u>>(true, Perm);
+	system("spirv-dis test.spv");
+	system("spirv-val test.spv");
 
 	std::vector<SPIRVModule> Modules;
 
-	for (uint32_t p = 0; p < kDLPermutation_NumOf; ++p)
-	{
-		compile<1, 10, 2, 1, 10, 2>(Modules, TDLPerm(p));
-	}
+	//for (uint32_t p = 0; p < kDLPermutation_NumOf; ++p)
+	//{
+	//	compile<1u, 10u, 2u, 1u, 10u, 2u>(Modules, TDLPerm(p));
+	//}
+
+	//for (const SPIRVModule& shader : Modules)
+	//{
+	//	shader.Save("test.spv");
+	//	if (system("spirv-val test.spv") == -1)
+	//	{
+	//		system("spirv-dis test.spv");
+	//		break;
+	//	}
+	//}
 
 	system("pause");
 

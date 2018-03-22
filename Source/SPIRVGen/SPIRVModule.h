@@ -44,7 +44,7 @@ namespace Tracy
 
 		//bool Read(std::vector<uint32_t> _InstructionStream);
 		void Write(const std::vector<SPIRVInstruction>& _Instructions);
-		bool Save(const std::string& _sFilePath);
+		bool Save(const std::string& _sFilePath) const;
 
 		static constexpr uint32_t uVersion = 1u;
 		static constexpr uint32_t uGenerator = uVersion | 'ty' << 16u;

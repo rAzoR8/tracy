@@ -50,6 +50,16 @@ namespace Tracy
 		std::vector<uint32_t> m_Constants; // binary data
 	};
 
+	inline bool operator==(const SPIRVConstant& l, const SPIRVConstant& r)
+	{
+		return l.GetHash() == r.GetHash();
+	}
+
+	inline bool operator!=(const SPIRVConstant& l, const SPIRVConstant& r)
+	{
+		return l.GetHash() != r.GetHash();
+	}
+
 	inline const spv::Op& Tracy::SPIRVConstant::GetType() const noexcept
 	{
 		return m_kConstantType;

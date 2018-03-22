@@ -1206,14 +1206,14 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	// Clamp X between 0 and 1 componentwise
-	template <class T, bool Assemble, spv::StorageClass C1>
+	template <class T, bool Assemble, spv::StorageClass C1, class BaseT = base_type_t<T>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Saturate(const var_t<T, Assemble, C1>& x)
 	{
 		constexpr uint32_t N{ Dimension<T> };
-		std::array<T, N> Zero; Zero.fill(T(0));
-		std::array<T, N> One; One.fill(T(1));
+		std::array<BaseT, N> Zero; Zero.fill(BaseT(0));
+		std::array<BaseT, N> One; One.fill(BaseT(1));
 
-		return Clamp(x, make_const_vec<N, T, Assemble>(Zero), make_const_vec<N, T, Assemble>(One));
+		return Clamp(x, make_const_vec<N, BaseT, Assemble>(Zero), make_const_vec<N, BaseT, Assemble>(One));
 	}
 
 	//---------------------------------------------------------------------------------------------------

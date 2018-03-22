@@ -53,12 +53,16 @@ namespace Tracy
 
 			float3 l, v, h, n;
 
+			auto ddd = Saturate(l);
+
+			l += ddd;
+
 			auto bl = l != v && l == n;
 			auto an = Any(bl);
 
 			uint3 u1, u2;
 
-			auto rep = Replicate<3>(sum);
+			auto rep = replicate<3>(sum);
 
 			l += rep;
 

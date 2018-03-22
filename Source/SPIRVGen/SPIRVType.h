@@ -220,6 +220,16 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 
+	inline bool operator==(const SPIRVType& l, const SPIRVType& r)
+	{
+		return l.GetHash() == r.GetHash();
+	}
+
+	inline bool operator!=(const SPIRVType& l, const SPIRVType& r)
+	{
+		return l.GetHash() != r.GetHash();
+	}
+
 	inline const std::vector<SPIRVType>& SPIRVType::GetSubTypes() const noexcept
 	{
 		return m_SubTypes;
