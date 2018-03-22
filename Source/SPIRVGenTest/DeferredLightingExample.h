@@ -62,8 +62,8 @@ namespace Tracy
 			SPVStruct
 
 			float4x4 mShadowTransform;
-			float fSpotShadowDepthOffset;
-			float fPointShadowDepthOffset;
+			f32 fSpotShadowDepthOffset;
+			f32 fPointShadowDepthOffset;
 			float2 DeferredLightingPAD;
 		};
 		CBuffer<ShadowData> cbDeferredLighting;
@@ -233,6 +233,11 @@ namespace Tracy
 
 		LightingResult ComputeLighting(const float3& _vViewDir, const float3& _vPosWS, const float3& _vNormal, const f32& _fMetallic, const f32& _fRoughness, const float3& _vF0)
 		{
+			//SPIRVType vt = cbDeferredLighting.Type;
+			//SPIRVType ft = SPIRVType::FromType<ShadowData>();
+
+			//bool equal = vt == ft;
+
 			LightingResult Result = CalculateDirectionalLight(cbDirectionalLight[0u], _vViewDir, _vNormal, _fRoughness, _vF0);
 
 			if (m_kPerm.CheckFlag(kDLPermutation_Shadow))

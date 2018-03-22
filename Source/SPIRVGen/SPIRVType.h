@@ -180,27 +180,21 @@ namespace Tracy
 			}
 			else if constexpr (is_var<T>)
 			{
-				Type = FromType<T::ValueType>();
+				Type = FromType<T::ValueType>(_pStructType);
+				if (_pStructType != nullptr)
+				{
+					_pStructType->Member(Type);
+				}
 			}
 			else
 			{
 				Type = FromBaseType<T>();
 			}
 
-			//if constexpr(n < N)
+			if constexpr (n + 1 < N)
 			{
-				//HASSERT(_pStructType != nullptr, "Invalid parent struct type");
-
-				if (_pStructType != nullptr)
-				{
-					_pStructType->Member(Type);
-				}
-
-				if constexpr (n + 1 < N)
-				{
-					using MemberType = std::remove_reference_t<std::remove_cv_t<decltype(hlx::get<n + 1>(Parent{})) >> ;
-					FromType<MemberType, n + 1, N, Parent>(&Type);
-				}
+				using MemberType = std::remove_reference_t < std::remove_cv_t<decltype(hlx::get<n + 1>(Parent{})) >> ;
+				FromType<MemberType, n + 1, N, Parent>(_pStructType);
 			}
 
 			return Type;
