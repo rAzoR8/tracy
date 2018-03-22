@@ -1187,6 +1187,20 @@ namespace Tracy
 		return Min(Min(X, Y), _Args...);
 	}
 
+	// min with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const var_t<T, Assemble, C1>& X, const V& Y)
+	{
+		return Min(X, make_const<Assemble>((T)Y));
+	}
+
+	// min with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const V& X, const var_t<T, Assemble, C1>& Y)
+	{
+		return Min(make_const<Assemble>((T)X), Y);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	//Max
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
@@ -1198,6 +1212,18 @@ namespace Tracy
 	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const Ts& ..._Args)
 	{
 		return Max(Max(X, Y), _Args...);
+	}
+	// max with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const var_t<T, Assemble, C1>& X, const V& Y)
+	{
+		return Max(X, make_const<Assemble>((T)Y));
+	}
+	// max with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const V& X, const var_t<T, Assemble, C1>& Y)
+	{
+		return Max(make_const<Assemble>((T)X), Y);
 	}
 
 	//---------------------------------------------------------------------------------------------------

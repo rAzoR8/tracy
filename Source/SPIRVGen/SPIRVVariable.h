@@ -1383,6 +1383,8 @@ namespace Tracy
 				uint32_t uAlignmentBoundary = kAlignmentSize;
 				InitStruct<0, hlx::aggregate_arity<T>, T>(Value, Type, Members, {}, 0u, kStorageClass, uMemberOffset, uAlignmentBoundary);
 
+				HASSERTD(Type == SPIRVType::FromType<T>(), "Reconstructed type mismatch");
+
 				uTypeId = GlobalAssembler.AddType(Type);
 				GlobalAssembler.AddOperation(SPIRVDecoration(spv::DecorationBlock).MakeOperation(uTypeId));
 			}
@@ -1401,7 +1403,7 @@ namespace Tracy
 			// Storage Class is the Storage Class of the memory holding the object. It cannot be Generic.
 			// Initializer is optional. If Initializer is present, it will be the initial value of the variable’s memory content.
 			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
-			// Initializer must havethe same type as the type pointed to by Result Type.
+			// Initializer must have the same type as the type pointed to by Result Type.
 
 			SPIRVOperation OpCreateVar;
 
