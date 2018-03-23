@@ -40,7 +40,7 @@ SPIRVModule SPIRVAssembler::ExternalOptimize(const SPIRVModule& _Module, const O
 
 SPIRVAssembler::SPIRVAssembler() noexcept
 {
-	m_Operations.reserve(4096u);
+	m_Operations.reserve(64*1024u);
 }
 //---------------------------------------------------------------------------------------------------
 

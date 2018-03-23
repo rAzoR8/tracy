@@ -401,7 +401,7 @@ namespace Tracy
 			// Lighting
 			float3 vF0 = gAlbedoMap.Sample(SamplerLinearWrap, vTexCoord).rgb; // rgb->spec color map -> F0 values for metallic
 
-			vF0 = Lerp(float3(0.04f, 0.04f, 0.04f), vF0, vMetallicHorizon.x); /// dielectric have F0 reflectance of ~0.04
+			vF0 = Lerp(float3(0.04f, 0.04f, 0.04f), vF0, vMetallicHorizon.x); // dielectric have F0 reflectance of ~0.04
 
 			// Calculate Direct Diffuse and Direct Specular Lighting by point light sources
 			LightingResult LightResult = ComputeLighting(vToEye, vPosWS, vNormal, vMetallicHorizon.x, fRoughness, vF0);
@@ -415,8 +415,8 @@ namespace Tracy
 				f32 fMipmapIndex = fRoughness * (gEnvMap.Dimensions().z - 1.0f);
 				float3 vEnvSpecular = gEnvMap.SampleLOD(SamplerLinearClamp, vReflection, fMipmapIndex).rgb;
 
-				//vIndirectSpecularLight = FresnelSchlickWithRoughness(vF0, vToEye, vNormal, 1.0f - fRoughness);
-				//vIndirectSpecularLight *= vEnvSpecular;
+				vIndirectSpecularLight = FresnelSchlickWithRoughness(vF0, vToEye, vNormal, 1.0f - fRoughness);
+				vIndirectSpecularLight *= vEnvSpecular;
 			}
 
 			/// Subsurface normal light leak fix -> http://marmosetco.tumblr.com/post/81245981087
@@ -426,9 +426,6 @@ namespace Tracy
 			Diffuse = float4(LightResult.vDiffuse, 1.0f);
 			Specular = float4(LightResult.vSpecular + vIndirectSpecularLight, 1.0f);
 		}
-
-	private:
-
 	};
 } // Tracy
 
