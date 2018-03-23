@@ -26,10 +26,15 @@ int main(int argc, char* argv[])
 
 	//GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
 
+	OptimizationSettings Settings{};
+	Settings.kPasses = kOptimizationPassFlag_All;
+	GlobalAssembler.ConfigureOptimization(Settings);
+	GlobalAssembler.RemoveUnusedOperations(false); // Disable own implementation
+
 	if (false)
 	{
 		TDLPerm Perm = kDLPermutation_Shadow;
-		GlobalAssembler.AssembleSimple<DeferredLighting<1u, 1u>>(true, Perm).Save("test.spv");
+		GlobalAssembler.AssembleSimple<DeferredLighting<16u, 16u>>(true, Perm).Save("test.spv");
 		system("spirv-dis test.spv");
 		system("spirv-val test.spv");
 	}
