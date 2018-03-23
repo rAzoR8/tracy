@@ -497,7 +497,7 @@ namespace Tracy
 		if (_Dim <= spv::Dim3D)
 			return _Dim + 1u;
 
-		if (_Dim == spv::DimSubpassData)
+		if (_Dim == spv::DimSubpassData || _Dim == spv::DimCube)
 			return 2u;
 
 		return 0u;

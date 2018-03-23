@@ -47,6 +47,7 @@ namespace Tracy
 		SamplerState SamplerPointWrap;
 		SamplerState SamplerLinearWrap;
 		SamplerState SamplerShadowMap;
+		SamplerState SamplerLinearClamp;
 
 		// Outputs
 		RenderTarget Diffuse;
@@ -191,7 +192,14 @@ namespace Tracy
 			return fPercentLit / 9.0f;
 		}
 
-		/// GGX PBS
+		// Fresnel with additional 'fudge factor' taking care of gloss
+		// Use only with filtered env maps!
+		float3 FresnelSchlickWithRoughness(const float3& _vSpecularColor, const float3& _vToEye, const float3& _vNormal, const f32& _fGloss)
+		{
+			/// Lazarov
+			return _vSpecularColor + (1.0f - _vSpecularColor) * ((Pow(1.0f - Saturate(Dot(_vToEye, _vNormal)), 5.f)) / (4.0f - 3.0f * _fGloss));
+		}
+
 		float2 DirectSpecularGGX_FV(const f32& _fDotLH, const f32& _fRoughness)
 		{
 
@@ -404,10 +412,8 @@ namespace Tracy
 			if (m_kPerm.CheckFlag(kDLPermutation_EnvMap))
 			{
 				float3 vReflection = Reflect(-vToEye, vNormal);
-				//float3 vCubeDimension = GetTextureDimensionCube(gEnvMap);
-				//float fNumMipMap = vCubeDimension.z;
-				//float fMipmapIndex = fRoughness * (fNumMipMap - 1.0f);
-				//float3 vEnvSpecular = gEnvMap.SampleLevel(SamplerLinearClamp, vReflection, fMipmapIndex).rgb;
+				f32 fMipmapIndex = fRoughness * (gEnvMap.Dimensions().z - 1.0f);
+				float3 vEnvSpecular = gEnvMap.SampleLOD(SamplerLinearClamp, vReflection, fMipmapIndex).rgb;
 
 				//vIndirectSpecularLight = FresnelSchlickWithRoughness(vF0, vToEye, vNormal, 1.0f - fRoughness);
 				//vIndirectSpecularLight *= vEnvSpecular;

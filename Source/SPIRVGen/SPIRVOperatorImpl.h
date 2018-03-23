@@ -1041,6 +1041,19 @@ namespace Tracy
 	{
 		return make_ext_op2(x, y, [](const T& v1, const T& v2) {return glm::pow(v1, v2); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Pow);
 	}
+	// pow with constant left
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Pow(const V& x, const var_t<T, Assemble, C1>& y)
+	{
+		return Pow(make_const<Assemble>((T)x), y);
+	}
+	// pow with constant right
+	template <class T, class V, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Pow(const var_t<T, Assemble, C1>& x, const V& y)
+	{
+		return Pow(x, make_const<Assemble>((T)y));
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// Log Results are computed per componen
 	template <class T, bool Assemble, spv::StorageClass Class>

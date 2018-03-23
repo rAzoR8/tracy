@@ -480,6 +480,25 @@ namespace Tracy
 		}
 
 		//---------------------------------------------------------------------------------------------------
+		// similar to HLSL SampleLevel
+		template <
+			class ReturnType = tex_component_t<T>,
+			spv::StorageClass C1,
+			spv::StorageClass C2,
+			spv::StorageClass C3,
+			class TexCoordT = tex_coord_t<T>,
+			typename = std::enable_if_t<is_texture<T>>>
+			var_t<ReturnType, Assemble, spv::StorageClassFunction> SampleLOD(
+				const var_t<sampler_t, Assemble, C1>& _Sampler,
+				const var_t<TexCoordT, Assemble, C2>& _Coords,
+				const var_t<float, Assemble, C3>& _Lod) const
+		{
+			// A following operand is the explicit level-of-detail to use. Only valid with explicit-lod instructions. For sampling operations, it must be a floating-point type scalar. For fetch operations, it must be an
+			// integer type scalar. This can only be used with an OpTypeImage that has a Dim operand of 1D, 2D,3D, or Cube, and the MS operand must be 0.
+			return TextureAccess<ReturnType>(MakeSampledImage(Type, Load(), _Sampler.Load()), _Coords, spv::OpImageSampleExplicitLod, HUNDEFINED32, spv::ImageOperandsLodMask, _Lod);
+		}
+
+		//---------------------------------------------------------------------------------------------------
 
 		// Sample an image doing depth-comparison with an implicit level of detail. (assuming OpImageSampleDrefImplicitLod)
 		template <
@@ -814,7 +833,7 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	// convert V to U
-	template <class U, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<Assemble && is_convertible<U, V> && !std::is_same_v<U, V>>>
+	template <class U, class V, bool Assemble, spv::StorageClass C1/*, typename = std::enable_if_t<Assemble && is_convertible<U, V> && !std::is_same_v<U, V>>*/>
 	inline uint32_t convert_op(const var_t<V, Assemble, C1>& _Other)
 	{
 		_Other.Load();
