@@ -14,7 +14,7 @@ namespace Tracy
 
 	using TDLPerm = hlx::Flag<EDLPermutation>;
 
-	template <uint32_t DirLightRange = 10u, uint32_t PointLightRange = 10u>
+	template <uint32_t DirLightRange = 10u, uint32_t PointLightRange = 10u, uint32_t SpotLightRange = 10u>
 	class DeferredLighting : public FragmentProgram
 	{
 	public:
@@ -119,6 +119,24 @@ namespace Tracy
 			float3 POINTLIGHTPAD;
 		};
 		Array<PointLight, PointLightRange> cbPointLight;
+
+		struct SpotLight
+		{
+			SPVStruct
+
+			float3 vDirection;
+			f32 fSpotAngle;
+
+			float3 vColor;
+			f32	fRange; // dmax
+
+			float3 vPosition;
+			f32 fDecayStart;
+
+			s32 iShadowIndex; /// corresponding cbSpotLightShadow entry
+			float3 SPOTLIGHTPAD;
+		};
+		Array<SpotLight, SpotLightRange> cbSpotLight;
 
 		// Structs ---------------------------------------------------
 		struct LightingResult
@@ -232,20 +250,6 @@ namespace Tracy
 			return _vLightColor * _fDotNL;
 		}
 
-		LightingResult CalculateDirectionalLight(const ArrayElement<DirectionalLight>& _Light, const float3& _vToEye, const float3& _vNormal, const f32& _fRoughness, const float3& _vF0)
-		{
-			// Light vector from vertex pos to light
-			float3 vL = -_Light->vDirection;
-			f32 fDotNL = Saturate(Dot(_vNormal, vL));
-
-			LightingResult Result;
-
-			Result.vDiffuse = CalculateDiffuseColor(_Light->vColor, fDotNL);
-			Result.vSpecular = CalculateSpecularColor(_Light->vColor, fDotNL, vL, _vToEye, _vNormal, _fRoughness, _vF0);
-
-			return Result;
-		}
-
 		// https://imdoingitwrong.wordpress.com/2011/02/10/improved-light-attenuation/
 		f32 CalculateAttenuation(const f32& _fSurfacePointToLightDist, const f32& _fRange, const f32&_fDecayStart)
 		{
@@ -263,18 +267,44 @@ namespace Tracy
 			return Select(fDFactor == 0.0f, f32(0.0f), (1.0f / fDFactor) * Step(_fSurfacePointToLightDist, fDmax));
 		}
 
+		// vL = Light vector from vertex pos to light
+		f32 CalculateSpotCone(const ArrayElement<SpotLight>& _Light, float3 vL)
+		{
+			f32 fMinCos = Cos(_Light->fSpotAngle);
+			f32 fMaxCos = (fMinCos + 1.0f) / 2.0f;
+			f32 fCosAngle = Dot(_Light->vDirection.xyz, -vL);
+			return SmoothStep(fMinCos, fMaxCos, fCosAngle);
+		}
+
 		// _vToEye points from vertex being shaded to camera -> CameraPos - VertexPos
 		// _vPosWS is the world space position of the vertex 
 		// _vNormal is the vertex normal
-		LightingResult CalculatePointLight(const ArrayElement<PointLight>& _Light, const float3& _vToEye, const float3& _vPosWS, const float3& _vNormal, const f32& _fRoughness, const float3& _vF0)
+		template <class Light>
+		LightingResult CalculateLightSource(const ArrayElement<Light>& _Light, const float3& _vToEye, const float3& _vPosWS, const float3& _vNormal, const f32& _fRoughness, const float3& _vF0)
 		{
 			// Light vector from vertex pos to light
-			float3 vL = _Light->vPosition.xyz - _vPosWS;
-			f32 fPointToLightDist = Length(vL);
-			vL = vL / fPointToLightDist;
-			f32 fDotNL = Saturate(Dot(_vNormal, vL));
+			float3 vL;
+			f32 fPointToLightDist;
+			f32 fAttenuation = 1.f;
 
-			f32 fAttenuation = CalculateAttenuation(fPointToLightDist, _Light->fRange, _Light->fDecayStart);
+			if constexpr(std::is_same_v<Light, DirectionalLight>)
+			{
+				vL = -_Light->vDirection;
+			}
+			else
+			{
+				vL = _Light->vPosition.xyz - _vPosWS;
+				fPointToLightDist = Length(vL);
+				vL = vL / fPointToLightDist;
+				
+				fAttenuation = CalculateAttenuation(fPointToLightDist, _Light->fRange, _Light->fDecayStart);
+				if constexpr(std::is_same_v<Light, SpotLight>)
+				{
+					fAttenuation *= CalculateSpotCone(_Light, vL);
+				}
+			}
+
+			f32 fDotNL = Saturate(Dot(_vNormal, vL));
 
 			LightingResult Result;
 
@@ -286,7 +316,7 @@ namespace Tracy
 
 		LightingResult ComputeLighting(const float3& _vViewDir, const float3& _vPosWS, const float3& _vNormal, const f32& _fMetallic, const f32& _fRoughness, const float3& _vF0)
 		{
-			LightingResult Result = CalculateDirectionalLight(cbDirectionalLight[0u], _vViewDir, _vNormal, _fRoughness, _vF0);
+			LightingResult Result = CalculateLightSource(cbDirectionalLight[0u], _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
 
 			if (m_kPerm.CheckFlag(kDLPermutation_Shadow))
 			{
@@ -300,7 +330,7 @@ namespace Tracy
 
 			for (int d = 1; d < DirLightRange; ++d) // unrolled
 			{
-				LightingResult CurResult = CalculateDirectionalLight(cbDirectionalLight[d], _vViewDir, _vNormal, _fRoughness, _vF0);
+				LightingResult CurResult = CalculateLightSource(cbDirectionalLight[d], _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
 
 				Result.vDiffuse += CurResult.vDiffuse;
 				Result.vSpecular += CurResult.vSpecular;
@@ -315,43 +345,35 @@ namespace Tracy
 				//	cbPointLightShadowTYPE ShadowProps = cbPointLightShadowArray[PointLight.iShadowIndex];
 
 				//	float4 vPosDP = TransformToParaboloid(_vPosWS, ShadowProps);
-				//	/// TODO: delete subtraction hack!
 				//	float fSceneDepthDP = vPosDP.w - fPointShadowDepthOffset;// 0.005f;
 				//	float3 vTexCoordDP = ConvertParaboloidToTexCoord(vPosDP);
 
 				//	fShadowFactorDP = CalculateParaboloidShadowFactor(gParaboloidPointShadowMap, vTexCoordDP, fSceneDepthDP, ShadowProps);
 				//}
 
-				LightingResult CurResult = CalculatePointLight(cbPointLight[p], _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
+				LightingResult CurResult = CalculateLightSource(cbPointLight[p], _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
 				Result.vDiffuse += fShadowFactorDP * CurResult.vDiffuse;
 				Result.vSpecular += fShadowFactorDP * CurResult.vSpecular;
 			}
 
-			// ----------------------------------- TODO -----------------------------------------------------
+			for (int s = 0; s < SpotLightRange; ++s)
+			{
+				float fShadowFactorPS = 1.0f;
 
-//
-//			for (uint s = 0; s < SpotLightRange; ++s)
-//			{
-//				cbSpotLightTYPE SpotLight = cbSpotLightArray[s];
-//
-//				float fShadowFactorPS = 1.0f;
-//
-//				if (SpotLight.iShadowIndex > -1)
-//				{
-//					cbSpotLightShadowTYPE ShadowProps = cbSpotLightShadowArray[SpotLight.iShadowIndex];
-//
-//					float4 vPosPS = TransformToProjected(_vPosWS, ShadowProps);
-//					fShadowFactorPS = CalculateProjectedShadowFactor(gProjectedSpotShadowMap, vPosPS, ShadowProps, fSpotShadowDepthOffset);
-//				}
-//
-//				LightingResult CurResult = CalculateSpotLight(SpotLight, _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
-//				TotalResult.vDiffuse += fShadowFactorPS * CurResult.vDiffuse;
-//				TotalResult.vSpecular += fShadowFactorPS * CurResult.vSpecular;
-//			}
-//
-//			TotalResult.vDiffuse = (1.0f - _fMetallic) * TotalResult.vDiffuse;
-//			TotalResult.vSpecular = TotalResult.vSpecular;
-//
+				//if (SpotLight.iShadowIndex > -1)
+				//{
+				//	cbSpotLightShadowTYPE ShadowProps = cbSpotLightShadowArray[SpotLight.iShadowIndex];
+
+				//	float4 vPosPS = TransformToProjected(_vPosWS, ShadowProps);
+				//	fShadowFactorPS = CalculateProjectedShadowFactor(gProjectedSpotShadowMap, vPosPS, ShadowProps, fSpotShadowDepthOffset);
+				//}
+
+				LightingResult CurResult = CalculateLightSource(cbSpotLight[s], _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
+				Result.vDiffuse += fShadowFactorPS * CurResult.vDiffuse;
+				Result.vSpecular += fShadowFactorPS * CurResult.vSpecular;
+			}
+
+			Result.vDiffuse = (1.0f - _fMetallic) * Result.vDiffuse;
 
 			return Result;
 		}
