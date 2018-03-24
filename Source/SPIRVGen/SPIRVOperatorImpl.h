@@ -296,47 +296,6 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
-	// Create a intermediate vector with dimension N from constants _Values
-	template <uint32_t N, class T, bool Assemble, typename = std::enable_if_t<is_scalar<T>>>
-	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> make_const_vec(const std::array<T, N>& _Values)
-	{
-		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());
-
-		if constexpr(Assemble == false)
-		{
-			if constexpr(N > 1)
-			{
-				for (uint32_t i = 0; i < N; ++i)
-				{
-					var.Value[i] = _Values[i];
-				}
-			}
-			else
-			{
-				var.Value = _Values.front();
-			}
-		}
-		else
-		{
-			if constexpr(N > 1)
-			{
-				SPIRVOperation OpConstruct(spv::OpCompositeConstruct, var.uTypeId);
-				for (uint32_t i = 0; i < N; ++i)
-				{
-					OpConstruct.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(_Values[i])));
-				}
-				var.uResultId = GlobalAssembler.AddOperation(OpConstruct);			
-			}
-			else
-			{
-				var.uResultId = GlobalAssembler.AddConstant(SPIRVConstant::Make(_Values.front()));
-			}
-		}
-
-		return var;
-	}
-
-	//---------------------------------------------------------------------------------------------------
 	// OPERATOR IMPLEMENTATIONS
 	//---------------------------------------------------------------------------------------------------
 
@@ -1177,7 +1136,7 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Refract(const var_t<T, Assemble, C1>& I, const var_t<T, Assemble, C2>& N, const base_type_t<T>& ETA)
 	{
-		return Refract(I, N, var_t<base_type_t<T>, Assemble, spv::StorageClassFunction>(ETA));
+		return Refract(I, N, make_const<Assemble>(ETA));
 	}
 
 	//---------------------------------------------------------------------------------------------------

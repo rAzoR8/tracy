@@ -1,7 +1,7 @@
 #include "SPIRVModule.h"
 //#include "SPIRVInlineAssembler.h"
 //#include "GenerateSwizzleHeader.h"
-//#include "ExampleProg.h"
+#include "ExampleProg.h"
 
 #include "DeferredLightingExample.h"
 #include "StopWatch.h"
@@ -27,20 +27,32 @@ int main(int argc, char* argv[])
 	//prog();
 
 	//GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
+	//system("spirv-dis test.spv");
+	//system("spirv-val test.spv");
+	//system("pause");
+
+	//return 0;
 
 	OptimizationSettings Settings{};
+	//Settings.kPasses = kOptimizationPassFlag_AllPerformance;
+	//Settings.kPasses = kOptimizationPassFlag_AllSize;
 	//Settings.kPasses = kOptimizationPassFlag_All;
+
 	GlobalAssembler.ConfigureOptimization(Settings);
 	GlobalAssembler.RemoveUnusedOperations(false); // Disable own implementation
 
-	//if (false)
-	//{
-	//	TDLPerm Perm = kDLPermutation_Shadow;
-	//	GlobalAssembler.AssembleSimple<DeferredLighting<16u, 16u>>(true, Perm).Save("test.spv");
-	//	system("spirv-dis test.spv");
-	//	system("spirv-val test.spv");
-	//}
-	//else
+	if (true)
+	{
+		TDLPerm Perm = {};
+		GlobalAssembler.AssembleSimple<DeferredLighting<1u, 1u>>(true, Perm).Save("unopt_1_1.spv");
+		Settings.kPasses = kOptimizationPassFlag_AllPerformance;
+		GlobalAssembler.ConfigureOptimization(Settings);
+		GlobalAssembler.AssembleSimple<DeferredLighting<1u, 1u>>(true, Perm).Save("opt_1_1.spv");
+
+		system("spirv-dis unopt_1_1.spv");
+		system("spirv-val unopt_1_1.spv");
+	}
+	else
 	{
 		{
 			hlx::StopWatch<> timer("CompileTime 64 Permutations");
@@ -65,7 +77,7 @@ int main(int argc, char* argv[])
 
 				compile<48u, 16u>(TDLPerm(p));
 				compile<48u, 32u>(TDLPerm(p));
-				compile<48u, 48u>(TDLPerm(p));
+				compile<48u, 48u>(0u);
 			}
 		}
 

@@ -66,6 +66,8 @@ namespace Tracy
 
 			l += rep;
 
+			l = Saturate(l);
+
 			auto u = Select(an, u1, u2);
 
 			auto bit = u1 >= u2;

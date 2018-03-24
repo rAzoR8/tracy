@@ -50,10 +50,47 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
+	// creates a intermediate constant, not an OpVariable!
 	template < bool Assemble, class ...Ts, class Ret = va_type_t<Ts...>>
 	inline var_t<Ret, Assemble, spv::StorageClassFunction> make_const(const Ts& ..._Args)
 	{
-		return var_t<Ret, Assemble, spv::StorageClassFunction>(_Args...);
+		return var_t<Ret, Assemble, spv::StorageClassFunction>(TIntermediate(), _Args...);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Create a intermediate vector with dimension N from constants _Values
+	template <uint32_t N, class T, bool Assemble, typename = std::enable_if_t<is_scalar<T>>>
+	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> make_const_vec(const std::array<T, N>& _Values)
+	{
+		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());
+
+		if constexpr(Assemble == false)
+		{
+			if constexpr(N > 1)
+			{
+				for (uint32_t i = 0; i < N; ++i)
+				{
+					var.Value[i] = _Values[i];
+				}
+			}
+			else
+			{
+				var.Value = _Values.front();
+			}
+		}
+		else
+		{
+			if constexpr(N > 1)
+			{
+				var.uResultId = GlobalAssembler.AddConstant(SPIRVConstant::MakeVec(_Values));
+			}
+			else
+			{
+				var.uResultId = GlobalAssembler.AddConstant(SPIRVConstant::Make(_Values.front()));
+			}
+		}
+
+		return var;
 	}
 
 	template <class T, bool Assemble, spv::StorageClass Class, class ...Ts>
@@ -321,7 +358,7 @@ namespace Tracy
 		inline var_t<array_element_t<U>, Assemble, spv::StorageClassFunction> operator[](const var_t<Index, Assemble, C1>& _Index) const
 		{
 			static_assert(is_array<U>, "Unsupported type (array expected)");
-			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate()/*, Value[_Index.Value]*/);
+			auto var = var_t<array_element_t<U>, Assemble, spv::StorageClassFunction>(TIntermediate());
 
 			if constexpr(Assemble)
 			{
@@ -1164,7 +1201,7 @@ namespace Tracy
 	struct var_spec_const_t : public var_t<T, Assemble, spv::StorageClassMax>
 	{
 		template <class ...Ts>
-		var_spec_const_t(const Ts&... _args) : var_t<T, Assemble, spv::StorageClassMax>(TIntermediate(), _args...)
+		var_spec_const_t(const Ts&... _args) : var_t<T, Assemble, spv::StorageClassMax>(TIntermediate())
 		{
 			if constexpr(Assemble)
 			{
@@ -1503,6 +1540,10 @@ namespace Tracy
 		{
 			Type = SPIRVType::FromType<T>();
 			uTypeId = GlobalAssembler.AddType(Type);
+			if constexpr (sizeof...(_args) > 0)
+			{
+				uResultId = GlobalAssembler.AddConstant(SPIRVConstant::Make(va_type_var(_args...)));
+			}
 		}
 	}
 
