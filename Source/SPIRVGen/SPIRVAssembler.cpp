@@ -195,6 +195,8 @@ void SPIRVAssembler::FlagUnused()
 		return false;
 	};
 
+	const size_t uOpCount = m_Operations.size();
+
 	const auto Flag = [&](SPIRVOperation& _InOp)
 	{
 		if (_InOp.m_bUsed == false)
@@ -209,7 +211,7 @@ void SPIRVAssembler::FlagUnused()
 		_InOp.m_bUsed = false;
 
 		// find any instruction that consumes this one
-		for (uint32_t i = 0u; i < m_Operations.size() && _InOp.m_bUsed == false; i++)
+		for (uint32_t i = 0u; i < uOpCount && _InOp.m_bUsed == false; i++)
 		{
 			if (i != _InOp.m_uInstrId)
 			{
@@ -232,8 +234,6 @@ void SPIRVAssembler::FlagUnused()
 
 		std::for_each(m_Operations.begin(), m_Operations.end(), Flag);
 	} while (uUnused > uPrevCount);
-
-	//std::for_each(m_Operations.begin(), m_Operations.end(), Flag);
 
 	HLOG("Removed %u unused operations from %u total", uPrevCount, m_uInstrId);
 }

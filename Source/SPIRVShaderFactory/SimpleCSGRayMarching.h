@@ -28,7 +28,7 @@ namespace Tracy
 			If(dist < _fEpsilon)
 			{
 				i = _uStepCount; // break from loop
-			}).
+			}
 			Else
 			{
 				depth += dist;
@@ -83,6 +83,27 @@ namespace Tracy
 		return Normalize(vec3(xy, z * -1.f));
 	}
 	//---------------------------------------------------------------------------------------------------
+
+	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
+	var_t<float4x4_t, Assemble, spv::StorageClassFunction> ViewToWorld(const var_t<float3_t, Assemble, C1>& _vEye, const var_t<float3_t, Assemble, C2>& _vCenter, const var_t<float3_t, Assemble, C3>& _vUp)
+	{
+		using vec3 = var_t<float3_t, Assemble, spv::StorageClassFunction>;
+		using vec4 = var_t<float4_t, Assemble, spv::StorageClassFunction>;
+		using mat4 = var_t<float4x4_t, Assemble, spv::StorageClassFunction>();
+
+		vec3 f = Normalize(_vCenter - _vEye);
+		vec3 s = Normalize(Cross(f, _vUp));
+		vec3 u = Cross(s, f);
+		return mat4(
+			vec4(s, 0.f),
+			vec4(u, 0.f),
+			vec4(-f, 0.f),
+			vec4(0.f, 0.f, 0.f, 1.f)
+		); // Transpose?
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
 }
 
 #endif // !TRACY_SIMPLECSGRAYMARCHING_H

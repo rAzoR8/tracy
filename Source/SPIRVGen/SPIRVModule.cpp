@@ -3,20 +3,20 @@
 #include "HashUtils.h"
 #include <fstream>
 
-#ifdef _DEBUG
-#include "Logger.h"
-#endif
-
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 SPIRVModule::SPIRVModule(const SPIRVModule& _Other) :
 	m_uBounds(_Other.m_uBounds),
+	m_uGenerator(_Other.m_uGenerator),
+	m_uSchema(_Other.m_uSchema),
+	m_uSPVVersion(_Other.m_uSPVVersion),
 	m_InstructionStream(_Other.m_InstructionStream),
 	m_Extensions(_Other.m_Extensions),
 	m_kMode(_Other.m_kMode),
 	m_kModel(_Other.m_kModel),
 	m_sEntryPoint(_Other.m_sEntryPoint),
 	m_uHash(_Other.m_uHash),
+	m_uSPVOperations(_Other.m_uSPVOperations),
 	m_Variables(_Other.m_Variables)
 {
 }
@@ -24,11 +24,15 @@ SPIRVModule::SPIRVModule(const SPIRVModule& _Other) :
 
 SPIRVModule::SPIRVModule(const std::vector<uint32_t>& _Optimized, const SPIRVModule& _Other) :
 	m_uBounds(_Other.m_uBounds),
+	m_uGenerator(_Other.m_uGenerator),
+	m_uSchema(_Other.m_uSchema),
+	m_uSPVVersion(_Other.m_uSPVVersion),
 	m_InstructionStream(_Optimized),
 	m_Extensions(_Other.m_Extensions),
 	m_kMode(_Other.m_kMode),
 	m_kModel(_Other.m_kModel),
 	m_sEntryPoint(_Other.m_sEntryPoint),
+	m_uSPVOperations(_Other.m_uSPVOperations),
 	m_Variables(_Other.m_Variables)
 {
 	m_uHash = 0u;
@@ -62,6 +66,8 @@ void SPIRVModule::Write(const std::vector<SPIRVInstruction>& _Instructions)
 	Put(m_uBounds); // Bounds
 	Put(uSchema);
 
+	m_uSPVOperations = static_cast<uint32_t>(_Instructions.size());
+
 	// write instructions
 	for (const SPIRVInstruction& Instr : _Instructions)
 	{
@@ -94,11 +100,6 @@ void SPIRVModule::Put(const uint32_t& _uWord)
 
 void SPIRVModule::Put(const SPIRVInstruction& _Instr)
 {
-//#ifdef _DEBUG
-//	const uint32_t uWord = static_cast<uint32_t>(m_InstructionStream.size());
-//	HLOG("%u%s", uWord, WCSTR(_Instr.GetString()));
-//#endif
-
 	Put(_Instr.GetOpCode());
 
 	const uint32_t& uTypeId(_Instr.GetTypeId());

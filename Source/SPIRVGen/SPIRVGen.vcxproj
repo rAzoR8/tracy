@@ -97,6 +97,7 @@
     <ClInclude Include="SPIRVExtensionAMD.h" />
     <ClInclude Include="SPIRVInlineAssembler.h" />
     <ClInclude Include="SPIRVQuaternion.h" />
+    <ClInclude Include="SPIRVVariableTypeDefs.h" />
     <ClInclude Include="SPIRVVariableTypes.h" />
     <ClInclude Include="SPIRVAssembler.h" />
     <ClInclude Include="SPIRVBranchOperations.h" />

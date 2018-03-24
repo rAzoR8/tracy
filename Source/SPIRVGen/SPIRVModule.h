@@ -1,7 +1,6 @@
 #ifndef TRACY_SPIRVMODULE_H
 #define TRACY_SPIRVMODULE_H
 
-#include <vector>
 #include "StandardDefines.h"
 #include "SPIRVType.h"
 
@@ -52,6 +51,8 @@ namespace Tracy
 
 		const std::vector<uint32_t>& GetCode() const noexcept;
 
+		const uint32_t& GetNumberOfOperations() const noexcept;
+
 		void AddVariable(const VariableInfo& _VarInfo);
 		const std::vector<VariableInfo>& GetVariables() const noexcept;
 
@@ -84,6 +85,7 @@ namespace Tracy
 		uint32_t m_uGenerator = uGenerator;
 		uint32_t m_uSPVVersion = 0x00010000;//spv::Version
 
+		uint32_t m_uSPVOperations = 0u;
 		std::vector<uint32_t> m_InstructionStream;
 		std::vector<VariableInfo> m_Variables; // no function class variables (in out uniform etc)
 
@@ -101,6 +103,11 @@ namespace Tracy
 	inline const std::vector<uint32_t>& SPIRVModule::GetCode() const noexcept
 	{
 		return m_InstructionStream;
+	}
+
+	inline const uint32_t& SPIRVModule::GetNumberOfOperations() const noexcept
+	{
+		return m_uSPVOperations;
 	}
 
 	inline void SPIRVModule::AddVariable(const VariableInfo& _VarInfo)
