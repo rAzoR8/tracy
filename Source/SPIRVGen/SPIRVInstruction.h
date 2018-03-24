@@ -3,7 +3,6 @@
 
 #include <vulkan\spirv.hpp>
 #include <vector>
-#include <stdint.h>
 
 namespace Tracy
 {

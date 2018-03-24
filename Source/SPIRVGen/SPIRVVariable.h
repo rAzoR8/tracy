@@ -1,12 +1,11 @@
 #ifndef TRACY_SPIRVVARIABLE_H
 #define TRACY_SPIRVVARIABLE_H
 
+#include "SPIRVConstant.h"
 #include "GetStructMember.h"
 #include "SPIRVDecoration.h"
-#include "SPIRVType.h"
 #include "SPIRVAssembler.h"
 #include "HashUtils.h"
-//#include <string_view>
 
 namespace Tracy
 {

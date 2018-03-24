@@ -4,7 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include <vulkan\spirv.hpp>	
-
 #include "Flag.h"
 
 namespace Tracy

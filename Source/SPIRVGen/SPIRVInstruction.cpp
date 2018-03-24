@@ -1,5 +1,5 @@
 #include "SPIRVInstruction.h"
-#include "SPIRVBinaryDefines.h" // for debug output
+#include "SPIRVBinaryDefines.h" // for decode
 
 using namespace Tracy;
 

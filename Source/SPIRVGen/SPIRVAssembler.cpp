@@ -1,4 +1,5 @@
 #include "SPIRVAssembler.h"
+#include "SPIRVConstant.h"
 #include "SPIRVProgram.h"
 #include "SPIRVVariable.h"
 #include "SPIRVBinaryDefines.h"

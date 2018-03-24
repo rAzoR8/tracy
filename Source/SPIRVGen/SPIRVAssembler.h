@@ -1,12 +1,12 @@
 #ifndef TRACY_SPIRVASSEMBLER_H
 #define TRACY_SPIRVASSEMBLER_H
 
-#include "SPIRVConstant.h"
 #include "SPIRVOperation.h"
 #include "SPIRVInstruction.h"
 #include "SPIRVModule.h"
 #include "Singleton.h"
 #include "Flag.h"
+#include "Logger.h"
 #include <mutex>
 
 namespace Tracy
@@ -26,6 +26,8 @@ namespace Tracy
 
 	template <bool Assemble>
 	struct var_decoration;
+
+	class SPIRVConstant;
 
 	static const std::string ExtGLSL450 = "GLSL.std.450";
 

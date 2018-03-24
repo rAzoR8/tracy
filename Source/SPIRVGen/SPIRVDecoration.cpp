@@ -1,5 +1,5 @@
 #include "SPIRVDecoration.h"
-#include "StandardDefines.h"
+#include "Logger.h"
 
 using namespace Tracy;
 

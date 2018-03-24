@@ -1,5 +1,4 @@
 #include "SPIRVVariable.h"
-#include "SPIRVAssembler.h"
 
 using namespace Tracy;
 

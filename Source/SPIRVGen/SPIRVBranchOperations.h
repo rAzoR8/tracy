@@ -1,7 +1,8 @@
 #ifndef TRACY_SPIRVBRANCHNODE_H
 #define TRACY_SPIRVBRANCHNODE_H
 
-#include "SPIRVOperation.h"
+#include "SPIRVAssembler.h"
+//#include "SPIRVVariable.h"
 
 namespace Tracy
 {

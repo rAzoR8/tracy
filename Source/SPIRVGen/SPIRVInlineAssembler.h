@@ -32,8 +32,6 @@ namespace Tracy
 	SPIRVModule AssembleInline(
 		const TLambdaFunc& _Func,
 		const bool _bUseDefaults = true,
-		const std::string& _sEntryPoint = "main",
-		const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 		Ts&& ..._args)
 	{
 		if (_bUseDefaults)
@@ -42,7 +40,7 @@ namespace Tracy
 		}
 
 		using TInlFunc = SPIRVInlineFunctor<TLambdaFunc, Ts...>;
-		GlobalAssembler.InitializeProgram<TInlFunc>(_sEntryPoint, _Extensions, _Func);
+		GlobalAssembler.InitializeProgram<TInlFunc>(_Func);
 		GlobalAssembler.RecordInstructions<TInlFunc>(std::forward<Ts>(_args)...);
 		return GlobalAssembler.Assemble();
 	}

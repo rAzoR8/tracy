@@ -2,8 +2,8 @@
 #define TRACY_SPIRVOPERATORIMPL_H
 
 #include "SPIRVVariable.h"
-#include "SPIRVAssembler.h"
 #include <vulkan\GLSL.std.450.h>
+#include <glm\gtc\constants.hpp>
 
 namespace Tracy
 {

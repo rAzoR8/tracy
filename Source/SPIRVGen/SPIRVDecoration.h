@@ -1,8 +1,6 @@
 #ifndef TRACY_SPRIVDECORATION_H
 #define TRACY_SPRIVDECORATION_H
 
-#include <vulkan\spirv.hpp>
-#include "Logger.h"
 #include "SPIRVOperation.h"
 
 namespace Tracy

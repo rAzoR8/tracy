@@ -2,8 +2,6 @@
 #define TRACY_SPIRVCONSTANT_H
 
 #include "SPIRVType.h"
-#include "FunctionalUtils.h"
-#include "Logger.h"
 
 namespace Tracy
 {	

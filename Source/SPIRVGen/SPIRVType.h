@@ -2,7 +2,6 @@
 #define TRACY_SPIRVTYPE_H
 
 #include <vector>
-#include <stdint.h>
 #include "SPIRVVariableTypes.h"
 #include "GetStructMember.h"
 
