@@ -1,7 +1,7 @@
 #include "SPIRVModule.h"
 //#include "SPIRVInlineAssembler.h"
 //#include "GenerateSwizzleHeader.h"
-#include "ExampleProg.h"
+//#include "ExampleProg.h"
 
 #include "DeferredLightingExample.h"
 #include "StopWatch.h"
@@ -37,9 +37,9 @@ int main(int argc, char* argv[])
 	//ExampleProg<false> prog;
 	//prog();
 
-	GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
-	system("spirv-dis test.spv");
-	system("spirv-val test.spv");
+	//GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
+	//system("spirv-dis test.spv");
+	//system("spirv-val test.spv");
 	//system("pause");
 
 	//return 0;
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 	GlobalAssembler.ConfigureOptimization(Settings);
 	GlobalAssembler.RemoveUnusedOperations(false); // Disable own implementation
 
-	if (true)
+	if (false)
 	{
 		TDLPerm Perm = {};
 		compile<1u, 1u>(Perm, "unopt.spv", true);
@@ -70,29 +70,37 @@ int main(int argc, char* argv[])
 	{
 		{
 			hlx::StopWatch<> timer("CompileTime 64 Permutations");
-			for (uint32_t p = 0; p < 4; ++p)
+			constexpr uint32_t uSampleCount = 20u;
+			for (uint32_t i = 0; i < uSampleCount; i++)
 			{
-				compile<1u, 1u>(TDLPerm(p));
-				compile<16u, 1u>(TDLPerm(p));
-				compile<32u, 1u>(TDLPerm(p));
-				compile<48u, 1u>(TDLPerm(p));
+				for (uint32_t p = 0; p < 4; ++p)
+				{
+					compile<1u, 1u>(TDLPerm(p));
+					compile<16u, 1u>(TDLPerm(p));
+					compile<32u, 1u>(TDLPerm(p));
+					compile<48u, 1u>(TDLPerm(p));
 
-				compile<1u, 16u>(TDLPerm(p));
-				compile<1u, 32u>(TDLPerm(p));
-				compile<1u, 48u>(TDLPerm(p));
+					compile<1u, 16u>(TDLPerm(p));
+					compile<1u, 32u>(TDLPerm(p));
+					compile<1u, 48u>(TDLPerm(p));
 
-				compile<16u, 16u>(TDLPerm(p));
-				compile<16u, 32u>(TDLPerm(p));
-				compile<16u, 48u>(TDLPerm(p));
+					compile<16u, 16u>(TDLPerm(p));
+					compile<16u, 32u>(TDLPerm(p));
+					compile<16u, 48u>(TDLPerm(p));
 
-				compile<32u, 16u>(TDLPerm(p));
-				compile<32u, 32u>(TDLPerm(p));
-				compile<32u, 48u>(TDLPerm(p));
+					compile<32u, 16u>(TDLPerm(p));
+					compile<32u, 32u>(TDLPerm(p));
+					compile<32u, 48u>(TDLPerm(p));
 
-				compile<48u, 16u>(TDLPerm(p));
-				compile<48u, 32u>(TDLPerm(p));
-				compile<48u, 48u>(0u);
+					compile<48u, 16u>(TDLPerm(p));
+					compile<48u, 32u>(TDLPerm(p));
+					compile<48u, 48u>(TDLPerm(p));
+				}
 			}
+			
+			const auto fElapsed = timer.Elapsed();
+			const float fAvg = fElapsed / (float)uSampleCount;
+			std::cout << "Samples " << uSampleCount << " elapsed " << fElapsed << " avg " << fAvg << std::endl;
 		}
 
 		//for (const SPIRVModule& shader : Modules)

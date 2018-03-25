@@ -53,10 +53,6 @@ namespace Tracy
 		RenderTarget Diffuse;
 		RenderTarget Specular;
 
-		// Definitions ------------------------------------------
-		//static constexpr uint32_t DirLightRange = 10u;
-		//static constexpr uint32_t PointLightRange = 10u;
-
 		// CBuffer ----------------------------------------------
 		struct ShadowData
 		{
@@ -142,8 +138,8 @@ namespace Tracy
 		// Structs ---------------------------------------------------
 		struct LightingResult
 		{
-			float3 vDiffuse;
-			float3 vSpecular;
+			float3 vDiffuse{TIntermediate()};
+			float3 vSpecular{TIntermediate()};
 		};
 
 		// Functions ----------------------------------------------------------------------------------
@@ -156,13 +152,8 @@ namespace Tracy
 		{
 			const float2& vAngles = _vEncodedNormal;
 			auto t = vAngles.x * glm::pi<float>();
-
-			float2 vSinCosTheta;
-			vSinCosTheta.x = Sin(t);
-			vSinCosTheta.y = Cos(t);
-
 			auto phi = Sqrt(1.0f - vAngles.y * vAngles.y);
-			return float3(vSinCosTheta.y * phi, vSinCosTheta.x * phi, vAngles.y);
+			return float3(Cos(t) * phi, Sin(t) * phi, vAngles.y);
 		}
 		
 		f32 CalculateShadowFactor(float4 _vShadowPosH)
@@ -170,9 +161,7 @@ namespace Tracy
 			_vShadowPosH.xyz /= _vShadowPosH.w;
 			f32 fDepth = _vShadowPosH.z; // NDC-Space -> [0,1]
 
-			auto Dimensions = gShadowMap.Dimensions();
-
-			f32 fDX = 1.0f / Dimensions.x;
+			f32 fDX = 1.0f / gShadowMap.Dimensions().x;
 			f32 fDXNeg = -fDX;
 
 			f32 fPercentLit = 0.0f;
@@ -204,7 +193,7 @@ namespace Tracy
 		{
 
 			// F
-			f32 fDotLH5 = Pow(1.0f - _fDotLH, f32(5.f));
+			f32 fDotLH5 = Pow(1.0f - _fDotLH, 5.f);
 
 			// V
 			f32 fK = (_fRoughness * _fRoughness) / 2.0f;
@@ -224,7 +213,7 @@ namespace Tracy
 			f32 fDenom = _fDotNH * _fDotNH * (fAlphaSqr - 1.0) + 1.0f;
 
 			/// -> NaN division
-			f32 fD = Select(fDenom == 0.f, f32(0.f), fAlphaSqr / (glm::pi<float>() * fDenom * fDenom));
+			f32 fD = Select(fDenom == 0.f, make_const<bAssembleProg>(0.f), fAlphaSqr / (glm::pi<float>() * fDenom * fDenom));
 			return fD;
 		}
 
@@ -261,22 +250,22 @@ namespace Tracy
 		// https://imdoingitwrong.wordpress.com/2011/02/10/improved-light-attenuation/
 		f32 CalculateAttenuation(const f32& _fSurfacePointToLightDist, const f32& _fRange, const f32&_fDecayStart)
 		{
-			_fDecayStart = Max(_fDecayStart, 0.0000001f); // ensure light sphere has valid radius
+			f32 fDecayStart = Max(_fDecayStart, 0.0000001f); // ensure light sphere has valid radius
 
-			f32 fDmax = Max(_fRange - _fDecayStart, 0.f);
-			f32 fD = Max(_fSurfacePointToLightDist - _fDecayStart, 0.f);
+			f32 fDmax = Max(_fRange - fDecayStart, 0.f);
+			f32 fD = Max(_fSurfacePointToLightDist - fDecayStart, 0.f);
 
 			f32 fD2 = fD / fDmax;
 			fD2 *= fD2;
 
-			f32 fDFactor = ((fD / (1.f - fD2)) / _fDecayStart) + 1.f;
+			f32 fDFactor = ((fD / (1.f - fD2)) / fDecayStart) + 1.f;
 			fDFactor *= fDFactor;
 
-			return Select(fDFactor == 0.0f, f32(0.0f), (1.0f / fDFactor) * Step(_fSurfacePointToLightDist, fDmax));
+			return Select(fDFactor == 0.0f, make_const<bAssembleProg>(0.0f), (1.0f / fDFactor) * Step(_fSurfacePointToLightDist, fDmax));
 		}
 
 		// vL = Light vector from vertex pos to light
-		f32 CalculateSpotCone(const ArrayElement<SpotLight>& _Light, float3 vL)
+		f32 CalculateSpotCone(const ArrayElement<SpotLight>& _Light, const float3& vL)
 		{
 			f32 fMinCos = Cos(_Light->fSpotAngle);
 			f32 fMaxCos = (fMinCos + 1.0f) / 2.0f;
@@ -291,8 +280,8 @@ namespace Tracy
 		LightingResult CalculateLightSource(const ArrayElement<Light>& _Light, const float3& _vToEye, const float3& _vPosWS, const float3& _vNormal, const f32& _fRoughness, const float3& _vF0)
 		{
 			// Light vector from vertex pos to light
-			float3 vL;
-			f32 fPointToLightDist;
+			float3 vL{TIntermediate()};
+			f32 fPointToLightDist{ TIntermediate() };
 			f32 fAttenuation = 1.f;
 
 			if constexpr(std::is_same_v<Light, DirectionalLight>)
@@ -346,7 +335,7 @@ namespace Tracy
 
 			for (int p = 0; p < PointLightRange; ++p) // unrolled
 			{
-				f32 fShadowFactorDP = 1.0f;
+				//f32 fShadowFactorDP = 1.0f;
 
 				//if(PointLight.iShadowIndex > -1)
 				//{
@@ -360,13 +349,13 @@ namespace Tracy
 				//}
 
 				LightingResult CurResult = CalculateLightSource(cbPointLight[p], _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
-				Result.vDiffuse += fShadowFactorDP * CurResult.vDiffuse;
-				Result.vSpecular += fShadowFactorDP * CurResult.vSpecular;
+				Result.vDiffuse += /*fShadowFactorDP **/ CurResult.vDiffuse;
+				Result.vSpecular += /*fShadowFactorDP **/ CurResult.vSpecular;
 			}
 
 			for (int s = 0; s < SpotLightRange; ++s)
 			{
-				float fShadowFactorPS = 1.0f;
+				//float fShadowFactorPS = 1.0f;
 
 				//if (SpotLight.iShadowIndex > -1)
 				//{
@@ -377,8 +366,8 @@ namespace Tracy
 				//}
 
 				LightingResult CurResult = CalculateLightSource(cbSpotLight[s], _vViewDir, _vPosWS, _vNormal, _fRoughness, _vF0);
-				Result.vDiffuse += fShadowFactorPS * CurResult.vDiffuse;
-				Result.vSpecular += fShadowFactorPS * CurResult.vSpecular;
+				Result.vDiffuse += /*fShadowFactorPS **/ CurResult.vDiffuse;
+				Result.vSpecular += /*fShadowFactorPS **/ CurResult.vSpecular;
 			}
 
 			Result.vDiffuse = (1.0f - _fMetallic) * Result.vDiffuse;
@@ -395,13 +384,13 @@ namespace Tracy
 			float3 vPosWS = (cbPerCamera->mViewInv * float4(vViewSpacePos, 1.0f)).xyz;
 			float3 vToEye = Normalize(cbPerCamera->vCameraPos.xyz - vPosWS);
 
-			f32 fRoughness = Max(gRoughnessMap.Sample(SamplerLinearWrap, vTexCoord), f32(0.0001f));
+			f32 fRoughness = Max(gRoughnessMap.Sample(SamplerLinearWrap, vTexCoord), 0.0001f);
 			float2 vMetallicHorizon = gMetallicMap.Sample(SamplerLinearWrap, vTexCoord);
 
 			// Lighting
 			float3 vF0 = gAlbedoMap.Sample(SamplerLinearWrap, vTexCoord).rgb; // rgb->spec color map -> F0 values for metallic
 
-			vF0 = Lerp(float3(0.04f, 0.04f, 0.04f), vF0, vMetallicHorizon.x); // dielectric have F0 reflectance of ~0.04
+			vF0 = Lerp(make_const<bAssembleProg>(0.04f, 0.04f, 0.04f), vF0, vMetallicHorizon.x); // dielectric have F0 reflectance of ~0.04
 
 			// Calculate Direct Diffuse and Direct Specular Lighting by point light sources
 			LightingResult LightResult = ComputeLighting(vToEye, vPosWS, vNormal, vMetallicHorizon.x, fRoughness, vF0);
