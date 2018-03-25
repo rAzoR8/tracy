@@ -11,7 +11,7 @@ using namespace Tracy;
 uint32_t uPerm = 0u;
 
 template <uint32_t pl, uint32_t sl>
-void compile(const TDLPerm& _Perm, const std::string& _sOutputPath = {}, const bool _vValidate = false)
+uint32_t compile(const TDLPerm& _Perm, const std::string& _sOutputPath = {}, const bool _vValidate = false)
 {
 
 	SPIRVModule Shader = GlobalAssembler.AssembleSimple<DeferredLighting<1u, pl, sl>>(true, _Perm);
@@ -29,6 +29,41 @@ void compile(const TDLPerm& _Perm, const std::string& _sOutputPath = {}, const b
 			system(("spirv-val " + _sOutputPath).c_str());
 		}
 	}
+
+	return uWordCount;
+}
+
+inline uint32_t AssembleTest()
+{
+	uint32_t uWordCount = 0u;
+
+	for (uint32_t p = 0; p < 4; ++p)
+	{
+		//compile<1u, 1u>(0u);
+
+		uWordCount += compile<1u, 1u>(TDLPerm(p));
+		uWordCount += compile<16u, 1u>(TDLPerm(p));
+		uWordCount += compile<32u, 1u>(TDLPerm(p));
+		uWordCount += compile<48u, 1u>(TDLPerm(p));
+
+		uWordCount += compile<1u, 16u>(TDLPerm(p));
+		uWordCount += compile<1u, 32u>(TDLPerm(p));
+		uWordCount += compile<1u, 48u>(TDLPerm(p));
+
+		uWordCount += compile<16u, 16u>(TDLPerm(p));
+		uWordCount += compile<16u, 32u>(TDLPerm(p));
+		uWordCount += compile<16u, 48u>(TDLPerm(p));
+
+		uWordCount += compile<32u, 16u>(TDLPerm(p));
+		uWordCount += compile<32u, 32u>(TDLPerm(p));
+		uWordCount += compile<32u, 48u>(TDLPerm(p));
+
+		uWordCount += compile<48u, 16u>(TDLPerm(p));
+		uWordCount += compile<48u, 32u>(TDLPerm(p));
+		uWordCount += compile<48u, 48u>(TDLPerm(p));
+	}
+
+	return uWordCount;
 }
 
 int main(int argc, char* argv[])
@@ -68,49 +103,74 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
+		if (true) // word count teste
 		{
+			hlx::Logger::Instance()->WriteToStream(&std::wcout);
+
+			GlobalAssembler.ConfigureOptimization({}); // no opt
+			GlobalAssembler.RemoveUnusedOperations(false); // Disable own implementation
+
+			HLOG("UNOPTIMIZED:");
+			const uint32_t uUnOptWords = AssembleTest();
+
+			GlobalAssembler.RemoveUnusedOperations(true); 
+
+			HLOG("REMOVED UNREFERENCED OPERATIONS:");
+			const uint32_t uUnRefWords = AssembleTest();
+
+			Settings.kPasses = kOptimizationPassFlag_AllPerformance;
+			GlobalAssembler.ConfigureOptimization(Settings);
+			GlobalAssembler.RemoveUnusedOperations(false);
+
+			HLOG("SPIRV-OPT ALL PERFORMANCE:");
+			const uint32_t uOptWords = AssembleTest();
+
+			GlobalAssembler.RemoveUnusedOperations(true);
+
+			HLOG("REMOVED UNREFERENCED + SPIRV-OPT ALL PERFORMANCE:");
+			const uint32_t uOptUnRefWords = AssembleTest();
+
+			const auto percent = [](uint32_t uCount, uint32_t uTotal) -> float
+			{
+				return ((float)uCount / (float)uTotal) * 100.f;
+			};
+
+			const auto factor = [](uint32_t uCount, uint32_t uTotal) -> float
+			{
+				return ((float)uTotal / (float)uCount);
+			};
+
+			HLOG("\nTotal instruction word count (4byte integers in stream):");
+			HLOG("Unoptimized:\t\t%u %.2f%% %.3fx", uUnOptWords, percent(uUnOptWords, uUnOptWords), factor(uUnOptWords, uUnOptWords));
+			HLOG("RemovedUnRef:\t%u %.2f%% %.3fx", uUnRefWords, percent(uUnRefWords, uUnOptWords), factor(uUnRefWords, uUnOptWords));
+			HLOG("Optimized:\t\t%u %.2f%% %.3fx", uOptWords, percent(uOptWords, uUnOptWords), factor(uOptWords, uUnOptWords));
+			HLOG("UnRefOptimized:\t%u %.2f%% %.3fx", uOptUnRefWords, percent(uOptUnRefWords, uUnOptWords), factor(uOptUnRefWords, uUnOptWords));
+		}
+		else // assemble time test
+		{
+			// warmup
+			AssembleTest();
+
 			hlx::Logger::Instance()->SetLogLevel(hlx::kMessageType_Fatal);
 
 			hlx::StopWatch<> total;
-			constexpr uint32_t uSampleCount = 20u;
+			constexpr uint32_t uSampleCount = 10u;
 			for (uint32_t i = 0; i < uSampleCount; i++)
 			{
 				hlx::StopWatch<> tone;
 
-				for (uint32_t p = 0; p < 4; ++p)
-				{
-					compile<1u, 1u>(TDLPerm(p));
-					compile<16u, 1u>(TDLPerm(p));
-					compile<32u, 1u>(TDLPerm(p));
-					compile<48u, 1u>(TDLPerm(p));
-
-					compile<1u, 16u>(TDLPerm(p));
-					compile<1u, 32u>(TDLPerm(p));
-					compile<1u, 48u>(TDLPerm(p));
-
-					compile<16u, 16u>(TDLPerm(p));
-					compile<16u, 32u>(TDLPerm(p));
-					compile<16u, 48u>(TDLPerm(p));
-
-					compile<32u, 16u>(TDLPerm(p));
-					compile<32u, 32u>(TDLPerm(p));
-					compile<32u, 48u>(TDLPerm(p));
-
-					compile<48u, 16u>(TDLPerm(p));
-					compile<48u, 32u>(TDLPerm(p));
-					compile<48u, 48u>(TDLPerm(p));
-				}
+				AssembleTest();
 
 				std::cout << tone.Elapsed() << "s" << std::endl;
 			}
-			
+
 			const auto fElapsed = total.Elapsed();
 			const float fAvg = fElapsed / (float)uSampleCount;
 			std::cout << "Samples " << uSampleCount << " elapsed " << fElapsed << " avg " << fAvg << std::endl;
 		}
 	}
 
-	system("pause");
+	//system("pause");
 
 	return 0;
 }
