@@ -352,20 +352,6 @@ namespace Tracy
 			return make_op2(l, r, [](const U& v1, const V& v2) -> T {return v1 * v2; }, kOpTypeBase_Result, spv::OpFMul, spv::OpIMul);
 	}
 
-	// mul with constant left
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<V>, typename = std::enable_if_t<is_convertible<U, BaseType>>>
-	inline var_t<V, Assemble, spv::StorageClassFunction> operator*(const U& l, const var_t<V, Assemble, C1>& r)
-	{
-		return var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)l) *  r;
-	}
-
-	// mul with constant right
-	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<U>, typename = std::enable_if_t<is_convertible<V, BaseType>>>
-	inline var_t<U, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const V& r)
-	{
-		return l * var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)r);
-	}
-
 	// vector * matrix
 	template <class M, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_matrix<M>>>
 	inline var_t<row_type_t<M>, Assemble, spv::StorageClassFunction> Mul(
@@ -401,6 +387,20 @@ namespace Tracy
 		return make_op2(l, r, [](const M& m, const N& n)-> R {return m * n; }, kOpTypeBase_Result, spv::OpMatrixTimesMatrix);
 	}
 
+	// mul with constant left
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<V>, typename = std::enable_if_t<is_convertible<U, BaseType>>>
+	inline var_t<V, Assemble, spv::StorageClassFunction> operator*(const U& l, const var_t<V, Assemble, C1>& r)
+	{
+		return make_const<Assemble>((BaseType)l) *  r;
+	}
+
+	// mul with constant right
+	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<U>, typename = std::enable_if_t<is_convertible<V, BaseType>>>
+	inline var_t<U, Assemble, spv::StorageClassFunction> operator*(const var_t<U, Assemble, C1>& l, const V& r)
+	{
+		return l * make_const<Assemble>((BaseType)r);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// DIV
 	template <class U, class V, bool Assemble, spv::StorageClass C1, spv::StorageClass C2,
@@ -423,13 +423,13 @@ namespace Tracy
 	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<V>, typename = std::enable_if_t<is_convertible<U, BaseType>>>
 	inline var_t<V, Assemble, spv::StorageClassFunction> operator/(const U& l, const var_t<V, Assemble, C1>& r)
 	{
-		return var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)l) / r;
+		return make_const<Assemble>((BaseType)l) / r;
 	}
 	// div with constant right
 	template <class U, class V, bool Assemble, spv::StorageClass C1, class BaseType = base_type_t<U>, typename = std::enable_if_t<is_convertible<V, BaseType>>>
 	inline var_t<U, Assemble, spv::StorageClassFunction> operator/(const var_t<U, Assemble, C1>& l, const V& r)
 	{
-		return l * var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)1 / (BaseType)r);
+		return l * make_const<Assemble>((BaseType)1 / (BaseType)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -470,13 +470,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator==(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) == r;
+		return make_const<Assemble>((T)l) == r;
 	}
 	// equal with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator==(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l == var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l == make_const<Assemble>((T)r);
 	}
 	//---------------------------------------------------------------------------------------------------
 	// UNEQUAL
@@ -501,13 +501,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator!=(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) != r;
+		return make_const<Assemble>((T)l) != r;
 	}
 	// unequal with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator!=(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l != var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l != make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -532,13 +532,13 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const bool& l, const var_t<bool, Assemble, C1>& r)
 	{
-		return var_t<bool, Assemble, spv::StorageClassFunction>(l) || r;
+		return make_const<Assemble>(l) || r;
 	}
 	// logical or with constant right
 	template <bool Assemble, spv::StorageClass C1>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator||(const var_t<bool, Assemble, C1>& l, const bool& r)
 	{
-		return l || var_t<bool, Assemble, spv::StorageClassFunction>(r);
+		return l || make_const<Assemble>(r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -563,13 +563,13 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const bool& l, const var_t<bool, Assemble, C1>& r)
 	{
-		return var_t<bool, Assemble, spv::StorageClassFunction>(l) && r;
+		return make_const<Assemble>(l) && r;
 	}
 	// logical and with constant right
 	template <bool Assemble, spv::StorageClass C1>
 	inline var_t<bool, Assemble, spv::StorageClassFunction> operator&&(const var_t<bool, Assemble, C1>& l, const bool& r)
 	{
-		return l && var_t<bool, Assemble, spv::StorageClassFunction>(r);
+		return l && make_const<Assemble>(r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -583,13 +583,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator|(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) | r;
+		return make_const<Assemble>((T)l) | r;
 	}
 	// bitwise or with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator|(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l | var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l | make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -603,13 +603,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator^(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) ^ r;
+		return make_const<Assemble>((T)l) ^ r;
 	}
 	// bitwise xor with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator^(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l ^ var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l ^ make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -623,13 +623,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator&(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) & r;
+		return make_const<Assemble>((T)l) & r;
 	}
 	// bitwise and with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator&(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l & var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l & make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -653,13 +653,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) < r;
+		return make_const<Assemble>((T)l) < r;
 	}
 	// Less with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l < var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l < make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -684,13 +684,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<=(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) <= r;
+		return make_const<Assemble>((T)l) <= r;
 	}
 	// Less then equal with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator<=(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l <= var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l <= make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -715,13 +715,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) > r;
+		return make_const<Assemble>((T)l) > r;
 	}
 	// greater with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l > var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l > make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -746,13 +746,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>=(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) >= r;
+		return make_const<Assemble>((T)l) >= r;
 	}
 	// Greater then equal with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<condition_t<T>, Assemble, spv::StorageClassFunction> operator>=(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l >= var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l >= make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -766,13 +766,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator>>(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) >> r;
+		return make_const<Assemble>((T)l) >> r;
 	}
 	// logical shift right with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator>>(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l >> var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l >> make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -786,13 +786,13 @@ namespace Tracy
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator<<(const V& l, const var_t<T, Assemble, C1>& r)
 	{
-		return var_t<T, Assemble, spv::StorageClassFunction>((T)l) << r;
+		return make_const<Assemble>((T)l) << r;
 	}
 	// logical shift left with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_vector_integer<T> || is_base_integer<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> operator<<(const var_t<T, Assemble, C1>& l, const V& r)
 	{
-		return l << var_t<T, Assemble, spv::StorageClassFunction>((T)r);
+		return l << make_const<Assemble>((T)r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -1153,24 +1153,23 @@ namespace Tracy
 	{
 		return make_ext_op2(X, Y, [](const T& x, const T& y) -> T {return glm::min(x, y); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FMin, GLSLstd450SMin, GLSLstd450UMin);
 	}
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class ...Ts>
-	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const Ts& ..._Args)
-	{
-		return Min(Min(X, Y), _Args...);
-	}
-
 	// min with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const var_t<T, Assemble, C1>& X, const V& Y)
 	{
 		return Min(X, make_const<Assemble>((T)Y));
 	}
-
 	// min with constant left
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const V& X, const var_t<T, Assemble, C1>& Y)
 	{
 		return Min(make_const<Assemble>((T)X), Y);
+	}
+	// variadic min
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class ...Ts>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Min(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const Ts& ..._Args)
+	{
+		return Min(Min(X, Y), _Args...);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -1179,11 +1178,6 @@ namespace Tracy
 	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y)
 	{
 		return make_ext_op2(X, Y, [](const T& x, const T& y) -> T {return glm::max(x, y); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450FMax, GLSLstd450SMax, GLSLstd450UMax);
-	}
-	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class ...Ts>
-	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const Ts& ..._Args)
-	{
-		return Max(Max(X, Y), _Args...);
 	}
 	// max with constant right
 	template <class T, class V, bool Assemble, spv::StorageClass C1>
@@ -1196,6 +1190,12 @@ namespace Tracy
 	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const V& X, const var_t<T, Assemble, C1>& Y)
 	{
 		return Max(make_const<Assemble>((T)X), Y);
+	}
+	// variadic max
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class ...Ts>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Max(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y, const Ts& ..._Args)
+	{
+		return Max(Max(X, Y), _Args...);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -1267,12 +1267,12 @@ namespace Tracy
 		// create variable initialized with constant
 		if constexpr(Assemble)
 		{
-			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(var.Type.GetSize());
+			return make_const<Assemble>(var.Type.GetSize());
 		}
 		else
 		{
 			//static_assert(is_struct<T> == false, "FromType not implemented for structures");
-			return var_t<uint32_t, Assemble, spv::StorageClassFunction>(SPIRVType::FromType<T>().GetSize());
+			return make_const<Assemble>(SPIRVType::FromType<T>().GetSize());
 		}
 	}
 

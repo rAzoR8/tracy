@@ -263,9 +263,6 @@ namespace Tracy
 	struct va_type { typedef std::false_type type; };
 
 	template <>
-	struct va_type<bool> { typedef bool type; };
-
-	template <>
 	struct va_type<float> { typedef float type; };
 	template <>
 	struct va_type<float, float> { typedef float2_t type; };
@@ -321,6 +318,22 @@ namespace Tracy
 
 	template <>
 	struct va_type<uint64_t> { typedef uint64_t type; };
+
+	template <>
+	struct va_type<bool> { typedef bool type; };
+	template <>
+	struct va_type<bool, bool> { typedef bool2_t type; };
+	template <>
+	struct va_type<bool, bool, bool> { typedef bool3_t type; };
+	template <>
+	struct va_type<bool, bool, bool, bool> { typedef bool4_t type; };
+
+	template <>
+	struct va_type<bool2_t> { typedef bool2_t type; };
+	template <>
+	struct va_type<bool3_t> { typedef bool3_t type; };
+	template <>
+	struct va_type<bool4_t> { typedef bool4_t type; };
 
 	template <>
 	struct va_type<float2x2_t> { typedef float2x2_t type; };

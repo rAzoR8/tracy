@@ -316,23 +316,23 @@ namespace Tracy
 		const var_t& operator-=(const var_t<T, Assemble, C1>& _Other) const;
 
 		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
-		const var_t& operator+=(const U& _Other) const { return operator+=(var_t<T, Assemble, spv::StorageClassFunction>((BaseType)_Other)); }
+		const var_t& operator+=(const U& _Other) const { return operator+=(make_const<Assemble>((BaseType)_Other)); }
 		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
-		const var_t& operator-=(const U& _Other) const { return operator-=(var_t<T, Assemble, spv::StorageClassFunction>((BaseType)_Other)); }
+		const var_t& operator-=(const U& _Other) const { return operator-=(make_const<Assemble>((BaseType)_Other)); }
 
 		template <class U, spv::StorageClass C1>
 		const var_t& operator*=(const var_t<U, Assemble, C1>& _Other) const;
 
 		// mutable mul with constant
 		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
-		const var_t& operator*=(const U& _Other) const { return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)_Other));	}
+		const var_t& operator*=(const U& _Other) const { return operator*=(make_const<Assemble>((BaseType)_Other));	}
 	
 		template <class U, spv::StorageClass C1>
 		const var_t& operator/=(const var_t<U, Assemble, C1>& _Other) const;
 		
 		// mutable div with constant
 		template <class U, typename = std::enable_if_t<is_convertible<U, BaseType>>>
-		const var_t& operator/=(const U& _Other) const { return operator*=(var_t<BaseType, Assemble, spv::StorageClassFunction>((BaseType)1 / (BaseType)_Other)); }
+		const var_t& operator/=(const U& _Other) const { return operator*=(make_const<Assemble>((BaseType)1 / (BaseType)_Other)); }
 		
 		var_t<T, Assemble, spv::StorageClassFunction> operator!() const;
 
@@ -1611,7 +1611,7 @@ namespace Tracy
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator++() const
 	{
 		static_assert(hlx::is_of_type<T, float, double, int32_t, uint32_t>(), "Incompatible variable type");
-		return make_op2(var_t<T, Assemble, spv::StorageClassFunction>((T)1), [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
+		return make_op2(make_const<Assemble>((T)1), [](T& v1, const T& v2) { v1 += v2; }, spv::OpFAdd, spv::OpIAdd);
 	}
 
 	// increment immutable
@@ -1628,7 +1628,7 @@ namespace Tracy
 	inline const var_t<T, Assemble, Class>& var_t<T, Assemble, Class>::operator--() const
 	{
 		static_assert(hlx::is_of_type<T, float, double, int32_t, uint32_t>(), "Incompatible variable type");
-		return make_op2(var_t<T, Assemble, spv::StorageClassFunction>((T)1), [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
+		return make_op2(make_const<Assemble>((T)1), [](T& v1, const T& v2) { v1 -= v2; }, spv::OpFSub, spv::OpISub);
 	}
 	//decrement immutable
 	template<typename T, bool Assemble, spv::StorageClass Class>
