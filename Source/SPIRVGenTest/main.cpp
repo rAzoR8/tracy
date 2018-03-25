@@ -69,10 +69,14 @@ int main(int argc, char* argv[])
 	else
 	{
 		{
-			hlx::StopWatch<> timer("CompileTime 64 Permutations");
+			hlx::Logger::Instance()->SetLogLevel(hlx::kMessageType_Fatal);
+
+			hlx::StopWatch<> total;
 			constexpr uint32_t uSampleCount = 20u;
 			for (uint32_t i = 0; i < uSampleCount; i++)
 			{
+				hlx::StopWatch<> tone;
+
 				for (uint32_t p = 0; p < 4; ++p)
 				{
 					compile<1u, 1u>(TDLPerm(p));
@@ -96,22 +100,14 @@ int main(int argc, char* argv[])
 					compile<48u, 32u>(TDLPerm(p));
 					compile<48u, 48u>(TDLPerm(p));
 				}
+
+				std::cout << tone.Elapsed() << "s" << std::endl;
 			}
 			
-			const auto fElapsed = timer.Elapsed();
+			const auto fElapsed = total.Elapsed();
 			const float fAvg = fElapsed / (float)uSampleCount;
 			std::cout << "Samples " << uSampleCount << " elapsed " << fElapsed << " avg " << fAvg << std::endl;
 		}
-
-		//for (const SPIRVModule& shader : Modules)
-		//{
-		//	shader.Save("test.spv");
-		//	if (system("spirv-val test.spv") == -1)
-		//	{
-		//		system("spirv-dis test.spv");
-		//		break;
-		//	}
-		//}
 	}
 
 	system("pause");
