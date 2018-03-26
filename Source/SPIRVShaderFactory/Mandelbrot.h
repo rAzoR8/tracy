@@ -29,31 +29,14 @@ namespace Tracy
 			f32 i = 0.f;
 			const f32 max = 100.f;
 
-			// SPIRVpp version
-			if (true)
+			complex c(x0, y0);
+			complex z(0.f, 0.f);
+
+			While(z.Conjugate() < f32(4.f) && i < max)
 			{
-				complex c(x0, y0);
-				complex z(0.f, 0.f);
-
-				While(z.Conjugate() < f32(4.f) && i < max)
-				{
-					z = z * z + c;
-					++i;
-				});
-			}			
-			else // hlsl version
-			{				
-				f32 x = 0.f;
-				f32 y = 0.f;
-
-				While(x*x + y * y < 4.f && i < max)
-				{
-					f32 xtemp = x * x - y * y + x0;
-					y = 2.f * x*y + y0;
-					x = xtemp;
-					++i;
-				});
-			}
+				z = z * z + c;
+				++i;
+			});
 
 			OutputColor = float4(0.f, 0.f, i / max, 0.f);
 		};

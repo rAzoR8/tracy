@@ -193,24 +193,57 @@ namespace Tracy
 	{
 		switch (_kOp)
 		{
-			// instructions that don't create a result id (incomplete list)
-		case spv::OpCapability:
+		// instructions that don't create a result id (incomplete list)
+		case spv::OpNop:
+		case spv::OpSourceContinued:
+		case spv::OpSource:
+		case spv::OpSourceExtension:
+		case spv::OpName:
+		case spv::OpMemberName:
+		case spv::OpLine:
+		case spv::OpNoLine:
+		case spv::OpModuleProcessed:
+		case spv::OpDecorate:
+		case spv::OpMemberDecorate:
+		case spv::OpGroupDecorate:
+		case spv::OpGroupMemberDecorate:
+		//case spv::OpDecrorateId: // spv v1.2
+		case spv::OpExtension:
 		case spv::OpMemoryModel:
 		case spv::OpEntryPoint:
 		case spv::OpExecutionMode:
-		case spv::OpSource:
-		case spv::OpName:
-		case spv::OpMemberName:
-		case spv::OpDecorate:
-		case spv::OpMemberDecorate:
-
+		case spv::OpCapability:
+		//case spv::OpExecutionModeId: // spv v1.2
+		case spv::OpTypeForwardPointer:
 		case spv::OpStore:
-		case spv::OpSelectionMerge:
-		case spv::OpBranchConditional:
-		case spv::OpBranch:
-		case spv::OpLoopMerge:
-		case spv::OpReturn:
+		case spv::OpCopyMemory:
+		case spv::OpCopyMemorySized:
 		case spv::OpFunctionEnd:
+		case spv::OpLoopMerge:
+		case spv::OpSelectionMerge:
+		case spv::OpBranch:
+		case spv::OpBranchConditional:
+		case spv::OpSwitch:
+		case spv::OpKill:
+		case spv::OpReturn:
+		case spv::OpReturnValue:
+		case spv::OpUnreachable:
+		case spv::OpLifetimeStart:
+		case spv::OpLifetimeStop:
+		case spv::OpEmitVertex:
+		case spv::OpEndPrimitive:
+		case spv::OpEmitStreamVertex:
+		case spv::OpEndStreamPrimitive:
+		case spv::OpControlBarrier:
+		case spv::OpMemoryBarrier:
+		case spv::OpMemoryNamedBarrier:
+		case spv::OpGroupWaitEvents:
+		case spv::OpRetainEvent:
+		case spv::OpReleaseEvent:
+		case spv::OpSetUserEventStatus:
+		case spv::OpCaptureEventProfilingInfo:
+		case spv::OpGroupCommitReadPipe:
+		case spv::OpGroupCommitWritePipe:
 			return false;
 			break;
 		default:
