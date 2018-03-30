@@ -12,18 +12,19 @@ namespace Tracy
 	{
 		using vec3 = var_t<float3_t, Assemble, spv::StorageClassFunction>;
 
-		// use simple forward diff
-		auto x = _Eval(vec3(p.x + e, p.y, p.z)) - _Eval(vec3(p.x - e, p.y, p.z));
-		auto y = _Eval(vec3(p.x, p.y + e, p.z)) - _Eval(vec3(p.x, p.y - e, p.z));
-		auto z = _Eval(vec3(p.x, p.y, p.z + e)) - _Eval(vec3(p.x, p.y, p.z - e));
-
-		return Normalize(vec3(x, y, z));
+		return Normalize(
+			vec3(
+				_Eval(vec3(p.x + e, p.y, p.z)) - _Eval(vec3(p.x - e, p.y, p.z)),
+				_Eval(vec3(p.x, p.y + e, p.z)) - _Eval(vec3(p.x, p.y - e, p.z)),
+				_Eval(vec3(p.x, p.y, p.z + e)) - _Eval(vec3(p.x, p.y, p.z - e))
+			)
+		);
 	}
 
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<float, Assemble, spv::StorageClassFunction> Sphere(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Radius)
+	inline var_t<float, Assemble, spv::StorageClassFunction> SphereDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Radius)
 	{
 		return Dot(_Point, _Point) - _Radius * _Radius;
 	}
@@ -48,7 +49,7 @@ namespace Tracy
 		// user has to override this function:
 		virtual var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const
 		{
-			return Sphere(_Point, make_const<Assemble>(1.f)); // default impl unit sphere
+			return SphereDist(_Point, make_const<Assemble>(1.f)); // default impl unit sphere
 		}
 	};
 	//---------------------------------------------------------------------------------------------------
@@ -66,16 +67,7 @@ namespace Tracy
 	template<spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<float3_t, Assemble, spv::StorageClassFunction> SDFObject<Assemble>::Normal(const var_t<float3_t, Assemble, C1>& p, const var_t<float, Assemble, C2>& e) const
 	{
-		const auto EvalFunc = [&](const vec3& v) {return this->Eval(v); };
-
-		return ForwardDiffNormal(p, e, EvalFunc);
-
-		//// use simple forward diff
-		//auto x = Eval(vec3(p.x + e, p.y, p.z)) - Eval(vec3(p.x - e, p.y, p.z));
-		//auto y = Eval(vec3(p.x, p.y + e, p.z)) - Eval(vec3(p.x, p.y - e, p.z));
-		//auto z = Eval(vec3(p.x, p.y, p.z + e)) - Eval(vec3(p.x, p.y, p.z - e));
-
-		//return Normalize(vec3(x, y , z));
+		return ForwardDiffNormal(p, e, [&](const vec3& v) {return this->Eval(v); });
 	}
 
 } // Tracy

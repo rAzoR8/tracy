@@ -8,11 +8,9 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3> // ri = refraction index
 	inline var_t<float, Assemble, spv::StorageClassFunction> FresnelSchlick(const var_t<float3_t, Assemble, C1>& l, const var_t<float3_t, Assemble, C2>& h, var_t<float, Assemble, C3>& ri)
 	{
-		using f32 = var_t<float, Assemble, spv::StorageClassFunction>;
-
 		auto f0 = (1.f - ri) / (1.f + ri);
 		f0 *= f0;
-		return f0 + (1.f - f0) * Pow(f32(1.f) - Dot(l, h), f32(5.f));
+		return f0 + (1.f - f0) * Pow(1.f - Dot(l, h), 5.f);
 	}
 
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3> // h = half, n = normal, a = exponent
@@ -30,10 +28,9 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, spv::StorageClass C4>
 	inline var_t<float, Assemble, spv::StorageClassFunction> GeoCookTorrance(const var_t<float3_t, Assemble, C1>& n, const var_t<float3_t, Assemble, C2>& l, const var_t<float3_t, Assemble, C3>& v, const var_t<float3_t, Assemble, C4>& h)
 	{
-		using f32 = var_t<float, Assemble, spv::StorageClassFunction>;
 		auto nh2vh = (2.f * Dot(n, h)) / Dot(v, h);
 
-		return Min(f32(1.f), nh2vh * Dot(n, v), nh2vh * Dot(n, l));
+		return Min(1.f, nh2vh * Dot(n, v), nh2vh * Dot(n, l));
 	}
 
 	template <class MRInstance>

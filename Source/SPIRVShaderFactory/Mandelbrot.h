@@ -13,32 +13,20 @@ namespace Tracy
 		~Mandelbrot() {};
 
 		//CBuffer<float3_t> FrameBufferDim = BufferSources::sFrameBufferDimension;
-		RenderTarget OutputColor;
 
+		RenderTarget OutputColor;
 		inline void operator()()
 		{
-			//f32 width = FrameBufferDim.x;
-			//f32 height = FrameBufferDim.y;
-
-			f32 width = 1600.f;
-			f32 height = 900.f;
-
-			f32 x0 = Lerp(f32(-1.f), f32(1.f), kFragCoord.x / width);
-			f32 y0 = kFragCoord.y / height;
-
-			f32 i = 0.f;
-			const f32 max = 100.f;
-
-			complex c(x0, y0);
+			f32 i = 0.f, max = 100.f;
+			complex c(Lerp(-1.f, 1.f, kFragCoord.x / 1600.f), kFragCoord.y / 900.f);
 			complex z(0.f, 0.f);
-
-			While(z.Conjugate() < f32(4.f) && i < max)
+			While(z.Conjugate() < 4.f && i < max)
 			{
 				z = z * z + c;
 				++i;
 			});
-
-			OutputColor = float4(0.f, 0.f, i / max, 0.f);
+			f32 scale = i / max;
+			OutputColor = float4(scale, scale, scale, 0.f);
 		};
 	private:
 	};

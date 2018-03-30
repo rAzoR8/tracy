@@ -100,6 +100,8 @@ void SPIRVModule::Put(const uint32_t& _uWord)
 
 void SPIRVModule::Put(const SPIRVInstruction& _Instr)
 {
+	// TODO: check if operation can be skipped (like OpNop etc)
+
 	Put(_Instr.GetOpCode());
 
 	const uint32_t& uTypeId(_Instr.GetTypeId());

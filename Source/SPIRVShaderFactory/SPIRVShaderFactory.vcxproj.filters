@@ -42,10 +42,16 @@
     <ClInclude Include="CSGObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PhongModel.h">
+    <ClInclude Include="SimpleCSGRayMarching.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleCSGRayMarching.h">
+    <ClInclude Include="CameraFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PhongMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

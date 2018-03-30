@@ -1243,6 +1243,13 @@ namespace Tracy
 		//return Mix(l, r, t);
 	}
 
+	// Lerp between constants
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<!is_var<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Lerp(const T& l, const T& r, const var_t<float, Assemble, C1> t)
+	{
+		return Lerp(make_const<Assemble>(l), make_const<Assemble>(r), t);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// NDC to [0..1]
 	template <class T, bool Assemble, spv::StorageClass C1>

@@ -19,6 +19,7 @@ namespace Tracy
 
 	using TSPVArgFlag = hlx::Flag<ESPVOpArgs>;
 
+	// dont use, unfinished
 	inline static std::string GetOpCodeString(const spv::Op _kOp)
 	{
 		static const std::unordered_map<spv::Op, std::string> OpNames =
@@ -126,6 +127,7 @@ namespace Tracy
 		return it != OpNames.end() ? it->second : "Unknown [" + std::to_string(_kOp) + "]";
 	}
 
+	// dont use, unfinished
 	inline static ESPVOpArgs GetOpCodeArgs(const spv::Op _kOp)
 	{
 		static const std::unordered_map<spv::Op, ESPVOpArgs> OpArgs =
