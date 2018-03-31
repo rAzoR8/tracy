@@ -31,7 +31,18 @@ namespace Tracy
 	struct var_t;
 
 	//---------------------------------------------------------------------------------------------------
+	template <bool Assemble, class T, spv::StorageClass C1 = spv::StorageClassFunction>
+	inline var_t<T, Assemble, C1> make_var(const T& _Value)
+	{
+		return var_t<T, Assemble, C1>(_Value);
+	}
 
+#ifndef mvar
+#define mvar(x) Tracy::make_var<Assemble>((x))
+#endif
+
+	//---------------------------------------------------------------------------------------------------
+	// just copy the result id
 	template <class T, bool Assemble, spv::StorageClass C1>
 	inline var_t<T, Assemble, spv::StorageClassFunction> make_intermediate(const var_t<T, Assemble, C1>& _Var)
 	{
@@ -48,14 +59,23 @@ namespace Tracy
 
 		return var;
 	}
+
+#ifndef mivar
+#define mivar(x) Tracy::make_intermediate<Assemble>((x))
+#endif
+
 	//---------------------------------------------------------------------------------------------------
 
 	// creates a intermediate constant, not an OpVariable!
-	template < bool Assemble, class ...Ts, class Ret = va_type_t<Ts...>>
+	template <bool Assemble, class ...Ts, class Ret = va_type_t<Ts...>>
 	inline var_t<Ret, Assemble, spv::StorageClassFunction> make_const(const Ts& ..._Args)
 	{
 		return var_t<Ret, Assemble, spv::StorageClassFunction>(TIntermediate(), _Args...);
 	}
+
+#ifndef mcvar
+#define mcvar(x) Tracy::make_const<Assemble>((x))
+#endif
 
 	//---------------------------------------------------------------------------------------------------
 	// Create a intermediate vector with dimension N from constants _Values

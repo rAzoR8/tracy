@@ -1223,6 +1223,18 @@ namespace Tracy
 	// HELPER FUNCTIONS
 	//---------------------------------------------------------------------------------------------------
 
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<mul_result_t<T, T>, Assemble, spv::StorageClassFunction> Square(const var_t<T, Assemble, C1>& x)
+	{
+		return x * x;
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1/*, class R = mul_result_t<T, mul_result_t<T, T>>*/>
+	inline auto Qubic(const var_t<T, Assemble, C1>& x)
+	{
+		return x * x * x;
+	}
+
 	// Clamp X between 0 and 1 componentwise
 	template <class T, bool Assemble, spv::StorageClass C1, class BaseT = base_type_t<T>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Saturate(const var_t<T, Assemble, C1>& x)

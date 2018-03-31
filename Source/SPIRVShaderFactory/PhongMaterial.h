@@ -3,38 +3,12 @@
 
 #include "SPIRVOperatorImpl.h"
 #include "MaterialInterface.h"
-#include "SPIRVVariableTypeDefs.h"
 
 namespace Tracy
 {
-	template<bool Assemble>
-	struct PhongSurface
-	{
-		SPVStruct;
-
-		Float3 vAmbientColor;
-		F32 PSPAD1;
-		Float3 vDiffuseColor;
-		F32 PSPAD2;
-		Float3 vSpecularColor;
-		F32 Shininess;
-	};
-
-	//---------------------------------------------------------------------------------------------------
-	template<bool Assemble>
-	struct PhongLight
-	{
-		SPVStruct;
-
-		Float3 vPosition;
-		F32 PLPAD1;
-		Float3 vColorIntensity;
-		F32 PLPAD2;
-	};
-
 	//---------------------------------------------------------------------------------------------------
 
-	// branchless phong illumination
+	// standard branchless phong illumination
 	template <
 		bool Assemble,
 		spv::StorageClass C1,
@@ -63,38 +37,29 @@ namespace Tracy
 			(_vDiffuseColor * Saturate(Dot(_vNormal, L))
 			+ _vSpecularColor * Pow(Saturate(Dot(R, V)), _Alpha));
 	}
-	//---------------------------------------------------------------------------------------------------
-
-	template <
-		bool Assemble,
-		spv::StorageClass C1,
-		spv::StorageClass C2,
-		spv::StorageClass C3>
-		inline var_t<float3_t, Assemble, spv::StorageClassFunction> PhongIllumination(
-			const var_t<float3_t, Assemble, C1>& _vPos, // Surface point being lit
-			const var_t<float3_t, Assemble, C2>& _vNormal, // Surface normal
-			const var_t<float3_t, Assemble, C3>& _vCameraPos,
-			const PhongLight<Assemble>& _Light,
-			const PhongSurface<Assemble>& _Material)
-
-	{
-		return _Material.vAmbientColor + 
-			PhongIllumination(_vPos, _vNormal, _vCameraPos,
-			_Material.vDiffuseColor, _Material.vSpecularColor, _Material.Shininess,
-			_Light.vPosition, _Light.vColorIntensity);
-	}
 
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
 	class PhongMaterial : public IMaterialInterface<Assemble>
 	{
-		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval() const final
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(
+			const Float3& _vPos, // surface point lit
+			const Float3& _vNormal,
+			const Float3& _vCameraPos,
+			const PointLight<Assemble>& _Light) const final
 		{
-		
+			return vAmbientColor +
+				PhongIllumination(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vPosition, _Light.vColorIntensity);
+			// TODo: multiply with CalculateAttenuation
 		}
 
-		PhongSurface<Assemble> Data;
+		Float3 vAmbientColor;
+		F32 PSPAD1;
+		Float3 vDiffuseColor;
+		F32 PSPAD2;
+		Float3 vSpecularColor;
+		F32 fShininess;
 	};
 
 	//---------------------------------------------------------------------------------------------------

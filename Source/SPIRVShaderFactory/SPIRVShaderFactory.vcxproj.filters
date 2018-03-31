@@ -54,6 +54,9 @@
     <ClInclude Include="PhongMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LightingFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DefaultShaderFactory.cpp">

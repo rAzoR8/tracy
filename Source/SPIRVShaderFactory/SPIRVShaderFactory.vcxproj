@@ -81,6 +81,7 @@
     <ClInclude Include="CSGObject.h" />
     <ClInclude Include="DefaultShaderFactory.h" />
     <ClInclude Include="ClearColor.h" />
+    <ClInclude Include="LightingFunctions.h" />
     <ClInclude Include="Mandelbrot.h" />
     <ClInclude Include="MaterialInterface.h" />
     <ClInclude Include="MicrofacetReflection.h" />

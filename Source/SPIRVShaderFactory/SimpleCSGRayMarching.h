@@ -4,7 +4,6 @@
 #include "CSGObject.h"
 #include "SPIRVBranchOperations.h"
 #include "CameraFunctions.h"
-#include "PhongModel.h"
 
 namespace Tracy
 {
@@ -20,10 +19,10 @@ namespace Tracy
 		const float _fEpsilon = 0.0001.f,
 		const uint32_t _uStepCount = 100u)
 	{
-		F32 depth = _fStartDepth;
-		For(u32 i = 0u, i < _uStepCount && depth < _fEndDepth, ++i)
+		auto depth = mvar(_fStartDepth);
+		For(auto i = mvar(0u), i < _uStepCount && depth < _fEndDepth, ++i)
 		{
-			f32 dist = _Eval(_vEye + depth * _vMarchDir);
+			auto dist = _Eval(_vEye + depth * _vMarchDir);
 			If(dist < _fEpsilon)
 			{
 				i = _uStepCount; // break from loop
