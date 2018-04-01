@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClInclude Include="CameraFunctions.h" />
     <ClInclude Include="CommonBufferSourceNames.h" />
+    <ClInclude Include="CSGExampleShader.h" />
     <ClInclude Include="CSGObject.h" />
     <ClInclude Include="DefaultShaderFactory.h" />
     <ClInclude Include="ClearColor.h" />

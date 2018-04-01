@@ -9,21 +9,21 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<float, Assemble, spv::StorageClassFunction> IntersectSDF(const var_t<float, AssemblC1>& _lDist, const var_t<float, Assemble, C2>& _rDist) const
+	inline var_t<float, Assemble, spv::StorageClassFunction> IntersectSDF(const var_t<float, Assemble, C1>& _lDist, const var_t<float, Assemble, C2>& _rDist)
 	{
-		return Max(_lDist, _RDist);
+		return Max(_lDist, _rDist);
 	}
 
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<float, Assemble, spv::StorageClassFunction> UnionSDF(const var_t<float, AssemblC1>& _lDist, const var_t<float, Assemble, C2>& _rDist) const
+	inline var_t<float, Assemble, spv::StorageClassFunction> UnionSDF(const var_t<float, Assemble, C1>& _lDist, const var_t<float, Assemble, C2>& _rDist)
 	{
-		return Min(_lDist, _RDist);
+		return Min(_lDist, _rDist);
 	}
 
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<float, Assemble, spv::StorageClassFunction> DifferenceSDF(const var_t<float, AssemblC1>& _lDist, const var_t<float, Assemble, C2>& _rDist) const
+	inline var_t<float, Assemble, spv::StorageClassFunction> DifferenceSDF(const var_t<float, Assemble, C1>& _lDist, const var_t<float, Assemble, C2>& _rDist)
 	{
-		return Max(_lDist, _RDist * -1.f);
+		return Max(_lDist, _rDist * -1.f);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -56,8 +56,9 @@ namespace Tracy
 	template <bool Assemble>
 	class CSGScene
 	{
-		CSGScene(std::initializer_list<const CSGObject<Assemble*>> _Objects) : m_Objects(_Objects) {}
-		CSGScene(std::vector<const CSGObject<Assemble*>> _Objects) : m_Objects(_Objects) {}
+	public:
+		CSGScene(std::initializer_list<const CSGObject<Assemble>* > _Objects = {}) : m_Objects(_Objects) {}
+		CSGScene(std::vector<const CSGObject<Assemble>* > _Objects) : m_Objects(_Objects) {}
 
 		virtual ~CSGScene() {}
 
@@ -66,7 +67,7 @@ namespace Tracy
 		{
 			var_t<float, Assemble, spv::StorageClassFunction> dist = 0.f;
 
-			for (const auto pObj : _Objects)
+			for (const auto pObj : m_Objects)
 			{
 				dist = UnionSDF(pObj->Eval(_Point), dist);
 			}
@@ -81,7 +82,7 @@ namespace Tracy
 		}
 
 	private:
-		std::vector<const CSGObject<Assemble*>> m_Objects;
+		std::vector<const CSGObject<Assemble>*> m_Objects;
 	};
 
 	//---------------------------------------------------------------------------------------------------

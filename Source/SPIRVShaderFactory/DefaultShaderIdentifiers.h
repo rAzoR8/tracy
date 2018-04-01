@@ -8,7 +8,8 @@ namespace Tracy
 	{
 		kDefaultShader_ClearColor,
 		kDefaultShader_ScreenSpaceTriangle,
-		kDefaultShader_Mandelbrot
+		kDefaultShader_Mandelbrot,
+		kDefaultShader_CSGExample
 	};
 
 	enum EVertexPerm : uint32_t
@@ -24,6 +25,8 @@ namespace Tracy
 
 	constexpr ShaderID kShader_ClearColor = kShaderID<kShaderType_Fragment, kDefaultShader_ClearColor>;
 	constexpr ShaderID kShader_Mandelbrot = kShaderID<kShaderType_Fragment, kDefaultShader_Mandelbrot>;
+	constexpr ShaderID kShader_CSGExample = kShaderID<kShaderType_Fragment, kDefaultShader_CSGExample>;
+
 
 } // Tracy
 

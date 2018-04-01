@@ -8,7 +8,7 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class EvalFunc>
-	inline var_t<float3_t, Assemble, spv::StorageClassFunction> ForwardDiffNormal(const var_t<float3_t, Assemble, C1>& p, const var_t<float, Assemble, C2>& e, const EvalFunc& _Eval) const
+	inline var_t<float3_t, Assemble, spv::StorageClassFunction> ForwardDiffNormal(const var_t<float3_t, Assemble, C1>& p, const var_t<float, Assemble, C2>& e, const EvalFunc& _Eval)
 	{
 		using vec3 = var_t<float3_t, Assemble, spv::StorageClassFunction>;
 
@@ -31,45 +31,42 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
-	class SDFObject
+	struct SDFObject
 	{
-	public:
 		using vec3 = var_t<float3_t, Assemble, spv::StorageClassFunction>;
 
 		SDFObject() {};
 		virtual ~SDFObject() {};
 
+		// user has to override this function:
+		virtual var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const = 0;
+
 		template <spv::StorageClass C1>
-		var_t<float, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, C1>& _Point) const;
+		inline var_t<float, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, C1>& _Point) const { return Distance(make_intermediate(_Point)); };
 
 		template <spv::StorageClass C1, spv::StorageClass C2>
-		var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const;
-
-	protected:
-		// user has to override this function:
-		virtual var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const
 		{
-			return SphereDist(_Point, make_const<Assemble>(1.f)); // default impl unit sphere
+			return ForwardDiffNormal(_Point, _Epsilon, [&](const auto& v) {return this->Eval(v); });
+		};	
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	struct SphereSDF : public SDFObject<Assemble>
+	{
+		var_t<float, Assemble, Class> fRadius;
+		SphereSDF(const float& _fRadius = 1.f) : fRadius(_fRadius) {}
+
+		template <spv::StorageClass C1>
+		SphereSDF(const var_t<float, Assemble, C1>& _fRadius) : fRadius(_fRadius) {}
+
+		inline var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final
+		{
+			return SphereDist(_Point, fRadius); 
 		}
 	};
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template<spv::StorageClass C1>
-	inline var_t<float, Assemble, spv::StorageClassFunction> SDFObject<Assemble>::Eval(const var_t<float3_t, Assemble, C1>& _Point) const
-	{
-		return Distance(make_intermediate(_Point))
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template<spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<float3_t, Assemble, spv::StorageClassFunction> SDFObject<Assemble>::Normal(const var_t<float3_t, Assemble, C1>& p, const var_t<float, Assemble, C2>& e) const
-	{
-		return ForwardDiffNormal(p, e, [&](const vec3& v) {return this->Eval(v); });
-	}
-
 } // Tracy
 
 #endif // !TRACY_SDFOBJECT_H

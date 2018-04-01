@@ -5,6 +5,7 @@
 #include "ClearColor.h"
 #include "ScreenSpaceTriangle.h"
 #include "Mandelbrot.h"
+#include "CSGExampleShader.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
@@ -52,6 +53,9 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 		break;
 	case kDefaultShader_Mandelbrot:
 		Shader = GlobalAssembler.AssembleSimple<Mandelbrot>();
+		break;
+	case kDefaultShader_CSGExample:
+		Shader = GlobalAssembler.AssembleSimple<CSGExampleShader>();
 		break;
 	default:
 		HERROR("Unknown shader %s", WCSTR(_ShaderIdentifier.GetString()));
