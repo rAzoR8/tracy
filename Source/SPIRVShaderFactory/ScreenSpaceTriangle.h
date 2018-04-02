@@ -34,10 +34,11 @@ namespace Tracy
 		return VS_OUT;
 	}
 
-	class ScreenSpaceTriangle : public VertexProgram
+	template <bool Assemble = true>
+	class ScreenSpaceTriangle : public VertexProgram<Assemble>
 	{
 	public:
-		ScreenSpaceTriangle(const TVertexPermutation& _Perm) : VertexProgram("ScreenSpaceTriangle"), m_Permutation(_Perm){};
+		ScreenSpaceTriangle(const TVertexPermutation& _Perm) : VertexProgram<Assemble>("ScreenSpaceTriangle"), m_Permutation(_Perm){};
 		~ScreenSpaceTriangle() {};
 
 		//https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/

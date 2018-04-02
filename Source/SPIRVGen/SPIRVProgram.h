@@ -170,7 +170,8 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// Predefined stage programs
-	class VertexProgram : public SPIRVProgram<true>
+	template <bool Assemble = true>
+	class VertexProgram : public SPIRVProgram<Assemble>
 	{
 	public:
 		VertexProgram(
@@ -181,7 +182,8 @@ namespace Tracy
 		virtual ~VertexProgram() {}
 	};
 
-	class FragmentProgram : public SPIRVProgram<true>
+	template <bool Assemble = true>
+	class FragmentProgram : public SPIRVProgram<Assemble>
 	{
 	public:
 		FragmentProgram(

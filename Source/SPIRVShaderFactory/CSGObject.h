@@ -65,11 +65,13 @@ namespace Tracy
 		template <spv::StorageClass C1>
 		inline var_t<float, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, C1>& _Point) const
 		{
-			var_t<float, Assemble, spv::StorageClassFunction> dist = 0.f;
+			HASSERT(m_Objects.empty() == false, "CSGScene is empty, nothing to be evaluated");
 
-			for (const auto pObj : m_Objects)
+			auto dist = m_Objects.front()->Eval(_Point);
+
+			for (uint32_t i = 1u; i < m_Objects.size(); ++i)
 			{
-				dist = UnionSDF(pObj->Eval(_Point), dist);
+				dist = UnionSDF(m_Objects[i]->Eval(_Point), dist);
 			}
 
 			return dist;

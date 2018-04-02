@@ -46,16 +46,16 @@ SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier)
 	switch (_ShaderIdentifier.uShader)
 	{
 	case kDefaultShader_ClearColor:
-		Shader =  GlobalAssembler.AssembleSimple<ClearColor>();
+		Shader =  GlobalAssembler.AssembleSimple<ClearColor<true>>();
 		break;
 	case kDefaultShader_ScreenSpaceTriangle:
-		Shader = GlobalAssembler.AssembleSimple<ScreenSpaceTriangle>(true, _ShaderIdentifier.uVariant);
+		Shader = GlobalAssembler.AssembleSimple<ScreenSpaceTriangle<true>>(true, _ShaderIdentifier.uVariant);
 		break;
 	case kDefaultShader_Mandelbrot:
-		Shader = GlobalAssembler.AssembleSimple<Mandelbrot>();
+		Shader = GlobalAssembler.AssembleSimple<Mandelbrot<true>>();
 		break;
 	case kDefaultShader_CSGExample:
-		Shader = GlobalAssembler.AssembleSimple<CSGExampleShader>();
+		Shader = GlobalAssembler.AssembleSimple<CSGExampleShader<true>>();
 		break;
 	default:
 		HERROR("Unknown shader %s", WCSTR(_ShaderIdentifier.GetString()));

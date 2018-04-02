@@ -60,7 +60,9 @@ namespace Tracy
 				Node.pBranchConditional->AddIntermediate(GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel))); // add true label
 			}
 
+			//GlobalAssembler.ForceNextLoads();
 			_Func();
+			//GlobalAssembler.ForceNextLoads(false);
 
 			if constexpr(Assemble)
 			{
@@ -88,7 +90,9 @@ namespace Tracy
 	{
 		if constexpr (Assemble)
 		{
+			//GlobalAssembler.ForceNextLoads();
 			_Func();
+			//GlobalAssembler.ForceNextLoads(false);
 
 			HASSERT(pThenBranch != nullptr && pSelectionMerge != nullptr, "Invalid branch node");
 			

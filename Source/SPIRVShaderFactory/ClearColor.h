@@ -5,10 +5,11 @@
 
 namespace Tracy
 {
-	class ClearColor: public FragmentProgram
+	template <bool Assemble = true>
+	class ClearColor: public FragmentProgram<Assemble>
 	{
 	public:
-		ClearColor() : FragmentProgram("ClearColor") {};
+		ClearColor() : FragmentProgram<Assemble>("ClearColor") {};
 		~ClearColor() {};
 
 		//CBuffer<B> BufferBlock;

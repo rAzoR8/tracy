@@ -7,10 +7,11 @@
 
 namespace Tracy
 {
-	class CSGExampleShader : public FragmentProgram
+	template <bool Assemble = true>
+	class CSGExampleShader : public FragmentProgram<Assemble>
 	{
 	public:
-		CSGExampleShader() : FragmentProgram("CSGExampleShader") {}
+		CSGExampleShader() : FragmentProgram<Assemble>("CSGExampleShader") {}
 		~CSGExampleShader() {};
 
 		RenderTarget OutputColor;
@@ -21,7 +22,7 @@ namespace Tracy
 
 			CSGScene<true> scene({ &csgobj });
 
-			float3 vCamPos = { 0.f, 0.f, -2.f };
+			float3 vCamPos = { 0.f, 0.f, -3.f };
 			float2 vViewport = { 1600.f, 900.f };
 			f32 fFoV = 45.f;
 

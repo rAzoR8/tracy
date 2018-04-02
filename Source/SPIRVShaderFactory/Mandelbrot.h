@@ -6,10 +6,11 @@
 
 namespace Tracy
 {
-	class Mandelbrot : public FragmentProgram
+	template <bool Assemble = true>
+	class Mandelbrot : public FragmentProgram<Assemble>
 	{
 	public:
-		Mandelbrot() : FragmentProgram("Mandelbrot"){};
+		Mandelbrot() : FragmentProgram<Assemble>("Mandelbrot"){};
 		~Mandelbrot() {};
 
 		//CBuffer<float3_t> FrameBufferDim = BufferSources::sFrameBufferDimension;
