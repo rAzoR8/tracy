@@ -273,18 +273,23 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 	// helper macros
+
+#ifndef ExprCaptureRule
+#define ExprCaptureRule =
+#endif
+
 #ifndef While
-#define While(_cond) WhileFunc([=](){return _cond;}, [=]()
+#define While(_cond) WhileFunc([ExprCaptureRule](){return _cond;}, [ExprCaptureRule]()
 #endif // !While
 
 #ifndef For
-#define For(_var, _cond, _inc) _var; ForFunc([=](){return _cond;}, [=](){_inc;}, [=]()
+#define For(_var, _cond, _inc) _var; ForFunc([ExprCaptureRule](){return _cond;}, [ExprCaptureRule](){_inc;}, [ExprCaptureRule]()
 #endif // !While
 
 #pragma region if_else
 	// renamed If and Else functions so that the macros are not part of the name
 #ifndef If
-#define If(_cond) IfNode((_cond), [=]()
+#define If(_cond) IfNode((_cond), [ExprCaptureRule]()
 #endif // !If
 
 #ifndef Endif
@@ -292,11 +297,11 @@ namespace Tracy
 #endif // !Endif
 
 #ifndef Else
-#define Else ).ElseNode([=]()
+#define Else ).ElseNode([ExprCaptureRule]()
 #endif // !Else
 
 #ifndef IF
-#define IF(_cond) IfNode((_cond), [=]() {
+#define IF(_cond) IfNode((_cond), [ExprCaptureRule]() {
 #endif // !If
 
 #ifndef ENDIF
@@ -304,7 +309,7 @@ namespace Tracy
 #endif // !Endif
 
 #ifndef ELSE
-#define ELSE }).ElseNode([=]() {
+#define ELSE }).ElseNode([ExprCaptureRule]() {
 #endif // !Else
 	//---------------------------------------------------------------------------------------------------
 
