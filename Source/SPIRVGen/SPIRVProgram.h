@@ -178,7 +178,7 @@ namespace Tracy
 			const std::string& _sEntryPoint = "vertex_main",
 			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 			const std::vector<spv::Capability>& _Capabilities = { spv::CapabilityShader })
-			: SPIRVProgram<true>(spv::ExecutionModelVertex, spv::ExecutionModeMax, _sEntryPoint, _Extensions, _Capabilities) {}
+			: SPIRVProgram<Assemble>(spv::ExecutionModelVertex, spv::ExecutionModeMax, _sEntryPoint, _Extensions, _Capabilities) {}
 		virtual ~VertexProgram() {}
 	};
 
@@ -191,7 +191,7 @@ namespace Tracy
 			const spv::ExecutionMode _kMode = spv::ExecutionModeOriginLowerLeft,
 			const std::vector<std::string>& _Extensions = { ExtGLSL450 },
 			const std::vector<spv::Capability>& _Capabilities = { spv::CapabilityShader, spv::CapabilityInputAttachment })
-			: SPIRVProgram<true>(spv::ExecutionModelFragment, _kMode, _sEntryPoint, _Extensions, _Capabilities) {}
+			: SPIRVProgram<Assemble>(spv::ExecutionModelFragment, _kMode, _sEntryPoint, _Extensions, _Capabilities) {}
 		virtual ~FragmentProgram() {}
 	};
 

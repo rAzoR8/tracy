@@ -2,7 +2,7 @@
 #define TRACY_MATERIALINTERFACE_H
 
 #include "SPIRVVariable.h"
-#include "SPIRVVariableTypeDefs.h"
+//#include "SPIRVVariableTypeDefs.h"
 
 namespace Tracy
 {
@@ -13,10 +13,10 @@ namespace Tracy
 	{
 		SPVStruct;
 
-		Float3 vDirection;
-		F32 DLPAD1;
-		Float3 vColorIntensity;
-		F32 DLPAD2;
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vDirection;
+		var_t<float, Assemble, spv::StorageClassFunction> DLPAD1;
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vColorIntensity;
+		var_t<float, Assemble, spv::StorageClassFunction> DLPAD2;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -25,10 +25,10 @@ namespace Tracy
 	{
 		SPVStruct;
 
-		Float3 vPosition;
-		F32 fRange;
-		Float3 vColorIntensity;
-		F32 fDecayStart;
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vPosition;
+		var_t<float, Assemble, spv::StorageClassFunction> fRange;
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vColorIntensity;
+		var_t<float, Assemble, spv::StorageClassFunction> fDecayStart;
 	};
 	//---------------------------------------------------------------------------------------------------
 
@@ -37,13 +37,13 @@ namespace Tracy
 	{
 		SPVStruct;
 
-		Float3 vPosition;
-		F32 fRange;
-		Float3 vColorIntensity;
-		F32 fDecayStart;
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vPosition;
+		var_t<float, Assemble, spv::StorageClassFunction> fRange;
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vColorIntensity;
+		var_t<float, Assemble, spv::StorageClassFunction> fDecayStart;
 
-		Float3 vDirection;
-		F32 fSpotAngle; // could be encoded as magnitude of vDirection
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vDirection;
+		var_t<float, Assemble, spv::StorageClassFunction> fSpotAngle; // could be encoded as magnitude of vDirection
 	};
 	//---------------------------------------------------------------------------------------------------
 
@@ -52,9 +52,9 @@ namespace Tracy
 	struct IMaterialInterface
 	{
 		// light default empty implementation
-		virtual Float3 Eval(const Float3& _vPos, const Float3& _vNormal, const Float3& _vCameraPos, const DirectionalLight<Assemble>& _DirLight) const { return _DirLight.vColorIntensity; };
-		virtual Float3 Eval(const Float3& _vPos, const Float3& _vNormal, const Float3& _vCameraPos, const PointLight<Assemble>& _PointLight) const { return _PointLight.vColorIntensity; };
-		virtual Float3 Eval(const Float3& _vPos, const Float3& _vNormal, const Float3& _vCameraPos, const SpotLight<Assemble>& _SpotLight) const { return _SpotLight.vColorIntensity; };
+		virtual var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos, const DirectionalLight<Assemble>& _DirLight) const { return _DirLight.vColorIntensity; };
+		virtual var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos, const PointLight<Assemble>& _PointLight) const { return _PointLight.vColorIntensity; };
+		virtual var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos, const SpotLight<Assemble>& _SpotLight) const { return _SpotLight.vColorIntensity; };
 	};
 } // Tracy
 

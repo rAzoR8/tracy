@@ -20,8 +20,8 @@ namespace Tracy
 		const float _fEpsilon = 0.0001f,
 		const uint32_t _uStepCount = 100u)
 	{
-		auto depth = mvar(_fStartDepth);
-		For(auto i = mvar(0u), i < _uStepCount && depth < _fEndDepth, ++i)
+		auto depth = make_var<Assemble>(_fStartDepth);
+		For(auto i = make_var<Assemble>(0u), i < _uStepCount && depth < _fEndDepth, ++i)
 		{
 			auto dist = _Eval(_vEye + depth * _vMarchDir);
 			If(dist < _fEpsilon)
@@ -87,7 +87,7 @@ namespace Tracy
 		//auto vPos = _vCameraPos + _vRay * fDist;
 		//auto vNormal = ForwardDiffNormal(vPos, mcvar(_fEpsilon), _DistFunc);
 
-		auto vColor = mvar(float3_t(0.f, 0.f, 0.f));
+		auto vColor = make_const<Assemble>(float3_t(0.f, 0.f, 0.f));
 
 		if (_pMaterial != nullptr)
 		{
@@ -120,7 +120,7 @@ namespace Tracy
 		const var_t<float2_t, Assemble, C3>& _vFragCoords, // fragment coordinates relative to viewport
 		const var_t<float2_t, Assemble, C4>& _vViewportSize,// resolution of the viewport
 		const IMaterialInterface<Assemble>* _pMaterial = nullptr,
-		const std::vector<PointLight<Assemble>*> _PointLights = {}) 
+		const std::vector<PointLight<Assemble>*> _PointLights = {})
 	{
 		return RayMarchDistanceFunction(
 			[&](const var_t<float3_t, Assemble, C1>& e) {return _Scene.Eval(e); }, // depth function

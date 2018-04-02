@@ -15,7 +15,7 @@ namespace Tracy
 	using TDLPerm = hlx::Flag<EDLPermutation>;
 
 	template <uint32_t DirLightRange = 10u, uint32_t PointLightRange = 10u, uint32_t SpotLightRange = 10u>
-	class DeferredLighting : public FragmentProgram
+	class DeferredLighting : public FragmentProgram<true>
 	{
 	public:
 		DeferredLighting(const TDLPerm& _Perm = {}) :

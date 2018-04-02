@@ -18,7 +18,7 @@ namespace Tracy
 
 		auto fDFactor = Square(((fD / (1.f - Square(fD / fDmax))) / fDecayStart) + 1.f);
 
-		return Select(fDFactor == 0.0f, make_const<bAssembleProg>(0.0f), (1.0f / fDFactor) * Step(_fSurfacePointToLightDist, fDmax));
+		return Select(fDFactor == 0.0f, make_const<Assemble>(0.0f), (1.0f / fDFactor) * Step(_fSurfacePointToLightDist, fDmax));
 	}
 	//---------------------------------------------------------------------------------------------------
 
