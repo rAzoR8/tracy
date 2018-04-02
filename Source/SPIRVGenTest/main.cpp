@@ -72,11 +72,11 @@ int main(int argc, char* argv[])
 {
 	//GenerateSwizzleHeader();
 
-	//CSGExampleShader<false> prog;
-	//prog.kFragCoord.xy = { 800.f, 450.f };
-	//prog();
+	CSGExampleShader<false> prog;
+	prog.kFragCoord.xy = { 800.f, 450.f };
+	prog();
 
-	//auto col = prog.OutputColor.Value;
+	auto col = prog.OutputColor.Value;
 
 	//return 0;
 
