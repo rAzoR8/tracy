@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 	Pipeline.Scissors.push_back({0,0, 1600u, 900u});
 
 	const auto kVertexShader = kShader_ScreenSpaceTriangle_UV;
-	const auto kPixelShader = kShader_Mandelbrot; // kShader_CSGExample
+	const auto kPixelShader = kShader_CSGExample;
 
 	Pipeline.Shaders.push_back(kVertexShader);
 	Pipeline.Shaders.push_back(kPixelShader);

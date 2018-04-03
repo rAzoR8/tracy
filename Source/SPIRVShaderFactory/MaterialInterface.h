@@ -25,6 +25,16 @@ namespace Tracy
 	{
 		SPVStruct;
 
+		PointLight(
+			const float3_t _vPosition = { 0.f, 0.f, 0.f },
+			const float _fRange = 10.f,
+			const float3_t _vColor = { 1.f, 1.f, 1.f },
+			const float _fDecayStart = 2.f) :
+			vPosition(_vPosition),
+			fRange(_fRange),
+			vColorIntensity(_vColor),
+			fDecayStart(_fDecayStart){}
+
 		var_t<float3_t, Assemble, spv::StorageClassFunction> vPosition;
 		var_t<float, Assemble, spv::StorageClassFunction> fRange;
 		var_t<float3_t, Assemble, spv::StorageClassFunction> vColorIntensity;

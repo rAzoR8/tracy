@@ -34,7 +34,7 @@ namespace Tracy
 			});
 		});
 
-		return depth;
+		return depth;// Min(depth, _fEndDepth);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -84,27 +84,27 @@ namespace Tracy
 	{
 		auto fDist = ShortestDistToSurface(_DistFunc, _vCameraPos, _vRay, _fStartDepth, _fEndDepth, _fEpsilon, _uStepCount);
 
-		//auto vPos = _vCameraPos + _vRay * fDist;
-		//auto vNormal = ForwardDiffNormal(vPos, mcvar(_fEpsilon), _DistFunc);
+		auto vPos = _vCameraPos + _vRay * fDist;
+		auto vNormal = ForwardDiffNormal(vPos, mcvar(_fEpsilon), _DistFunc);
 
 		auto vColor = make_const<Assemble>(float3_t(0.f, 0.f, 0.f));
 
 		if (_pMaterial != nullptr)
 		{
-			//for (const PointLight<Assemble>* pLight : _PointLights)
-			//{
-			//	vColor += _pMaterial->Eval(vPos, vNormal, _vCameraPos, *pLight);
-			//}
+			for (const PointLight<Assemble>* pLight : _PointLights)
+			{
+				vColor += _pMaterial->Eval(vPos, vNormal, _vCameraPos, *pLight);
+			}
 		}
 		else
 		{
-			vColor.x = fDist / _fEndDepth; // for debugging
-			//vColor = vNormal; // print normal instead
+			//vColor.r = fDist / _fEndDepth; // for debugging
+			vColor = vNormal; // print normal instead
 		}
 
 		// ray escaped
-		//auto bEscaped = fDist > _fEndDepth - _fEpsilon;
-		//return Select(bEscaped, mvar(float3_t(0.f, 0.f, 0.f)), vColor);
+		auto bEscaped = fDist > _fEndDepth - _fEpsilon;
+		return Select(bEscaped, mvar(float3_t(0.f, 0.f, 0.f)), vColor);
 
 		return vColor;
 	}

@@ -3,7 +3,7 @@
 
 #include "SimpleCSGRayMarching.h"
 #include "SPIRVProgram.h"
-//#include "PhongMaterial.h"
+#include "PhongMaterial.h"
 
 namespace Tracy
 {
@@ -22,11 +22,15 @@ namespace Tracy
 
 			CSGScene<Assemble> scene({ &csgobj });
 
-			float3 vCamPos = { 0.f, 0.f, -3.f };
+			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };
 			f32 fFoV = 45.f;
 
-			OutputColor.rgb = RayMarchCSGScene(scene, vCamPos, fFoV, kFragCoord.xy, vViewport);
+			PointLight<Assemble> Light({2.f, 0.5f, 2.f});
+			PhongMaterial<Assemble> Mat;
+
+			OutputColor.rgb = RayMarchCSGScene(scene, vCamPos, fFoV, kFragCoord.xy, vViewport, &Mat, {&Light});
+
 			OutputColor.a = 0.f;
 		};
 	};

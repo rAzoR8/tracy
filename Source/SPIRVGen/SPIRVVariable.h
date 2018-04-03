@@ -310,6 +310,7 @@ namespace Tracy
 		template <class U>
 		const var_t& operator=(const U& _Other) const;
 
+		// workaround for lambda ambiguity problem
 		template <class U>
 		var_t& operator=(const U& _Other) { static_cast<const var_t*>(this)->operator=(_Other); return *this; };
 

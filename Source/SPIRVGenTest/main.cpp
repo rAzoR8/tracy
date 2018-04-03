@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
 	auto col = prog.OutputColor.Value;
 
-	//return 0;
+	return 0;
 
 	//GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
 	//system("spirv-dis test.spv");

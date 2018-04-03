@@ -17,7 +17,7 @@ namespace Tracy
 
 		auto xy = fragCoord - viewportSize * 0.5f;
 		auto z = viewportSize.y / Tan(Radians(fieldOfViewDeg) * 0.5f);
-		return Normalize(vec3(xy, /*-*/z));
+		return Normalize(vec3(xy, -z));
 	}
 	//---------------------------------------------------------------------------------------------------
 

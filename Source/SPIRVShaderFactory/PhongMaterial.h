@@ -41,7 +41,7 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
-	class PhongMaterial : public IMaterialInterface<Assemble>
+	struct PhongMaterial : public IMaterialInterface<Assemble>
 	{
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, // surface point lit
@@ -53,6 +53,16 @@ namespace Tracy
 				PhongIllumination(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vPosition, _Light.vColorIntensity);
 			// TODo: multiply with CalculateAttenuation
 		}
+
+		PhongMaterial(
+			const float3_t _vAmbient = {0.25f, 0.25f, 0.25f},
+			const float3_t _vDiffuse = { 0.75f, 0.25f, 0.25f },
+			const float3_t _vSpecular = { 1.f, 1.f, 1.f },
+			const float _fShininess = 10.f) :
+			vAmbientColor(_vAmbient),
+			vDiffuseColor(_vDiffuse),
+			vSpecularColor(_vSpecular),
+			fShininess(_fShininess)	{}
 
 		var_t<float3_t, Assemble, spv::StorageClassFunction> vAmbientColor;
 		var_t<float, Assemble, spv::StorageClassFunction> PSPAD1;

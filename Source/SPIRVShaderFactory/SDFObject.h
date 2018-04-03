@@ -26,7 +26,8 @@ namespace Tracy
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<float, Assemble, spv::StorageClassFunction> SphereDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Radius)
 	{
-		return Dot(_Point, _Point) - _Radius * _Radius;
+		return Length(_Point) - _Radius;
+		//return Dot(_Point, _Point) - _Radius * _Radius;
 	}
 	//---------------------------------------------------------------------------------------------------
 
