@@ -36,6 +36,10 @@ namespace Tracy
 		CSGObject(const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr);
 		virtual ~CSGObject() {};
 
+		// override to implement offset, rotation, scale
+		virtual var_t<float3_t, Assemble, spv::StorageClassFunction> PreEval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const { return _Point; };
+		virtual var_t<float, Assemble, spv::StorageClassFunction> PostEval(const var_t<float, Assemble, spv::StorageClassFunction>& _Dist) const { return _Dist; };
+
 		template <spv::StorageClass C1>
 		var_t<float, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, C1>& _Point) const;
 
@@ -49,7 +53,103 @@ namespace Tracy
 		const SDFObject<Assemble>* m_pSource;
 		const CSGObject<Assemble>* m_pLeft;
 		const CSGObject<Assemble>* m_pRight;
+	};
+	//---------------------------------------------------------------------------------------------------
 
+	template<bool Assemble>
+	inline CSGObject<Assemble>::CSGObject(const SDFObject<Assemble>* _pSource) :
+		m_pSource(_pSource), m_pLeft(nullptr), m_pRight(nullptr)
+	{
+	}
+
+	template<bool Assemble>
+	inline CSGObject<Assemble>::CSGObject(const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight) :
+		m_pSource(nullptr), m_pLeft(_pLeft), m_pRight(_pRight)
+	{
+		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	template<bool Assemble>
+	template <spv::StorageClass C1>
+	inline var_t<float, Assemble, spv::StorageClassFunction> CSGObject<Assemble>::Eval(const var_t<float3_t, Assemble, C1>& _Point) const
+	{
+		auto vPoint = PreEval(make_intermediate(_Point));
+
+		if (m_pLeft != nullptr && m_pRight != nullptr)
+		{
+			return PostEval(Construct(m_pLeft->Eval(vPoint), m_pRight->Eval(vPoint)));
+		}
+		else if (m_pLeft != nullptr && m_pRight == nullptr)
+		{
+			return PostEval(m_pLeft->Eval(vPoint)); // identity node
+		}
+		else if (m_pLeft == nullptr && m_pRight != nullptr)
+		{
+			return PostEval(m_pRight->Eval(vPoint)); // identity node
+		}
+		else if (m_pSource != nullptr)
+		{
+			return PostEval(m_pSource->Eval(vPoint)); // root / source node
+		}
+		else
+		{
+			return make_const<Assemble>(0.f); // invalid config
+		}
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
+	template<bool Assemble>
+	template<spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<float3_t, Assemble, spv::StorageClassFunction> CSGObject<Assemble>::Normal(const var_t<float3_t, Assemble, C1>& p, const var_t<float, Assemble, C2>& e) const
+	{
+		return ForwardDiffNormal(p, e, [&](const auto& v) {return this->Eval(v); });
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	// user has to override this function:
+
+	template<bool Assemble>
+	inline var_t<float, Assemble, spv::StorageClassFunction> CSGObject<Assemble>::Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const
+	{
+		return UnionSDF(_lDist, _rDist); // default to union impl
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	// Translate by offset
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	class TranslateCSGObject : public CSGObject<Assemble>
+	{
+	public:
+		TranslateCSGObject(const float3_t& _vOffset, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), vOffset(_vOffset) {};
+		TranslateCSGObject(const float3_t& _vOffset, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vOffset(_vOffset) {};
+		// todo: var_t constructors
+		
+		virtual ~TranslateCSGObject(){}
+
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> PreEval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final { return _Point - vOffset; };
+
+	private:
+		var_t<float3_t, Assemble, Class> vOffset;
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	// Scale
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	class UniformScaleCSGObject : public CSGObject<Assemble>
+	{
+	public:
+		UniformScaleCSGObject(const float& _fScale, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), fScale(_fScale) {};
+		UniformScaleCSGObject(const float& _fScale, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), fScale(_fScale) {};
+		virtual ~UniformScaleCSGObject() {}
+
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> PreEval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final { return _Point / fScale; };
+		inline var_t<float, Assemble, spv::StorageClassFunction> PostEval(const var_t<float, Assemble, spv::StorageClassFunction>& _fDist) const final { return _fDist * fScale; };
+
+	private:
+		var_t<float, Assemble, Class> fScale;
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -87,65 +187,6 @@ namespace Tracy
 		std::vector<const CSGObject<Assemble>*> m_Objects;
 	};
 
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	inline CSGObject<Assemble>::CSGObject(const SDFObject<Assemble>* _pSource) :
-		m_pSource(_pSource), m_pLeft(nullptr), m_pRight(nullptr)
-	{
-	}
-
-	template<bool Assemble>
-	inline CSGObject<Assemble>::CSGObject(const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight) :
-		m_pSource(nullptr), m_pLeft(_pLeft), m_pRight(_pRight)
-	{
-		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
-	}
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template <spv::StorageClass C1>
-	inline var_t<float, Assemble, spv::StorageClassFunction> CSGObject<Assemble>::Eval(const var_t<float3_t, Assemble, C1>& _Point) const
-	{
-		if (m_pLeft != nullptr && m_pRight != nullptr)
-		{
-			return Construct(m_pLeft->Eval(_Point), m_pRight->Eval(_Point));
-		}
-		else if (m_pLeft != nullptr && m_pRight == nullptr)
-		{
-			return m_pLeft->Eval(_Point); // identity node
-		}
-		else if (m_pLeft == nullptr && m_pRight != nullptr)
-		{
-			return m_pRight->Eval(_Point); // identity node
-		}
-		else if (m_pSource != nullptr)
-		{
-			return m_pSource->Eval(_Point); // root / source node
-		}
-		else
-		{
-			return make_const<Assemble>(0.f); // invalid config
-		}
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	template<bool Assemble>
-	template<spv::StorageClass C1, spv::StorageClass C2>
-	inline var_t<float3_t, Assemble, spv::StorageClassFunction> CSGObject<Assemble>::Normal(const var_t<float3_t, Assemble, C1>& p, const var_t<float, Assemble, C2>& e) const
-	{
-		return ForwardDiffNormal(p, e, [&](const auto& v) {return this->Eval(v); });
-	}
-
-	//---------------------------------------------------------------------------------------------------
-	// user has to override this function:
-
-	template<bool Assemble>
-	inline var_t<float, Assemble, spv::StorageClassFunction> CSGObject<Assemble>::Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const
-	{
-		return UnionSDF(_lDist, _rDist); // default to union impl
-	}
 	//---------------------------------------------------------------------------------------------------
 
 } // Tracy

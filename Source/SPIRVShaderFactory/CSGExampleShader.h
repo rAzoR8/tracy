@@ -22,10 +22,12 @@ namespace Tracy
 		RenderTarget OutputColor;
 		inline void operator()()
 		{
-			SphereSDF<Assemble> sphere(0.5f);
-			CSGObject<Assemble> csgobj(&sphere);
+			SphereSDF<Assemble> sphere1(0.5f);
+			TranslateCSGObject<Assemble> csgobj1({0.5f, -0.5f, 0.f}, &sphere1);
 
-			CSGScene<Assemble> scene({ &csgobj });
+			UniformScaleCSGObject<Assemble> csgobj2(0.5f, &sphere1);
+
+			CSGScene<Assemble> scene({ &csgobj1, &csgobj2 });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };

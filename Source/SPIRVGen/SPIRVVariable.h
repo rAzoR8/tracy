@@ -61,7 +61,7 @@ namespace Tracy
 	}
 
 #ifndef mivar
-#define mivar(x) Tracy::make_intermediate<Assemble>((x))
+#define mivar(x) Tracy::make_intermediate((x))
 #endif
 
 	//---------------------------------------------------------------------------------------------------
