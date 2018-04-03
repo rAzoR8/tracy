@@ -11,7 +11,12 @@ namespace Tracy
 	class CSGExampleShader : public FragmentProgram<Assemble>
 	{
 	public:
-		CSGExampleShader() : FragmentProgram<Assemble>("CSGExampleShader") {}
+		CSGExampleShader() : FragmentProgram<Assemble>("CSGExampleShader")
+		{
+			OptimizationSettings Settings;
+			Settings.kPasses = kOptimizationPassFlag_AllPerformance;
+			GlobalAssembler.ConfigureOptimization(Settings);
+		}
 		~CSGExampleShader() {};
 
 		RenderTarget OutputColor;
@@ -27,7 +32,7 @@ namespace Tracy
 			f32 fFoV = 45.f;
 
 			PointLight<Assemble> Light({2.f, 0.5f, 2.f});
-			PhongMaterial<Assemble> Mat;
+			PhongMaterial<Assemble> Mat({0.f, 0.f, 0.f});
 
 			OutputColor.rgb = RayMarchCSGScene(scene, vCamPos, fFoV, kFragCoord.xy, vViewport, &Mat, {&Light});
 

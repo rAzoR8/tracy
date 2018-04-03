@@ -3,6 +3,7 @@
 
 #include "SPIRVOperatorImpl.h"
 #include "MaterialInterface.h"
+#include "LightingFunctions.h"
 
 namespace Tracy
 {
@@ -43,6 +44,8 @@ namespace Tracy
 	template <bool Assemble>
 	struct PhongMaterial : public IMaterialInterface<Assemble>
 	{
+		SPVStruct;
+		
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, // surface point lit
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal,
@@ -50,8 +53,8 @@ namespace Tracy
 			const PointLight<Assemble>& _Light) const final
 		{
 			return vAmbientColor +
-				PhongIllumination(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vPosition, _Light.vColorIntensity);
-			// TODo: multiply with CalculateAttenuation
+				PhongIllumination(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vPosition, _Light.vColorIntensity) *
+				CalculateAttenuation(Length(_Light.vPosition - _vPos), _Light.fRange, _Light.fDecayStart);
 		}
 
 		PhongMaterial(
