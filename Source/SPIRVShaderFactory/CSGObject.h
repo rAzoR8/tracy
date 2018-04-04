@@ -32,8 +32,10 @@ namespace Tracy
 	class CSGObject
 	{
 	public:
-		CSGObject(const SDFObject<Assemble>* _pSource = nullptr);
-		CSGObject(const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr);
+		static constexpr bool AssembleParam = Assemble;
+
+		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr);
+		CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr);
 		virtual ~CSGObject() {};
 
 		// override to implement offset, rotation, scale
@@ -48,20 +50,20 @@ namespace Tracy
 		var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const;
 
 	private:
-		const SDFObject<Assemble>* m_pSource;
-		const CSGObject<Assemble>* m_pLeft;
-		const CSGObject<Assemble>* m_pRight;
+		std::shared_ptr<SDFObject<Assemble>> m_pSource;
+		std::shared_ptr<CSGObject<Assemble>> m_pLeft;
+		std::shared_ptr<CSGObject<Assemble>> m_pRight;
 	};
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
-	inline CSGObject<Assemble>::CSGObject(const SDFObject<Assemble>* _pSource) :
+	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pSource) :
 		m_pSource(_pSource), m_pLeft(nullptr), m_pRight(nullptr)
 	{
 	}
 
 	template<bool Assemble>
-	inline CSGObject<Assemble>::CSGObject(const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight) :
+	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) :
 		m_pSource(nullptr), m_pLeft(_pLeft), m_pRight(_pRight)
 	{
 		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
@@ -149,38 +151,64 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
-	inline UnionCSGObject<Assemble> operator&(const CSGObject<Assemble>& l, const CSGObject<Assemble>& r)
-	{
-		return UnionCSGObject<Assemble>(&l, &r);
-	}
+	using TCSGObj = std::shared_ptr<CSGObject<Assemble>>;
 
 	template <bool Assemble>
-	inline DifferenceCSGObject<Assemble> operator/(const CSGObject<Assemble>& l, const CSGObject<Assemble>& r)
-	{
-		return DifferenceCSGObject<Assemble>(&l, &r);
-	}
+	using TUnionCSG = std::shared_ptr<CSGObject<Assemble>>;
 
 	template <bool Assemble>
-	inline IntersectCSGObject<Assemble> operator|(const CSGObject<Assemble>& l, const CSGObject<Assemble>& r)
-	{
-		return IntersectCSGObject<Assemble>(&l, &r);
-	}
+	using TIntersectionCSG = std::shared_ptr<IntersectCSGObject<Assemble>>;
+
+	template <bool Assemble>
+	using TDifferenceCSG = std::shared_ptr<DifferenceCSGObject<Assemble>>;
+
+	// helper traits
+	template<class T>
+	constexpr bool derive_from_csg = std::is_base_of_v<CSGObject<true>, T> || std::is_base_of_v<CSGObject<false>, T>;
+
+	template<class T>
+	constexpr bool derive_from_sdf = std::is_base_of_v<SDFObject<true>, T> || std::is_base_of_v<SDFObject<false>, T>;
+
+	template<class T>
+	constexpr bool derive_from_obj = derive_from_sdf<T> || derive_from_csg<T>;
 
 	//---------------------------------------------------------------------------------------------------
 
+	template <class U, class V, typename = std::enable_if_t<derive_from_obj<U> && derive_from_obj<V>>>
+	inline TUnionCSG<U::AssembleParam> operator&(const std::shared_ptr<U>& l, const std::shared_ptr<V>& r)
+	{
+		static_assert(U::AssembleParam == V::AssembleParam, "Assemble parameter mismatch");
+		return std::make_shared<CSGObject<U::AssembleParam>>(l, r);
+	}
+
+	template <class U, class V, typename = std::enable_if_t<derive_from_obj<U> && derive_from_obj<V>>>
+	inline TDifferenceCSG<U::AssembleParam> operator/(const std::shared_ptr<U>& l, const std::shared_ptr<V>& r)
+	{
+		static_assert(U::AssembleParam == V::AssembleParam, "Assemble parameter mismatch");
+		return std::make_shared<DifferenceCSGObject<U::AssembleParam>>(l, r);
+	}
+
+	template <class U, class V, typename = std::enable_if_t<derive_from_obj<U> && derive_from_obj<V>>>
+	inline TIntersectionCSG<U::AssembleParam> operator|(const std::shared_ptr<U>& l, const std::shared_ptr<V>& r)
+	{
+		static_assert(U::AssembleParam == V::AssembleParam, "Assemble parameter mismatch");
+		return std::make_shared<IntersectCSGObject<U::AssembleParam>>(l, r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
 
 	// Translate by offset
 	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
 	class TranslateCSGObject : public CSGObject<Assemble>
 	{
 	public:
-		TranslateCSGObject(const float3_t& _vOffset, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), vOffset(_vOffset) {};
-		TranslateCSGObject(const float3_t& _vOffset, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vOffset(_vOffset) {};
+		TranslateCSGObject(const float3_t& _vOffset, const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr) : CSGObject<Assemble>(_pSource), vOffset(_vOffset) {};
+		TranslateCSGObject(const float3_t& _vOffset, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vOffset(_vOffset) {};
 		
 		template<spv::StorageClass C1>
-		TranslateCSGObject(const var_t<float3_t, Assemble, C1>& _vOffset, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), vOffset(_vOffset) {};
+		TranslateCSGObject(const var_t<float3_t, Assemble, C1>& _vOffset, const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr) : CSGObject<Assemble>(_pSource), vOffset(_vOffset) {};
 		template<spv::StorageClass C1>
-		TranslateCSGObject(const var_t<float3_t, Assemble, C1>& _vOffset, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vOffset(_vOffset) {};
+		TranslateCSGObject(const var_t<float3_t, Assemble, C1>& _vOffset, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vOffset(_vOffset) {};
 		
 		virtual ~TranslateCSGObject(){}
 
@@ -190,58 +218,34 @@ namespace Tracy
 		var_t<float3_t, Assemble, Class> vOffset;
 	};
 
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	using TTranslateCSG = std::shared_ptr<TranslateCSGObject<Assemble, Class>>;
+
 	//---------------------------------------------------------------------------------------------------
 
 	// translate CSG by offset
-	template <bool Assemble, spv::StorageClass C1>
-	inline TranslateCSGObject<Assemble> operator+(const CSGObject<Assemble>& l, const var_t<float3_t, Assemble, C1>& r)
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TTranslateCSG<Assemble> operator+(const std::shared_ptr<T>& l, const var_t<float3_t, Assemble, C1>& r)
 	{
-		return TranslateCSGObject<Assemble>(r, &l);
+		return std::make_shared<TranslateCSGObject<Assemble>>(r, l);
 	}
 
-	template <bool Assemble>
-	inline TranslateCSGObject<Assemble> operator+(const CSGObject<Assemble>& l, const float3_t& r)
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TTranslateCSG<T::AssembleParam> operator+(const std::shared_ptr<T>& l, const float3_t& r)
 	{
-		return TranslateCSGObject<Assemble>(r, &l);
+		return std::make_shared<TranslateCSGObject<T::AssembleParam>>(r, l);
 	}
 
-	template <bool Assemble, spv::StorageClass C1>
-	inline TranslateCSGObject<Assemble> operator+(const var_t<float3_t, Assemble, C1>& l, const CSGObject<Assemble>& r)
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TTranslateCSG<Assemble> operator+(const var_t<float3_t, Assemble, C1>& l, const std::shared_ptr<T>& r)
 	{
-		return TranslateCSGObject<Assemble>(l, &r);
+		return std::make_shared<TranslateCSGObject<Assemble>>(l, r);
 	}
 
-	template <bool Assemble>
-	inline TranslateCSGObject<Assemble> operator+(const float3_t& l, const CSGObject<Assemble>& r)
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TTranslateCSG<T::AssembleParam> operator+(const float3_t& l, const std::shared_ptr<T>& r)
 	{
-		return TranslateCSGObject<Assemble>(l, &r);
-	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	// SDF translate
-	template <bool Assemble, spv::StorageClass C1>
-	inline TranslateCSGObject<Assemble> operator+(const SDFObject<Assemble>& l, const var_t<float3_t, Assemble, C1>& r)
-	{
-		return TranslateCSGObject<Assemble>(r, &l);
-	}
-
-	template <bool Assemble>
-	inline TranslateCSGObject<Assemble> operator+(const SDFObject<Assemble>& l, const float3_t& r)
-	{
-		return TranslateCSGObject<Assemble>(r, &l);
-	}
-
-	template <bool Assemble, spv::StorageClass C1>
-	inline TranslateCSGObject<Assemble> operator+(const var_t<float3_t, Assemble, C1>& l, const SDFObject<Assemble>& r)
-	{
-		return TranslateCSGObject<Assemble>(l, &r);
-	}
-
-	template <bool Assemble>
-	inline TranslateCSGObject<Assemble> operator+(const float3_t& l, const SDFObject<Assemble>& r)
-	{
-		return TranslateCSGObject<Assemble>(l, &r);
+		return std::make_shared<TranslateCSGObject<T::T::AssembleParam>>(l, r);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -251,13 +255,13 @@ namespace Tracy
 	class UniformScaleCSGObject : public CSGObject<Assemble>
 	{
 	public:
-		UniformScaleCSGObject(const float& _fScale, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), fScale(_fScale) {};
-		UniformScaleCSGObject(const float& _fScale, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), fScale(_fScale) {};
+		UniformScaleCSGObject(const float& _fScale, const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr) : CSGObject<Assemble>(_pSource), fScale(_fScale) {};
+		UniformScaleCSGObject(const float& _fScale, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), fScale(_fScale) {};
 
 		template <spv::StorageClass C1>
-		UniformScaleCSGObject(const var_t<float, Assemble, C1>& _fScale, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), fScale(_fScale) {};
+		UniformScaleCSGObject(const var_t<float, Assemble, C1>& _fScale, const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr) : CSGObject<Assemble>(_pSource), fScale(_fScale) {};
 		template <spv::StorageClass C1>
-		UniformScaleCSGObject(const var_t<float, Assemble, C1>& _fScale, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), fScale(_fScale) {};
+		UniformScaleCSGObject(const var_t<float, Assemble, C1>& _fScale, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), fScale(_fScale) {};
 
 		virtual ~UniformScaleCSGObject() {}
 
@@ -268,68 +272,43 @@ namespace Tracy
 		var_t<float, Assemble, Class> fScale;
 	};
 
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	using TUniformScaleCSG = std::shared_ptr<UniformScaleCSGObject<Assemble, Class>>;
+
 	//---------------------------------------------------------------------------------------------------
 
 	// scale CSG by factor
-	template <bool Assemble, spv::StorageClass C1>
-	inline UniformScaleCSGObject<Assemble> operator*(const CSGObject<Assemble>& l, const var_t<float, Assemble, C1>& r)
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TUniformScaleCSG<Assemble> operator*(const std::shared_ptr<T>& l, const var_t<float, Assemble, C1>& r)
 	{
-		return UniformScaleCSGObject<Assemble>(r, &l);
+		return std::make_shared<UniformScaleCSGObject<Assemble>>(r, l);
 	}
 
-	template <bool Assemble>
-	inline UniformScaleCSGObject<Assemble> operator*(const CSGObject<Assemble>& l, const float& r)
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TUniformScaleCSG<T::AssembleParam> operator*(const std::shared_ptr<T>& l, const float& r)
 	{
-		return UniformScaleCSGObject<Assemble>(r, &l);
+		return std::make_shared<UniformScaleCSGObject<T::AssembleParam>>(r, l);
 	}
 
-	template <bool Assemble, spv::StorageClass C1>
-	inline UniformScaleCSGObject<Assemble> operator*(const var_t<float, Assemble, C1>& l, const CSGObject<Assemble>& r)
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TUniformScaleCSG<Assemble> operator*(const var_t<float, Assemble, C1>& l, const std::shared_ptr<T>& r)
 	{
-		return UniformScaleCSGObject<Assemble>(l, &r);
+		return std::make_shared<UniformScaleCSGObject<Assemble>>(l, r);
 	}
 
-	template <bool Assemble>
-	inline UniformScaleCSGObject<Assemble> operator*(const float& l, const CSGObject<Assemble>& r)
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TUniformScaleCSG<T::AssembleParam> operator*(const float& l, const std::shared_ptr<T>& r)
 	{
-		return UniformScaleCSGObject<Assemble>(l, &r);
+		return std::make_shared<UniformScaleCSGObject<T::AssembleParam>>(l, r);
 	}
-
-	//---------------------------------------------------------------------------------------------------
-
-	// SDF translate
-	template <bool Assemble, spv::StorageClass C1>
-	inline UniformScaleCSGObject<Assemble> operator*(const SDFObject<Assemble>& l, const var_t<float, Assemble, C1>& r)
-	{
-		return UniformScaleCSGObject<Assemble>(r, &l);
-	}
-
-	template <bool Assemble>
-	inline UniformScaleCSGObject<Assemble> operator*(const SDFObject<Assemble>& l, const float& r)
-	{
-		return UniformScaleCSGObject<Assemble>(r, &l);
-	}
-
-	template <bool Assemble, spv::StorageClass C1>
-	inline UniformScaleCSGObject<Assemble> operator*(const var_t<float, Assemble, C1>& l, const SDFObject<Assemble>& r)
-	{
-		return UniformScaleCSGObject<Assemble>(l, &r);
-	}
-
-	template <bool Assemble>
-	inline UniformScaleCSGObject<Assemble> operator*(const float& l, const SDFObject<Assemble>& r)
-	{
-		return UniformScaleCSGObject<Assemble>(l, &r);
-	}
-
 
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>
 	class CSGScene
 	{
 	public:
-		CSGScene(std::initializer_list<const CSGObject<Assemble>* > _Objects = {}) : m_Objects(_Objects) {}
-		CSGScene(std::vector<const CSGObject<Assemble>* > _Objects) : m_Objects(_Objects) {}
+		CSGScene(std::initializer_list<std::shared_ptr<CSGObject<Assemble>>> _Objects = {}) : m_Objects(_Objects) {}
+		CSGScene(std::vector<std::shared_ptr<CSGObject<Assemble>>> _Objects) : m_Objects(_Objects) {}
 
 		virtual ~CSGScene() {}
 
@@ -355,7 +334,7 @@ namespace Tracy
 		}
 
 	private:
-		std::vector<const CSGObject<Assemble>*> m_Objects;
+		std::vector<std::shared_ptr<CSGObject<Assemble>>> m_Objects;
 	};
 
 	//---------------------------------------------------------------------------------------------------

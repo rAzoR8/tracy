@@ -2,6 +2,7 @@
 #define TRACY_SDFOBJECT_H
 
 #include "SPIRVOperatorImpl.h"
+#include <memory>
 
 namespace Tracy
 {
@@ -41,6 +42,8 @@ namespace Tracy
 	template <bool Assemble>
 	struct SDFObject
 	{
+		static constexpr bool AssembleParam = Assemble;
+
 		using vec3 = var_t<float3_t, Assemble, spv::StorageClassFunction>;
 
 		SDFObject() {};
@@ -59,6 +62,9 @@ namespace Tracy
 		};	
 	};
 
+	template <bool Assemble>
+	using TSDFObj = std::shared_ptr<SDFObject<Assemble>>;
+
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
@@ -74,6 +80,9 @@ namespace Tracy
 		{
 			return SphereDist(_Point, fRadius); 
 		}
+
+		template <class ...Ts>
+		static inline std::shared_ptr<SphereSDF> Make(const Ts& ... args) {return std::make_shared<SphereSDF>(args...); }
 	};
 
 	//---------------------------------------------------------------------------------------------------
@@ -91,8 +100,9 @@ namespace Tracy
 		{
 			return CubeDist(_Point, vExtent);
 		}
-		//---------------------------------------------------------------------------------------------------
 
+		template <class ...Ts>
+		static inline std::shared_ptr<CubeSDF> Make(const Ts& ... args) { return std::make_shared<CubeSDF>(args...); }
 	};
 } // Tracy
 

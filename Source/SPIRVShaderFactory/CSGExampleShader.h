@@ -22,16 +22,15 @@ namespace Tracy
 		RenderTarget OutputColor;
 		inline void operator()()
 		{
-			SphereSDF<Assemble> sphere1(0.5f);
-			CubeSDF<Assemble> cube1;
+			auto sphere1 = SphereSDF<Assemble>::Make(0.5f);
+			auto cube1 = CubeSDF<Assemble>::Make();
 
 			auto csgobj1 = sphere1 + float3_t(0.5f, 0.f, 0.f);
-
 			auto csgobj2 = 0.5f * cube1;
 
 			auto intersec = csgobj2 & csgobj1;
 
-			CSGScene<Assemble> scene({ &intersec });
+			CSGScene<Assemble> scene({ intersec });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };
