@@ -4,7 +4,6 @@
 #include "SPIRVQuaternion.h"
 #include "SPIRVComplex.h"
 #include "SPIRVBranchOperations.h"
-#include "glm/glm.hpp"
 
 namespace Tracy
 {

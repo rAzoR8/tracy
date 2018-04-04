@@ -2,8 +2,8 @@
 #define TRACY_SPIRVVARIABLETYPES_H
 
 //http://glm.g-truc.net/0.9.8/glm-0.9.8.pdf
-#include <glm\fwd.hpp> // forward decls
-// put this into Source file: #include <glm/glm.hpp> 
+//#include <glm\fwd.hpp> // forward decls
+#include <glm/glm.hpp> 
 #include <vulkan\spirv.hpp>
 #include "FunctionalUtils.h"
 #include "Vector.h"

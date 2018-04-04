@@ -303,12 +303,68 @@ namespace Tracy
 	}
 
 	//---------------------------------------------------------------------------------------------------
+
+	// Rotation
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	class RotationCSGObject : public CSGObject<Assemble>
+	{
+	public:
+		RotationCSGObject(const float4_t& _vRotation, const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr) : CSGObject<Assemble>(_pSource), vRotation(_vRotation) {};
+		RotationCSGObject(const float4_t& _vRotation, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vRotation(_vRotation) {};
+
+		template <spv::StorageClass C1>
+		RotationCSGObject(const SPIRVQuaternion<Assemble, C1>& _vRotation, const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr) : CSGObject<Assemble>(_pSource), vRotation(_vRotation) {};
+		template <spv::StorageClass C1>
+		RotationCSGObject(const SPIRVQuaternion<Assemble, C1>& _vRotation, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vRotation(_vRotation) {};
+
+		virtual ~RotationCSGObject() {}
+
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> PreEval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final { return vRotation.InverseRotateUnit(_Point); };
+
+	private:
+		SPIRVQuaternion<Assemble, Class> vRotation;
+	};
+
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	using TRotationCSG = std::shared_ptr<RotationCSGObject<Assemble, Class>>;
+
+	//---------------------------------------------------------------------------------------------------
+
+	// rotate CSG by unit quaternion
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TRotationCSG<Assemble> operator*(const std::shared_ptr<T>& l, const SPIRVQuaternion<Assemble, C1>& r)
+	{
+		return std::make_shared<RotationCSGObject<Assemble>>(r, l);
+	}
+
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TRotationCSG<T::AssembleParam> operator*(const std::shared_ptr<T>& l, const float4_t& r)
+	{
+		return std::make_shared<RotationCSGObject<T::AssembleParam>>(r, l);
+	}
+
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TRotationCSG<Assemble> operator*(const SPIRVQuaternion<Assemble, C1>& l, const std::shared_ptr<T>& r)
+	{
+		return std::make_shared<RotationCSGObject<Assemble>>(l, r);
+	}
+
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TRotationCSG<T::AssembleParam> operator*(const float4_t& l, const std::shared_ptr<T>& r)
+	{
+		return std::make_shared<RotationCSGObject<T::AssembleParam>>(l, r);
+	}
+	
+	//---------------------------------------------------------------------------------------------------
+	// CSG SCENE
+	//---------------------------------------------------------------------------------------------------
+
 	template <bool Assemble>
 	class CSGScene
 	{
 	public:
 		CSGScene(std::initializer_list<std::shared_ptr<CSGObject<Assemble>>> _Objects = {}) : m_Objects(_Objects) {}
-		CSGScene(std::vector<std::shared_ptr<CSGObject<Assemble>>> _Objects) : m_Objects(_Objects) {}
+		CSGScene(const std::vector<std::shared_ptr<CSGObject<Assemble>>>& _Objects) : m_Objects(_Objects) {}
 
 		virtual ~CSGScene() {}
 
