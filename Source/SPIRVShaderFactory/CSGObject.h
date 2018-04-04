@@ -23,7 +23,7 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<float, Assemble, spv::StorageClassFunction> DifferenceSDF(const var_t<float, Assemble, C1>& _lDist, const var_t<float, Assemble, C2>& _rDist)
 	{
-		return Max(_lDist, _rDist * -1.f);
+		return Max(_lDist, -_rDist);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -39,15 +39,13 @@ namespace Tracy
 		// override to implement offset, rotation, scale
 		virtual var_t<float3_t, Assemble, spv::StorageClassFunction> PreEval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const { return _Point; };
 		virtual var_t<float, Assemble, spv::StorageClassFunction> PostEval(const var_t<float, Assemble, spv::StorageClassFunction>& _Dist) const { return _Dist; };
+		virtual var_t<float, Assemble, spv::StorageClassFunction> Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const;
 
 		template <spv::StorageClass C1>
 		var_t<float, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, C1>& _Point) const;
 
 		template <spv::StorageClass C1, spv::StorageClass C2>
 		var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const;
-
-	protected:
-		virtual var_t<float, Assemble, spv::StorageClassFunction> Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const;
 
 	private:
 		const SDFObject<Assemble>* m_pSource;
@@ -116,6 +114,60 @@ namespace Tracy
 		return UnionSDF(_lDist, _rDist); // default to union impl
 	}
 	//---------------------------------------------------------------------------------------------------
+
+	template <bool Assemble>
+	using UnionCSGObject = CSGObject<Assemble>;
+
+	// Intersection
+	template <bool Assemble>
+	class IntersectCSGObject : public CSGObject<Assemble>
+	{
+	public:
+		using CSGObject::CSGObject;
+		virtual ~IntersectCSGObject() {}
+
+		inline var_t<float, Assemble, spv::StorageClassFunction> Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const final
+		{
+			return IntersectSDF(_lDist, _rDist);
+		}
+	};
+	//---------------------------------------------------------------------------------------------------
+
+	// Difference
+	template <bool Assemble>
+	class DifferenceCSGObject : public CSGObject<Assemble>
+	{
+	public:
+		using CSGObject::CSGObject;
+		virtual ~DifferenceCSGObject() {}
+
+		inline var_t<float, Assemble, spv::StorageClassFunction> Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const final
+		{
+			return DifferenceSDF(_lDist, _rDist);
+		}
+	};
+	//---------------------------------------------------------------------------------------------------
+
+	template <bool Assemble>
+	inline UnionCSGObject<Assemble> operator&(const CSGObject<Assemble>& l, const CSGObject<Assemble>& r)
+	{
+		return UnionCSGObject<Assemble>(&l, &r);
+	}
+
+	template <bool Assemble>
+	inline DifferenceCSGObject<Assemble> operator/(const CSGObject<Assemble>& l, const CSGObject<Assemble>& r)
+	{
+		return DifferenceCSGObject<Assemble>(&l, &r);
+	}
+
+	template <bool Assemble>
+	inline IntersectCSGObject<Assemble> operator|(const CSGObject<Assemble>& l, const CSGObject<Assemble>& r)
+	{
+		return IntersectCSGObject<Assemble>(&l, &r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
 
 	// Translate by offset
 	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>

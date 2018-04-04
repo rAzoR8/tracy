@@ -27,7 +27,9 @@ namespace Tracy
 
 			UniformScaleCSGObject<Assemble> csgobj2(0.5f, &sphere1);
 
-			CSGScene<Assemble> scene({ &csgobj1, &csgobj2 });
+			auto intersec = csgobj2 | csgobj1;
+
+			CSGScene<Assemble> scene({ &intersec });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };

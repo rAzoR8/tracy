@@ -61,6 +61,8 @@ namespace Tracy
 	template <bool Assemble>
 	struct IMaterialInterface
 	{
+		// TODO: function: GetDiffuse Reflection Vec & GetSpecularReflection Vec (random under ndf)
+
 		// light default empty implementation
 		virtual var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos, const DirectionalLight<Assemble>& _DirLight) const { return _DirLight.vColorIntensity; };
 		virtual var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos, const PointLight<Assemble>& _PointLight) const { return _PointLight.vColorIntensity; };
