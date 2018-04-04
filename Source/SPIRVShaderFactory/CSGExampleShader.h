@@ -24,13 +24,15 @@ namespace Tracy
 		{
 			auto sphere1 = SphereSDF<Assemble>::Make(0.5f);
 			auto cube1 = CubeSDF<Assemble>::Make();
+			auto plane1 = PlaneSDF<Assemble>::Make(glm::normalize(float3_t(0.25f, 0.25f, 0.25f)));
 
 			auto csgobj1 = sphere1 + float3_t(0.5f, 0.f, 0.f);
 			auto csgobj2 = 0.5f * cube1;
+			auto csgobj3 = plane1 + float3_t(0.f, -2.f, 0.f);
 
 			auto intersec = csgobj2 & csgobj1;
 
-			CSGScene<Assemble> scene({ intersec });
+			CSGScene<Assemble> scene({ intersec, csgobj3 });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };

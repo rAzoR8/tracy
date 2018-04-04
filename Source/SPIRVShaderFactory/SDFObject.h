@@ -37,6 +37,12 @@ namespace Tracy
 		return Min(0.f, Max(d.x, d.y, d.z)) + Length(Max(d, make_const<Assemble>(float3_t(0.f, 0.f, 0.f))));
 	}
 
+	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2> // plane at origin
+	inline var_t<float, Assemble, spv::StorageClassFunction> PlaneDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float3_t, Assemble, C2>& _vNormal)
+	{
+		return Dot(_Point, _vNormal);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
@@ -94,7 +100,7 @@ namespace Tracy
 		CubeSDF(const float3_t _vExtents = {1.f, 1.f, 1.f}) : vExtent(_vExtents) {}
 
 		template <spv::StorageClass C1>
-		CubeSDF(const var_t<float3_t, Assemble, C1>& _fRadius) : vExtent(_vExtents) {}
+		CubeSDF(const var_t<float3_t, Assemble, C1>& _vExtents) : vExtent(_vExtents) {}
 
 		inline var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final
 		{
@@ -104,6 +110,29 @@ namespace Tracy
 		template <class ...Ts>
 		static inline std::shared_ptr<CubeSDF> Make(const Ts& ... args) { return std::make_shared<CubeSDF>(args...); }
 	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	struct PlaneSDF : public SDFObject<Assemble>
+	{
+		var_t<float3_t, Assemble, Class> vNormal;
+		PlaneSDF(const float3_t _vNormal = { 0.f, 1.f, 0.f }) : vNormal(_vNormal) {}
+
+		template <spv::StorageClass C1>
+		PlaneSDF(const var_t<float3_t, Assemble, C1>& _vNormal) : vNormal(_vNormal) {}
+
+		inline var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final
+		{
+			return PlaneDist(_Point, vNormal);
+		}
+
+		template <class ...Ts>
+		static inline std::shared_ptr<PlaneSDF> Make(const Ts& ... args) { return std::make_shared<PlaneSDF>(args...); }
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
 } // Tracy
 
 #endif // !TRACY_SDFOBJECT_H
