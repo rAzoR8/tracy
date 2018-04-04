@@ -172,6 +172,12 @@ namespace Tracy
 	template<class T>
 	constexpr bool derive_from_obj = derive_from_sdf<T> || derive_from_csg<T>;
 
+	template<class T, bool Assemble>
+	constexpr bool derive_from_csg_expl = std::is_base_of_v<CSGObject<Assemble>, T>;
+
+	template<class T, bool Assemble>
+	constexpr bool derive_from_sdf_expl = std::is_base_of_v<SDFObject<Assemble>, T>;
+
 	//---------------------------------------------------------------------------------------------------
 
 	template <class U, class V, typename = std::enable_if_t<derive_from_obj<U> && derive_from_obj<V>>>
@@ -355,6 +361,45 @@ namespace Tracy
 		return std::make_shared<RotationCSGObject<T::AssembleParam>>(l, r);
 	}
 	
+
+	//---------------------------------------------------------------------------------------------------
+
+	// blend between to csg objects
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	class LinearBlendSGObject : public CSGObject<Assemble>
+	{
+	public:
+		LinearBlendSGObject(const float& _fFactor, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) : CSGObject<Assemble>(_pLeft, _pRight), fFactor(_fFactor) {};
+
+		template <spv::StorageClass C1>
+		LinearBlendSGObject(const var_t<float, Assemble, C1>& _fFactor, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) : CSGObject<Assemble>(_pLeft, _pRight), fFactor(_fFactor) {};
+
+		virtual ~LinearBlendSGObject() {}
+
+		inline var_t<float, Assemble, spv::StorageClassFunction> Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const final
+		{
+			return Lerp(_lDist, _rDist, fFactor);
+		}
+	private:
+		var_t<float, Assemble, Class> fFactor;
+	};
+
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	using TLinearBlendCSG = std::shared_ptr<LinearBlendSGObject<Assemble, Class>>;
+
+	template <bool Assemble, class U, class V, spv::StorageClass C1, spv::StorageClass Class = spv::StorageClassFunction, typename = std::enable_if_t<derive_from_csg_expl<U, Assemble> && derive_from_csg_expl<V, Assemble>>>
+	inline TLinearBlendCSG<Assemble, Class> Blend(const std::shared_ptr<U>& _pLeft, const std::shared_ptr<V>& _pRight, const var_t<float, Assemble, C1>& _fFactor)
+	{
+		return std::make_shared<LinearBlendSGObject<Assemble, Class>>(_fFactor, _pLeft, _pRight);
+	}
+
+	template <class U, class V, spv::StorageClass Class = spv::StorageClassFunction, typename = std::enable_if_t<derive_from_csg<U> && derive_from_csg<V>>>
+	inline TLinearBlendCSG<U::AssembleParam, Class> Blend(const std::shared_ptr<U>& _pLeft, const std::shared_ptr<V>& _pRight, const float& _fFactor)
+	{
+		static_assert(U::AssembleParam == V::AssembleParam, "Assemble parameter mismatch");
+		return std::make_shared<LinearBlendSGObject<U::AssembleParam, Class>>(_fFactor, _pLeft, _pRight);
+	}
+
 	//---------------------------------------------------------------------------------------------------
 	// CSG SCENE
 	//---------------------------------------------------------------------------------------------------

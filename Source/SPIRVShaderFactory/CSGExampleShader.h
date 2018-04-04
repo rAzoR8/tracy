@@ -28,11 +28,11 @@ namespace Tracy
 
 			auto csgobj1 = sphere1 + float3_t(0.5f, 0.f, 0.f);
 
-			quaternion vRot({ 0.f, 1.f, 0.f }, 0.1f);
-			auto csgobj2 = (0.5f * cube1) * vRot;
+			quaternion vRot({ 1.f, 0.5f, 0.f }, 0.2f);
+			auto csgobj2 = (0.25f * cube1) * vRot;
 			auto csgobj3 = plane1 + float3_t(0.f, -1.f, 0.f);
 
-			auto intersec = csgobj2 & csgobj1;
+			auto intersec = Blend(csgobj2, csgobj1, 0.5f);
 
 			CSGScene<Assemble> scene({ intersec, csgobj3 });
 
