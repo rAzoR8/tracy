@@ -23,11 +23,13 @@ namespace Tracy
 		inline void operator()()
 		{
 			SphereSDF<Assemble> sphere1(0.5f);
-			TranslateCSGObject<Assemble> csgobj1({0.5f, -0.5f, 0.f}, &sphere1);
+			CubeSDF<Assemble> cube1;
 
-			UniformScaleCSGObject<Assemble> csgobj2(0.5f, &sphere1);
+			auto csgobj1 = sphere1 + float3_t(0.5f, 0.f, 0.f);
 
-			auto intersec = csgobj2 | csgobj1;
+			auto csgobj2 = 0.5f * cube1;
+
+			auto intersec = csgobj2 & csgobj1;
 
 			CSGScene<Assemble> scene({ &intersec });
 

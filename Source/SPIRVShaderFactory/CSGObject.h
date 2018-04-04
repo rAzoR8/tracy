@@ -176,7 +176,11 @@ namespace Tracy
 	public:
 		TranslateCSGObject(const float3_t& _vOffset, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), vOffset(_vOffset) {};
 		TranslateCSGObject(const float3_t& _vOffset, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vOffset(_vOffset) {};
-		// todo: var_t constructors
+		
+		template<spv::StorageClass C1>
+		TranslateCSGObject(const var_t<float3_t, Assemble, C1>& _vOffset, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), vOffset(_vOffset) {};
+		template<spv::StorageClass C1>
+		TranslateCSGObject(const var_t<float3_t, Assemble, C1>& _vOffset, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), vOffset(_vOffset) {};
 		
 		virtual ~TranslateCSGObject(){}
 
@@ -188,6 +192,60 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
+	// translate CSG by offset
+	template <bool Assemble, spv::StorageClass C1>
+	inline TranslateCSGObject<Assemble> operator+(const CSGObject<Assemble>& l, const var_t<float3_t, Assemble, C1>& r)
+	{
+		return TranslateCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble>
+	inline TranslateCSGObject<Assemble> operator+(const CSGObject<Assemble>& l, const float3_t& r)
+	{
+		return TranslateCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble, spv::StorageClass C1>
+	inline TranslateCSGObject<Assemble> operator+(const var_t<float3_t, Assemble, C1>& l, const CSGObject<Assemble>& r)
+	{
+		return TranslateCSGObject<Assemble>(l, &r);
+	}
+
+	template <bool Assemble>
+	inline TranslateCSGObject<Assemble> operator+(const float3_t& l, const CSGObject<Assemble>& r)
+	{
+		return TranslateCSGObject<Assemble>(l, &r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
+	// SDF translate
+	template <bool Assemble, spv::StorageClass C1>
+	inline TranslateCSGObject<Assemble> operator+(const SDFObject<Assemble>& l, const var_t<float3_t, Assemble, C1>& r)
+	{
+		return TranslateCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble>
+	inline TranslateCSGObject<Assemble> operator+(const SDFObject<Assemble>& l, const float3_t& r)
+	{
+		return TranslateCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble, spv::StorageClass C1>
+	inline TranslateCSGObject<Assemble> operator+(const var_t<float3_t, Assemble, C1>& l, const SDFObject<Assemble>& r)
+	{
+		return TranslateCSGObject<Assemble>(l, &r);
+	}
+
+	template <bool Assemble>
+	inline TranslateCSGObject<Assemble> operator+(const float3_t& l, const SDFObject<Assemble>& r)
+	{
+		return TranslateCSGObject<Assemble>(l, &r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
 	// Scale
 	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
 	class UniformScaleCSGObject : public CSGObject<Assemble>
@@ -195,6 +253,12 @@ namespace Tracy
 	public:
 		UniformScaleCSGObject(const float& _fScale, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), fScale(_fScale) {};
 		UniformScaleCSGObject(const float& _fScale, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), fScale(_fScale) {};
+
+		template <spv::StorageClass C1>
+		UniformScaleCSGObject(const var_t<float, Assemble, C1>& _fScale, const SDFObject<Assemble>* _pSource = nullptr) : CSGObject<Assemble>(_pSource), fScale(_fScale) {};
+		template <spv::StorageClass C1>
+		UniformScaleCSGObject(const var_t<float, Assemble, C1>& _fScale, const CSGObject<Assemble>* _pLeft, const CSGObject<Assemble>* _pRight = nullptr) : CSGObject<Assemble>(_pLeft, _pRight), fScale(_fScale) {};
+
 		virtual ~UniformScaleCSGObject() {}
 
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> PreEval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final { return _Point / fScale; };
@@ -203,6 +267,61 @@ namespace Tracy
 	private:
 		var_t<float, Assemble, Class> fScale;
 	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	// scale CSG by factor
+	template <bool Assemble, spv::StorageClass C1>
+	inline UniformScaleCSGObject<Assemble> operator*(const CSGObject<Assemble>& l, const var_t<float, Assemble, C1>& r)
+	{
+		return UniformScaleCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble>
+	inline UniformScaleCSGObject<Assemble> operator*(const CSGObject<Assemble>& l, const float& r)
+	{
+		return UniformScaleCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble, spv::StorageClass C1>
+	inline UniformScaleCSGObject<Assemble> operator*(const var_t<float, Assemble, C1>& l, const CSGObject<Assemble>& r)
+	{
+		return UniformScaleCSGObject<Assemble>(l, &r);
+	}
+
+	template <bool Assemble>
+	inline UniformScaleCSGObject<Assemble> operator*(const float& l, const CSGObject<Assemble>& r)
+	{
+		return UniformScaleCSGObject<Assemble>(l, &r);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
+	// SDF translate
+	template <bool Assemble, spv::StorageClass C1>
+	inline UniformScaleCSGObject<Assemble> operator*(const SDFObject<Assemble>& l, const var_t<float, Assemble, C1>& r)
+	{
+		return UniformScaleCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble>
+	inline UniformScaleCSGObject<Assemble> operator*(const SDFObject<Assemble>& l, const float& r)
+	{
+		return UniformScaleCSGObject<Assemble>(r, &l);
+	}
+
+	template <bool Assemble, spv::StorageClass C1>
+	inline UniformScaleCSGObject<Assemble> operator*(const var_t<float, Assemble, C1>& l, const SDFObject<Assemble>& r)
+	{
+		return UniformScaleCSGObject<Assemble>(l, &r);
+	}
+
+	template <bool Assemble>
+	inline UniformScaleCSGObject<Assemble> operator*(const float& l, const SDFObject<Assemble>& r)
+	{
+		return UniformScaleCSGObject<Assemble>(l, &r);
+	}
+
 
 	//---------------------------------------------------------------------------------------------------
 	template <bool Assemble>

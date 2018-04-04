@@ -27,8 +27,15 @@ namespace Tracy
 	inline var_t<float, Assemble, spv::StorageClassFunction> SphereDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Radius)
 	{
 		return Length(_Point) - _Radius;
-		//return Dot(_Point, _Point) - _Radius * _Radius;
 	}
+
+	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<float, Assemble, spv::StorageClassFunction> CubeDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float3_t, Assemble, C2>& _vExtents)
+	{
+		auto d = Abs(_Point) - _vExtents;
+		return Min(0.f, Max(d.x, d.y, d.z)) + Length(Max(d, make_const<Assemble>(float3_t(0.f, 0.f, 0.f))));
+	}
+
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
@@ -67,6 +74,25 @@ namespace Tracy
 		{
 			return SphereDist(_Point, fRadius); 
 		}
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	struct CubeSDF : public SDFObject<Assemble>
+	{
+		var_t<float3_t, Assemble, Class> vExtent;
+		CubeSDF(const float3_t _vExtents = {1.f, 1.f, 1.f}) : vExtent(_vExtents) {}
+
+		template <spv::StorageClass C1>
+		CubeSDF(const var_t<float3_t, Assemble, C1>& _fRadius) : vExtent(_vExtents) {}
+
+		inline var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final
+		{
+			return CubeDist(_Point, vExtent);
+		}
+		//---------------------------------------------------------------------------------------------------
+
 	};
 } // Tracy
 

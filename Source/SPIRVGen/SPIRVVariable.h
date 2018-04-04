@@ -79,7 +79,7 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 	// Create a intermediate vector with dimension N from constants _Values
-	template <uint32_t N, class T, bool Assemble, typename = std::enable_if_t<is_scalar<T>>>
+	template <bool Assemble, uint32_t N, class T, typename = std::enable_if_t<is_scalar<T>>>
 	inline var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction> make_const_vec(const std::array<T, N>& _Values)
 	{
 		auto var = var_t<vec_type_t<T, N>, Assemble, spv::StorageClassFunction>(TIntermediate());

@@ -900,6 +900,12 @@ namespace Tracy
 	// https://www.khronos.org/registry/spir-v/specs/unified1/GLSL.std.450.pdf
 
 	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Abs(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::abs(x); }, ExtGLSL450,  GLSLstd450FAbs, GLSLstd450SAbs);
+	}
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble, spv::StorageClass C1>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Radians(const var_t<T, Assemble, C1>& l)
 	{
 		return make_ext_op1(l, [](const T& v1) {return glm::radians(v1); }, ExtGLSL450, GLSLstd450Radians);
@@ -1243,7 +1249,7 @@ namespace Tracy
 		std::array<BaseT, N> Zero; Zero.fill(BaseT(0));
 		std::array<BaseT, N> One; One.fill(BaseT(1));
 
-		return Clamp(x, make_const_vec<N, BaseT, Assemble>(Zero), make_const_vec<N, BaseT, Assemble>(One));
+		return Clamp(x, make_const_vec<Assemble, N, BaseT>(Zero), make_const_vec<Assemble, N, BaseT>(One));
 	}
 
 	//---------------------------------------------------------------------------------------------------
