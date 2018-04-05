@@ -43,6 +43,20 @@ namespace Tracy
 		return Dot(_Point, _vNormal);
 	}
 
+	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2> // xyz = normal box extents, w = extent towards info
+	inline var_t<float, Assemble, spv::StorageClassFunction> CrossDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float4_t, Assemble, C2>& _vExtents)
+	{
+		return Min(
+			CubeDist(_Point, _vExtents.wyz),
+			CubeDist(_Point.yzx, _vExtents.xwz),
+			CubeDist(_Point.zxy, _vExtents.xyw));
+
+		//return Min(
+		//	CubeDist(_Point, make_const<Assemble>(float3_t{FLT_MAX, 1.f, 1.f})),
+		//	CubeDist(_Point.yzx, make_const<Assemble>(float3_t{ 1.f, FLT_MAX, 1.f })),
+		//	CubeDist(_Point.zxy, make_const<Assemble>(float3_t{ 1.f, 1.f, FLT_MAX })));
+	}
+
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
@@ -129,6 +143,26 @@ namespace Tracy
 
 		template <class ...Ts>
 		static inline std::shared_ptr<PlaneSDF> Make(const Ts& ... args) { return std::make_shared<PlaneSDF>(args...); }
+	};
+
+	//---------------------------------------------------------------------------------------------------
+
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	struct CrossSDF : public SDFObject<Assemble>
+	{
+		var_t<float4_t, Assemble, Class> vExtent;
+		CrossSDF(const float& _fLimit = 10.f, const float3_t _vExtents = { 1.f, 1.f, 1.f }) : vExtent(_vExtents, _fLimit) {}
+
+		template <spv::StorageClass C1>
+		CrossSDF(const var_t<float4_t, Assemble, C1>& _vExtents) : vExtent(_vExtents) {}
+
+		inline var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final
+		{
+			return CrossDist(_Point, vExtent);
+		}
+
+		template <class ...Ts>
+		static inline std::shared_ptr<CrossSDF> Make(const Ts& ... args) { return std::make_shared<CrossSDF>(args...); }
 	};
 
 	//---------------------------------------------------------------------------------------------------

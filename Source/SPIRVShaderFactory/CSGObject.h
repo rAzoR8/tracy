@@ -56,6 +56,42 @@ namespace Tracy
 	};
 	//---------------------------------------------------------------------------------------------------
 
+	template <bool Assemble>
+	using TCSGObj = std::shared_ptr<CSGObject<Assemble>>;
+
+	// helper traits
+	template<class T>
+	constexpr bool derive_from_csg = std::is_base_of_v<CSGObject<true>, T> || std::is_base_of_v<CSGObject<false>, T>;
+
+	template<class T>
+	constexpr bool derive_from_sdf = std::is_base_of_v<SDFObject<true>, T> || std::is_base_of_v<SDFObject<false>, T>;
+
+	template<class T>
+	constexpr bool derive_from_obj = derive_from_sdf<T> || derive_from_csg<T>;
+
+	template<class T, bool Assemble>
+	constexpr bool derive_from_csg_expl = std::is_base_of_v<CSGObject<Assemble>, T>;
+
+	template<class T, bool Assemble>
+	constexpr bool derive_from_sdf_expl = std::is_base_of_v<SDFObject<Assemble>, T>;
+
+
+	template<class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TCSGObj<T::AssembleParam> csg(const std::shared_ptr<T>& _pSource)
+	{
+		return std::make_shared<CSGObject<T::AssembleParam>>(_pSource);
+	}
+
+	template<class U, class V, typename = std::enable_if_t<derive_from_csg<U> && derive_from_csg<V>>>
+	inline TCSGObj<U::AssembleParam> csg(const std::shared_ptr<U>& _pLeft, const std::shared_ptr<V>& _pRight)
+	{
+		static_assert(U::AssembleParam == V::AssembleParam, "Assemble parameter mismatch");
+		return std::make_shared<CSGObject<U::AssembleParam>>(_pLeft, _pRight);
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
+
 	template<bool Assemble>
 	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pSource) :
 		m_pSource(_pSource), m_pLeft(nullptr), m_pRight(nullptr)
@@ -151,9 +187,6 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template <bool Assemble>
-	using TCSGObj = std::shared_ptr<CSGObject<Assemble>>;
-
-	template <bool Assemble>
 	using TUnionCSG = std::shared_ptr<CSGObject<Assemble>>;
 
 	template <bool Assemble>
@@ -161,22 +194,6 @@ namespace Tracy
 
 	template <bool Assemble>
 	using TDifferenceCSG = std::shared_ptr<DifferenceCSGObject<Assemble>>;
-
-	// helper traits
-	template<class T>
-	constexpr bool derive_from_csg = std::is_base_of_v<CSGObject<true>, T> || std::is_base_of_v<CSGObject<false>, T>;
-
-	template<class T>
-	constexpr bool derive_from_sdf = std::is_base_of_v<SDFObject<true>, T> || std::is_base_of_v<SDFObject<false>, T>;
-
-	template<class T>
-	constexpr bool derive_from_obj = derive_from_sdf<T> || derive_from_csg<T>;
-
-	template<class T, bool Assemble>
-	constexpr bool derive_from_csg_expl = std::is_base_of_v<CSGObject<Assemble>, T>;
-
-	template<class T, bool Assemble>
-	constexpr bool derive_from_sdf_expl = std::is_base_of_v<SDFObject<Assemble>, T>;
 
 	//---------------------------------------------------------------------------------------------------
 

@@ -22,19 +22,22 @@ namespace Tracy
 		RenderTarget OutputColor;
 		inline void operator()()
 		{
+			quaternion vRot({ 1.f, 0.5f, 0.f }, 0.2f);
+
 			auto sphere1 = SphereSDF<Assemble>::Make(0.5f);
 			auto cube1 = CubeSDF<Assemble>::Make();
 			auto plane1 = PlaneSDF<Assemble>::Make(glm::normalize(float3_t(1.f, 0.25f, 0.25f)));
+			auto cross1 = csg(CrossSDF<Assemble>::Make());
 
 			auto csgobj1 = sphere1 + float3_t(0.5f, 0.f, 0.f);
 
-			quaternion vRot({ 1.f, 0.5f, 0.f }, 0.2f);
 			auto csgobj2 = (0.25f * cube1) * vRot;
-			auto csgobj3 = plane1 + float3_t(0.f, -1.f, 0.f);
-
+			//auto background = plane1 + float3_t(0.f, -1.f, 0.f);
 			auto intersec = Blend(csgobj2, csgobj1, 0.5f);
 
-			CSGScene<Assemble> scene({ intersec, csgobj3 });
+			
+
+			CSGScene<Assemble> scene({ cross1/*, background*/ });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };

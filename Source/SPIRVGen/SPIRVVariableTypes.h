@@ -272,6 +272,20 @@ namespace Tracy
 	struct va_type<float, float, float, float> { typedef float4_t type; };
 
 	template <>
+	struct va_type<float, float2_t> { typedef float3_t type; };
+
+	template <>
+	struct va_type<float2_t, float> { typedef float3_t type; };
+
+	template <>
+	struct va_type<float, float3_t> { typedef float4_t type; };
+
+	template <>
+	struct va_type<float3_t, float> { typedef float4_t type; };
+
+	// todo: more variants
+
+	template <>
 	struct va_type<float2_t> { typedef float2_t type; };
 	template <>
 	struct va_type<float3_t> { typedef float3_t type; };
