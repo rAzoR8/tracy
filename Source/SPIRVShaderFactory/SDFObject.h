@@ -44,17 +44,9 @@ namespace Tracy
 	}
 
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2> // xyz = normal box extents, w = extent towards info
-	inline var_t<float, Assemble, spv::StorageClassFunction> CrossDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float4_t, Assemble, C2>& _vExtents)
+	inline var_t<float, Assemble, spv::StorageClassFunction> CrossDist(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _fExtent)
 	{
-		return Min(
-			CubeDist(_Point, _vExtents.wyz),
-			CubeDist(_Point.yzx, _vExtents.xwz),
-			CubeDist(_Point.zxy, _vExtents.xyw));
-
-		//return Min(
-		//	CubeDist(_Point, make_const<Assemble>(float3_t{FLT_MAX, 1.f, 1.f})),
-		//	CubeDist(_Point.yzx, make_const<Assemble>(float3_t{ 1.f, FLT_MAX, 1.f })),
-		//	CubeDist(_Point.zxy, make_const<Assemble>(float3_t{ 1.f, 1.f, FLT_MAX })));
+		return Min(Max(Abs(_Point.x), Abs(_Point.y)), Max(Abs(_Point.y), Abs(_Point.z)), Max(Abs(_Point.z), Abs(_Point.x))) - _fExtent;
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -150,15 +142,15 @@ namespace Tracy
 	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
 	struct CrossSDF : public SDFObject<Assemble>
 	{
-		var_t<float4_t, Assemble, Class> vExtent;
-		CrossSDF(const float& _fLimit = 10.f, const float3_t _vExtents = { 1.f, 1.f, 1.f }) : vExtent(_vExtents, _fLimit) {}
+		var_t<float, Assemble, Class> fExtent;
+		CrossSDF(const float& _fExtent = 1.f) : fExtent(_fExtent) {}
 
 		template <spv::StorageClass C1>
-		CrossSDF(const var_t<float4_t, Assemble, C1>& _vExtents) : vExtent(_vExtents) {}
+		CrossSDF(const var_t<float, Assemble, C1>& _fExtent) : fExtent(_fExtent) {}
 
 		inline var_t<float, Assemble, spv::StorageClassFunction> Distance(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final
 		{
-			return CrossDist(_Point, vExtent);
+			return CrossDist(_Point, fExtent);
 		}
 
 		template <class ...Ts>
