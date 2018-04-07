@@ -413,15 +413,15 @@ namespace Tracy
 
 	// blend between to csg objects
 	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
-	class LinearBlendSGObject : public CSGObject<Assemble>
+	class LinearBlendCSGObject : public CSGObject<Assemble>
 	{
 	public:
-		LinearBlendSGObject(const float& _fFactor, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) : CSGObject<Assemble>(_pLeft, _pRight), fFactor(_fFactor) {};
+		LinearBlendCSGObject(const float& _fFactor, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) : CSGObject<Assemble>(_pLeft, _pRight), fFactor(_fFactor) {};
 
 		template <spv::StorageClass C1>
-		LinearBlendSGObject(const var_t<float, Assemble, C1>& _fFactor, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) : CSGObject<Assemble>(_pLeft, _pRight), fFactor(_fFactor) {};
+		LinearBlendCSGObject(const var_t<float, Assemble, C1>& _fFactor, const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) : CSGObject<Assemble>(_pLeft, _pRight), fFactor(_fFactor) {};
 
-		virtual ~LinearBlendSGObject() {}
+		virtual ~LinearBlendCSGObject() {}
 
 		inline var_t<float, Assemble, spv::StorageClassFunction> Construct(const var_t<float, Assemble, spv::StorageClassFunction>& _lDist, const var_t<float, Assemble, spv::StorageClassFunction>& _rDist) const final
 		{
@@ -432,19 +432,72 @@ namespace Tracy
 	};
 
 	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
-	using TLinearBlendCSG = std::shared_ptr<LinearBlendSGObject<Assemble, Class>>;
+	using TLinearBlendCSG = std::shared_ptr<LinearBlendCSGObject<Assemble, Class>>;
 
 	template <bool Assemble, class U, class V, spv::StorageClass C1, spv::StorageClass Class = spv::StorageClassFunction, typename = std::enable_if_t<derive_from_csg_expl<U, Assemble> && derive_from_csg_expl<V, Assemble>>>
 	inline TLinearBlendCSG<Assemble, Class> Blend(const std::shared_ptr<U>& _pLeft, const std::shared_ptr<V>& _pRight, const var_t<float, Assemble, C1>& _fFactor)
 	{
-		return std::make_shared<LinearBlendSGObject<Assemble, Class>>(_fFactor, _pLeft, _pRight);
+		return std::make_shared<LinearBlendCSGObject<Assemble, Class>>(_fFactor, _pLeft, _pRight);
 	}
 
 	template <class U, class V, spv::StorageClass Class = spv::StorageClassFunction, typename = std::enable_if_t<derive_from_csg<U> && derive_from_csg<V>>>
 	inline TLinearBlendCSG<U::AssembleParam, Class> Blend(const std::shared_ptr<U>& _pLeft, const std::shared_ptr<V>& _pRight, const float& _fFactor)
 	{
 		static_assert(U::AssembleParam == V::AssembleParam, "Assemble parameter mismatch");
-		return std::make_shared<LinearBlendSGObject<U::AssembleParam, Class>>(_fFactor, _pLeft, _pRight);
+		return std::make_shared<LinearBlendCSGObject<U::AssembleParam, Class>>(_fFactor, _pLeft, _pRight);
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	// repeat csg objects
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	class RepetitionCSGObject : public CSGObject<Assemble>
+	{
+	public:
+		RepetitionCSGObject(const float3_t& _vRep, const std::shared_ptr<SDFObject<Assemble>>& _pLeft) : CSGObject<Assemble>(_pLeft), vRep(_vRep) {};
+		RepetitionCSGObject(const float3_t& _vRep, const std::shared_ptr<CSGObject<Assemble>>& _pLeft) : CSGObject<Assemble>(_pLeft), vRep(_vRep) {};
+
+		template <spv::StorageClass C1>
+		RepetitionCSGObject(const var_t<float3_t, Assemble, C1>& _vRep, const std::shared_ptr<SDFObject<Assemble>>& _pLeft) : CSGObject<Assemble>(_pLeft), vRep(_vRep) {};
+
+		template <spv::StorageClass C1>
+		RepetitionCSGObject(const var_t<float3_t, Assemble, C1>& _vRep, const std::shared_ptr<CSGObject<Assemble>>& _pLeft) : CSGObject<Assemble>(_pLeft), vRep(_vRep) {};
+
+		virtual ~RepetitionCSGObject() {}
+
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> PreEval(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _Point) const final
+		{
+			return (_Point % vRep) - 0.5f * vRep;
+		};
+		
+	private:
+		var_t<float3_t, Assemble, Class> vRep;
+	};
+
+	template <bool Assemble, spv::StorageClass Class = spv::StorageClassFunction>
+	using TRepetitionCSG = std::shared_ptr<RepetitionCSGObject<Assemble, Class>>;
+
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TRepetitionCSG<Assemble> operator%(const std::shared_ptr<T>& l, const var_t<float3_t, Assemble, C1>& r)
+	{
+		return std::make_shared<RepetitionCSGObject<Assemble>>(r, l);
+	}
+
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TRepetitionCSG<T::AssembleParam> operator%(const std::shared_ptr<T>& l, const float3_t& r)
+	{
+		return std::make_shared<RepetitionCSGObject<T::AssembleParam>>(r, l);
+	}
+
+	template <bool Assemble, spv::StorageClass C1, class T, typename = std::enable_if_t<std::is_base_of_v<CSGObject<Assemble>, T> || std::is_base_of_v<SDFObject<Assemble>, T>>>
+	inline TRepetitionCSG<Assemble> operator%(const var_t<float3_t, Assemble, C1>& l, const std::shared_ptr<T>& r)
+	{
+		return std::make_shared<RepetitionCSGObject<Assemble>>(l, r);
+	}
+
+	template <class T, typename = std::enable_if_t<derive_from_obj<T>>>
+	inline TRepetitionCSG<T::AssembleParam> operator%(const float3_t& l, const std::shared_ptr<T>& r)
+	{
+		return std::make_shared<RepetitionCSGObject<T::AssembleParam>>(l, r);
 	}
 
 	//---------------------------------------------------------------------------------------------------

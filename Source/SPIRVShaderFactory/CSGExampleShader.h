@@ -24,7 +24,7 @@ namespace Tracy
 		{
 			quaternion vRot({ 1.f, 0.5f, 0.f }, 0.3f);
 
-			auto sphere = SphereSDF<Assemble>::Make(0.5f);
+			auto sphere = SphereSDF<Assemble>::Make(0.1f);
 			auto cube = CubeSDF<Assemble>::Make();
 			auto plane = PlaneSDF<Assemble>::Make(glm::normalize(float3_t(1.f, 0.25f, 0.25f)));
 			auto cross = csg(CrossSDF<Assemble>::Make() * 0.1f) /** vRot*/;
@@ -39,8 +39,10 @@ namespace Tracy
 			// linear blending
 			auto intersec = Blend(csgobj1, csgobj2, 0.5f);			
 
+			auto rep = sphere % float3_t(0.5f, 0.5f, 0.5f);
+
 			//auto background = plane1 + float3_t(0.f, -1.f, 0.f);
-			CSGScene<Assemble> scene({ menger/*, background*/ });
+			CSGScene<Assemble> scene({ rep/*, background*/ });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };

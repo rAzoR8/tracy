@@ -899,6 +899,48 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 	// https://www.khronos.org/registry/spir-v/specs/unified1/GLSL.std.450.pdf
 
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Round(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::round(x); }, ExtGLSL450, GLSLstd450Round);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> RoundEven(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::roundEven(x); }, ExtGLSL450, GLSLstd450RoundEven);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Floor(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::floor(x); }, ExtGLSL450, GLSLstd450Floor);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Ceil(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::ceil(x); }, ExtGLSL450, GLSLstd450Ceil);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Frac(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::frac(x); }, ExtGLSL450, GLSLstd450Frac);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1, typename = std::enable_if_t<is_base_float<T>>>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Trunc(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::trunc(x); }, ExtGLSL450, GLSLstd450Trunc);
+	}
+
+	template <class T, bool Assemble, spv::StorageClass C1>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Sign(const var_t<T, Assemble, C1>& X)
+	{
+		return make_ext_op1(X, [](const T& x) -> T {return glm::sign(x); }, ExtGLSL450, GLSLstd450FSign, GLSLstd450SSign);
+	}
+
 	template <class T, bool Assemble, spv::StorageClass C1>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Abs(const var_t<T, Assemble, C1>& X)
 	{
@@ -1300,6 +1342,36 @@ namespace Tracy
 			return make_const<Assemble>(SPIRVType::FromType<T>().GetSize());
 		}
 	}
+
+	//---------------------------------------------------------------------------------------------------
+	// Modulo
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> Mod(const var_t<T, Assemble, C1>& X, const var_t<T, Assemble, C2>& Y)
+	{
+		constexpr uint32_t Dim = Dimension<T>;
+		using FloatType = vec_type_t<float, Dim>;
+
+		if constexpr (is_base_float<T>)
+		{
+			return X - Y * Floor(X / Y);
+		}
+		else
+		{
+			auto x = spv_cast<FloatType>(X);
+			auto y = spv_cast<FloatType>(Y);
+
+			return spv_cast<T>(x - x * Floor(x / y));
+		}
+	}
+
+	//---------------------------------------------------------------------------------------------------
+	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
+	inline var_t<T, Assemble, spv::StorageClassFunction> operator%(const var_t<T, Assemble, C1>& l, const var_t<T, Assemble, C2>& r)
+	{
+		return Mod(l, r);
+	}
+	//---------------------------------------------------------------------------------------------------
+
 
 }; //!Tracy
 

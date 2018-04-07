@@ -119,12 +119,19 @@ namespace Tracy
 	{
 		_Other.Load();
 
-		const spv::Op kType = GetConvertOp<V, U>();
-		HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
-		const uint32_t uTypeId = GlobalAssembler.AddType(SPIRVType::FromType<U>()); // target type
-		const SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
+		if constexpr(std::is_same_v<U, V>)
+		{
+			return _Other.uResultId;
+		}
+		else
+		{
+			const spv::Op kType = GetConvertOp<V, U>();
+			HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
+			const uint32_t uTypeId = GlobalAssembler.AddType(SPIRVType::FromType<U>()); // target type
+			const SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
 
-		return GlobalAssembler.AddOperation(Op);
+			return GlobalAssembler.AddOperation(Op);
+		}
 	}
 
 	//---------------------------------------------------------------------------------------------------
