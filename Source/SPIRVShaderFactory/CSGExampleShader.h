@@ -29,8 +29,6 @@ namespace Tracy
 			auto plane = PlaneSDF<Assemble>::Make(glm::normalize(float3_t(1.f, 0.25f, 0.25f)));
 			auto cross = csg(CrossSDF<Assemble>::Make() * 0.1f) /** vRot*/;
 
-			auto menger = cube / cross;
-
 			// translation
 			auto csgobj1 = sphere + float3_t(0.5f, 0.f, 0.f);
 			// scale & rotation
@@ -39,10 +37,15 @@ namespace Tracy
 			// linear blending
 			auto intersec = Blend(csgobj1, csgobj2, 0.5f);			
 
-			auto rep = sphere % float3_t(0.5f, 0.5f, 0.5f);
+			auto menger1 = cube / (cross % float3_t(0.5f, 0.5f, 0.5f));
+			auto menger2 = menger1 / (cross % float3_t(1.f, 1.f, 1.f));
+			auto menger3 = menger2 / (cross % float3_t(2.f, 2.f, 2.f));
+			auto menger = menger3;
+
+			auto rep = cross % float3_t(0.5f, 0.5f, 0.5f);
 
 			//auto background = plane1 + float3_t(0.f, -1.f, 0.f);
-			CSGScene<Assemble> scene({ rep/*, background*/ });
+			CSGScene<Assemble> scene({ menger * vRot/*, background*/ });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };
