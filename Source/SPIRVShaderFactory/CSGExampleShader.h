@@ -24,18 +24,23 @@ namespace Tracy
 		{
 			quaternion vRot({ 1.f, 0.5f, 0.f }, 0.3f);
 
-			auto sphere1 = SphereSDF<Assemble>::Make(0.5f);
-			auto cube1 = CubeSDF<Assemble>::Make();
-			auto plane1 = PlaneSDF<Assemble>::Make(glm::normalize(float3_t(1.f, 0.25f, 0.25f)));
-			auto cross1 = (CrossSDF<Assemble>::Make(1.2f) * 0.1f) * vRot;
+			auto sphere = SphereSDF<Assemble>::Make(0.5f);
+			auto cube = CubeSDF<Assemble>::Make();
+			auto plane = PlaneSDF<Assemble>::Make(glm::normalize(float3_t(1.f, 0.25f, 0.25f)));
+			auto cross = csg(CrossSDF<Assemble>::Make() * 0.1f) /** vRot*/;
 
-			auto csgobj1 = sphere1 + float3_t(0.5f, 0.f, 0.f);
+			auto menger = cube / cross;
 
-			auto csgobj2 = (0.25f * cube1) * vRot;
+			// translation
+			auto csgobj1 = sphere + float3_t(0.5f, 0.f, 0.f);
+			// scale & rotation
+			auto csgobj2 = (0.25f * cube) * vRot;
+
+			// linear blending
+			auto intersec = Blend(csgobj1, csgobj2, 0.5f);			
+
 			//auto background = plane1 + float3_t(0.f, -1.f, 0.f);
-			auto intersec = Blend(csgobj2, csgobj1, 0.5f);			
-
-			CSGScene<Assemble> scene({ cross1/*, background*/ });
+			CSGScene<Assemble> scene({ menger/*, background*/ });
 
 			float3 vCamPos = { 0.f, 0.f, 5.f };
 			float2 vViewport = { 1600.f, 900.f };

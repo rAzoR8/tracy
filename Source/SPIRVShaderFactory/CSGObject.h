@@ -36,6 +36,11 @@ namespace Tracy
 
 		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr);
 		CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr);
+
+		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight);
+		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight);
+		CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight);
+
 		virtual ~CSGObject() {};
 
 		// override to implement offset, rotation, scale
@@ -91,7 +96,6 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-
 	template<bool Assemble>
 	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pSource) :
 		m_pSource(_pSource), m_pLeft(nullptr), m_pRight(nullptr)
@@ -101,6 +105,27 @@ namespace Tracy
 	template<bool Assemble>
 	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) :
 		m_pSource(nullptr), m_pLeft(_pLeft), m_pRight(_pRight)
+	{
+		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
+	}
+
+	template<bool Assemble>
+	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight) :
+		m_pSource(nullptr), m_pLeft(std::make_shared<CSGObject<Assemble>>(_pLeft)), m_pRight(std::make_shared<CSGObject<Assemble>>(_pRight))
+	{
+		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
+	}
+
+	template<bool Assemble>
+	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) :
+		m_pSource(nullptr), m_pLeft(std::make_shared<CSGObject<Assemble>>(_pLeft)), m_pRight(_pRight)
+	{
+		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
+	}
+
+	template<bool Assemble>
+	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight) :
+		m_pSource(nullptr), m_pLeft(_pLeft), m_pRight(std::make_shared<CSGObject<Assemble>>(_pRight))
 	{
 		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
 	}
