@@ -34,10 +34,8 @@ namespace Tracy
 	public:
 		static constexpr bool AssembleParam = Assemble;
 
-		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pSource = nullptr);
+		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight = nullptr);
 		CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight = nullptr);
-
-		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight);
 		CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight);
 		CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight);
 
@@ -55,9 +53,11 @@ namespace Tracy
 		var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const;
 
 	private:
-		std::shared_ptr<SDFObject<Assemble>> m_pSource;
-		std::shared_ptr<CSGObject<Assemble>> m_pLeft;
-		std::shared_ptr<CSGObject<Assemble>> m_pRight;
+		std::shared_ptr<SDFObject<Assemble>> m_pLeftSDF{ nullptr };
+		std::shared_ptr<SDFObject<Assemble>> m_pRightSDF{ nullptr };
+
+		std::shared_ptr<CSGObject<Assemble>> m_pLeftCSG{ nullptr };
+		std::shared_ptr<CSGObject<Assemble>> m_pRightCSG{ nullptr };
 	};
 	//---------------------------------------------------------------------------------------------------
 
@@ -80,7 +80,6 @@ namespace Tracy
 	template<class T, bool Assemble>
 	constexpr bool derive_from_sdf_expl = std::is_base_of_v<SDFObject<Assemble>, T>;
 
-
 	template<class T, typename = std::enable_if_t<derive_from_obj<T>>>
 	inline TCSGObj<T::AssembleParam> csg(const std::shared_ptr<T>& _pSource)
 	{
@@ -97,37 +96,27 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble>
-	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pSource) :
-		m_pSource(_pSource), m_pLeft(nullptr), m_pRight(nullptr)
-	{
-	}
-
-	template<bool Assemble>
 	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) :
-		m_pSource(nullptr), m_pLeft(_pLeft), m_pRight(_pRight)
+		m_pLeftCSG(_pLeft), m_pRightCSG(_pRight)
 	{
-		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
 	}
 
 	template<bool Assemble>
 	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight) :
-		m_pSource(nullptr), m_pLeft(std::make_shared<CSGObject<Assemble>>(_pLeft)), m_pRight(std::make_shared<CSGObject<Assemble>>(_pRight))
+		m_pLeftSDF(_pLeft), m_pRightSDF(_pRight)
 	{
-		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
 	}
 
 	template<bool Assemble>
 	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<SDFObject<Assemble>>& _pLeft, const std::shared_ptr<CSGObject<Assemble>>& _pRight) :
-		m_pSource(nullptr), m_pLeft(std::make_shared<CSGObject<Assemble>>(_pLeft)), m_pRight(_pRight)
+		m_pLeftSDF(_pLeft), m_pRightCSG(_pRight)
 	{
-		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
 	}
 
 	template<bool Assemble>
 	inline CSGObject<Assemble>::CSGObject(const std::shared_ptr<CSGObject<Assemble>>& _pLeft, const std::shared_ptr<SDFObject<Assemble>>& _pRight) :
-		m_pSource(nullptr), m_pLeft(_pLeft), m_pRight(std::make_shared<CSGObject<Assemble>>(_pRight))
+		m_pLeftCSG(_pLeft), m_pRightSDF(_pRight)
 	{
-		HASSERT(m_pLeft != nullptr || m_pRight != nullptr, "At least one child object must be valid!");
 	}
 	//---------------------------------------------------------------------------------------------------
 
@@ -137,21 +126,37 @@ namespace Tracy
 	{
 		auto vPoint = PreEval(make_intermediate(_Point));
 
-		if (m_pLeft != nullptr && m_pRight != nullptr)
+		if (m_pLeftSDF != nullptr && m_pRightSDF != nullptr)
 		{
-			return PostEval(Construct(m_pLeft->Eval(vPoint), m_pRight->Eval(vPoint)));
+			return PostEval(Construct(m_pLeftSDF->Eval(vPoint), m_pRightSDF->Eval(vPoint)));
 		}
-		else if (m_pLeft != nullptr && m_pRight == nullptr)
+		else if (m_pLeftCSG != nullptr && m_pRightCSG != nullptr)
 		{
-			return PostEval(m_pLeft->Eval(vPoint)); // identity node
+			return PostEval(Construct(m_pLeftCSG->Eval(vPoint), m_pRightCSG->Eval(vPoint)));
 		}
-		else if (m_pLeft == nullptr && m_pRight != nullptr)
+		else if (m_pLeftCSG != nullptr && m_pRightSDF != nullptr)
 		{
-			return PostEval(m_pRight->Eval(vPoint)); // identity node
+			return PostEval(Construct(m_pLeftCSG->Eval(vPoint), m_pRightSDF->Eval(vPoint)));
 		}
-		else if (m_pSource != nullptr)
+		else if (m_pLeftSDF != nullptr && m_pRightCSG != nullptr)
 		{
-			return PostEval(m_pSource->Eval(vPoint)); // root / source node
+			return PostEval(Construct(m_pLeftSDF->Eval(vPoint), m_pRightCSG->Eval(vPoint)));
+		}
+		else if (m_pLeftSDF != nullptr)
+		{
+			return PostEval(m_pLeftSDF->Eval(vPoint));
+		}
+		else if (m_pRightSDF != nullptr)
+		{
+			return PostEval(m_pRightSDF->Eval(vPoint));
+		}
+		else if (m_pLeftCSG != nullptr)
+		{
+			return PostEval(m_pLeftCSG->Eval(vPoint));
+		}
+		else if (m_pRightCSG != nullptr)
+		{
+			return PostEval(m_pRightCSG->Eval(vPoint));
 		}
 		else
 		{
