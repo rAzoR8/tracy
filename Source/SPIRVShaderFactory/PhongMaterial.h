@@ -9,7 +9,7 @@ namespace Tracy
 {
 	//---------------------------------------------------------------------------------------------------
 
-	// standard branchless phong illumination
+	// standard branchless phong illumination for point light source
 	template <
 		bool Assemble,
 		spv::StorageClass C1,
@@ -20,7 +20,7 @@ namespace Tracy
 		spv::StorageClass C6,
 		spv::StorageClass C7,
 		spv::StorageClass C8>
-	inline var_t<float3_t, Assemble, spv::StorageClassFunction> PhongIllumination(
+	inline var_t<float3_t, Assemble, spv::StorageClassFunction> PhongIlluminationPoint(
 			const var_t<float3_t, Assemble, C1>& _vPos, // Surface point being lit
 			const var_t<float3_t, Assemble, C2>& _vNormal, // Surface normal
 			const var_t<float3_t, Assemble, C3>& _vCameraPos,
@@ -41,6 +41,37 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
+	// standard branchless phong illumination for directional light source
+	template <
+		bool Assemble,
+		spv::StorageClass C1,
+		spv::StorageClass C2,
+		spv::StorageClass C3,
+		spv::StorageClass C4,
+		spv::StorageClass C5,
+		spv::StorageClass C6,
+		spv::StorageClass C7,
+		spv::StorageClass C8>
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> PhongIlluminationDir(
+			const var_t<float3_t, Assemble, C1>& _vPos, // Surface point being lit
+			const var_t<float3_t, Assemble, C2>& _vNormal, // Surface normal
+			const var_t<float3_t, Assemble, C3>& _vCameraPos,
+			const var_t<float3_t, Assemble, C4>& _vDiffuseColor,
+			const var_t<float3_t, Assemble, C5>& _vSpecularColor,
+			const var_t<float, Assemble, C6>& _Alpha, // Shininess factor
+			const var_t<float3_t, Assemble, C7>& _vLightDir, // source to surface
+			const var_t<float3_t, Assemble, C8>& _vLightColor)// intensity	 
+	{
+		auto V = Normalize(_vCameraPos - _vPos);
+		auto R = Normalize(Reflect(_vLightDir, _vNormal));
+
+		return _vLightColor *
+			(_vDiffuseColor * Saturate(Dot(_vNormal, -_vLightDir))
+				+ _vSpecularColor * Pow(Saturate(Dot(R, V)), _Alpha));
+	}
+
+	//---------------------------------------------------------------------------------------------------
+
 	template <bool Assemble>
 	struct PhongMaterial : public IMaterialInterface<Assemble>
 	{
@@ -53,8 +84,18 @@ namespace Tracy
 			const PointLight<Assemble>& _Light) const final
 		{
 			return vAmbientColor +
-				PhongIllumination(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vPosition, _Light.vColorIntensity) *
+				PhongIlluminationPoint(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vPosition, _Light.vColorIntensity) *
 				CalculateAttenuation(Length(_Light.vPosition - _vPos), _Light.fRange, _Light.fDecayStart);
+		}
+
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(
+			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, // surface point lit
+			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal,
+			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos,
+			const DirectionalLight<Assemble>& _Light) const final
+		{
+			return vAmbientColor +
+				PhongIlluminationDir(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vDirection, _Light.vColorIntensity);
 		}
 
 		PhongMaterial(
@@ -73,6 +114,9 @@ namespace Tracy
 		var_t<float, Assemble, spv::StorageClassFunction> PSPAD2;
 		var_t<float3_t, Assemble, spv::StorageClassFunction> vSpecularColor;
 		var_t<float, Assemble, spv::StorageClassFunction> fShininess;
+
+		template <class ...Ts>
+		static inline std::shared_ptr<PhongMaterial> Make(const Ts& ... args) { return std::make_shared<PhongMaterial>(args...); }
 	};
 
 	//---------------------------------------------------------------------------------------------------

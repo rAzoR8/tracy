@@ -2,6 +2,7 @@
 #define TRACY_CSGOBJECT_H
 
 #include "SDFObject.h"
+#include "MaterialInterface.h"
 
 namespace Tracy
 {
@@ -52,7 +53,11 @@ namespace Tracy
 		template <spv::StorageClass C1, spv::StorageClass C2>
 		var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const;
 
+		void SetMaterial(const std::shared_ptr<IMaterialInterface<Assemble>>& _pMaterial) { m_pMaterial = _pMaterial; }
+		const std::shared_ptr<IMaterialInterface<Assemble>>& GetMaterial() const { return m_pMaterial; }
+
 	private:
+		std::shared_ptr<IMaterialInterface<Assemble>> m_pMaterial{ nullptr };
 		std::shared_ptr<SDFObject<Assemble>> m_pLeftSDF{ nullptr };
 		std::shared_ptr<SDFObject<Assemble>> m_pRightSDF{ nullptr };
 
@@ -533,6 +538,8 @@ namespace Tracy
 		{
 			return ForwardDiffNormal(_Point, _Epsilon, [&](const auto& v) {return this->Eval(v); })
 		}
+
+		const std::vector<std::shared_ptr<CSGObject<Assemble>>>& GetObjects() const { return m_Objects; }
 
 	private:
 		std::vector<std::shared_ptr<CSGObject<Assemble>>> m_Objects;

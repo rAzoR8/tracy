@@ -69,7 +69,7 @@ namespace Tracy
 	
 	//---------------------------------------------------------------------------------------------------
 
-	// branchless
+	// single material
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, class TEvalFunc>
 	inline var_t<float3_t, Assemble, spv::StorageClassFunction> RayMarchDistanceFunction(
 		const TEvalFunc& _DistFunc,
@@ -111,7 +111,45 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
+	// Material per CSG object
+	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2/*, spv::StorageClass C3*/>
+	inline var_t<float3_t, Assemble, spv::StorageClassFunction> RayMarchCSGSceneEx(
+		const CSGScene<Assemble>& _Scene,
+		const var_t<float3_t, Assemble, C1>& _vRay,
+		const var_t<float3_t, Assemble, C2>& _vCameraPos,
+		const std::vector<TLightVariant<Assemble>> _Lights,
+		const float _fStartDepth = 0.f,
+		const float _fEndDepth = 100.f,
+		const float _fEpsilon = 0.0001f,
+		const uint32_t _uStepCount = 100u)
+	{
+		var_t<float3_t, Assemble, spv::StorageClassFunction> vColor = { 0.f, 0.f, 0.f };
 
+		for (const auto& pObj : _Scene.GetObjects())
+		{
+			const auto& pMaterial = pObj->GetMaterial();
+
+			if (pMaterial)
+			{
+				auto fDist = ShortestDistToSurface(*pObj, _vCameraPos, _vRay, _fStartDepth, _fEndDepth, _fEpsilon, _uStepCount);
+
+				auto vPos = _vCameraPos + _vRay * fDist;
+				auto vNormal = pObj->Normal(vPos, mcvar(_fEpsilon));
+
+				for (const auto Light : _Lights)
+				{
+					auto vObjColor = std::visit([&](auto&& arg) {return pMaterial->Eval(vPos, vNormal, _vCameraPos, arg); }, Light);
+					vColor += vObjColor;
+					//vColor += Select(fDist < _fEpsilon, vObjColor, mcvar(float3_t(0.f, 0.f, 0.f)));
+				}
+			}
+		}
+
+		return vColor;
+	}
+	//---------------------------------------------------------------------------------------------------
+
+	// simple pointlight monomaterial marching
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3, spv::StorageClass C4>
 	inline var_t<float3_t, Assemble, spv::StorageClassFunction> RayMarchCSGScene(
 		const CSGScene<Assemble>& _Scene,
