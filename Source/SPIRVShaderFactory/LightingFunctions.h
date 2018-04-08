@@ -27,11 +27,11 @@ namespace Tracy
 	inline var_t<float, Assemble, spv::StorageClassFunction> CalculateSpotCone(
 		const var_t<float, Assemble, C1>& _fSpotAngleRad,
 		const var_t<float3_t, Assemble, C2> _vSpotDirection,
-		const var_t<float3_t, Assemble, C3> _vL)
+		const var_t<float3_t, Assemble, C3> _vLightToSurfaceDir)
 	{
 		auto fMinCos = Cos(_fSpotAngleRad);
 		auto fMaxCos = (fMinCos + 1.0f) / 2.0f;
-		return SmoothStep(fMinCos, fMaxCos, Dot(_vSpotDirection, -_vL));
+		return SmoothStep(fMinCos, fMaxCos, Dot(_vSpotDirection, _vLightToSurfaceDir));
 	}
 	//---------------------------------------------------------------------------------------------------
 

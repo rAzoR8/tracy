@@ -77,6 +77,18 @@ namespace Tracy
 	{
 		SPVStruct;
 		
+		// directional light
+		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(
+			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, // surface point lit
+			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal,
+			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos,
+			const DirectionalLight<Assemble>& _Light) const final
+		{
+			return vAmbientColor +
+				PhongIlluminationDir(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vDirection, _Light.vColorIntensity);
+		}
+
+		// point light
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, // surface point lit
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal,
@@ -88,14 +100,17 @@ namespace Tracy
 				CalculateAttenuation(Length(_Light.vPosition - _vPos), _Light.fRange, _Light.fDecayStart);
 		}
 
+		// spot light
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Eval(
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, // surface point lit
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal,
 			const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos,
-			const DirectionalLight<Assemble>& _Light) const final
+			const SpotLight<Assemble>& _Light) const final
 		{
 			return vAmbientColor +
-				PhongIlluminationDir(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vDirection, _Light.vColorIntensity);
+				PhongIlluminationPoint(_vPos, _vNormal, _vCameraPos, vDiffuseColor, vSpecularColor, fShininess, _Light.vPosition, _Light.vColorIntensity)
+				* CalculateAttenuation(Length(_Light.vPosition - _vPos), _Light.fRange, _Light.fDecayStart)
+				* CalculateSpotCone(_Light.fSpotAngle, _Light.vDirection, Normalize(_vPos - _Light.vPosition));
 		}
 
 		PhongMaterial(
