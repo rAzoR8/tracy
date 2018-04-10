@@ -886,7 +886,7 @@ namespace Tracy
 	{
 		if constexpr(is_scalar<T>)
 		{
-			return make_op3(Condition, TrueVar, FalseVar, [](const bool& cond, const T& l, const T& r) -> T {cond ? l : r; }, kOpTypeBase_Result, spv::OpSelect);
+			return make_op3(Condition, TrueVar, FalseVar, [](const bool& cond, const T& l, const T& r) -> T {return cond ? l : r; }, kOpTypeBase_Result, spv::OpSelect);
 		}
 		else
 		{

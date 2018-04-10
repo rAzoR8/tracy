@@ -3,6 +3,7 @@
 
 #include "SDFObject.h"
 #include "MaterialInterface.h"
+#include "SPIRVQuaternion.h"
 
 namespace Tracy
 {
