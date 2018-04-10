@@ -537,7 +537,7 @@ namespace Tracy
 		template <spv::StorageClass C1, spv::StorageClass C2>
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> Normal(const var_t<float3_t, Assemble, C1>& _Point, const var_t<float, Assemble, C2>& _Epsilon) const
 		{
-			return ForwardDiffNormal(_Point, _Epsilon, [&](const auto& v) {return this->Eval(v); })
+			return ForwardDiffNormal(_Point, _Epsilon, [&](const auto& v) {return this->Eval(v); });
 		}
 
 		const std::vector<std::shared_ptr<CSGObject<Assemble>>>& GetObjects() const { return m_Objects; }

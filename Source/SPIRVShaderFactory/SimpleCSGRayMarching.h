@@ -41,7 +41,7 @@ namespace Tracy
 
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
 	inline var_t<float, Assemble, spv::StorageClassFunction> ShortestDistToSurface(
-		const CSGObject<Assemble>& _Object,
+		const TCSGObj<Assemble>& _Object,
 		const var_t<float3_t, Assemble, C1>& _vEye, // view pos
 		const var_t<float3_t, Assemble, C2>& _vMarchDir, // ray dir
 		const float _fStartDepth = 0.f,
@@ -49,7 +49,7 @@ namespace Tracy
 		const float _fEpsilon = 0.0001f,
 		const uint32_t _uStepCount = 100u)
 	{
-		return ShortestDistToSurface([&](const var_t<float3_t, Assemble, C1>& e) {return _Object.Eval(e); }, _vEye, _vMarchDir, _fStartDepth, _fEndDepth, _fEpsilon, _uStepCount);
+		return ShortestDistToSurface([&](const var_t<float3_t, Assemble, C1>& e) {return _Object->Eval(e); }, _vEye, _vMarchDir, _fStartDepth, _fEndDepth, _fEpsilon, _uStepCount);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -86,6 +86,7 @@ namespace Tracy
 
 		auto vPos = _vCameraPos + _vRay * fDist;
 		auto vNormal = ForwardDiffNormal(vPos, mcvar(_fEpsilon), _DistFunc);
+		//auto vNormal = DeriveFragmentNormal(vPos);
 
 		auto vColor = make_const<Assemble>(float3_t(0.f, 0.f, 0.f));
 
@@ -125,22 +126,26 @@ namespace Tracy
 	{
 		var_t<float3_t, Assemble, spv::StorageClassFunction> vColor = { 0.f, 0.f, 0.f };
 
+		//auto fDist = ShortestDistToSurface([&](const var_t<float3_t, Assemble, C1>& e) {return _Scene.Eval(e); }, _vCameraPos, _vRay, _fStartDepth, _fEndDepth, _fEpsilon, _uStepCount);
+
+		//auto vPos = _vCameraPos + _vRay * fDist;
+		//auto vNormal = _Scene.Normal(vPos, mcvar(_fEpsilon));
+
 		for (const auto& pObj : _Scene.GetObjects())
 		{
 			const auto& pMaterial = pObj->GetMaterial();
 
 			if (pMaterial)
 			{
-				auto fDist = ShortestDistToSurface(*pObj, _vCameraPos, _vRay, _fStartDepth, _fEndDepth, _fEpsilon, _uStepCount);
+				auto fDist = ShortestDistToSurface(pObj, _vCameraPos, _vRay, _fStartDepth, _fEndDepth, _fEpsilon, _uStepCount);
 
 				auto vPos = _vCameraPos + _vRay * fDist;
 				auto vNormal = pObj->Normal(vPos, mcvar(_fEpsilon));
 
 				for (const auto Light : _Lights)
 				{
-					auto vObjColor = std::visit([&](auto&& arg) {return pMaterial->Eval(vPos, vNormal, _vCameraPos, arg); }, Light);
-					vColor += vObjColor;
-					//vColor += Select(fDist < _fEpsilon, vObjColor, mcvar(float3_t(0.f, 0.f, 0.f)));
+					vColor += std::visit([&](auto&& arg) {return pMaterial->Eval(vPos, vNormal, _vCameraPos, arg); }, Light);
+					//vColor += Select(fDist < _fEndDepth, vObjColor, mcvar(float3_t(0.f, 0.f, 0.f)));
 				}
 			}
 		}

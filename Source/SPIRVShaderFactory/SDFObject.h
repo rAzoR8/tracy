@@ -22,6 +22,12 @@ namespace Tracy
 		);
 	}
 
+	template<bool Assemble, spv::StorageClass C1>
+	inline var_t<float3_t, Assemble, spv::StorageClassFunction> DeriveFragmentNormal(const var_t<float3_t, Assemble, C1>& _PixelViewPos)
+	{
+		return Cross(Normalize(Ddx(_PixelViewPos)), Normalize(Ddy(_PixelViewPos)));
+	}
+
 	//---------------------------------------------------------------------------------------------------
 
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2>
