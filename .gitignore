@@ -13,3 +13,4 @@ Source/SPIRVShaderFactory/x64/
 *.orig
 Source/SPIRVOpt/x64/
 Source/spirvtools/x64/
+Source/spirvtools/
