@@ -188,6 +188,22 @@ namespace Tracy
 		kOpTypeBase_Operand3
 	};
 
+	enum LSType : uint32_t
+	{
+		kLSType_Load = 0u,
+		kLSType_Store = 1u,
+		//kLSType_Intermediate = 2,
+	};
+
+	// load store info
+	struct LSInfo
+	{
+		LSType kType = kLSType_Load;
+		uint32_t uResultId = HUNDEFINED32;
+		uint32_t uScopeLevel = HUNDEFINED32;
+		uint32_t uScopeId = HUNDEFINED32;
+	};
+
 	struct ComponentInfo
 	{
 		uint32_t uComponentId = HUNDEFINED32;
@@ -216,6 +232,8 @@ namespace Tracy
 		inline const var_decoration& operator=(const T& _Other) const { return *this; }
 		inline void Store() const noexcept {};
 		inline uint32_t Load() const noexcept { return HUNDEFINED32; };
+		inline uint32_t GetLastStore() const noexcept { return HUNDEFINED32; };
+
 		inline void Decorate(const SPIRVDecoration& _Decoration) noexcept {};
 		inline void SetBinding(const uint32_t _uBinding, const uint32_t uDescriptorSet) noexcept {}
 		inline void SetLocation(const uint32_t _uLocation) noexcept {}
@@ -230,7 +248,6 @@ namespace Tracy
 	{
 		mutable uint32_t uVarId = HUNDEFINED32; // result id OpVar or OpAccessChain
 		mutable uint32_t uResultId = HUNDEFINED32; // result of arithmetic instructions or OpLoad
-		mutable uint32_t uLastStoredId = HUNDEFINED32;
 		mutable uint32_t uBaseId = HUNDEFINED32; // base VarId from parent structure
 		mutable uint32_t uBaseTypeId = HUNDEFINED32; // type of base parent sturcture
 		spv::StorageClass kStorageClass = spv::StorageClassMax;
@@ -248,6 +265,8 @@ namespace Tracy
 		bool bInstanceData = false; // only valid for StorageClassInput in vertex stage
 		bool bBuiltIn = false; //only valid for StorageClassInput, used for VertexIndex and other system values
 		mutable bool bMaterializedName = false;
+
+		mutable std::vector<LSInfo> MemAccess;
 
 		std::string sName; // user can set this to identify the variable stored in the module
 
@@ -267,6 +286,8 @@ namespace Tracy
 		void SetLocation(const uint32_t _uLocation);
 		void SetName(const std::string& _sName);
 		void CreateAccessChain() const;
+
+		uint32_t GetLastStore() const;
 
 		void Store() const;
 		uint32_t Load() const;
@@ -798,7 +819,7 @@ namespace Tracy
 				if (comp_it != ExtractedComponents.end())
 				{
 					const ComponentInfo& Comp = comp_it->second;
-					if (Comp.uLastStoredId == uLastStoredId)
+					if (Comp.uLastStoredId == GetLastStore())
 					{
 						var.uResultId = Comp.uComponentId;
 						return var;
@@ -849,7 +870,8 @@ namespace Tracy
 
 				// cache extracted component
 				ComponentInfo Comp{};
-				Comp.uLastStoredId = uLastStoredId;
+
+				Comp.uLastStoredId = GetLastStore();
 				Comp.uComponentId = var.uResultId;
 
 				ExtractedComponents.insert_or_assign(uComponentHash, Comp);

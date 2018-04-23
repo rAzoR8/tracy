@@ -50,10 +50,25 @@ void var_decoration<true>::MaterializeDecorations() const
 void var_decoration<true>::Store() const
 {
 	// store the lastest intermediate result
-	if (uVarId != HUNDEFINED32 &&
-		uResultId != HUNDEFINED32 &&
-		uResultId != uLastStoredId)
+	if (uVarId != HUNDEFINED32 && uResultId != HUNDEFINED32 &&
+		(kStorageClass != spv::StorageClassUniformConstant && 
+		kStorageClass != spv::StorageClassInput &&
+		kStorageClass != spv::StorageClassPushConstant))
 	{
+		const uint32_t uScopeLevel = GlobalAssembler.GetScopeLevel();
+		const uint32_t uScopeID = GlobalAssembler.GetScopeID();
+
+		// check if we can skip the store
+		for (auto it = MemAccess.rbegin(); it != MemAccess.rend(); ++it)
+		{
+			const LSInfo& LS(*it);
+			if ((LS.uResultId == uResultId && LS.kType == kLSType_Store) && // this result has been stored
+				(LS.uScopeId == uScopeID || LS.uScopeLevel <= uScopeLevel)) // in a preceding scope
+			{
+				return;
+			}
+		}
+
 		// create store
 		GlobalAssembler.AddOperation(SPIRVOperation(spv::OpStore,
 		{
@@ -61,7 +76,12 @@ void var_decoration<true>::Store() const
 			SPIRVOperand(kOperandType_Intermediate, uResultId) // source
 		}));
 
-		uLastStoredId = uResultId;
+		// save store info
+		LSInfo& LD = MemAccess.emplace_back();
+		LD.kType = kLSType_Store;
+		LD.uScopeId = uScopeID;
+		LD.uScopeLevel = uScopeLevel;
+		LD.uResultId = uResultId;
 
 		MaterializeDecorations();
 	}
@@ -95,8 +115,21 @@ uint32_t var_decoration<true>::Load() const
 	// instantiate variable decorations
 	MaterializeDecorations();
 
-	if (uResultId != HUNDEFINED32)
+	if (uResultId != HUNDEFINED32 && uVarId == HUNDEFINED32) // its an intermediate
 		return uResultId;
+
+	const uint32_t uScopeLevel = GlobalAssembler.GetScopeLevel();
+	const uint32_t uScopeID = GlobalAssembler.GetScopeID();
+
+	// search for last memory access in parent/same scope
+	for (auto it = MemAccess.rbegin(); it != MemAccess.rend(); ++it)
+	{
+		const LSInfo& LS(*it);
+		if (LS.uScopeId == uScopeID || LS.uScopeLevel <= uScopeLevel)
+		{
+			return LS.uResultId;
+		}
+	}
 
 	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");
 
@@ -110,19 +143,25 @@ uint32_t var_decoration<true>::Load() const
 		SPIRVOperand(kOperandType_Intermediate, uVarId)); // pointer
 
 	uResultId = GlobalAssembler.AddOperation(OpLoad);
-	uLastStoredId = uResultId;
+
+	LSInfo& LD = MemAccess.emplace_back();
+	LD.kType = kLSType_Load;
+	LD.uScopeId = uScopeID;
+	LD.uScopeLevel = uScopeLevel;
+	LD.uResultId = uResultId;
+
 	return uResultId;
 }
 //---------------------------------------------------------------------------------------------------
 var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 	uVarId(_Other.uVarId),
 	uResultId(_Other.uResultId),
-	uLastStoredId(_Other.uLastStoredId),
 	uBaseId(_Other.uBaseId),
 	kStorageClass(_Other.kStorageClass),
 	uTypeId(_Other.uTypeId),
 	AccessChain(_Other.AccessChain),
 	Type(_Other.Type),
+	MemAccess(_Other.MemAccess),
 	Decorations(_Other.Decorations)
 {
 	// TODO: copy descriptorset and others?
@@ -132,50 +171,19 @@ var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 var_decoration<true>::var_decoration(var_decoration<true>&& _Other) noexcept:
 	uVarId(_Other.uVarId),
 	uResultId(_Other.uResultId),
-	uLastStoredId(_Other.uLastStoredId),
 	uBaseId(_Other.uBaseId),
 	kStorageClass(_Other.kStorageClass),
 	uTypeId(_Other.uTypeId),
 	AccessChain(std::move(_Other.AccessChain)),
 	Type(std::move(_Other.Type)),
+	MemAccess(std::move(_Other.MemAccess)),
 	Decorations(std::move(_Other.Decorations))
 {
 	_Other.uVarId = HUNDEFINED32;
 	_Other.uResultId = HUNDEFINED32;
-	_Other.uLastStoredId = HUNDEFINED32;
 	_Other.uTypeId = HUNDEFINED32;
 	_Other.uBaseId = HUNDEFINED32;
 }
-//---------------------------------------------------------------------------------------------------
-
-//const var_decoration<true>& var_decoration<true>::operator=(var_decoration<true>&& _Other) const noexcept
-//{
-//	if (this == &_Other)
-//		return *this;
-//
-//	HASSERT(uTypeId != HUNDEFINED32 && uTypeId == _Other.uTypeId, "Type mismatch!");
-//
-//	_Other.Load();// load source
-//	if (uVarId != HUNDEFINED32) // this is a mem object (no intermediate)
-//	{
-//		uResultId = _Other.uResultId; // get result
-//		Store(); // store result
-//	}
-//	else // intermediate
-//	{
-//		uResultId = _Other.uResultId;
-//		uLastStoredId = _Other.uLastStoredId;
-//		uBaseId = _Other.uBaseId;
-//	}
-//
-//	_Other.uVarId = HUNDEFINED32;
-//	_Other.uResultId = HUNDEFINED32;
-//	_Other.uLastStoredId = HUNDEFINED32;
-//	_Other.uTypeId = HUNDEFINED32;
-//	_Other.uBaseId = HUNDEFINED32;
-//
-//	return *this;
-//}
 
 //---------------------------------------------------------------------------------------------------
 
@@ -197,7 +205,6 @@ const var_decoration<true>& var_decoration<true>::operator=(const var_decoration
 	else // intermediate
 	{
 		uResultId = _Other.uResultId;
-		uLastStoredId = _Other.uLastStoredId;
 		uBaseId = _Other.uBaseId;
 	}
 
@@ -236,3 +243,16 @@ void var_decoration<true>::SetName(const std::string& _sName)
 	sName = _sName;
 }
 //---------------------------------------------------------------------------------------------------
+uint32_t var_decoration<true>::GetLastStore() const
+{
+	for (auto it = MemAccess.rbegin(); it != MemAccess.rend(); ++it)
+	{
+		const LSInfo& LS(*it);
+		if (LS.kType == kLSType_Store)
+		{
+			return LS.uResultId;
+		}
+	}
+
+	return HUNDEFINED32;
+}

@@ -56,6 +56,8 @@ SPIRVModule SPIRVAssembler::Assemble()
 
 	m_Operations.clear();
 	m_uInstrId = 0u;
+	m_uScopeID = 0u;
+	m_uScopeLevel = 0u;
 	m_TypeIds.clear();
 	m_ConstantIds.clear();
 	m_Bindings.clear();
