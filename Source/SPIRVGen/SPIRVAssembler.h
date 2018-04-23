@@ -86,6 +86,12 @@ namespace Tracy
 		void RemoveUnusedOperations(const bool _bEnable = true) noexcept;
 		bool GetRemoveUnusedOperations() const noexcept;
 
+		void EnterScope();
+		void LeaveScope();
+
+		const uint32_t& GetScopeLevel() const;
+		const uint32_t& GetScopeID() const;
+
 		void ForceNextLoads(const bool _bForce = true) noexcept;
 		bool GetForceNextLoads() const noexcept;
 
@@ -148,6 +154,9 @@ namespace Tracy
 		std::vector<spv::Capability> m_Capabilities;
 		
 		std::vector<SPIRVInstruction> m_Instructions;
+
+		uint32_t m_uScopeLevel = 0;
+		uint32_t m_uScopeID = 0;
 
 		uint32_t m_uDefaultSet = HUNDEFINED32;
 
@@ -212,6 +221,27 @@ namespace Tracy
 	inline bool SPIRVAssembler::GetRemoveUnusedOperations() const noexcept
 	{
 		return m_bRemoveUnused;
+	}
+
+	inline void SPIRVAssembler::EnterScope()
+	{
+		++m_uScopeID;
+		++m_uScopeLevel;
+	}
+
+	inline void SPIRVAssembler::LeaveScope()
+	{
+		--m_uScopeLevel;
+	}
+
+	inline const uint32_t& SPIRVAssembler::GetScopeLevel() const
+	{
+		return m_uScopeLevel;
+	}
+
+	inline const uint32_t& SPIRVAssembler::GetScopeID() const
+	{
+		return m_uScopeID;
 	}
 
 	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce) noexcept

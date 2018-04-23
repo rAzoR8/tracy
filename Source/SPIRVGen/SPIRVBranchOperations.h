@@ -61,7 +61,9 @@ namespace Tracy
 			}
 
 			//GlobalAssembler.ForceNextLoads();
+			GlobalAssembler.EnterScope();
 			_Func();
+			GlobalAssembler.LeaveScope();
 			//GlobalAssembler.ForceNextLoads(false);
 
 			if constexpr(Assemble)
@@ -90,9 +92,9 @@ namespace Tracy
 	{
 		if constexpr (Assemble)
 		{
-			//GlobalAssembler.ForceNextLoads();
+			GlobalAssembler.EnterScope();
 			_Func();
-			//GlobalAssembler.ForceNextLoads(false);
+			GlobalAssembler.LeaveScope();
 
 			HASSERT(pThenBranch != nullptr && pSelectionMerge != nullptr, "Invalid branch node");
 			
@@ -157,19 +159,21 @@ namespace Tracy
 			const uint32_t uConditionLabelId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 			pOpBranch->AddIntermediate(uConditionLabelId);
 
-			//GlobalAssembler.ForceNextLoads();
-
 			// tranlate condition var
+			GlobalAssembler.EnterScope();
 			const auto& CondVar = _CondFunc();
+			GlobalAssembler.LeaveScope();
 
 			// branch conditional %cond %loopbody %exit
 			SPIRVOperation* pOpBranchCond = nullptr;
 			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranchConditional), &pOpBranchCond);
 			const uint32_t uLoopBodyId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranchCond->AddIntermediate(CondVar.uResultId);
+			pOpBranchCond->AddIntermediate(CondVar.Load());
 			pOpBranchCond->AddIntermediate(uLoopBodyId);
 
+			GlobalAssembler.EnterScope();
 			_LoopBody();
+			GlobalAssembler.LeaveScope();
 
 			// close block
 			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
@@ -236,26 +240,32 @@ namespace Tracy
 			const uint32_t uConditionLabelId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 			pOpBranch->AddIntermediate(uConditionLabelId);
 
-			GlobalAssembler.ForceNextLoads();
+			//GlobalAssembler.ForceNextLoads();
 
 			// tranlate condition var
+			GlobalAssembler.EnterScope();
 			const auto& CondVar = _CondFunc();
+			GlobalAssembler.LeaveScope();
 
 			// branch conditional %cond %loopbody %exit
 			SPIRVOperation* pOpBranchCond = nullptr;
 			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranchConditional), &pOpBranchCond);
 			const uint32_t uLoopBodyId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
-			pOpBranchCond->AddIntermediate(CondVar.uResultId);
+			pOpBranchCond->AddIntermediate(CondVar.Load());
 			pOpBranchCond->AddIntermediate(uLoopBodyId);
 
+			GlobalAssembler.EnterScope();
 			_LoopBody();
+			GlobalAssembler.LeaveScope();
 
 			// inrement branch label
 			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
 			const uint32_t uIncrementId = GlobalAssembler.AddOperation(SPIRVOperation(spv::OpLabel));
 			pOpBranch->AddIntermediate(uIncrementId);
 
+			GlobalAssembler.EnterScope();
 			_IncFunc();
+			GlobalAssembler.LeaveScope();
 
 			// exit branch label
 			GlobalAssembler.AddOperation(SPIRVOperation(spv::OpBranch), &pOpBranch);
@@ -268,7 +278,7 @@ namespace Tracy
 
 			pOpBranchCond->AddIntermediate(uExitId); // structured merge
 
-			GlobalAssembler.ForceNextLoads(false);
+			//GlobalAssembler.ForceNextLoads(false);
 		}
 	}
 	//---------------------------------------------------------------------------------------------------
