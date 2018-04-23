@@ -7,21 +7,12 @@
 
 namespace Tracy
 {
-	enum EGraphicsAPI
-	{
-		kGraphicsAPI_Vulkan = 0,
-		kGraphicsAPI_D3D12,
-
-		kGraphicsAPI_NumOf,
-		kGraphicsAPI_Unknown = kGraphicsAPI_NumOf
-	};
-
 	class IApplication
 	{
 	public:
 		virtual ~IApplication() {}
 
-		bool InitAPI(const uint32_t _uWidth, const uint32_t _uHeight, const EGraphicsAPI _API, std::vector<DeviceInfo>& _OutDevices);
+		bool InitAPI(const uint32_t _uWidth, const uint32_t _uHeight, std::vector<DeviceInfo>& _OutDevices);
 
 		bool InitWindowAndRenderer(const RenderGraphDesc& _Desc, const THandle _hDevice);
 
@@ -48,14 +39,6 @@ namespace Tracy
 			static ApplicationInfo Info;
 			return Info;
 		}
-
-		inline const EGraphicsAPI GetGfxAPI() const { return m_kGfxAPI; }
-
-	private:
-		inline void SetGfxAPI(const EGraphicsAPI _kAPI) { m_kGfxAPI = _kAPI; }
-
-	private:
-		EGraphicsAPI m_kGfxAPI = kGraphicsAPI_Unknown;
 	};
 }
 

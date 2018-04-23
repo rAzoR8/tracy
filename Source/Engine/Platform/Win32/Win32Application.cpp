@@ -1,6 +1,5 @@
 #include "Win32Application.h"
 #include "Display/Vulkan/VulkanInstance.h"
-#include "Display/DX12/DX12Instance.h"
 #include "Logger.h"
 
 using namespace Tracy;
@@ -67,14 +66,8 @@ bool Win32Application::OnInitAPI(const uint32_t _uWidth, const uint32_t _uHeight
 
 bool Win32Application::OnInitWindow(const THandle _hDevice, THandle& _hWnd)
 {
-	switch (ApplicationInfo::Instance().GetGfxAPI())
-	{
-	case kGraphicsAPI_Vulkan:
-		_hWnd = m_hVkWindow = VulkanInstance::GetInstance().MakeWindow(_hDevice, m_uWidth, m_uHeight, m_hWnd, m_hInstance);
-		return m_hVkWindow != kUndefinedSizeT;
-	default:
-		return false;
-	}
+	_hWnd = m_hVkWindow = VulkanInstance::GetInstance().MakeWindow(_hDevice, m_uWidth, m_uHeight, m_hWnd, m_hInstance);
+	return m_hVkWindow != kUndefinedSizeT;
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -143,7 +136,7 @@ int Win32Application::Run()
 		}
 		else
 		{
-			// Run game
+			// execute
 			if (m_pRenderer)
 			{
 				m_pRenderer->RenderFrame();

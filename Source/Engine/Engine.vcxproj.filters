@@ -7,9 +7,6 @@
     <Filter Include="Platform">
       <UniqueIdentifier>{b68b3389-0be0-40fe-86fd-5dac7e55a721}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Display\DX12">
-      <UniqueIdentifier>{043e1504-f539-4b50-9cb3-6a6381d7a32f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Display\Vulkan">
       <UniqueIdentifier>{796011bc-ac13-4f44-bf0e-21b7fb1e3a17}</UniqueIdentifier>
     </Filter>
@@ -41,15 +38,6 @@
   <ItemGroup>
     <ClInclude Include="Display\IGraphicsInstance.h">
       <Filter>Display</Filter>
-    </ClInclude>
-    <ClInclude Include="Display\DX12\DX12API.h">
-      <Filter>Display\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="Display\DX12\DX12Device.h">
-      <Filter>Display\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="Display\DX12\DX12Instance.h">
-      <Filter>Display\DX12</Filter>
     </ClInclude>
     <ClInclude Include="Display\Vulkan\VulkanAPI.h">
       <Filter>Display\Vulkan</Filter>
@@ -217,12 +205,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Display\DX12\DX12Device.cpp">
-      <Filter>Display\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="Display\DX12\DX12Instance.cpp">
-      <Filter>Display\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp">
       <Filter>Display\Vulkan</Filter>
     </ClCompile>

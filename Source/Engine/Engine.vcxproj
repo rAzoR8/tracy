@@ -111,9 +111,6 @@
     <ClInclude Include="Datastructures\SmallObjectPool.h" />
     <ClInclude Include="Display\DeviceInfo.h" />
     <ClInclude Include="Display\DisplayTypes.h" />
-    <ClInclude Include="Display\DX12\DX12API.h" />
-    <ClInclude Include="Display\DX12\DX12Device.h" />
-    <ClInclude Include="Display\DX12\DX12Instance.h" />
     <ClInclude Include="Display\GPUBuffer.h" />
     <ClInclude Include="Display\IDevice.h" />
     <ClInclude Include="Display\IGraphicsInstance.h" />
@@ -164,8 +161,6 @@
     <ClCompile Include="Datastructures\BinaryKeyValueBufferSource.cpp" />
     <ClCompile Include="Datastructures\BinaryKeyValueStore.cpp" />
     <ClCompile Include="Datastructures\BufferSource.cpp" />
-    <ClCompile Include="Display\DX12\DX12Device.cpp" />
-    <ClCompile Include="Display\DX12\DX12Instance.cpp" />
     <ClCompile Include="Display\GPUBuffer.cpp" />
     <ClCompile Include="Display\IDevice.cpp" />
     <ClCompile Include="Display\ImageSource.cpp" />

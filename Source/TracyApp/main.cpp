@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	std::shared_ptr<Camera> pCamera = std::make_shared<Camera>();
 
 	std::vector<DeviceInfo> Devices;
-	if (App.InitAPI(1600u, 900u, kGraphicsAPI_Vulkan, Devices))
+	if (App.InitAPI(1600u, 900u, Devices))
 	{
 		if (App.InitWindowAndRenderer(Desc, Devices.front().hHandle))
 		{

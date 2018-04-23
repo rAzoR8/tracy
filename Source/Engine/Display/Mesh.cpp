@@ -1,7 +1,5 @@
 #include "Mesh.h"
 #include "Vulkan\VulkanMeshLoader.h"
-#include "Platform\IApplication.h"
-#include "Logger.h"
 
 using namespace Tracy;
 
@@ -28,18 +26,7 @@ bool Mesh::Load(const MeshDesc& _Desc, const THandle _hDevice)
 {
 	MeshDesc LoadedDesc;
 
-	bool bSuccess = false;
-	switch (ApplicationInfo::Instance().GetGfxAPI())
-	{
-	case kGraphicsAPI_Vulkan:
-		bSuccess = VulkanMeshLoader::Instance().Load(_Desc, LoadedDesc, m_VertexBuffer, m_IndexBuffer, _hDevice);
-		break;
-
-	case kGraphicsAPI_D3D12:
-	default:
-		HFATAL("MeshLoader not implemented for this API");
-		break;
-	}
+	bool bSuccess = VulkanMeshLoader::Instance().Load(_Desc, LoadedDesc, m_VertexBuffer, m_IndexBuffer, _hDevice);
 
 	if (bSuccess)
 	{

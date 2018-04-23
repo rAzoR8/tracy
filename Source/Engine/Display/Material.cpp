@@ -1,5 +1,4 @@
 #include "Material.h"
-#include "Platform\IApplication.h"
 #include "Vulkan\VulkanTextureLoader.h"
 
 using namespace Tracy;
@@ -37,17 +36,7 @@ bool Material::Load(const MaterialDesc& _Desc, const THandle _hDevice, const boo
 
 		for (const ImageDesc& Img : _Desc.Images)
 		{
-			switch (ApplicationInfo::Instance().GetGfxAPI())
-			{
-			case kGraphicsAPI_Vulkan:
-				Entry.Images.AddImage(VulkanTextureLoader::Instance().Load(Img, _hDevice), hlx::Hash(Img.sIdentifier));
-				break;
-			case kGraphicsAPI_D3D12:
-				// todo: use dx texture pool
-				break;
-			default:
-				break;
-			}
+			Entry.Images.AddImage(VulkanTextureLoader::Instance().Load(Img, _hDevice), hlx::Hash(Img.sIdentifier));
 		}
 
 		// finalize image source
