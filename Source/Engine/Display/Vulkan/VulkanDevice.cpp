@@ -503,7 +503,7 @@ vk::Queue VulkanDevice::GetQueue(const vk::QueueFlagBits _kFlags) const
 }
 //---------------------------------------------------------------------------------------------------
 
-bool VulkanDevice::MapWrite(const VulkanAllocation& _Allocation, const void* _pData, const uint32_t _uSize, const uint32_t _uOffset)
+bool VulkanDevice::MapWrite(const VulkanAllocation& _Allocation, const void* _pData, const vk::DeviceSize _uSize, const vk::DeviceSize _uOffset)
 {
 	if (_Allocation.uSize < _uOffset + _uSize)
 	{

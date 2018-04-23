@@ -131,7 +131,7 @@ namespace Tracy
 
 		vk::Queue GetQueue(const vk::QueueFlagBits _kFlags) const;
 
-		bool MapWrite(const VulkanAllocation& _Allocation, const void* _pData, const uint32_t _uSize, const uint32_t _uOffset = 0u);
+		bool MapWrite(const VulkanAllocation& _Allocation, const void* _pData, const vk::DeviceSize _uSize, const vk::DeviceSize _uOffset = 0u);
 		// TODO: async map Write
 
 	private:
