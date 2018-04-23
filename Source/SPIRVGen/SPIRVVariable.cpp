@@ -47,11 +47,8 @@ void var_decoration<true>::MaterializeDecorations() const
 	}
 }
 //---------------------------------------------------------------------------------------------------
-// TODO: pass bool if this is a assignment store
 void var_decoration<true>::Store() const
 {
-	// TODO: check with Assembler if assignment stores are enabled
-
 	// store the lastest intermediate result
 	if (uVarId != HUNDEFINED32 &&
 		uResultId != HUNDEFINED32 &&
@@ -89,7 +86,7 @@ void var_decoration<true>::CreateAccessChain() const
 }
 //---------------------------------------------------------------------------------------------------
 
-uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
+uint32_t var_decoration<true>::Load() const
 {
 	HASSERT(uTypeId != HUNDEFINED32, "Invalid TypeId");
 
@@ -98,9 +95,7 @@ uint32_t var_decoration<true>::Load(const bool _bForceLoad) const
 	// instantiate variable decorations
 	MaterializeDecorations();
 
-	const bool bForceLoad = (uVarId != HUNDEFINED32) && (_bForceLoad || GlobalAssembler.GetForceNextLoads());
-
-	if (uResultId != HUNDEFINED32 && bForceLoad == false)
+	if (uResultId != HUNDEFINED32)
 		return uResultId;
 
 	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");

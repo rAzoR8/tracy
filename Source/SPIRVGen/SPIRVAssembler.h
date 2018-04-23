@@ -92,9 +92,6 @@ namespace Tracy
 		const uint32_t& GetScopeLevel() const;
 		const uint32_t& GetScopeID() const;
 
-		void ForceNextLoads(const bool _bForce = true) noexcept;
-		bool GetForceNextLoads() const noexcept;
-
 		const uint32_t& GetDefaultSet() const noexcept;
 		const uint32_t GetCurrentBinding(const uint32_t _uSet);
 
@@ -168,8 +165,6 @@ namespace Tracy
 		uint32_t m_uCurrentSpecConstId = HUNDEFINED32;
 		uint32_t m_uCurrentInputAttachmentIndex = HUNDEFINED32;
 
-		bool m_bForceNextLoads = false;
-
 		// type instruction id
 		TIdMap m_TypeIds;
 		// constant instruction id
@@ -242,16 +237,6 @@ namespace Tracy
 	inline const uint32_t& SPIRVAssembler::GetScopeID() const
 	{
 		return m_uScopeID;
-	}
-
-	inline void SPIRVAssembler::ForceNextLoads(const bool _bForce) noexcept
-	{
-		m_bForceNextLoads = _bForce;
-	}
-
-	inline bool SPIRVAssembler::GetForceNextLoads() const noexcept
-	{
-		return m_bForceNextLoads;
 	}
 
 	inline const uint32_t& SPIRVAssembler::GetDefaultSet() const noexcept

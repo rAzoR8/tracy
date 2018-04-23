@@ -269,7 +269,7 @@ namespace Tracy
 		void CreateAccessChain() const;
 
 		void Store() const;
-		uint32_t Load(const bool _bForceLoad = false) const;
+		uint32_t Load() const;
 		
 		var_decoration(const spv::StorageClass _kStorageClass) : kStorageClass(_kStorageClass) {};
 		var_decoration(const var_decoration<true>& _Other);
