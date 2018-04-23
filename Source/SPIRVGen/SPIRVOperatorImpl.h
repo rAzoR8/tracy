@@ -1258,7 +1258,14 @@ namespace Tracy
 	template <class T, bool Assemble, spv::StorageClass C1, spv::StorageClass C2, typename = std::enable_if_t<is_base_float<T>>>
 	inline var_t<T, Assemble, spv::StorageClassFunction> Step(const var_t<T, Assemble, C1>& Edge, const var_t<T, Assemble, C2>& X)
 	{
-		return make_ext_op2(Edge, X, [](const T& e, const T& x) -> T {return glm::step(e, x); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Step);
+		if constexpr (is_float_type<T>)// scalar, glm included in VulkanSDK does not have lessThan for non vector types (glm version from repo worked)		
+		{
+			return make_ext_op2(Edge, X, [](const T& e, const T& x) -> T {return glm::mix(static_cast<T>(1), static_cast<T>(0), x < e); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Step);
+		}
+		else if constexpr(is_vector_float<T>)
+		{
+			return make_ext_op2(Edge, X, [](const T& e, const T& x) -> T {return glm::step(e, x); }, ExtGLSL450, kOpTypeBase_Result, GLSLstd450Step);		
+		}
 	}
 	//---------------------------------------------------------------------------------------------------
 	// SmoothStep 
