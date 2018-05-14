@@ -18,6 +18,22 @@ namespace Tracy
 		SPIRVOperand(const EOperandType _kType = kOperandType_Unknown, const uint32_t _uId = HUNDEFINED32) noexcept :
 			kType(_kType), uId(_uId) {};
 
+        SPIRVOperand(const SPIRVOperand& _Other) noexcept : kType(_Other.kType), uId(_Other.uId) {}
+        SPIRVOperand(SPIRVOperand&& _Other) noexcept : kType(std::move(_Other.kType)), uId(std::move(_Other.uId)) {}
+
+        SPIRVOperand& operator=(const SPIRVOperand& _Other) noexcept
+        {
+            kType = _Other.kType;
+            uId = _Other.uId;
+            return *this;
+        }
+
+        SPIRVOperand& operator=(SPIRVOperand&& _Other) noexcept
+        {
+            kType = std::move(_Other.kType);
+            uId = std::move(_Other.uId);
+            return *this;
+        }
 
 		static SPIRVOperand Intermediate(const uint32_t _uId) noexcept {return SPIRVOperand(kOperandType_Intermediate, _uId);	}
 		static SPIRVOperand Literal(const uint32_t _uLiteral1) noexcept { return SPIRVOperand(kOperandType_Literal, _uLiteral1); }
