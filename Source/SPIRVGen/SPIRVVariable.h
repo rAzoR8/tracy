@@ -411,7 +411,7 @@ namespace Tracy
 
 				OpAccessChain.AddIntermediate(uIndexId);
 
-				var.uVarId = GlobalAssembler.AddOperation(OpAccessChain);
+				var.uVarId = GlobalAssembler.AddOperation(std::move(OpAccessChain));
 			}
 			else
 			{
@@ -486,9 +486,8 @@ namespace Tracy
 				// TODO: check for some operations like OpImageSampleProjExplicitLod ImageOperands are mandatory so _ImageOperands... must not be empty
 
 				// OpImageSampleImplicitLod uReturnTypeId uOpSampledImageId uCoordId
-				SPIRVOperation OpSampleImage(_kSampleOp, uReturnTypeId, SampleOperands);
+				const uint32_t uSampleResultId = GlobalAssembler.EmplaceOperation(_kSampleOp, uReturnTypeId, std::move(SampleOperands));
 
-				const uint32_t uSampleResultId = GlobalAssembler.AddOperation(OpSampleImage);
 				if (std::is_same_v<SampleType, ReturnType> == false && _uDRefOrCompId == HUNDEFINED32)
 				{
 					// TODO: use vector access instead
@@ -503,23 +502,27 @@ namespace Tracy
 
 						for (uint32_t n = 0u; n < Dimension<ReturnType>; ++n)
 						{
-							SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uSampleResultId)); // var id to extract from
-							OpExtract.AddLiteral(n); // extraction index
-
-							uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
-							OpConstruct.AddIntermediate(uId);
+							OpConstruct.AddIntermediate(
+                                GlobalAssembler.EmplaceOperation(
+                                spv::OpCompositeExtract,
+                                uElemTypeId,
+                                SPIRVOperand(kOperandType_Intermediate, uSampleResultId), // var id to extract from
+                                SPIRVOperand(kOperandType_Literal, n) // extraction index
+                                )
+                            );
 						}
 
 						// composite constructs treated as intermediates as they cant be loaded
-						var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+						var.uResultId = GlobalAssembler.AddOperation(std::move(OpConstruct));
 					}
 					else
 					{
-						SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId); 
-						OpExtract.AddIntermediate(uSampleResultId); // var id to extract from
-						OpExtract.AddLiteral(0u); // extraction index
-
-						var.uResultId = GlobalAssembler.AddOperation(OpExtract);
+						var.uResultId = GlobalAssembler.EmplaceOperation(
+                            spv::OpCompositeExtract,
+                            uElemTypeId,
+                            SPIRVOperand::Intermediate(uSampleResultId), // var id to extract from
+                            SPIRVOperand::Literal(0u) // extraction index
+                        );
 					}
 
 					// TODO: store Extracted ids
@@ -657,9 +660,7 @@ namespace Tracy
 					kSizeOp = spv::OpImageQuerySize;
 				}
 
-				SPIRVOperation OpImageQuerySize(kSizeOp, var.uTypeId, Operands);
-
-				var.uResultId = GlobalAssembler.AddOperation(OpImageQuerySize);
+				var.uResultId = GlobalAssembler.EmplaceOperation(kSizeOp, var.uTypeId, std::move(Operands));
 			}
 			else
 			{
