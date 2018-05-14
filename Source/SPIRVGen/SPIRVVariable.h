@@ -312,7 +312,6 @@ namespace Tracy
 		typedef T ValueType;
 		typedef base_type_t<T> BaseType;
 		typedef var_t<T, Assemble, Class> VarType;
-		//typedef std::conditional_t<is_array<ValueType>, var_t<array_element_t<ValueType>, Assemble, spv::StorageClassFunction>, var_t<ValueType, Assemble, spv::StorageClassFunction>> VarElementType;
 
 		static constexpr bool AssembleMode = Assemble;
 		static constexpr spv::StorageClass StorageClass = Class;
@@ -1263,7 +1262,6 @@ namespace Tracy
 	template <typename T, bool Assemble = true>
 	struct var_push_const_t : public var_t<T, Assemble, spv::StorageClassPushConstant>
 	{
-		using VarType::VarType;
 	};
 
 	//---------------------------------------------------------------------------------------------------

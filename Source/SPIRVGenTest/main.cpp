@@ -72,13 +72,13 @@ int main(int argc, char* argv[])
 {
 	//GenerateSwizzleHeader();
 
-	CSGExampleShader<false> prog;
-	prog.kFragCoord.xy = { 800.f, 450.f };
-	prog();
+	//CSGExampleShader<false> prog;
+	//prog.kFragCoord.xy = { 800.f, 450.f };
+	//prog();
 
-	auto col = prog.OutputColor.Value;
+	//auto col = prog.OutputColor.Value;
 
-	return 0;
+	//return 0;
 
 	//GlobalAssembler.AssembleSimple<ExampleProg<true>>().Save("test.spv");
 	//system("spirv-dis test.spv");
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		if (true) // word count teste
+		if (false) // word count teste
 		{
 			hlx::Logger::Instance()->WriteToStream(&std::wcout);
 
