@@ -1,9 +1,6 @@
 [submodule "Source/hlx"]
 	path = Source/hlx
-url=https://coding-corner.com/helix/hlx.git
+    url=https://coding-corner.com/helix/hlx.git
 [submodule "Source/boost"]
 	path = Source/boost
 	url = https://github.com/boostorg/boost.git
-[submodule "Source/SPIRVOpt/spirv-tools"]
-	path = Source/SPIRVOpt/spirv-tools
-	url = https://github.com/rAzoR8/SPIRV-Tools.git
