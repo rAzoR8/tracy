@@ -7,6 +7,9 @@
 #include "SPIRVAssembler.h"
 #include "HashUtils.h"
 
+// enable old var load/store behaviour for now
+#define HDIRECT_MEMACCESS
+
 namespace Tracy
 {
 	// get value of var_t<> based on type
@@ -266,7 +269,13 @@ namespace Tracy
 		bool bBuiltIn = false; //only valid for StorageClassInput, used for VertexIndex and other system values
 		mutable bool bMaterializedName = false;
 
-		mutable std::vector<LSInfo> MemAccess;
+
+
+#ifdef HDIRECT_MEMACCESS
+        mutable uint32_t uLastStoreId = HUNDEFINED32;
+#else
+        mutable std::vector<LSInfo> MemAccess;
+#endif
 
 		std::string sName; // user can set this to identify the variable stored in the module
 

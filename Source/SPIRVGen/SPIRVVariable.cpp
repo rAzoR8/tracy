@@ -50,11 +50,18 @@ void var_decoration<true>::MaterializeDecorations() const
 void var_decoration<true>::Store() const
 {
 	// store the lastest intermediate result
-	if (uVarId != HUNDEFINED32 && uResultId != HUNDEFINED32 &&
-		(kStorageClass != spv::StorageClassUniformConstant && 
-		kStorageClass != spv::StorageClassInput &&
-		kStorageClass != spv::StorageClassPushConstant))
-	{
+#ifdef HDIRECT_MEMACCESS
+	if (uVarId != HUNDEFINED32 &&
+        uResultId != HUNDEFINED32 &&
+		uResultId != uLastStoreId)
+    {
+        uLastStoreId = uResultId;
+#else
+    if (uVarId != HUNDEFINED32 && uResultId != HUNDEFINED32 &&
+        (kStorageClass != spv::StorageClassUniformConstant &&
+            kStorageClass != spv::StorageClassInput &&
+            kStorageClass != spv::StorageClassPushConstant))
+    {
 		const uint32_t uScopeLevel = GlobalAssembler.GetScopeLevel();
 		const uint32_t uScopeID = GlobalAssembler.GetScopeID();
 
@@ -69,19 +76,20 @@ void var_decoration<true>::Store() const
 			}
 		}
 
+        // save store info
+        LSInfo& LD = MemAccess.emplace_back();
+        LD.kType = kLSType_Store;
+        LD.uScopeId = uScopeID;
+        LD.uScopeLevel = uScopeLevel;
+        LD.uResultId = uResultId;
+#endif
+
 		// create store
 		GlobalAssembler.AddOperation(SPIRVOperation(spv::OpStore,
 		{
 			SPIRVOperand(kOperandType_Intermediate, uVarId), // destination
 			SPIRVOperand(kOperandType_Intermediate, uResultId) // source
 		}));
-
-		// save store info
-		LSInfo& LD = MemAccess.emplace_back();
-		LD.kType = kLSType_Store;
-		LD.uScopeId = uScopeID;
-		LD.uScopeLevel = uScopeLevel;
-		LD.uResultId = uResultId;
 
 		MaterializeDecorations();
 	}
@@ -115,6 +123,10 @@ uint32_t var_decoration<true>::Load() const
 	// instantiate variable decorations
 	MaterializeDecorations();
 
+#ifdef HDIRECT_MEMACCESS
+    if (uResultId != HUNDEFINED32) // its an intermediate
+        return uResultId;
+#else
 	if (uResultId != HUNDEFINED32 && uVarId == HUNDEFINED32) // its an intermediate
 		return uResultId;
 
@@ -130,6 +142,7 @@ uint32_t var_decoration<true>::Load() const
 			return LS.uResultId;
 		}
 	}
+#endif
 
 	HASSERT(uVarId != HUNDEFINED32, "Invalid variable id");
 
@@ -144,11 +157,15 @@ uint32_t var_decoration<true>::Load() const
 
 	uResultId = GlobalAssembler.AddOperation(OpLoad);
 
+#ifdef HDIRECT_MEMACCESS
+    uLastStoreId = uResultId;
+#else
 	LSInfo& LD = MemAccess.emplace_back();
 	LD.kType = kLSType_Load;
 	LD.uScopeId = uScopeID;
 	LD.uScopeLevel = uScopeLevel;
 	LD.uResultId = uResultId;
+#endif
 
 	return uResultId;
 }
@@ -161,7 +178,9 @@ var_decoration<true>::var_decoration(const var_decoration<true>& _Other) :
 	uTypeId(_Other.uTypeId),
 	AccessChain(_Other.AccessChain),
 	Type(_Other.Type),
+#ifndef HDIRECT_MEMACCESS
 	MemAccess(_Other.MemAccess),
+#endif
 	Decorations(_Other.Decorations)
 {
 	// TODO: copy descriptorset and others?
@@ -176,7 +195,9 @@ var_decoration<true>::var_decoration(var_decoration<true>&& _Other) noexcept:
 	uTypeId(_Other.uTypeId),
 	AccessChain(std::move(_Other.AccessChain)),
 	Type(std::move(_Other.Type)),
+#ifndef HDIRECT_MEMACCESS
 	MemAccess(std::move(_Other.MemAccess)),
+#endif
 	Decorations(std::move(_Other.Decorations))
 {
 	_Other.uVarId = HUNDEFINED32;
@@ -245,6 +266,9 @@ void var_decoration<true>::SetName(const std::string& _sName)
 //---------------------------------------------------------------------------------------------------
 uint32_t var_decoration<true>::GetLastStore() const
 {
+#ifdef HDIRECT_MEMACCESS
+    return uLastStoreId;
+#else
 	for (auto it = MemAccess.rbegin(); it != MemAccess.rend(); ++it)
 	{
 		const LSInfo& LS(*it);
@@ -255,4 +279,5 @@ uint32_t var_decoration<true>::GetLastStore() const
 	}
 
 	return HUNDEFINED32;
+#endif
 }
