@@ -67,7 +67,13 @@ namespace Tracy
 
 		SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& _Literals);
 
+        SPIRVOperation(const SPIRVOperation& _Other);
+        SPIRVOperation(SPIRVOperation&& _Other);
+
 		~SPIRVOperation();
+
+        SPIRVOperation& operator=(const SPIRVOperation& _Other);
+        SPIRVOperation& operator=(SPIRVOperation&& _Other);
 
 		std::string GetString() const;
 

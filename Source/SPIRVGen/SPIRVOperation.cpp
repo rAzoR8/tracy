@@ -34,8 +34,58 @@ SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& 
 }
 //---------------------------------------------------------------------------------------------------
 
+SPIRVOperation::SPIRVOperation(const SPIRVOperation& _Other) : 
+    m_bTranslated(_Other.m_bTranslated),
+    m_bUsed(_Other.m_bUsed),
+    m_kOpCode(_Other.m_kOpCode),
+    m_Operands(_Other.m_Operands),
+    m_uInstrId(_Other.m_uInstrId),
+    m_uResultId(_Other.m_uResultId),
+    m_uResultTypeId(_Other.m_uResultTypeId)
+{
+}
+//---------------------------------------------------------------------------------------------------
+
+SPIRVOperation::SPIRVOperation(SPIRVOperation&& _Other) :
+    m_bTranslated(std::move(_Other.m_bTranslated)),
+    m_bUsed(std::move(_Other.m_bUsed)),
+    m_kOpCode(std::move(_Other.m_kOpCode)),
+    m_Operands(std::move(_Other.m_Operands)),
+    m_uInstrId(std::move(_Other.m_uInstrId)),
+    m_uResultId(std::move(_Other.m_uResultId)),
+    m_uResultTypeId(std::move(_Other.m_uResultTypeId))
+{
+}
+//---------------------------------------------------------------------------------------------------
+
 SPIRVOperation::~SPIRVOperation()
 {
+}
+//---------------------------------------------------------------------------------------------------
+
+SPIRVOperation& SPIRVOperation::operator=(const SPIRVOperation & _Other)
+{
+    m_bTranslated =_Other.m_bTranslated;
+    m_bUsed = _Other.m_bUsed;
+    m_kOpCode = _Other.m_kOpCode;
+    m_Operands = _Other.m_Operands;
+    m_uInstrId = _Other.m_uInstrId;
+    m_uResultId = _Other.m_uResultId;
+    m_uResultTypeId = _Other.m_uResultTypeId;
+    return *this;
+}
+//---------------------------------------------------------------------------------------------------
+
+SPIRVOperation& Tracy::SPIRVOperation::operator=(SPIRVOperation&& _Other)
+{
+    m_bTranslated = std::move(_Other.m_bTranslated);
+    m_bUsed = std::move(_Other.m_bUsed);
+    m_kOpCode = std::move(_Other.m_kOpCode);
+    m_Operands = std::move(_Other.m_Operands);
+    m_uInstrId = std::move(_Other.m_uInstrId);
+    m_uResultId = std::move(_Other.m_uResultId);
+    m_uResultTypeId = std::move(_Other.m_uResultTypeId);
+    return *this;
 }
 //---------------------------------------------------------------------------------------------------
 
