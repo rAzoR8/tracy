@@ -59,10 +59,15 @@ namespace Tracy
 	{
 		friend class SPIRVAssembler;
 	public:
-		SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId,  const SPIRVOperand& _Operand);
+		SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId, const SPIRVOperand& _Operand);
 		SPIRVOperation(const spv::Op _kOp, const SPIRVOperand& _Operand);
 
+        template <class ...Operands>
+        SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId, Operands&&... _Operands);
+
 		SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId, const std::vector<SPIRVOperand>& _Operands = {});
+        SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId, std::vector<SPIRVOperand>&& _Operands);
+
 		SPIRVOperation(const spv::Op _kOp = spv::OpNop, const std::vector<SPIRVOperand>& _Operands = {}) noexcept;
 
 		SPIRVOperation(const spv::Op _kOp, const std::vector<uint32_t>& _Literals);
@@ -102,6 +107,12 @@ namespace Tracy
 		bool m_bTranslated = false;
 	};
 
+    template<class ...Operands>
+    inline SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId, Operands&& ..._Operands) :
+        m_kOpCode(_kOp), m_uResultTypeId(_uResultTypeId), m_Operands({ std::forward<Operands>(_Operands)... })
+    {
+    }
+
 	inline const spv::Op& SPIRVOperation::GetOpCode() const noexcept
 	{
 		return m_kOpCode;
@@ -131,8 +142,6 @@ namespace Tracy
 	{
 		return m_uResultTypeId;
 	}
-
-
 } // !Tracy
 
 #endif // !TRACY_SPIRVOPERATION_H

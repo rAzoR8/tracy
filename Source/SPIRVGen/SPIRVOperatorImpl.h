@@ -20,12 +20,10 @@ namespace Tracy
 		}
 		else // Assemble
 		{
-			spv::Op kOpCode = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(kOpCode, var.uTypeId);
 		}
 
 		return var;
@@ -46,13 +44,9 @@ namespace Tracy
 		{
 			LoadVariables(l);
 
-			spv::Op kOpCode = (spv::Op)OpTypeDecider<base_type_t<U>>(_Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDecider<base_type_t<U>>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
-
-			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
-			Op.AddIntermediate(l.uResultId); // operand1
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(kOpCode, var.uTypeId, SPIRVOperand::Intermediate(l.uResultId));
 		}
 
 		return var;
@@ -73,14 +67,15 @@ namespace Tracy
 		{
 			LoadVariables(l, r);
 
-			spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V>(_kOpTypeBase, _Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V>(_kOpTypeBase, _Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
-			Op.AddIntermediate(l.uResultId); // operand1
-			Op.AddIntermediate(r.uResultId); // operand2
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(
+                kOpCode,
+                var.uTypeId, // result type
+                SPIRVOperand::Intermediate(l.uResultId), // operand1
+                SPIRVOperand::Intermediate(r.uResultId)  // operand2
+            );
 		}
 
 		return var;
@@ -107,15 +102,16 @@ namespace Tracy
 		{
 			LoadVariables(v1, v2, v3);
 
-			spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V, W>(_kOpTypeBase, _Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V, W>(_kOpTypeBase, _Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kOpCode, var.uTypeId); // result type
-			Op.AddIntermediate(v1.uResultId); // operand1
-			Op.AddIntermediate(v2.uResultId); // operand2
-			Op.AddIntermediate(v3.uResultId); // operand3
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(
+                kOpCode,
+                var.uTypeId,
+                SPIRVOperand::Intermediate(v1.uResultId),
+                SPIRVOperand::Intermediate(v2.uResultId),
+                SPIRVOperand::Intermediate(v3.uResultId)
+            );
 		}
 
 		return var;
@@ -134,19 +130,18 @@ namespace Tracy
 		}
 		else
 		{
-			uint32_t kOpCode = OpTypeDecider<base_type_t<T>>(_Ops...);
+			const uint32_t kOpCode = OpTypeDecider<base_type_t<T>>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
+			const uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
 			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
 
-			SPIRVOperation Op(spv::OpExtInst, var.uTypeId, // result type
-				{
-					SPIRVOperand(kOperandType_Intermediate, uExtId),
-					SPIRVOperand(kOperandType_Literal, kOpCode) // instr opcode
-				});
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(
+                spv::OpExtInst,
+                var.uTypeId,
+                SPIRVOperand(kOperandType_Intermediate, uExtId), // which extension
+                SPIRVOperand(kOperandType_Literal, kOpCode) // instr opcode
+            );
 		}
 
 		return var;
@@ -167,20 +162,19 @@ namespace Tracy
 		{
 			l.Load();
 
-			uint32_t kOpCode = OpTypeDecider<base_type_t<U>>(_Ops...);
+			const uint32_t kOpCode = OpTypeDecider<base_type_t<U>>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
+			const uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
 			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
 
-			SPIRVOperation Op(spv::OpExtInst, var.uTypeId, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, uExtId),
-				SPIRVOperand(kOperandType_Literal, kOpCode), // instr opcode
-				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
-			});
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(
+                spv::OpExtInst,
+                var.uTypeId, // result type
+                SPIRVOperand(kOperandType_Intermediate, uExtId), // which extension
+                SPIRVOperand(kOperandType_Literal, kOpCode), // instr opcode
+                SPIRVOperand(kOperandType_Intermediate, l.uResultId) // operand
+            );
 		}
 
 		return var;
@@ -201,21 +195,20 @@ namespace Tracy
 		{
 			LoadVariables(l, r);
 
-			spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V>(_kOpTypeBase, _Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V>(_kOpTypeBase, _Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
+			const uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
 			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
 
-			SPIRVOperation Op(spv::OpExtInst, var.uTypeId, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, uExtId),
-				SPIRVOperand(kOperandType_Literal, kOpCode), // instr opcode
-				SPIRVOperand(kOperandType_Intermediate, l.uResultId),
-				SPIRVOperand(kOperandType_Intermediate, r.uResultId)
-			});
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+            var.uResultId = GlobalAssembler.EmplaceOperation(
+                spv::OpExtInst,
+                var.uTypeId, // result type
+                SPIRVOperand(kOperandType_Intermediate, uExtId), // which extension
+                SPIRVOperand(kOperandType_Literal, kOpCode), // instr opcode
+                SPIRVOperand(kOperandType_Intermediate, l.uResultId), // op1
+                SPIRVOperand(kOperandType_Intermediate, r.uResultId) // op2
+            );
 		}
 
 		return var;
@@ -242,20 +235,21 @@ namespace Tracy
 		{
 			LoadVariables(v1, v2, v3);
 
-			spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V, W>(_kOpTypeBase, _Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDeciderEx<T, U, V, W>(_kOpTypeBase, _Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
+			const uint32_t uExtId = GlobalAssembler.GetExtensionId(_sExt);
 			HASSERT(uExtId != HUNDEFINED32, "Invalid extension");
 
-			SPIRVOperation Op(spv::OpExtInst, var.uTypeId); // result type
-			Op.AddIntermediate(uExtId);
-			Op.AddLiteral(kOpCode); // instr opcode
-			Op.AddIntermediate(v1.uResultId);
-			Op.AddIntermediate(v2.uResultId);
-			Op.AddIntermediate(v3.uResultId);
-
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(
+                spv::OpExtInst,
+                var.uTypeId,
+                SPIRVOperand(kOperandType_Intermediate, uExtId), // which extension
+                SPIRVOperand(kOperandType_Literal, kOpCode), // instr opcode
+                SPIRVOperand(kOperandType_Intermediate, v1.uResultId), // op1
+                SPIRVOperand(kOperandType_Intermediate, v2.uResultId), // op2
+                SPIRVOperand(kOperandType_Intermediate, v3.uResultId) // op3
+            );
 		}
 
 		return var;
@@ -289,7 +283,7 @@ namespace Tracy
 			{
 				OpConstruct.AddIntermediate(uId);
 			}
-			var.uResultId = GlobalAssembler.AddOperation(OpConstruct);
+			var.uResultId = GlobalAssembler.AddOperation(std::move(OpConstruct));
 		}
 
 		return var;

@@ -131,9 +131,8 @@ namespace Tracy
 			const spv::Op kType = GetConvertOp<V, U>();
 			HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
 			const uint32_t uTypeId = GlobalAssembler.AddType(SPIRVType::FromType<U>()); // target type
-			const SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
 
-			return GlobalAssembler.AddOperation(Op);
+			return GlobalAssembler.EmplaceOperation(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
 		}
 	}
 
@@ -171,16 +170,14 @@ namespace Tracy
 
 	inline const uint32_t MakeSampledImage(const SPIRVType& _ImgType, const uint32_t _uImageId, const uint32_t _uSamplerId)
 	{
-		// create SampledImageType if it did not exist yet
-		const uint32_t uSampledImgType = GlobalAssembler.AddType(SPIRVType::SampledImage(_ImgType));
-
 		// OpSampledImage uSampledImgType ImgId SamplerId
-		SPIRVOperation OpSampledImage(spv::OpSampledImage, uSampledImgType);
-		OpSampledImage.AddIntermediate(_uImageId);
-		OpSampledImage.AddIntermediate(_uSamplerId);
-		// TODO: store uOpSampledImageId in a map in case the same sampler is reused with this image
+        return GlobalAssembler.EmplaceOperation(
+            spv::OpSampledImage, // OpCode
+            GlobalAssembler.AddType(SPIRVType::SampledImage(_ImgType)), // result type
+            SPIRVOperand::Intermediate(_uImageId), // first operand
+            SPIRVOperand::Intermediate(_uSamplerId)); // second operand
 
-		return GlobalAssembler.AddOperation(OpSampledImage);
+		// TODO: store uOpSampledImageId in a map in case the same sampler is reused with this image
 	}
 
 	enum EOpTypeBase : uint32_t
@@ -734,14 +731,16 @@ namespace Tracy
 
 				if constexpr(Dim == 1u)
 				{
-					SPIRVOperation OpCompositeInsert(spv::OpCompositeInsert, uTypeId);
-					OpCompositeInsert.AddIntermediate(_Var.uResultId); // part to insert
-					OpCompositeInsert.AddIntermediate(uResultId); // compsite object
-					const uint32_t uDest = hlx::min(v0, v1, v2, v3);
-					HASSERT(uDest < N, "Invalid destination index");
-					OpCompositeInsert.AddLiteral(uDest);
+                    constexpr uint32_t uDest = hlx::min(v0, v1, v2, v3);
+                    static_assert(uDest < N, "Invalid destination index");
 
-					uResultId = GlobalAssembler.AddOperation(OpCompositeInsert);
+					uResultId = GlobalAssembler.EmplaceOperation(
+                        spv::OpCompositeInsert,
+                        uTypeId,
+                        SPIRVOperand::Intermediate(_Var.uResultId), // part to insert
+                        SPIRVOperand::Intermediate(uResultId),  // compsite object
+                        SPIRVOperand::Literal(uDest) // destination
+                    );
 				}
 				else
 				{
@@ -771,7 +770,7 @@ namespace Tracy
 					OpVectorShuffle.AddIntermediate(_Var.uResultId); // vector 2
 					OpVectorShuffle.AddLiterals(Target);
 
-					uResultId = GlobalAssembler.AddOperation(OpVectorShuffle);
+					uResultId = GlobalAssembler.AddOperation(std::move(OpVectorShuffle));
 				}
 
 				Store();
@@ -860,9 +859,12 @@ namespace Tracy
 						{
 							if (i < 4u)
 							{
-								SPIRVOperation OpExtract(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
-								OpExtract.AddLiteral(i); // extraction index
-								Op.AddIntermediate(GlobalAssembler.AddOperation(OpExtract));
+								Op.AddIntermediate(GlobalAssembler.EmplaceOperation(
+                                    spv::OpCompositeExtract,
+                                    uElemTypeId,
+                                    SPIRVOperand::Intermediate(uResultId), // var id to extract from
+                                    SPIRVOperand::Literal(i))  // extraction index
+                                );
 							}
 						}
 					}
@@ -870,11 +872,15 @@ namespace Tracy
 				else // Dim == 1
 				{
 					// TODO: use AccessChain instead?
-					Op = SPIRVOperation(spv::OpCompositeExtract, uElemTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId)); // var id to extract from
-					Op.AddLiteral(v0); // extraction index
+					Op = SPIRVOperation(
+                        spv::OpCompositeExtract,
+                        uElemTypeId,
+                        SPIRVOperand::Intermediate(uResultId), // var id to extract from
+                        SPIRVOperand::Literal(v0) // extraction index
+                    ); 
 				}
 
-				var.uResultId = GlobalAssembler.AddOperation(Op);
+				var.uResultId = GlobalAssembler.AddOperation(std::move(Op));
 
 				// cache extracted component
 				ComponentInfo Comp{};
@@ -1006,16 +1012,15 @@ namespace Tracy
 		{
 			LoadVariables(*this, _Other);
 
-			spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kOpCode, uTypeId, // result type
-			{
-				SPIRVOperand(kOperandType_Intermediate, uResultId),
-				SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
-			});
-
-			uResultId = GlobalAssembler.AddOperation(Op);
+			uResultId = GlobalAssembler.EmplaceOperation(
+                kOpCode,
+                uTypeId,  // result type
+                SPIRVOperand(kOperandType_Intermediate, uResultId),
+                SPIRVOperand(kOperandType_Intermediate, _Other.uResultId)
+            );
 
 			Store();
 		}
@@ -1039,12 +1044,11 @@ namespace Tracy
 		{
 			Load();
 
-			spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 			HASSERT(uTypeId != HUNDEFINED32, "Invalid type");
 
-			SPIRVOperation Op(kOpCode, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
-			var.uResultId = GlobalAssembler.AddOperation(Op);
+			var.uResultId = GlobalAssembler.EmplaceOperation(kOpCode, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
 		}
 
 		return var;
@@ -1062,11 +1066,10 @@ namespace Tracy
 		{
 			Load();
 
-			spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
+			const spv::Op kOpCode = (spv::Op)OpTypeDecider<BaseType>(_Ops...);
 			HASSERT(kOpCode != spv::OpNop, "Invalid variable base type!");
 
-			SPIRVOperation Op(kOpCode, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
-			uResultId = GlobalAssembler.AddOperation(Op);
+            uResultId = GlobalAssembler.EmplaceOperation(kOpCode, uTypeId, SPIRVOperand(kOperandType_Intermediate, uResultId));
 
 			Store();
 		}
@@ -1098,10 +1101,10 @@ namespace Tracy
 
 					_Other.Load();
 
-					spv::Op kType = GetConvertOp<U, T>();
+					const spv::Op kType = GetConvertOp<U, T>();
 					HASSERT(kType != spv::OpNop, "Invalid variable type conversion!");
-					SPIRVOperation Op(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
-					uResultId = GlobalAssembler.AddOperation(Op);
+
+					uResultId = GlobalAssembler.EmplaceOperation(kType, uTypeId, SPIRVOperand(kOperandType_Intermediate, _Other.uResultId));
 					Store();
 				}
 			}
@@ -1424,17 +1427,14 @@ namespace Tracy
 					OpExtract.AddLiterals(_First.AccessChain); // can be empty
 					OpExtract.AddLiteral(n); // extraction index
 
-					uint32_t uId = GlobalAssembler.AddOperation(OpExtract);
-					_Op.AddIntermediate(uId);
+					_Op.AddIntermediate(GlobalAssembler.AddOperation(std::move(OpExtract)));
 				}
 			}
 		}
 		else
 		{
 			// create component constant
-			SPIRVConstant Constant = SPIRVConstant::Make(_First);
-			const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
-			_Op.AddIntermediate(uConstId);
+			_Op.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(_First)));
 		}
 
 		constexpr size_t uArgs = sizeof...(_Rest);
@@ -1484,21 +1484,19 @@ namespace Tracy
 			// Initializer must be an <id> from a constant instruction or a global(module scope) OpVariable instruction.
 			// Initializer must have the same type as the type pointed to by Result Type.
 
-			SPIRVOperation OpCreateVar;
-
 			// argument list has var_t<> initializers
 			constexpr bool bHasVar = has_var<Ts...>;
 			if constexpr(bHasVar && uArgs > 1u)
 			{
-				OpCreateVar = SPIRVOperation(spv::OpCompositeConstruct, uTypeId); // uPtrTypeId
+                SPIRVOperation OpCreateVar(spv::OpCompositeConstruct, uTypeId); // uPtrTypeId
 				ExtractCompnents(OpCreateVar, _args...);
 
 				// composite constructs treated as intermediates as they cant be loaded
-				uResultId = GlobalAssembler.AddOperation(OpCreateVar);
+				uResultId = GlobalAssembler.AddOperation(std::move(OpCreateVar));
 			}
 			else
 			{
-				OpCreateVar = SPIRVOperation(spv::OpVariable, uPtrTypeId, // result type
+				SPIRVOperation OpCreateVar(spv::OpVariable, uPtrTypeId, // result type
 					SPIRVOperand(kOperandType_Literal, static_cast<uint32_t>(kStorageClass))); // variable storage location	
 
 				if constexpr(bHasVar) // exactly one var
@@ -1508,12 +1506,10 @@ namespace Tracy
 				}
 				else if constexpr(uArgs > 0u)
 				{
-					SPIRVConstant Constant = SPIRVConstant::Make(va_type_var(_args...));
-					const uint32_t uConstId = GlobalAssembler.AddConstant(Constant);
-					OpCreateVar.AddIntermediate(uConstId);
+					OpCreateVar.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(va_type_var(_args...))));
 				}
 
-				uVarId = GlobalAssembler.AddOperation(OpCreateVar, &pVarOp);
+				uVarId = GlobalAssembler.AddOperation(std::move(OpCreateVar), &pVarOp);
 			}
 
 			// correct sturct member variables

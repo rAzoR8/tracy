@@ -71,10 +71,13 @@ namespace Tracy
 		uint32_t GetExtensionId(const std::string& _sExt = ExtGLSL450);
 
 		// _pOutInstr gets a pointer to the stored instruction so that i can be modified later (add operands)
-		uint32_t AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr = nullptr);
+		//uint32_t AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr = nullptr);
 
         // move op
         uint32_t AddOperation(SPIRVOperation&& _Instr, SPIRVOperation** _pOutInstr = nullptr);
+
+        template <class ...Ts>
+        uint32_t EmplaceOperation(Ts&& ..._args);
 
 		uint32_t AddConstant(const SPIRVConstant& _Const);
 		uint32_t AddType(const SPIRVType& _Type);
@@ -342,6 +345,13 @@ namespace Tracy
 		else
 			return SPIRVModule(0);
 	}
+
+    template<class ...Ts>
+    inline uint32_t SPIRVAssembler::EmplaceOperation(Ts&& ..._args)
+    {
+        m_Operations.emplace_back(std::forward<Ts>(_args)...).m_uInstrId = m_uInstrId;
+        return m_uInstrId++;
+    }
 
 	template<class Fn, class Pred>
 	inline void SPIRVAssembler::ForEachOp(const Fn& _fn, const Pred& _Pred)

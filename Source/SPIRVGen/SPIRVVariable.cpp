@@ -32,7 +32,7 @@ void var_decoration<true>::MaterializeDecorations() const
 			SPIRVOperation OpName(spv::OpName);
 			OpName.AddLiteral(uVarId);
 			OpName.AddLiterals(MakeLiteralString(sName));
-			GlobalAssembler.AddOperation(OpName);
+			GlobalAssembler.AddOperation(std::move(OpName));
 		}
 		else
 		{
@@ -40,7 +40,7 @@ void var_decoration<true>::MaterializeDecorations() const
 			OpName.AddIntermediate(uBaseTypeId);
 			OpName.AddLiteral(uMemberIndex);
 			OpName.AddLiterals(MakeLiteralString(sName));
-			GlobalAssembler.AddOperation(OpName);
+			GlobalAssembler.AddOperation(std::move(OpName));
 		}
 
 		bMaterializedName = true;
@@ -109,7 +109,7 @@ void var_decoration<true>::CreateAccessChain() const
 			OpAccessChain.AddIntermediate(GlobalAssembler.AddConstant(SPIRVConstant::Make(uMemberIdx)));
 		}
 
-		uVarId = GlobalAssembler.AddOperation(OpAccessChain);
+		uVarId = GlobalAssembler.AddOperation(std::move(OpAccessChain));
 	}
 }
 //---------------------------------------------------------------------------------------------------
@@ -152,10 +152,7 @@ uint32_t var_decoration<true>::Load() const
 	// Memory Access must be a Memory Access literal. If not present, it is the same as specifying None.
 	// bsp: None, Volatile, Aligned, Nontemporal
 
-	SPIRVOperation OpLoad(spv::OpLoad, uTypeId, // result type
-		SPIRVOperand(kOperandType_Intermediate, uVarId)); // pointer
-
-	uResultId = GlobalAssembler.AddOperation(OpLoad);
+	uResultId = GlobalAssembler.EmplaceOperation(spv::OpLoad, uTypeId, SPIRVOperand(kOperandType_Intermediate, uVarId));
 
 #ifdef HDIRECT_MEMACCESS
     uLastStoreId = uResultId;

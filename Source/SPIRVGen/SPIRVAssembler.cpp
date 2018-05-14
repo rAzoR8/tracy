@@ -367,7 +367,7 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 		break;
 	}
 
-	uint32_t uInstrId = AddOperation(std::move(OpType));
+	const uint32_t uInstrId = AddOperation(std::move(OpType));
 	m_TypeIds.insert({ uHash, uInstrId });
 
 	return uInstrId;
@@ -533,20 +533,20 @@ void SPIRVAssembler::Resolve()
 }
 //---------------------------------------------------------------------------------------------------
 
-uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr)
-{
-	m_Operations.push_back(_Instr);
-	m_Operations.back().m_uInstrId = m_uInstrId;
-
-	if (_pOutInstr != nullptr)
-	{
-		*_pOutInstr = &m_Operations.back();
-	}
-
-	//HLOGD("%s", WCSTR(_Instr.GetString()));
-
-	return m_uInstrId++;
-}
+//uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr)
+//{
+//	m_Operations.push_back(_Instr);
+//	m_Operations.back().m_uInstrId = m_uInstrId;
+//
+//	if (_pOutInstr != nullptr)
+//	{
+//		*_pOutInstr = &m_Operations.back();
+//	}
+//
+//	//HLOGD("%s", WCSTR(_Instr.GetString()));
+//
+//	return m_uInstrId++;
+//}
 //---------------------------------------------------------------------------------------------------
 
 uint32_t SPIRVAssembler::AddOperation(SPIRVOperation&& _Instr, SPIRVOperation ** _pOutInstr)
