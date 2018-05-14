@@ -4,7 +4,6 @@
 #include "SPIRVOperation.h"
 #include "SPIRVInstruction.h"
 #include "SPIRVModule.h"
-#include "Singleton.h"
 #include "Flag.h"
 #include "Logger.h"
 #include <mutex>
@@ -46,10 +45,16 @@ namespace Tracy
 		TOptimizationPassFlags kPasses;
 	};
 
-	class SPIRVAssembler : public hlx::Singleton<SPIRVAssembler>
+	class SPIRVAssembler
 	{
 	public:
 		using TIdMap = std::unordered_map<size_t, uint32_t>;
+
+        inline static SPIRVAssembler& Instance()
+        {
+            static SPIRVAssembler inst;
+            return inst;
+        }
 
 		SPIRVAssembler() noexcept;
 		virtual ~SPIRVAssembler();
@@ -289,7 +294,7 @@ namespace Tracy
 	}
 
 #ifndef GlobalAssembler
-#define GlobalAssembler (*Tracy::SPIRVAssembler::Instance())
+#define GlobalAssembler (Tracy::SPIRVAssembler::Instance())
 #endif
 
 	template<class TProg, class ...Ts>
