@@ -72,6 +72,10 @@ namespace Tracy
 
 		// _pOutInstr gets a pointer to the stored instruction so that i can be modified later (add operands)
 		uint32_t AddOperation(const SPIRVOperation& _Instr, SPIRVOperation** _pOutInstr = nullptr);
+
+        // move op
+        uint32_t AddOperation(SPIRVOperation&& _Instr, SPIRVOperation** _pOutInstr = nullptr);
+
 		uint32_t AddConstant(const SPIRVConstant& _Const);
 		uint32_t AddType(const SPIRVType& _Type);
 

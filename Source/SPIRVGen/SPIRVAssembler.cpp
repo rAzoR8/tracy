@@ -372,6 +372,7 @@ uint32_t SPIRVAssembler::AddType(const SPIRVType& _Type)
 
 	return uInstrId;
 }
+
 //---------------------------------------------------------------------------------------------------
 
 uint32_t SPIRVAssembler::AddConstant(const SPIRVConstant& _Constant)
@@ -545,6 +546,19 @@ uint32_t SPIRVAssembler::AddOperation(const SPIRVOperation& _Instr, SPIRVOperati
 	//HLOGD("%s", WCSTR(_Instr.GetString()));
 
 	return m_uInstrId++;
+}
+//---------------------------------------------------------------------------------------------------
+
+uint32_t SPIRVAssembler::AddOperation(SPIRVOperation&& _Instr, SPIRVOperation ** _pOutInstr)
+{
+    m_Operations.emplace_back(std::move(_Instr)).m_uInstrId = m_uInstrId;
+
+    if (_pOutInstr != nullptr)
+    {
+        *_pOutInstr = &m_Operations.back();
+    }
+
+    return m_uInstrId++;
 }
 
 //---------------------------------------------------------------------------------------------------

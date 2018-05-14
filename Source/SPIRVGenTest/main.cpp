@@ -4,7 +4,7 @@
 //#include "SPIRVInlineAssembler.h"
 //#include "GenerateSwizzleHeader.h"
 //#include "ExampleProg.h"
-#include "..\SPIRVShaderFactory\CSGExampleShader.h"
+//#include "..\SPIRVShaderFactory\CSGExampleShader.h"
 #include "DeferredLightingExample.h"
 #include "StopWatch.h"
 
