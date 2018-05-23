@@ -59,8 +59,6 @@ namespace Tracy
 		SPIRVAssembler() noexcept;
 		virtual ~SPIRVAssembler();
 
-		// todo: check if SPIRVProgam<true> is base of TProg with enable if
-		// also check if TProg has a function operator / is callable
 		template <class TProg, class... Ts>
 		void InitializeProgram(Ts&& ..._args);
 

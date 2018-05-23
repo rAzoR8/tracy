@@ -5,7 +5,7 @@
 #include "VulkanDevice.h"
 #include <unordered_map>
 #include "FunctionalUtils.h"
-#include "SPIRVInterop.h"
+#include "..\..\SPIRVGen\SPIRVInterop.h"
 #include "Plugin\PluginLoader.h"
 
 namespace Tracy

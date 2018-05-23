@@ -99,6 +99,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\SPIRVGen\SPIRVInterop.h" />
     <ClInclude Include="Async\AsyncTask.h" />
     <ClInclude Include="Datastructures\Allocators.h" />
     <ClInclude Include="Datastructures\BinaryKeyValueBufferSource.h" />
@@ -126,7 +127,6 @@
     <ClInclude Include="Display\Texture.h" />
     <ClInclude Include="Display\Vulkan\IShaderFactory.h" />
     <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h" />
-    <ClInclude Include="Display\Vulkan\SPIRVInterop.h" />
     <ClInclude Include="Display\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="Display\Vulkan\VulkanFence.h" />
     <ClInclude Include="Display\Vulkan\VulkanMemoryAllocator.h" />

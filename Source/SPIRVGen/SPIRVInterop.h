@@ -1,12 +1,11 @@
 #ifndef TRACY_SPIRVINTEROP_H
 #define TRACY_SPIRVINTEROP_H
 
-// maybe move this file to the SPIRVProject
 #ifndef DONT_INCLUDE_VULKAN_HEADER
 #include <vulkan/vulkan.hpp>
 #endif
 
-#include "../../SPIRVGen/SPIRVModule.h"
+#include "SPIRVModule.h"
 #include "Logger.h"
 #include "ByteStream.h"
 #include "CRC32.h"
@@ -34,7 +33,7 @@ namespace Tracy
 
 	inline vk::DescriptorType GetDescriptorType(const VariableInfo& _Var)
 	{
-		// Missing: CombinedImageSampler
+		// TODO: CombinedImageSampler
 		switch (_Var.Type.GetType())
 		{
 		case spv::OpTypeSampler:
