@@ -57,7 +57,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;HDYNAMIC_LINKAGE;HDLL_IMPORT;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)hlx\src;$(VULKAN_SDK)\Third-Party\Include;$(VULKAN_SDK)\Include;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -81,7 +81,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;HDYNAMIC_LINKAGE;HDLL_IMPORT;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)hlx\src;$(VULKAN_SDK)\Third-Party\Include;$(VULKAN_SDK)\Include;$(VULKAN_SDK)\spirv-tools\include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -147,8 +147,6 @@
     <ClInclude Include="MathTypes.h" />
     <ClInclude Include="Platform\IApplication.h" />
     <ClInclude Include="Platform\Win32\Win32Application.h" />
-    <ClInclude Include="Plugin\IPlugin.h" />
-    <ClInclude Include="Plugin\PluginLoader.h" />
     <ClInclude Include="Scene\AABB.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Frustum.h" />

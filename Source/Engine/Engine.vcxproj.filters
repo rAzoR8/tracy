@@ -28,9 +28,6 @@
     <Filter Include="Datastructures">
       <UniqueIdentifier>{f054180f-5d50-4ce6-8ffa-a9b862f21165}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Plugin">
-      <UniqueIdentifier>{46dcf5ef-5c6b-4ac3-adcd-30150658ec89}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scene">
       <UniqueIdentifier>{b136ddd6-256d-4cac-a2d4-1ba46b13d0c8}</UniqueIdentifier>
     </Filter>
@@ -115,12 +112,6 @@
     </ClInclude>
     <ClInclude Include="Datastructures\Allocators.h">
       <Filter>Datastructures</Filter>
-    </ClInclude>
-    <ClInclude Include="Plugin\PluginLoader.h">
-      <Filter>Plugin</Filter>
-    </ClInclude>
-    <ClInclude Include="Plugin\IPlugin.h">
-      <Filter>Plugin</Filter>
     </ClInclude>
     <ClInclude Include="Display\Vulkan\IShaderFactory.h">
       <Filter>Display\Vulkan\SPIRVInterop</Filter>

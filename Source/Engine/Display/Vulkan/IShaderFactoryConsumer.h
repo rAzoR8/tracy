@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include "FunctionalUtils.h"
 #include "..\..\SPIRVGen\SPIRVInterop.h"
-#include "Plugin\PluginLoader.h"
+#include "PluginLoader.h"
 
 namespace Tracy
 {
@@ -20,7 +20,7 @@ namespace Tracy
 		vk::SpecializationInfo SpecInfo;
 	};
 
-	class IShaderFactoryConsumer : public IPluginConsumer<IShaderFactory>
+	class IShaderFactoryConsumer : public hlx::IPluginConsumer<IShaderFactory>
 	{
 	public:
 
