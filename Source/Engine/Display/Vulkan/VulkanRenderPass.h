@@ -64,7 +64,7 @@ namespace Tracy
 
 			void Reset();
 
-			uint3_t vRTDimensions; // width height layers
+            Spear::uint3_t vRTDimensions; // width height layers
 			BufferSource DimensionSource; // stores rendertarget info for shader access
 
 			std::vector<Attachment> Attachments;
@@ -109,7 +109,7 @@ namespace Tracy
 
 		struct Binding
 		{
-			Binding(const VariableInfo& _Var, const THandle _hDevice);
+			Binding(const Spear::VariableInfo& _Var, const THandle _hDevice);
 			~Binding();
 
 			void Set(const Texture& _Texture);
@@ -128,7 +128,7 @@ namespace Tracy
 			uint64_t uHash = HUNDEFINED64;
 
 			const uint64_t uNameHash;
-			const VariableInfo Var;
+			const Spear::VariableInfo Var;
 			const vk::DescriptorType kType;
 		};
 
@@ -173,11 +173,11 @@ namespace Tracy
 		// called before draw or after shader has been selected
 		vk::Pipeline ActivatePipeline(const PipelineDesc& _Desc);
 		const bool ActivatePipelineLayout(
-			const std::array<TVarSet, kMaxDescriptorSets>& _Sets,
+			const std::array<Spear::TVarSet, Spear::kMaxDescriptorSets>& _Sets,
 			const int32_t _uLastUsedSet,
 			vk::PipelineLayout& _OutPipeline,
 			uint64_t& _uOutHash,
-			const PushConstantFactory* _pPushConstants = nullptr);
+			const Spear::PushConstantFactory* _pPushConstants = nullptr);
 
 		bool LoadPipelineCache(const std::wstring& _sPath);
 		bool StorePipelineCache(const std::wstring& _sPath);
@@ -246,7 +246,7 @@ namespace Tracy
 		PipelineDesc m_ActivePipelineDesc;
 
 		std::unordered_map<uint64_t, DescriptorSetContainer> m_DescriptorSets;
-		std::array<DescriptorSetContainer*, kMaxDescriptorSets> m_ActiveDescriptorSets;
+		std::array<DescriptorSetContainer*, Spear::kMaxDescriptorSets> m_ActiveDescriptorSets;
 
 		std::unordered_map<uint64_t, vk::PipelineLayout> m_PipelineLayouts;
 

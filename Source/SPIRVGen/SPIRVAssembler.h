@@ -1,5 +1,5 @@
-#ifndef TRACY_SPIRVASSEMBLER_H
-#define TRACY_SPIRVASSEMBLER_H
+#ifndef SPEAR_SPIRVASSEMBLER_H
+#define SPEAR_SPIRVASSEMBLER_H
 
 #include "SPIRVOperation.h"
 #include "SPIRVInstruction.h"
@@ -8,7 +8,7 @@
 #include "Logger.h"
 #include <mutex>
 
-namespace Tracy
+namespace Spear
 {
 	using namespace hlx;
 
@@ -292,7 +292,7 @@ namespace Tracy
 	}
 
 #ifndef GlobalAssembler
-#define GlobalAssembler (Tracy::SPIRVAssembler::Instance())
+#define GlobalAssembler (Spear::SPIRVAssembler::Instance())
 #endif
 
 	template<class TProg, class ...Ts>
@@ -379,6 +379,6 @@ namespace Tracy
 			}
 		}
 	}
-}
+} // Spear
 
-#endif // !TRACY_SPIRVASSEMBLER_H
+#endif // !SPEAR_SPIRVASSEMBLER_H

@@ -1,12 +1,12 @@
-#ifndef TRACY_SIMPLECSGRAYMARCHING_H
-#define TRACY_SIMPLECSGRAYMARCHING_H
+#ifndef SPEAR_SIMPLECSGRAYMARCHING_H
+#define SPEAR_SIMPLECSGRAYMARCHING_H
 
 #include "CSGObject.h"
 #include "SPIRVBranchOperations.h"
 #include "CameraFunctions.h"
 #include "MaterialInterface.h"
 
-namespace Tracy
+namespace Spear
 {
 	//---------------------------------------------------------------------------------------------------
 
@@ -172,6 +172,6 @@ namespace Tracy
 			_pMaterial, // shading
 			_PointLights);
 	}
-}
+} // Spear
 
-#endif // !TRACY_SIMPLECSGRAYMARCHING_H
+#endif // !SPEAR_SIMPLECSGRAYMARCHING_H

@@ -1,10 +1,10 @@
-#ifndef TRACY_SPIRVMODULE_H
-#define TRACY_SPIRVMODULE_H
+#ifndef SPEAR_SPIRVMODULE_H
+#define SPEAR_SPIRVMODULE_H
 
 #include "StandardDefines.h"
 #include "SPIRVType.h"
 
-namespace Tracy
+namespace Spear
 {
 	// forward decls
 	class SPIRVInstruction;
@@ -159,6 +159,6 @@ namespace Tracy
 	{
 		return m_kModel;
 	}
-}; // !Tracy
+}; // !Spear
 
-#endif // !TRACY_SPIRVMODULE_H
+#endif // !SPEAR_SPIRVMODULE_H

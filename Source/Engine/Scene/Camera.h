@@ -32,8 +32,8 @@ namespace Tracy
 		const uint64_t& GetPassIDs() const;
 		const Frustum& GetFrustum() const;
 
-		const float4x4_t& ComputeView(); // computes transform
-		const float4x4_t& ComputeProjection();
+		const Spear::float4x4_t& ComputeView(); // computes transform
+		const Spear::float4x4_t& ComputeProjection();
 
 		void Update();
 
@@ -53,9 +53,9 @@ namespace Tracy
 
 		std::vector<RenderObject*> m_Objects;
 
-		float4x4_t m_mView; 
-		float4x4_t m_mProj;
-		float4x4_t m_mViewProj;
+		Spear::float4x4_t m_mView; 
+		Spear::float4x4_t m_mProj;
+		Spear::float4x4_t m_mViewProj;
 
 		// perspective properties
 		float m_fFovY = 1.f; // Y field of view (1rad ~ 57 deg)

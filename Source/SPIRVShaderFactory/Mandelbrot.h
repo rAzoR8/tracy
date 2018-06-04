@@ -1,10 +1,10 @@
-#ifndef TRACY_MANDELBROT_H
-#define TRACY_MANDELBROT_H
+#ifndef SPEAR_MANDELBROT_H
+#define SPEAR_MANDELBROT_H
 
 #include "SPIRVProgram.h"
 #include "CommonBufferSourceNames.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Assemble = true>
 	class Mandelbrot : public FragmentProgram<Assemble>
@@ -32,6 +32,6 @@ namespace Tracy
 	private:
 	};
 
-} // Tracy
+} // Spear
 
-#endif // !TRACY_CLEARCOLOR_H
+#endif // !SPEAR_MANDELBROT_H

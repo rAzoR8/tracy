@@ -5,7 +5,7 @@
 #include "SPIRVBinaryDefines.h"
 #include "spirv-tools\optimizer.hpp"
 
-using namespace Tracy;
+using namespace Spear;
 
 //---------------------------------------------------------------------------------------------------
 

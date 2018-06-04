@@ -1,10 +1,10 @@
-#ifndef TRACY_SDFOBJECT_H
-#define TRACY_SDFOBJECT_H
+#ifndef SPEAR_SDFOBJECT_H
+#define SPEAR_SDFOBJECT_H
 
 #include "SPIRVOperatorImpl.h"
 #include <memory>
 
-namespace Tracy
+namespace Spear
 {
 	//---------------------------------------------------------------------------------------------------
 
@@ -165,6 +165,6 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-} // Tracy
+} // Spear
 
-#endif // !TRACY_SDFOBJECT_H
+#endif // !SPEAR_SDFOBJECT_H

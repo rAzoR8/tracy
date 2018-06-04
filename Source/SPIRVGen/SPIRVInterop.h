@@ -1,5 +1,5 @@
-#ifndef TRACY_SPIRVINTEROP_H
-#define TRACY_SPIRVINTEROP_H
+#ifndef SPEAR_SPIRVINTEROP_H
+#define SPEAR_SPIRVINTEROP_H
 
 #ifndef DONT_INCLUDE_VULKAN_HEADER
 #include <vulkan/vulkan.hpp>
@@ -11,7 +11,7 @@
 #include "CRC32.h"
 #include "HashUtils.h"
 
-namespace Tracy
+namespace Spear
 {
 	//---------------------------------------------------------------------------------------------------
 	inline vk::ShaderStageFlagBits GetShaderStage(const SPIRVModule& _Module)
@@ -559,9 +559,6 @@ namespace Tracy
 
 		return ShaderStage;
 	}
+} // Spear
 
-	//---------------------------------------------------------------------------------------------------
-
-}
-
-#endif // !TRACY_SPIRVINTEROP_H
+#endif // !SPEAR_SPIRVINTEROP_H

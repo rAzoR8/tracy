@@ -1,9 +1,9 @@
-#ifndef TRACY_SPRIVDECORATION_H
-#define TRACY_SPRIVDECORATION_H
+#ifndef SPEAR_SPRIVDECORATION_H
+#define SPEAR_SPRIVDECORATION_H
 
 #include "SPIRVOperation.h"
 
-namespace Tracy
+namespace Spear
 {
 	class SPIRVDecoration
 	{
@@ -43,6 +43,6 @@ namespace Tracy
 		uint32_t m_uMemberIndex = HUNDEFINED32;
 		std::vector<uint32_t> m_Literals;
 	};
-} // !Tracy
+} // !Spear
 
-#endif // !TRACY_SPRIVDECORATION_H
+#endif // !SPEAR_SPRIVDECORATION_H

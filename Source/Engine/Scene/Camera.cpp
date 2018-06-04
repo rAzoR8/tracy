@@ -7,7 +7,7 @@
 using namespace Tracy;
 
 Camera::Camera(const uint64_t _uPassIds, const ECameraType _kType) : 
-	BufferSource(m_mViewProj, BufferSources::kViewProjectionMatrix),
+	BufferSource(m_mViewProj, Spear::BufferSources::kViewProjectionMatrix),
 	m_uPassIds(_uPassIds), m_kType(_kType)
 {
 	// finalize buffer source
@@ -34,7 +34,7 @@ void Camera::AddObject(RenderObject* _pObject)
 }
 
 //---------------------------------------------------------------------------------------------------
-const float4x4_t& Camera::ComputeView()
+const Spear::float4x4_t& Camera::ComputeView()
 {
 	//https://www.3dgep.com/understanding-the-view-matrix/#The_View_Matrix
 	m_mView = glm::inverse(ComputeTransform());
@@ -43,7 +43,7 @@ const float4x4_t& Camera::ComputeView()
 }
 //---------------------------------------------------------------------------------------------------
 
-const float4x4_t& Camera::ComputeProjection()
+const Spear::float4x4_t& Camera::ComputeProjection()
 {
 	switch (m_kType)
 	{

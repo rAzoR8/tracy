@@ -1,30 +1,30 @@
 #ifndef TRACY_ISHADERFACTORYCONSUMER_H
 #define TRACY_ISHADERFACTORYCONSUMER_H
 
-#include "IShaderFactory.h"
+#include "..\SPIRVShaderFactory\IShaderFactory.h"
+#include "..\SPIRVGen\SPIRVInterop.h"
 #include "VulkanDevice.h"
 #include <unordered_map>
 #include "FunctionalUtils.h"
-#include "..\..\SPIRVGen\SPIRVInterop.h"
 #include "PluginLoader.h"
 
 namespace Tracy
 {
 	struct CompiledShader
 	{
-		ShaderID Identifier;
+		Spear::ShaderID Identifier;
 		uint64_t uIDHash = 0u;
 		vk::PipelineShaderStageCreateInfo StageCreateInfo;
-		SPIRVModule Code;
+        Spear::SPIRVModule Code;
 		uint64_t uSpecConstHash = 0u;
 		vk::SpecializationInfo SpecInfo;
 	};
 
-	class IShaderFactoryConsumer : public hlx::IPluginConsumer<IShaderFactory>
+	class IShaderFactoryConsumer : public hlx::IPluginConsumer<Spear::IShaderFactory>
 	{
 	public:
 
-		using THashFunc = std::function<uint64_t(const ShaderID, const void*, const size_t)>;
+		using THashFunc = std::function<uint64_t(const Spear::ShaderID, const void*, const size_t)>;
 
 		IShaderFactoryConsumer(const std::wstring& _sLibName, const THandle _hDevice);
 		virtual ~IShaderFactoryConsumer();
@@ -35,11 +35,11 @@ namespace Tracy
 	private:
 
 		// ignores userdata, pass through id
-		inline static uint64_t DefaultShaderHash(const ShaderID _uShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u) { return _uShaderIdentifier.uID; }
+		inline static uint64_t DefaultShaderHash(const Spear::ShaderID _uShaderIdentifier, const void* _pUserData = nullptr, const size_t _uSize = 0u) { return _uShaderIdentifier.uID; }
 
 	protected:
 		// reloaded
-		void OnPluginReloaded(IShaderFactory* _pFactory) override;
+		void OnPluginReloaded(Spear::IShaderFactory* _pFactory) override;
 		void OnPluginUnloaded() override;
 		void UninitializeFactory();
 
@@ -47,8 +47,8 @@ namespace Tracy
 		virtual void OnFactoryUnloaded() = 0;
 
 		// returns true if shader changed
-		bool SelectShader(const ShaderID _uShaderIdentifier, const SpecConstFactory* _pSpecConstFactory = nullptr, const void* _pUserData = nullptr, const size_t _uSize = 0u);
-		void DeactivateStage(const EShaderType _kType);
+		bool SelectShader(const Spear::ShaderID _uShaderIdentifier, const Spear::SpecConstFactory* _pSpecConstFactory = nullptr, const void* _pUserData = nullptr, const size_t _uSize = 0u);
+		void DeactivateStage(const Spear::EShaderType _kType);
 
 		const vk::Device& VKDevice() const;
 
@@ -60,7 +60,7 @@ namespace Tracy
 
 	protected:
 		VulkanDevice& m_Device;
-		std::array<CompiledShader*, kShaderType_NumOf> m_ActiveShaders;
+		std::array<CompiledShader*, Spear::kShaderType_NumOf> m_ActiveShaders;
 	};
 	//---------------------------------------------------------------------------------------------------
 

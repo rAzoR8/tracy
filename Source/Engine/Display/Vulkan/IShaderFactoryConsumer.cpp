@@ -20,7 +20,7 @@ IShaderFactoryConsumer::~IShaderFactoryConsumer()
 }
 //---------------------------------------------------------------------------------------------------
 
-void IShaderFactoryConsumer::OnPluginReloaded(IShaderFactory* _pFactory)
+void IShaderFactoryConsumer::OnPluginReloaded(Spear::IShaderFactory* _pFactory)
 {
 	m_ActiveShaders.fill(nullptr);
 	m_ShaderModules.clear();
@@ -46,7 +46,7 @@ void IShaderFactoryConsumer::UninitializeFactory()
 	m_ShaderModules.clear();
 }
 //---------------------------------------------------------------------------------------------------
-bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, const SpecConstFactory* _pSpecConstFactory, const void* _pUserData, const size_t _uSize)
+bool IShaderFactoryConsumer::SelectShader(const Spear::ShaderID _ShaderIdentifier, const Spear::SpecConstFactory* _pSpecConstFactory, const void* _pUserData, const size_t _uSize)
 {
 	HASSERT(_ShaderIdentifier.Valid(), "Invalid shader identifier");
 	const uint64_t uHash = m_ShaderHasher(_ShaderIdentifier, _pUserData, _uSize);
@@ -67,7 +67,7 @@ bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 			HASSERT(GetPlugin() != nullptr, "Invalid ShaderFactory!");	
 			pActiveShader->Code = GetPlugin()->GetModule(_ShaderIdentifier, _pUserData, _uSize);
 
-			const EShaderType kType = static_cast<EShaderType>(pActiveShader->Code.GetExectionModel());
+			const Spear::EShaderType kType = static_cast<Spear::EShaderType>(pActiveShader->Code.GetExectionModel());
 			
 			if (_ShaderIdentifier.kType != kType) 
 			{
@@ -106,7 +106,7 @@ bool IShaderFactoryConsumer::SelectShader(const ShaderID _ShaderIdentifier, cons
 	return false;
 }
 //---------------------------------------------------------------------------------------------------
-void IShaderFactoryConsumer::DeactivateStage(const EShaderType _kType)
+void IShaderFactoryConsumer::DeactivateStage(const Spear::EShaderType _kType)
 {
 	m_ActiveShaders[_kType] = nullptr;
 }

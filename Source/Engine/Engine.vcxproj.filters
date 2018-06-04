@@ -113,9 +113,6 @@
     <ClInclude Include="Datastructures\Allocators.h">
       <Filter>Datastructures</Filter>
     </ClInclude>
-    <ClInclude Include="Display\Vulkan\IShaderFactory.h">
-      <Filter>Display\Vulkan\SPIRVInterop</Filter>
-    </ClInclude>
     <ClInclude Include="Datastructures\ProtocolParser.h">
       <Filter>Datastructures</Filter>
     </ClInclude>

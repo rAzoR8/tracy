@@ -1,11 +1,11 @@
-#ifndef TRACY_SPIRVOPERATORIMPL_H
-#define TRACY_SPIRVOPERATORIMPL_H
+#ifndef SPEAR_SPIRVOPERATORIMPL_H
+#define SPEAR_SPIRVOPERATORIMPL_H
 
 #include "SPIRVVariable.h"
 #include <vulkan\GLSL.std.450.h>
 #include <glm\gtc\constants.hpp>
 
-namespace Tracy
+namespace Spear
 {
 	//---------------------------------------------------------------------------------------------------
 	// create operation with no operands
@@ -1373,7 +1373,6 @@ namespace Tracy
 	}
 	//---------------------------------------------------------------------------------------------------
 
+}; //!Spear
 
-}; //!Tracy
-
-#endif // !TRACY_SPIRVOPERATORIMPL_H
+#endif // !SPEAR_SPIRVOPERATORIMPL_H

@@ -33,8 +33,8 @@ int main(int argc, char* argv[])
 	Pipeline.Viewports.push_back(Viewport());
 	Pipeline.Scissors.push_back({0,0, 1600u, 900u});
 
-	const auto kVertexShader = kShader_ScreenSpaceTriangle_UV;
-	const auto kPixelShader = kShader_Mandelbrot;//kShader_CSGExample;
+	const auto kVertexShader = Spear::kShader_ScreenSpaceTriangle_UV;
+	const auto kPixelShader = Spear::kShader_Mandelbrot;//kShader_CSGExample;
 
 	Pipeline.Shaders.push_back(kVertexShader);
 	Pipeline.Shaders.push_back(kPixelShader);
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 			SceneDesc Desc{};
 			Scene& Scene = Scene::Instance();
 
-			Desc.Objects.push_back(RenderObjectDesc::ScreenSpaceObject(uMat, kPixelShader, kShader_ScreenSpaceTriangle_UV));
+			Desc.Objects.push_back(RenderObjectDesc::ScreenSpaceObject(uMat, kPixelShader, Spear::kShader_ScreenSpaceTriangle_UV));
 			if (Scene.Initialize(Desc, Devices.front().hHandle))
 			{
 				Scene.AddCamera(pCamera);

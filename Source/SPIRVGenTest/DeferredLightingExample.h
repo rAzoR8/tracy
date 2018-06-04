@@ -1,9 +1,9 @@
-#ifndef TRACY_DEFERREDLIGHTINGEXAMPLE_H
-#define TRACY_DEFERREDLIGHTINGEXAMPLE_H
+#ifndef SPEAR_DEFERREDLIGHTINGEXAMPLE_H
+#define SPEAR_DEFERREDLIGHTINGEXAMPLE_H
 
 #include "SPIRVProgram.h"
 
-namespace Tracy
+namespace Spear
 {
 	enum EDLPermutation : uint32_t
 	{
@@ -416,6 +416,6 @@ namespace Tracy
 			Specular = float4(LightResult.vSpecular + vIndirectSpecularLight, 1.0f);
 		}
 	};
-} // Tracy
+} // Spear
 
-#endif // !TRACY_DEFERREDLIGHTINGEXAMPLE_H
+#endif // !SPEAR_DEFERREDLIGHTINGEXAMPLE_H

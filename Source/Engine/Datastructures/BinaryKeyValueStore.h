@@ -25,15 +25,15 @@ namespace Tracy
 		kPrimitiveType_Float = Eval<float, 8>,
 		kPrimitiveType_Double = Eval<double, 9>,
 
-		kPrimitiveType_Float2 = Eval<float2_t, 10>,
-		kPrimitiveType_Float3 = Eval<float3_t, 11>,
-		kPrimitiveType_Float4 = Eval<float4_t, 12>,
+		kPrimitiveType_Float2 = Eval<Spear::float2_t, 10>,
+		kPrimitiveType_Float3 = Eval<Spear::float3_t, 11>,
+		kPrimitiveType_Float4 = Eval<Spear::float4_t, 12>,
 
-		kPrimitiveType_Float2x2 = Eval<float2x2_t, 13>,
-		kPrimitiveType_Float3x3 = Eval<float3x3_t, 14>,
-		kPrimitiveType_Float3x4 = Eval<float3x4_t, 15>,
-		kPrimitiveType_Float4x3 = Eval<float4x3_t, 16>,
-		kPrimitiveType_Float4x4 = Eval<float4x4_t, 17>,
+		kPrimitiveType_Float2x2 = Eval<Spear::float2x2_t, 13>,
+		kPrimitiveType_Float3x3 = Eval<Spear::float3x3_t, 14>,
+		kPrimitiveType_Float3x4 = Eval<Spear::float3x4_t, 15>,
+		kPrimitiveType_Float4x3 = Eval<Spear::float4x3_t, 16>,
+		kPrimitiveType_Float4x4 = Eval<Spear::float4x4_t, 17>,
 
 		kPrimitiveType_NumOf = 18,
 		kPrimitiveType_Unknown = kPrimitiveType_NumOf

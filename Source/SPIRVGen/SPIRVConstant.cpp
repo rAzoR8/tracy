@@ -2,7 +2,7 @@
 #include "HashUtils.h"
 #include "Logger.h"
 
-using namespace Tracy;
+using namespace Spear;
 //---------------------------------------------------------------------------------------------------
 
 SPIRVConstant::SPIRVConstant(

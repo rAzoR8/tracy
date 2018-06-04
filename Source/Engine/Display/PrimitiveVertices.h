@@ -29,34 +29,34 @@ namespace Tracy
 	struct VertPos
 	{
 		VLAYOUTTYPE(kVertexLayout_Position)
-		float3_t vPos;
+		Spear::float3_t vPos;
 	};
 
 	struct VertPosNorm 
 	{
 		VLAYOUTTYPE(kVertexLayout_PosNorm)
-		float3_t vPos;
-		float3_t vNormal;
+		Spear::float3_t vPos;
+		Spear::float3_t vNormal;
 	};
 
 	struct VertPosNormTan
 	{
 		VLAYOUTTYPE(kVertexLayout_PosNormTan)
-		float3_t vPos;
-		float3_t vNormal;
-		float3_t vTangent;
+		Spear::float3_t vPos;
+		Spear::float3_t vNormal;
+		Spear::float3_t vTangent;
 	};
 
 	struct VertPosNormTanUV
 	{
 		VLAYOUTTYPE(kVertexLayout_PosNormTanUV)
-		float3_t vPos;
-		float3_t vNormal;
-		float3_t vTangent;
-		float2_t vUV;
+		Spear::float3_t vPos;
+		Spear::float3_t vNormal;
+		Spear::float3_t vTangent;
+		Spear::float2_t vUV;
 	};
 
-	static const VertPos TrianglePos[3] = { float3_t{0.f, 0.f, 0.f}, float3_t{ 1.f, 0.f, 0.f}, float3_t{ 0.5f, 1.f, 0.f} };
+	static const VertPos TrianglePos[3] = { Spear::float3_t{0.f, 0.f, 0.f}, Spear::float3_t{ 1.f, 0.f, 0.f}, Spear::float3_t{ 0.5f, 1.f, 0.f} };
 }// Tracy
 
 #endif // !TRACY_PRIMITVEVERTICES_H

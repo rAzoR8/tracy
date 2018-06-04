@@ -1,9 +1,10 @@
-#ifndef TRACY_SPIRVQUATERNION_H
-#define TRACY_SPIRVQUATERNION_H
+#ifndef SPEAR_SPIRVQUATERNION_H
+#define SPEAR_SPIRVQUATERNION_H
 
 #include "SPIRVOperatorImpl.h"
 //http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
-namespace Tracy
+
+namespace Spear
 {
 	// from Assembly pov it might make more sense to define quaternion_t as {float s, float3_t v} to spare all the extract & insert operations when accessing components
 	// but the main benefit is that quaternion_t is a float4_t equivalent and can be indexed & transformed in the same way
@@ -142,6 +143,6 @@ namespace Tracy
 		return (Conjugate() * SPIRVQuaternion<Assemble, spv::StorageClassFunction>(_Point, 0.f) * (*this)).xyz;
 	}
 
-}//
+} //Spear
 
-#endif // !TRACY_SPIRVQUATERNION_H
+#endif // !SPEAR_SPIRVQUATERNION_H

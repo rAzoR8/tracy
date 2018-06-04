@@ -1,11 +1,11 @@
-#ifndef TRACY_PHONGMATERIAL_H
-#define TRACY_PHONGMATERIAL_H
+#ifndef SPEAR_PHONGMATERIAL_H
+#define SPEAR_PHONGMATERIAL_H
 
 #include "SPIRVOperatorImpl.h"
 #include "MaterialInterface.h"
 #include "LightingFunctions.h"
 
-namespace Tracy
+namespace Spear
 {
 	//---------------------------------------------------------------------------------------------------
 
@@ -137,6 +137,6 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 
 
-} // Tracy
+} // Spear
 
-#endif // !TRACY_PHONGMATERIAL_H
+#endif // !SPEAR_PHONGMATERIAL_H

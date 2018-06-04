@@ -1,6 +1,6 @@
 #include "SPIRVVariable.h"
 
-using namespace Tracy;
+using namespace Spear;
 
 void var_decoration<true>::Decorate(const SPIRVDecoration& _Decoration)
 {

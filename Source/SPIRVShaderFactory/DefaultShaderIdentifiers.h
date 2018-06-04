@@ -1,8 +1,10 @@
-#ifndef TRACY_DEFAULTSHADERIDENTIFIERS_H
-#define TRACY_DEFAULTSHADERIDENTIFIERS_H
+#ifndef SPEAR_DEFAULTSHADERIDENTIFIERS_H
+#define SPEAR_DEFAULTSHADERIDENTIFIERS_H
 
-#include "Display\DisplayTypes.h"
-namespace Tracy 
+#include "ShaderID.h"
+#include <Flag.h>
+
+namespace Spear 
 {
 	enum EDefaultShader : uint16_t
 	{
@@ -27,7 +29,6 @@ namespace Tracy
 	constexpr ShaderID kShader_Mandelbrot = kShaderID<kShaderType_Fragment, kDefaultShader_Mandelbrot>;
 	constexpr ShaderID kShader_CSGExample = kShaderID<kShaderType_Fragment, kDefaultShader_CSGExample>;
 
+} // Spear
 
-} // Tracy
-
-#endif // !TRACY_DEFAULTSHADERIDENTIFIERS_H
+#endif // !SPEAR_DEFAULTSHADERIDENTIFIERS_H

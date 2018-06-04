@@ -1,11 +1,11 @@
-#ifndef TRACY_CSGEXAMPLESHADER_H
-#define TRACY_CSGEXAMPLESHADER_H
+#ifndef SPEAR_CSGEXAMPLESHADER_H
+#define SPEAR_CSGEXAMPLESHADER_H
 
 #include "SimpleCSGRayMarching.h"
 #include "SPIRVProgram.h"
 #include "PhongMaterial.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Assemble = true>
 	class CSGExampleShader : public FragmentProgram<Assemble>
@@ -78,6 +78,6 @@ namespace Tracy
 		};
 	};
 
-} // Tracy
+} // Spear
 
-#endif // !TRACY_CSGEXAMPLESHADER_H
+#endif // !SPEAR_CSGEXAMPLESHADER_H

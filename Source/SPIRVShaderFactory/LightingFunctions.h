@@ -1,9 +1,9 @@
-#ifndef TRACY_LIGHTINGFUNCTIONS_H
-#define TRACY_LIGHTINGFUNCTIONS_H
+#ifndef SPEAR_LIGHTINGFUNCTIONS_H
+#define SPEAR_LIGHTINGFUNCTIONS_H
 
 #include "SPIRVOperatorImpl.h"
 
-namespace Tracy
+namespace Spear
 {
 	template<bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3>
 	inline var_t<float, Assemble, spv::StorageClassFunction> CalculateAttenuation(
@@ -34,7 +34,6 @@ namespace Tracy
 		return SmoothStep(fMinCos, fMaxCos, Dot(_vSpotDirection, _vLightToSurfaceDir));
 	}
 	//---------------------------------------------------------------------------------------------------
+} // Spear
 
-}
-
-#endif // !TRACY_LIGHTINGFUNCTIONS_H
+#endif // !SPEAR_LIGHTINGFUNCTIONS_H

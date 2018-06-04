@@ -1,9 +1,9 @@
-#ifndef TRACY_MATHFUNCTIONS_H
-#define TRACY_MATHFUNCTIONS_H
+#ifndef SPEAR_MATHFUNCTIONS_H
+#define SPEAR_MATHFUNCTIONS_H
 
 #include "SPIRVOperatorImpl.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Assemble, spv::StorageClass C1>
 	inline var_t<float3x3_t, Assemble, spv::StorageClassFunction> RotateY3X3(const var_t<float, Assemble, C1>& _fAngleRad)
@@ -35,7 +35,6 @@ namespace Tracy
 			vec4(-s, 0.f, c, 0.f),
 			vec4(0.f, 0.f, 0.f, 1.f));
 	}
+} // Spear
 
-} // Tracy
-
-#endif // !TRACY_MATHFUNCTIONS_H
+#endif // !SPEAR_MATHFUNCTIONS_H

@@ -2,7 +2,7 @@
 
 using namespace Tracy;
 
-MaterialDesc MaterialDesc::ScreenSpaceMaterial(const uint64_t _uPassIds, const ShaderID _kVertexShader, const ShaderID _kPixelShader)
+MaterialDesc MaterialDesc::ScreenSpaceMaterial(const uint64_t _uPassIds, const Spear::ShaderID _kVertexShader, const Spear::ShaderID _kPixelShader)
 {
 	MaterialDesc Desc{};
 
@@ -14,7 +14,7 @@ MaterialDesc MaterialDesc::ScreenSpaceMaterial(const uint64_t _uPassIds, const S
 }
 //---------------------------------------------------------------------------------------------------
 
-RenderObjectDesc RenderObjectDesc::ScreenSpaceObject(const uint64_t _uPassIds, const ShaderID _kVertexShader, const ShaderID _kPixelShader, const TRenderObjectFlags& _kFlags)
+RenderObjectDesc RenderObjectDesc::ScreenSpaceObject(const uint64_t _uPassIds, const Spear::ShaderID _kVertexShader, const Spear::ShaderID _kPixelShader, const TRenderObjectFlags& _kFlags)
 {
 	RenderObjectDesc Desc{};
 

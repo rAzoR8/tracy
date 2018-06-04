@@ -1,10 +1,10 @@
-#ifndef TRACY_SCREENSPACETRIANGLE_H
-#define TRACY_SCREENSPACETRIANGLE_H
+#ifndef SPEAR_SCREENSPACETRIANGLE_H
+#define SPEAR_SCREENSPACETRIANGLE_H
 
 #include "SPIRVProgram.h"
 #include "DefaultShaderIdentifiers.h"
 
-namespace Tracy
+namespace Spear
 {	
 	template <bool Assemble>
 	struct SST_VSOUT
@@ -60,8 +60,6 @@ namespace Tracy
 	private:
 		const TVertexPermutation m_Permutation;
 	};
-} // Tracy
+} // Spear
 
-
-
-#endif // TRACY_SCREENSPACETRIANGLE_H
+#endif // SPEAR_SCREENSPACETRIANGLE_H

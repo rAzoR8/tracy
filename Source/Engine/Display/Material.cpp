@@ -23,7 +23,7 @@ bool Material::Load(const MaterialDesc& _Desc, const THandle _hDevice, const boo
 
 		Entry.uPassId = _Desc.uPassId;
 
-		for (const ShaderID& shader : _Desc.Shaders)
+		for (const Spear::ShaderID& shader : _Desc.Shaders)
 		{
 			Entry.Shaders[shader.kType] = shader;
 		}

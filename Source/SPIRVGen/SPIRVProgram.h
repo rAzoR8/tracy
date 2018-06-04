@@ -1,11 +1,11 @@
-#ifndef TRACY_SPIRVPROGRAM_H
-#define TRACY_SPIRVPROGRAM_H
+#ifndef SPEAR_SPIRVPROGRAM_H
+#define SPEAR_SPIRVPROGRAM_H
 
 #include "SPIRVQuaternion.h"
 #include "SPIRVComplex.h"
 #include "SPIRVBranchOperations.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Assemble>
 	class SPIRVProgram
@@ -226,6 +226,6 @@ namespace Tracy
 		((TProg*)this)->operator()(std::forward<Ts>(_args)...);
 	}
 	//---------------------------------------------------------------------------------------------------	
-}; // !Tracy
+}; // !Spear
 
-#endif // !TRACY_SPIRVPROGRAM_H
+#endif // !SPEAR_SPIRVPROGRAM_H

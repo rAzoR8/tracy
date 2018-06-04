@@ -15,7 +15,7 @@ namespace Tracy
 		uint64_t uPassId = 0u; // renderpasses this material uses
 
 		// not sure if this is the right place
-		std::array<ShaderID, kShaderType_NumOf> Shaders; // todo userdata
+		std::array<Spear::ShaderID, Spear::kShaderType_NumOf> Shaders; // todo userdata
 
 		BinaryKeyValueBufferSource Values;
 		ImageSource Images;
@@ -38,7 +38,7 @@ namespace Tracy
 	{
 		if (l.uPassId == r.uPassId)
 		{
-			for (size_t i = 0; i < kShaderType_NumOf; ++i)
+			for (size_t i = 0; i < Spear::kShaderType_NumOf; ++i)
 			{
 				if (l.Shaders[i].uID < r.Shaders[i].uID)
 					return true;

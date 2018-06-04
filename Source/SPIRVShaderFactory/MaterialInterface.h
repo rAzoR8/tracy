@@ -1,14 +1,11 @@
-#ifndef TRACY_MATERIALINTERFACE_H
-#define TRACY_MATERIALINTERFACE_H
+#ifndef SPEAR_MATERIALINTERFACE_H
+#define SPEAR_MATERIALINTERFACE_H
 
 #include "SPIRVVariable.h"
-//#include "SPIRVVariableTypeDefs.h"
 #include <variant>
 
-namespace Tracy
+namespace Spear
 {
-	//---------------------------------------------------------------------------------------------------
-
 	template<bool Assemble>
 	struct DirectionalLight
 	{
@@ -100,6 +97,6 @@ namespace Tracy
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> operator()(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos, const PointLight<Assemble>& _PointLight) const { return Eval(_vPos, _vNormal, _vCameraPos, _PointLight); };
 		inline var_t<float3_t, Assemble, spv::StorageClassFunction> operator()(const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vPos, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vNormal, const var_t<float3_t, Assemble, spv::StorageClassFunction>& _vCameraPos, const SpotLight<Assemble>& _SpotLight) const { return Eval(_vPos, _vNormal, _vCameraPos, _SpotLight); };
 	};
-} // Tracy
+} // Spear
 
-#endif // !TRACY_MATERIALINTERFACE_H
+#endif // !SPEAR_MATERIALINTERFACE_H

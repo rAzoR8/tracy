@@ -14,9 +14,9 @@ namespace Tracy
 	{
 	public:
 		Transform(
-			const float3_t& _vPosition = {0.f, 0.f, 0.f},
-			const quaternion_t& _vOrientation = {0.f, 0.f, 0.f, 0.f,},
-			const float3_t& _vScale = {1.f, 1.f, 1.f}) :
+			const Spear::float3_t& _vPosition = {0.f, 0.f, 0.f},
+			const Spear::quaternion_t& _vOrientation = {0.f, 0.f, 0.f, 0.f,},
+			const Spear::float3_t& _vScale = {1.f, 1.f, 1.f}) :
 		m_vPosition(_vPosition),
 		m_vOrientation(_vOrientation),
 		m_vScale(_vScale)
@@ -27,16 +27,16 @@ namespace Tracy
 		virtual ~Transform() {};
 
 		// needs to be called before rendering
-		const float4x4_t& ComputeTransform();
+		const Spear::float4x4_t& ComputeTransform();
 
 		// all in local space!
-		inline const float3_t& GetPosition() const { return m_vPosition; };
-		inline const float3_t& GetScale() const { return m_vScale; };
-		inline const quaternion_t& GetOrientation() const { return m_vOrientation; };
+		inline const Spear::float3_t& GetPosition() const { return m_vPosition; };
+		inline const Spear::float3_t& GetScale() const { return m_vScale; };
+		inline const Spear::quaternion_t& GetOrientation() const { return m_vOrientation; };
 
-		inline void SetPosition(const float3_t& _vPosition) { m_vPosition = _vPosition; }
-		inline void SetScale(const float3_t& _vScale) { m_vScale = _vScale; }
-		inline void SetOrientation(const quaternion_t& _vOrientation) { m_vOrientation = _vOrientation; }
+		inline void SetPosition(const Spear::float3_t& _vPosition) { m_vPosition = _vPosition; }
+		inline void SetScale(const Spear::float3_t& _vScale) { m_vScale = _vScale; }
+		inline void SetOrientation(const Spear::quaternion_t& _vOrientation) { m_vOrientation = _vOrientation; }
 
 		void AddChild(TNestedType* _pObject);
 		const std::vector<TNestedType*>& GetChildren() const { return m_Children; };
@@ -48,17 +48,17 @@ namespace Tracy
 		TNestedType* m_pParent = nullptr; // use for transform hierarchy
 		std::vector<TNestedType*> m_Children;
 
-		float3_t m_vPosition;
-		float3_t m_vScale;
-		quaternion_t m_vOrientation;
+		Spear::float3_t m_vPosition;
+		Spear::float3_t m_vScale;
+		Spear::quaternion_t m_vOrientation;
 
-		float4x4_t m_mTransform;
+        Spear::float4x4_t m_mTransform;
 	};
 
 	//---------------------------------------------------------------------------------------------------
 
 	template <class TNestedType>
-	inline const float4x4_t& Transform<TNestedType>::ComputeTransform()
+	inline const Spear::float4x4_t& Transform<TNestedType>::ComputeTransform()
 	{
 		m_mTransform = glm::translate(m_vPosition) * glm::mat4_cast(m_vOrientation) * glm::scale(m_vScale);
 

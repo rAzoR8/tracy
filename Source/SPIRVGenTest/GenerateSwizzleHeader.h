@@ -1,5 +1,5 @@
-#ifndef TRACY_GENERATESWIZZLEHEADER_H
-#define TRACY_GENERATESWIZZLEHEADER_H
+#ifndef SPEAR_GENERATESWIZZLEHEADER_H
+#define SPEAR_GENERATESWIZZLEHEADER_H
 
 #include <fstream>
 #include <string>
@@ -13,8 +13,8 @@ void GenerateSwizzleHeader()
 
 	if (out.is_open())
 	{
-		out << "#ifndef TRACY_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
-		out << "#define TRACY_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
+		out << "#ifndef SPEAR_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
+		out << "#define SPEAR_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
 
 		std::string sTplArgs;
 		std::string sExtract;
@@ -118,10 +118,10 @@ void GenerateSwizzleHeader()
 			}
 		}
 
-		out << "#endif // !TRACY_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
+		out << "#endif // !SPEAR_SPIRVVECTORCOMPONENTACCESS_H" << std::endl;
 	}
 
 	out.close();
 }
 
-#endif // !TRACY_GENERATESWIZZLEHEADER_H
+#endif // !SPEAR_GENERATESWIZZLEHEADER_H

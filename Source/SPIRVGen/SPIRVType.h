@@ -1,11 +1,11 @@
-#ifndef TRACY_SPIRVTYPE_H
-#define TRACY_SPIRVTYPE_H
+#ifndef SPEAR_SPIRVTYPE_H
+#define SPEAR_SPIRVTYPE_H
 
 #include <vector>
 #include "SPIRVVariableTypes.h"
 #include "GetStructMember.h"
 
-namespace Tracy
+namespace Spear
 {
 #pragma region type defs
 #ifndef OPDEFS
@@ -381,6 +381,6 @@ namespace Tracy
 	template<>
 	inline SPIRVType SPIRVType::FromBaseType<float3x4_t>() { return SPIRVType::Mat<float, 3, 4>(); }
 #pragma endregion
-} // Tracy
+} // Spear
 
-#endif // !TRACY_SPIRVTYPE_H
+#endif // !SPEAR_SPIRVTYPE_H

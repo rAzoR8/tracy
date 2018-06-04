@@ -125,7 +125,6 @@
     <ClInclude Include="Display\RenderObjectDescription.h" />
     <ClInclude Include="Display\RenderPassDescription.h" />
     <ClInclude Include="Display\Texture.h" />
-    <ClInclude Include="Display\Vulkan\IShaderFactory.h" />
     <ClInclude Include="Display\Vulkan\IShaderFactoryConsumer.h" />
     <ClInclude Include="Display\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="Display\Vulkan\VulkanFence.h" />

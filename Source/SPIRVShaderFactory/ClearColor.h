@@ -1,9 +1,9 @@
-#ifndef TRACY_CLEARCOLOR_H
-#define TRACY_CLEARCOLOR_H
+#ifndef SPEAR_CLEARCOLOR_H
+#define SPEAR_CLEARCOLOR_H
 
 #include "SPIRVProgram.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Assemble = true>
 	class ClearColor: public FragmentProgram<Assemble>
@@ -22,6 +22,6 @@ namespace Tracy
 	private:
 	};
 
-} // Tracy
+} // Spear
 
-#endif // !TRACY_CLEARCOLOR_H
+#endif // !SPEAR_CLEARCOLOR_H

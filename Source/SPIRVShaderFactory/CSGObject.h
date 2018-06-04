@@ -1,11 +1,11 @@
-#ifndef TRACY_CSGOBJECT_H
-#define TRACY_CSGOBJECT_H
+#ifndef SPEAR_CSGOBJECT_H
+#define SPEAR_CSGOBJECT_H
 
 #include "SDFObject.h"
 #include "MaterialInterface.h"
 #include "SPIRVQuaternion.h"
 
-namespace Tracy
+namespace Spear
 {
 	// https://www.alanzucconi.com/2016/07/01/signed-distance-functions/#part6
 	//---------------------------------------------------------------------------------------------------
@@ -548,6 +548,6 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-} // Tracy
+} // Spear
 
-#endif // !TRACY_CSGOBJECT_H
+#endif // !SPEAR_CSGOBJECT_H

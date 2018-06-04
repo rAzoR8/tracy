@@ -1,5 +1,5 @@
-#ifndef TRACY_SPIRVVARIABLETYPES_H
-#define TRACY_SPIRVVARIABLETYPES_H
+#ifndef SPEAR_SPIRVVARIABLETYPES_H
+#define SPEAR_SPIRVVARIABLETYPES_H
 
 //http://glm.g-truc.net/0.9.8/glm-0.9.8.pdf
 //#include <glm\fwd.hpp> // forward decls
@@ -8,7 +8,7 @@
 #include "FunctionalUtils.h"
 #include "Vector.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Cond, class U, class V>
 	using cond_t = std::conditional_t<Cond, U, V>;
@@ -716,11 +716,11 @@ namespace Tracy
 	struct TSPVBuiltInTag {};
 
 #ifndef SPVStruct
-#define SPVStruct typedef Tracy::TSPVStructTag SPVStructTag;
+#define SPVStruct typedef Spear::TSPVStructTag SPVStructTag;
 #endif
 
 #ifndef SPVBuiltIn
-#define SPVBuiltIn typedef Tracy::TSPVBuiltInTag SPVBuiltInTag;
+#define SPVBuiltIn typedef Spear::TSPVBuiltInTag SPVBuiltInTag;
 #endif
 
 	template< class, class = std::void_t<> >
@@ -761,6 +761,6 @@ namespace Tracy
 	constexpr bool has_var = std::disjunction_v<has_var_tag<Ts>...>;
 #pragma endregion
 
-}; // Tracy
+}; // Spear
 
-#endif // !TRACY_SPIRVVARIABLETYPES_H
+#endif // !SPEAR_SPIRVVARIABLETYPES_H

@@ -1,5 +1,5 @@
-#ifndef TRACY_EXAMPLEPROG_H
-#define TRACY_EXAMPLEPROG_H
+#ifndef SPEAR_EXAMPLEPROG_H
+#define SPEAR_EXAMPLEPROG_H
 
 #include "SPIRVProgram.h"
 #include "SPIRVAssembler.h"
@@ -7,7 +7,7 @@
 
 #include "..\SPIRVShaderFactory\MicrofacetReflection.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Assemble>
 	class ExampleProg : public SPIRVProgram<Assemble>
@@ -164,6 +164,6 @@ namespace Tracy
 	private:
 	};
 
-}; // !Tracy
+}; // !Spear
 
-#endif // !TRACY_EXAMPLEPROG_H
+#endif // !SPEAR_EXAMPLEPROG_H

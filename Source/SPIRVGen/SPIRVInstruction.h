@@ -1,10 +1,10 @@
-#ifndef TRACY_SPIRVINSTRUCTION_H
-#define TRACY_SPIRVINSTRUCTION_H
+#ifndef SPEAR_SPIRVINSTRUCTION_H
+#define SPEAR_SPIRVINSTRUCTION_H
 
 #include <vulkan\spirv.hpp>
 #include <vector>
 
-namespace Tracy
+namespace Spear
 {
 	class SPIRVInstruction
 	{
@@ -46,10 +46,10 @@ namespace Tracy
 		// Operands x u32 (WordCount-(1-3)) (optional)
 	};
 
-	inline const uint32_t Tracy::SPIRVInstruction::GetTypeId() const noexcept {return m_uTypeId;}
+	inline const uint32_t SPIRVInstruction::GetTypeId() const noexcept {return m_uTypeId;}
 	inline const uint32_t& SPIRVInstruction::GetResultId() const noexcept { return m_uResultId; }
 	inline const std::vector<uint32_t>& SPIRVInstruction::GetOperands() const noexcept {return m_Operands;}
 	inline spv::Op SPIRVInstruction::GetOp() const noexcept{return m_kOperation;}
-}; // Tracy
+}; // Spear
 
-#endif // !TRACY_SPIRVINSTRUCTION_H
+#endif // !SPEAR_SPIRVINSTRUCTION_H

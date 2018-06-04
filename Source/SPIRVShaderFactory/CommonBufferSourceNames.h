@@ -1,17 +1,17 @@
-#ifndef TRACY_COMMONBUFFERSOURCENAMES_H
-#define TRACY_COMMONBUFFERSOURCENAMES_H
+#ifndef SPEAR_COMMONBUFFERSOURCENAMES_H
+#define SPEAR_COMMONBUFFERSOURCENAMES_H
 
 #include "CompileTimeString.h"
 
-namespace Tracy
+namespace Spear
 {
 	namespace BufferSources
 	{
 		using namespace hlx;
 
-		static constexpr std::string_view sObjectWorldMatrix = "TRACY_OBJ_WORLD_MATRIX"_sv;
-		static constexpr std::string_view sViewProjectionMatrix = "TRACY_VIEW_PROJ_MATRIX"_sv;
-		static constexpr std::string_view sFrameBufferDimension = "TRACY_FRAMEBUFFER_DIM"_sv;
+		static constexpr std::string_view sObjectWorldMatrix = "SPEAR_OBJ_WORLD_MATRIX"_sv;
+		static constexpr std::string_view sViewProjectionMatrix = "SPEAR_VIEW_PROJ_MATRIX"_sv;
+		static constexpr std::string_view sFrameBufferDimension = "SPEAR_FRAMEBUFFER_DIM"_sv;
 
 #pragma warning(push)
 #pragma warning(disable: 4307)
@@ -20,6 +20,6 @@ namespace Tracy
 		static constexpr uint64_t kFrameBufferDimension = const_string_hash(sFrameBufferDimension);
 #pragma warning(pop)
 	}
-} // Tracy
+} // Spear
 
-#endif // !TRACY_COMMONBUFFERSOURCENAMES_H
+#endif // !SPEAR_COMMONBUFFERSOURCENAMES_H

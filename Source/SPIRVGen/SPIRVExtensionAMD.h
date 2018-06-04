@@ -1,9 +1,9 @@
-#ifndef TRACY_SPIRVEXTENSIONAMD_H
-#define TRACY_SPIRVEXTENSIONAMD_H
+#ifndef SPEAR_SPIRVEXTENSIONAMD_H
+#define SPEAR_SPIRVEXTENSIONAMD_H
 
 #include "SPIRVOperatorImpl.h"
 
-namespace Tracy
+namespace Spear
 {
 	namespace ExtAMD
 	{
@@ -58,6 +58,6 @@ namespace Tracy
 			}
 		}
 	} // extamd
-} // Tracy
+} // Spear
 
-#endif // !TRACY_SPIRVEXTENSIONAMD_H
+#endif // !SPEAR_SPIRVEXTENSIONAMD_H

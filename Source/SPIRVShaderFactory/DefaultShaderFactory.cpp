@@ -7,20 +7,20 @@
 #include "Mandelbrot.h"
 #include "CSGExampleShader.h"
 
-using namespace Tracy;
+using namespace Spear;
 //---------------------------------------------------------------------------------------------------
 
-TracyDefaultShaderFactory::TracyDefaultShaderFactory()
+DefaultShaderFactory::DefaultShaderFactory()
 {
 }
 //---------------------------------------------------------------------------------------------------
 
-TracyDefaultShaderFactory::~TracyDefaultShaderFactory()
+DefaultShaderFactory::~DefaultShaderFactory()
 {
 }
 //---------------------------------------------------------------------------------------------------
 
-SPIRVModule TracyDefaultShaderFactory::GetModule(const ShaderID _ShaderIdentifier, const void* _pUserData, const size_t _uSize)
+SPIRVModule DefaultShaderFactory::GetModule(const ShaderID _ShaderIdentifier, const void* _pUserData, const size_t _uSize)
 {
 	// in this example we don't use the user data, but we could cast it so some structure to control compilation
 	auto it = m_Modules.find(_ShaderIdentifier);
@@ -34,13 +34,13 @@ SPIRVModule TracyDefaultShaderFactory::GetModule(const ShaderID _ShaderIdentifie
 }
 //---------------------------------------------------------------------------------------------------
 
-void TracyDefaultShaderFactory::Release()
+void DefaultShaderFactory::Release()
 {
 	delete this;
 }
 //---------------------------------------------------------------------------------------------------
 
-SPIRVModule TracyDefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier) const
+SPIRVModule DefaultShaderFactory::Compile(const ShaderID _ShaderIdentifier) const
 {
 	SPIRVModule Shader;
 	switch (_ShaderIdentifier.uShader)

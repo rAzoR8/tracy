@@ -1,12 +1,12 @@
-#ifndef TRACY_SPIRVBINARYDEFINES_H
-#define TRACY_SPIRVBINARYDEFINES_H
+#ifndef SPEAR_SPIRVBINARYDEFINES_H
+#define SPEAR_SPIRVBINARYDEFINES_H
 
 #include <string>
 #include <unordered_map>
 #include <vulkan\spirv.hpp>	
 #include "Flag.h"
 
-namespace Tracy
+namespace Spear
 {
 	enum ESPVOpArgs
 	{
@@ -253,7 +253,6 @@ namespace Tracy
 		}
 	}
 	
-} // Tracy
+} // Spear
 
-
-#endif // !TRACY_SPIRVBINARYDEFINES_H
+#endif // !SPEAR_SPIRVBINARYDEFINES_H

@@ -1,9 +1,9 @@
-#ifndef TRACY_CAMERAFUNCTIONS_H
-#define TRACY_CAMERAFUNCTIONS_H
+#ifndef SPEAR_CAMERAFUNCTIONS_H
+#define SPEAR_CAMERAFUNCTIONS_H
 
 #include "SPIRVOperatorImpl.h"
 
-namespace Tracy
+namespace Spear
 {
 	//---------------------------------------------------------------------------------------------------
 
@@ -41,6 +41,6 @@ namespace Tracy
 
 	//---------------------------------------------------------------------------------------------------
 
-} // Tracy
+} // Spear
 
-#endif // !TRACY_CAMERAFUNCTIONS_H
+#endif // !SPEAR_CAMERAFUNCTIONS_H

@@ -7,11 +7,12 @@
 #include "..\SPIRVShaderFactory\CommonBufferSourceNames.h"
 
 using namespace Tracy;
+using namespace Spear;
 
 //---------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::Framebuffer::Framebuffer() :
-	DimensionSource(vRTDimensions, BufferSources::kFrameBufferDimension)
+	DimensionSource(vRTDimensions, Spear::BufferSources::kFrameBufferDimension)
 {
 }
 //---------------------------------------------------------------------------------------------------
@@ -583,7 +584,7 @@ bool VulkanRenderPass::Record(const Camera& _Camera)
 
 		bool bShaderChanged = false;
 
-		for (const ShaderID& id : Mat.Shaders)
+		for (const Spear::ShaderID& id : Mat.Shaders)
 		{
 			if (id.Valid())
 			{

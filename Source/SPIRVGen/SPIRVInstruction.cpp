@@ -1,7 +1,7 @@
 #include "SPIRVInstruction.h"
 #include "SPIRVBinaryDefines.h" // for decode
 
-using namespace Tracy;
+using namespace Spear;
 
 //---------------------------------------------------------------------------------------------------
 

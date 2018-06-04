@@ -1,7 +1,7 @@
 #include "SPIRVOperation.h"
 #include "SPIRVBinaryDefines.h"
 
-using namespace Tracy;
+using namespace Spear;
 
 SPIRVOperation::SPIRVOperation(const spv::Op _kOp, const uint32_t _uResultTypeId, const SPIRVOperand& _Operand) :
 	m_kOpCode(_kOp), m_Operands(1u, _Operand), m_uResultTypeId(_uResultTypeId)
@@ -82,7 +82,7 @@ SPIRVOperation& SPIRVOperation::operator=(const SPIRVOperation & _Other)
 }
 //---------------------------------------------------------------------------------------------------
 
-SPIRVOperation& Tracy::SPIRVOperation::operator=(SPIRVOperation&& _Other)
+SPIRVOperation& SPIRVOperation::operator=(SPIRVOperation&& _Other)
 {
     m_bTranslated = std::move(_Other.m_bTranslated);
     m_bUsed = std::move(_Other.m_bUsed);

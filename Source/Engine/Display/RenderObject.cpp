@@ -5,7 +5,7 @@ using namespace Tracy;
 //---------------------------------------------------------------------------------------------------
 
 RenderObject::RenderObject(const TRenderObjectFlags _kFlags) :
-	BufferSource(m_mTransform, BufferSources::kObjectWorldMatrix),
+	BufferSource(m_mTransform, Spear::BufferSources::kObjectWorldMatrix),
 	TRenderObjectFlags(_kFlags),
 	m_BufferSources(1u, this)
 {

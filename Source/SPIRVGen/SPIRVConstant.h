@@ -1,9 +1,9 @@
-#ifndef TRACY_SPIRVCONSTANT_H
-#define TRACY_SPIRVCONSTANT_H
+#ifndef SPEAR_SPIRVCONSTANT_H
+#define SPEAR_SPIRVCONSTANT_H
 
 #include "SPIRVType.h"
 
-namespace Tracy
+namespace Spear
 {	
 	class SPIRVConstant
 	{
@@ -58,7 +58,7 @@ namespace Tracy
 		return l.GetHash() != r.GetHash();
 	}
 
-	inline const spv::Op& Tracy::SPIRVConstant::GetType() const noexcept
+	inline const spv::Op& SPIRVConstant::GetType() const noexcept
 	{
 		return m_kConstantType;
 	}
@@ -210,6 +210,6 @@ namespace Tracy
 		}
 	}
 
-}; // Tracy
+}; // Spear
 
-#endif // !TRACY_SPIRVCONSTANT_H
+#endif // !SPEAR_SPIRVCONSTANT_H

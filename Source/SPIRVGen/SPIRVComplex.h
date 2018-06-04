@@ -1,9 +1,9 @@
-#ifndef TRACY_SPIRVCOMPLEX_H
-#define TRACY_SPIRVCOMPLEX_H
+#ifndef SPEAR_SPIRVCOMPLEX_H
+#define SPEAR_SPIRVCOMPLEX_H
 
 #include "SPIRVOperatorImpl.h"
 
-namespace Tracy
+namespace Spear
 {
 	// z = a + bi
 	// a = real, b = imag
@@ -152,5 +152,4 @@ namespace Tracy
 	}
 }
 
-
-#endif // !TRACY_SPIRVCOMPLEX_H
+#endif // !SPEAR_SPIRVCOMPLEX_H

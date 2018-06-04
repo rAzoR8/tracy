@@ -1,9 +1,9 @@
-#ifndef TRACY_MICROFACETREFLECTION_H
-#define TRACY_MICROFACETREFLECTION_H
+#ifndef SPEAR_MICROFACETREFLECTION_H
+#define SPEAR_MICROFACETREFLECTION_H
 
 #include "SPIRVProgram.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <bool Assemble, spv::StorageClass C1, spv::StorageClass C2, spv::StorageClass C3> // ri = refraction index
 	inline var_t<float, Assemble, spv::StorageClassFunction> FresnelSchlick(const var_t<float3_t, Assemble, C1>& l, const var_t<float3_t, Assemble, C2>& h, var_t<float, Assemble, C3>& ri)
@@ -53,6 +53,6 @@ namespace Tracy
 	private:
 
 	};
-} // Tracy
+} // Spear
 
-#endif // !TRACY_MICROFACETREFLECTION_H
+#endif // !SPEAR_MICROFACETREFLECTION_H

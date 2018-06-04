@@ -2,7 +2,6 @@
 #define TRACY_RENDERPASSDESCRIPTION_H
 
 #include "DisplayTypes.h"
-//#include "Bytes.h"
 #include <vector>
 #include <array>
 
@@ -13,9 +12,9 @@ namespace Tracy
 	{
 		struct ShaderDesc
 		{
-			ShaderDesc(const ShaderID& _Shader = ShaderID::kInvalid) :
+			ShaderDesc(const Spear::ShaderID& _Shader = Spear::ShaderID::kInvalid) :
 				Identifier(_Shader) {}
-			ShaderID Identifier;
+            Spear::ShaderID Identifier;
 			//hlx::bytes UserData;
 		};
 

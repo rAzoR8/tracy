@@ -1,10 +1,9 @@
-#ifndef TRACY_SPIRVBRANCHNODE_H
-#define TRACY_SPIRVBRANCHNODE_H
+#ifndef SPEAR_SPIRVBRANCHNODE_H
+#define SPEAR_SPIRVBRANCHNODE_H
 
 #include "SPIRVAssembler.h"
-//#include "SPIRVVariable.h"
 
-namespace Tracy
+namespace Spear
 {
 #pragma region If
 	template <bool Assemble>
@@ -323,6 +322,6 @@ namespace Tracy
 #endif // !Else
 	//---------------------------------------------------------------------------------------------------
 
-} // !Tracy
+} // !Spear
 
-#endif // !TRACY_SPIRVBRANCHNODE_H
+#endif // !SPEAR_SPIRVBRANCHNODE_H

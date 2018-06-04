@@ -3,7 +3,7 @@
 #include "HashUtils.h"
 #include <fstream>
 
-using namespace Tracy;
+using namespace Spear;
 //---------------------------------------------------------------------------------------------------
 SPIRVModule::SPIRVModule(const SPIRVModule& _Other) :
 	m_uBounds(_Other.m_uBounds),

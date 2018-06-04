@@ -2,7 +2,7 @@
 #include "Logger.h"
 #include "HashUtils.h"
 
-using namespace Tracy;
+using namespace Spear;
 
 //---------------------------------------------------------------------------------------------------
 

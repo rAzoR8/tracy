@@ -1,5 +1,5 @@
-#ifndef TRACY_SPIRVVECTORCOMPONENTACCESS_H
-#define TRACY_SPIRVVECTORCOMPONENTACCESS_H
+#ifndef SPEAR_SPIRVVECTORCOMPONENTACCESS_H
+#define SPEAR_SPIRVVECTORCOMPONENTACCESS_H
 TExtractType<1> X() const { return ExtractComponent<1, 0>(); } 
 template <spv::StorageClass C1> void X(const var_t<vec_type_t<base_type_t<T>, 1>, Assemble, C1>& _var) const { InsertComponent<1, 0>(_var);}
 void X(const vec_type_t<base_type_t<T>, 1>& _var) const { InsertComponent<1, 0>(var_t<vec_type_t<base_type_t<T>, 1>, Assemble, spv::StorageClassFunction>(_var));}
@@ -1700,4 +1700,4 @@ template <spv::StorageClass C1> void WWWW(const var_t<vec_type_t<base_type_t<T>,
 void WWWW(const vec_type_t<base_type_t<T>, 4>& _var) const { InsertComponent<3, 3, 3, 3, 3>(var_t<vec_type_t<base_type_t<T>, 4>, Assemble, spv::StorageClassFunction>(_var));}
 __declspec(property(get = WWWW, put = WWWW)) TExtractType<4> wwww;
 __declspec(property(get = WWWW, put = WWWW)) TExtractType<4> aaaa;
-#endif // !TRACY_SPIRVVECTORCOMPONENTACCESS_H
+#endif // !SPEAR_SPIRVVECTORCOMPONENTACCESS_H

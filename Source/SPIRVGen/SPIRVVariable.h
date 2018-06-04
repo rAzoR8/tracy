@@ -1,5 +1,5 @@
-#ifndef TRACY_SPIRVVARIABLE_H
-#define TRACY_SPIRVVARIABLE_H
+#ifndef SPAR_SPIRVVARIABLE_H
+#define SPAR_SPIRVVARIABLE_H
 
 #include "SPIRVConstant.h"
 #include "GetStructMember.h"
@@ -10,7 +10,7 @@
 // enable old var load/store behaviour for now
 #define HDIRECT_MEMACCESS
 
-namespace Tracy
+namespace Spear
 {
 	// get value of var_t<> based on type
 	template<class T>
@@ -41,7 +41,7 @@ namespace Tracy
 	}
 
 #ifndef mvar
-#define mvar(x) Tracy::make_var<Assemble>((x))
+#define mvar(x) Spear::make_var<Assemble>((x))
 #endif
 
 	//---------------------------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ namespace Tracy
 	}
 
 #ifndef mivar
-#define mivar(x) Tracy::make_intermediate((x))
+#define mivar(x) Spear::make_intermediate((x))
 #endif
 
 	//---------------------------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ namespace Tracy
 	}
 
 #ifndef mcvar
-#define mcvar(x) Tracy::make_const<Assemble>((x))
+#define mcvar(x) Spear::make_const<Assemble>((x))
 #endif
 
 	//---------------------------------------------------------------------------------------------------
@@ -1668,6 +1668,6 @@ namespace Tracy
 	//---------------------------------------------------------------------------------------------------
 #pragma endregion
 
-} // !Tracy
+} // !Spear
 
-#endif // !TRACY_SPIRVVARIABLE_H
+#endif // !SPAR_SPIRVVARIABLE_H

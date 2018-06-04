@@ -1,10 +1,10 @@
-#ifndef TRACY_SPIRVINLINEASSEMBLER_H
-#define TRACY_SPIRVINLINEASSEMBLER_H
+#ifndef SPEAR_SPIRVINLINEASSEMBLER_H
+#define SPEAR_SPIRVINLINEASSEMBLER_H
 
 #include "SPIRVAssembler.h"
 #include "SPIRVProgram.h"
 
-namespace Tracy
+namespace Spear
 {
 	template <class TLambdaFunc, class ...Ts>
 	class SPIRVInlineFunctor : public SPIRVProgram<true>
@@ -17,7 +17,7 @@ namespace Tracy
 	};
 
 #ifndef _spv_begin
-#define _spv_begin class _inl_spv : public SPIRVProgram<true> { public: inline void operator()() {
+#define _spv_begin class _inl_spv : public Spear::SPIRVProgram<true> { public: inline void operator()() {
 #endif // !_spv_begin
 #ifndef _spv_end
 #define _spv_end }};
@@ -44,6 +44,6 @@ namespace Tracy
 		GlobalAssembler.RecordInstructions<TInlFunc>(std::forward<Ts>(_args)...);
 		return GlobalAssembler.Assemble();
 	}
-} // !Tracy
+} // !Spear
 
-#endif // !TRACY_SPIRVINLINEASSEMBLER_H
+#endif // !SPEAR_SPIRVINLINEASSEMBLER_H

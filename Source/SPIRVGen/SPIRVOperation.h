@@ -1,10 +1,10 @@
-#ifndef TRACY_SPIRVOPERATION_H
-#define TRACY_SPIRVOPERATION_H
+#ifndef SPEAR_SPIRVOPERATION_H
+#define SPEAR_SPIRVOPERATION_H
 
 #include <vulkan\spirv.hpp>
 #include "StandardDefines.h"
 
-namespace Tracy
+namespace Spear
 {
 	enum EOperandType : uint32_t
 	{
@@ -142,6 +142,6 @@ namespace Tracy
 	{
 		return m_uResultTypeId;
 	}
-} // !Tracy
+} // !Spear
 
-#endif // !TRACY_SPIRVOPERATION_H
+#endif // !SPEAR_SPIRVOPERATION_H
