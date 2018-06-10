@@ -1,6 +1,6 @@
 #include "Camera.h"
 #include "Display\RenderObject.h"
-#include "..\SPIRVShaderFactory\CommonBufferSourceNames.h"
+#include "SPIRVShaderFactory/CommonBufferSourceNames.h"
 
 #include <algorithm>
 

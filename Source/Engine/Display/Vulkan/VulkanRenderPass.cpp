@@ -4,7 +4,7 @@
 #include "VulkanTypeConversion.h"
 #include "Scene\Camera.h"
 #include "Display\RenderObject.h"
-#include "..\SPIRVShaderFactory\CommonBufferSourceNames.h"
+#include "SPIRVShaderFactory/CommonBufferSourceNames.h"
 
 using namespace Tracy;
 using namespace Spear;

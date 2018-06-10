@@ -1,5 +1,5 @@
 #include "RenderObject.h"
-#include "..\SPIRVShaderFactory\CommonBufferSourceNames.h"
+#include "SPIRVShaderFactory/CommonBufferSourceNames.h"
 
 using namespace Tracy;
 //---------------------------------------------------------------------------------------------------

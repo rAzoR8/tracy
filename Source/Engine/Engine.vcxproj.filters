@@ -188,9 +188,6 @@
     <ClInclude Include="Display\Vulkan\VulkanFence.h">
       <Filter>Display\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="..\SPIRVGen\SPIRVInterop.h">
-      <Filter>Display\Vulkan\SPIRVInterop</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display\Vulkan\VulkanDevice.cpp">

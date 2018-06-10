@@ -1,5 +1,5 @@
 #include "Engine.hpp"
-#include "../SPIRVShaderFactory/DefaultShaderIdentifiers.h"
+#include "SPIRVShaderFactory/DefaultShaderIdentifiers.h"
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
 

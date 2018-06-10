@@ -1,8 +1,8 @@
 #ifndef TRACY_ISHADERFACTORYCONSUMER_H
 #define TRACY_ISHADERFACTORYCONSUMER_H
 
-#include "..\SPIRVShaderFactory\IShaderFactory.h"
-#include "..\SPIRVGen\SPIRVInterop.h"
+#include "SPIRVShaderFactory/IShaderFactory.h"
+#include "SPIRVGen/SPIRVInterop.h"
 #include "VulkanDevice.h"
 #include <unordered_map>
 #include "FunctionalUtils.h"

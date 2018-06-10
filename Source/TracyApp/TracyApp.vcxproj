@@ -49,7 +49,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\src;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\Include;$(SolutionDir)Spear;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -66,7 +66,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\src;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\Include;$(SolutionDir)Spear;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -84,10 +84,10 @@
     <ProjectReference Include="..\Engine\Engine.vcxproj">
       <Project>{8cd64b25-857b-487b-a437-c23c81546f57}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">
+    <ProjectReference Include="..\SPIRVGen.vcxproj">
       <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\SPIRVShaderFactory\SPIRVShaderFactory.vcxproj">
+    <ProjectReference Include="..\SPIRVShaderFactory.vcxproj">
       <Project>{70859c6f-cbf5-4864-b5a9-77b0fe394cca}</Project>
     </ProjectReference>
   </ItemGroup>

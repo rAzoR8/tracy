@@ -3,7 +3,7 @@
 
 #include "ByteStream.h"
 #include <unordered_map>
-#include "..\SPIRVGen\SPIRVVariableTypes.h"
+#include "SPIRVGen/SPIRVVariableTypes.h"
 #include <glm\glm.hpp>
 
 namespace Tracy

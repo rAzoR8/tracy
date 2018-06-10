@@ -7,7 +7,7 @@
 #include <memory>
 #include "DisplayTypes.h"
 #include "Bytes.h"
-#include "..\SPIRVShaderFactory\DefaultShaderIdentifiers.h"
+#include "SPIRVShaderFactory/DefaultShaderIdentifiers.h"
 
 // forward decl
 

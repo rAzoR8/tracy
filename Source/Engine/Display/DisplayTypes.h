@@ -2,7 +2,7 @@
 #define TRACY_DISPLAYTYPES_H
 
 #include "StandardDefines.h"
-#include "..\SPIRVShaderFactory\ShaderID.h"
+#include "SPIRVShaderFactory/ShaderID.h"
 #include "Flag.h"
 #include <string>
 
