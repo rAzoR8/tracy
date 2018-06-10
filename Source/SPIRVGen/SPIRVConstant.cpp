@@ -1,3 +1,9 @@
+//Copyright(c) 2018
+//Authors: Fabian Wahlster
+//Website: https://twitter.com/singul4rity
+//Contact: f.wahlster@tum.de
+//License: MIT with attribution (see LICENSE.txt)
+
 #include "SPIRVConstant.h"
 #include "HashUtils.h"
 #include "Logger.h"

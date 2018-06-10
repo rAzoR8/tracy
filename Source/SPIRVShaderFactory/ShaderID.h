@@ -1,3 +1,9 @@
+//Copyright(c) 2018
+//Authors: Fabian Wahlster
+//Website: https://twitter.com/singul4rity
+//Contact: f.wahlster@tum.de
+//License: MIT with attribution (see LICENSE.txt)
+
 #ifndef SPEAR_SHADERID_H
 #define SPEAR_SHADERID_H
 
@@ -19,7 +25,6 @@ namespace Spear
         kShaderType_NumOf,
         kShaderType_Unknown = kShaderType_NumOf
     };
-
 
     template <EShaderType kType, uint16_t uShader, uint32_t uVariant = 0u>
     constexpr uint64_t kShaderID = (uint8_t)kType | ((uint64_t)uShader << 16u) | ((uint64_t)uVariant << 32u);

@@ -1,3 +1,9 @@
+//Copyright(c) 2018
+//Authors: Fabian Wahlster
+//Website: https://twitter.com/singul4rity
+//Contact: f.wahlster@tum.de
+//License: MIT with attribution (see LICENSE.txt)
+
 #define ExprCaptureRule &
 
 #include "SPIRVModule.h"
@@ -8,7 +14,7 @@
 #include "DeferredLightingExample.h"
 #include "StopWatch.h"
 
-using namespace Tracy;
+using namespace Spear;
 
 uint32_t uPerm = 0u;
 

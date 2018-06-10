@@ -1,3 +1,9 @@
+//Copyright(c) 2018
+//Authors: Fabian Wahlster
+//Website: https://twitter.com/singul4rity
+//Contact: f.wahlster@tum.de
+//License: MIT with attribution (see LICENSE.txt)
+
 #ifndef SPEAR_DEFAULTFACTORY_H
 #define SPEAR_DEFAULTFACTORY_H
 
