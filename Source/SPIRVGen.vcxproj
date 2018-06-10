@@ -92,38 +92,38 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="SPIRVBinaryDefines.h" />
-    <ClInclude Include="SPIRVComplex.h" />
-    <ClInclude Include="SPIRVExtensionAMD.h" />
-    <ClInclude Include="SPIRVInlineAssembler.h" />
-    <ClInclude Include="SPIRVQuaternion.h" />
-    <ClInclude Include="SPIRVVariableTypeDefs.h" />
-    <ClInclude Include="SPIRVVariableTypes.h" />
-    <ClInclude Include="SPIRVAssembler.h" />
-    <ClInclude Include="SPIRVBranchOperations.h" />
-    <ClInclude Include="SPIRVConstant.h" />
-    <ClInclude Include="SPIRVDecoration.h" />
-    <ClInclude Include="SPIRVInstruction.h" />
-    <ClInclude Include="SPIRVModule.h" />
-    <ClInclude Include="SPIRVOperation.h" />
-    <ClInclude Include="SPIRVOperatorImpl.h" />
-    <ClInclude Include="SPIRVProgram.h" />
-    <ClInclude Include="SPIRVType.h" />
-    <ClInclude Include="SPIRVVariable.h" />
-    <ClInclude Include="SPIRVVectorComponentAccess.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVBinaryDefines.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVComplex.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVExtensionAMD.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVInlineAssembler.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVQuaternion.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVVariableTypeDefs.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVVariableTypes.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVAssembler.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVBranchOperations.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVConstant.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVDecoration.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVInstruction.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVModule.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVOperation.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVOperatorImpl.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVProgram.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVType.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVVariable.h" />
+    <ClInclude Include="Spear\SPIRVGen\SPIRVVectorComponentAccess.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SPIRVAssembler.cpp" />
-    <ClCompile Include="SPIRVConstant.cpp" />
-    <ClCompile Include="SPIRVDecoration.cpp" />
-    <ClCompile Include="SPIRVInstruction.cpp" />
-    <ClCompile Include="SPIRVModule.cpp" />
-    <ClCompile Include="SPIRVOperation.cpp" />
-    <ClCompile Include="SPIRVType.cpp" />
-    <ClCompile Include="SPIRVVariable.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVAssembler.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVConstant.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVDecoration.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVInstruction.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVModule.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVOperation.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVType.cpp" />
+    <ClCompile Include="Spear\SPIRVGen\SPIRVVariable.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\spirvtools\source\opt\SPIRV-Tools-opt.vcxproj">
+    <ProjectReference Include="spirvtools\source\opt\SPIRV-Tools-opt.vcxproj">
       <Project>{a5c48754-5d51-3acd-baba-810800264694}</Project>
     </ProjectReference>
   </ItemGroup>

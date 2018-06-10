@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{FC75675A-89D1-422B-A8CB-B26FF5ECE37E}</ProjectGuid>
+    <RootNamespace>hlx</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="hlx\include\Bytes.h" />
+    <ClInclude Include="hlx\include\ByteStream.h" />
+    <ClInclude Include="hlx\include\CheckedArrayIterator.h" />
+    <ClInclude Include="hlx\include\CompileTimeString.h" />
+    <ClInclude Include="hlx\include\CRC32.h" />
+    <ClInclude Include="hlx\include\EnumOps.h" />
+    <ClInclude Include="hlx\include\FileStream.h" />
+    <ClInclude Include="hlx\include\Flag.h" />
+    <ClInclude Include="hlx\include\FunctionalUtils.h" />
+    <ClInclude Include="hlx\include\GetStructMember.h" />
+    <ClInclude Include="hlx\include\HashUtils.h" />
+    <ClInclude Include="hlx\include\IPlugin.h" />
+    <ClInclude Include="hlx\include\IteratorRange.h" />
+    <ClInclude Include="hlx\include\Logger.h" />
+    <ClInclude Include="hlx\include\PluginLoader.h" />
+    <ClInclude Include="hlx\include\Profiler.h" />
+    <ClInclude Include="hlx\include\Singleton.h" />
+    <ClInclude Include="hlx\include\StandardDefines.h" />
+    <ClInclude Include="hlx\include\StopWatch.h" />
+    <ClInclude Include="hlx\include\StringHelpers.h" />
+    <ClInclude Include="hlx\include\StringTypes.h" />
+    <ClInclude Include="hlx\include\TextToken.h" />
+    <ClInclude Include="hlx\include\Timer.h" />
+    <ClInclude Include="hlx\include\TimerWin32.h" />
+    <ClInclude Include="hlx\include\UniqueAssociationID.h" />
+    <ClInclude Include="hlx\include\UniqueID.h" />
+    <ClInclude Include="hlx\include\Vector.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

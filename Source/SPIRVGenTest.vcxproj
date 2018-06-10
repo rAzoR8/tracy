@@ -48,7 +48,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Spear\SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MinimalRebuild>false</MinimalRebuild>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -65,7 +65,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Spear\SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost;$(SolutionDir)boost\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -78,15 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DeferredLightingExample.h" />
-    <ClInclude Include="ExampleProg.h" />
-    <ClInclude Include="GenerateSwizzleHeader.h" />
+    <ClInclude Include="Spear\SPIRVGenTest\DeferredLightingExample.h" />
+    <ClInclude Include="Spear\SPIRVGenTest\ExampleProg.h" />
+    <ClInclude Include="Spear\SPIRVGenTest\GenerateSwizzleHeader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Spear\SPIRVGenTest\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">
+    <ProjectReference Include="SPIRVGen.vcxproj">
       <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
     </ProjectReference>
   </ItemGroup>

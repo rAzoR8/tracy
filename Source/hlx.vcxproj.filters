@@ -15,64 +15,86 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CommonBufferSourceNames.h">
+    <ClInclude Include="src\Bytes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScreenSpaceTriangle.h">
+    <ClInclude Include="src\ByteStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ClearColor.h">
+    <ClInclude Include="src\CheckedArrayIterator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultShaderFactory.h">
+    <ClInclude Include="src\EnumOps.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultShaderIdentifiers.h">
+    <ClInclude Include="src\FileStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mandelbrot.h">
+    <ClInclude Include="src\IteratorRange.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MicrofacetReflection.h">
+    <ClInclude Include="src\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SDFObject.h">
+    <ClInclude Include="src\Profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSGObject.h">
+    <ClInclude Include="src\Singleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleCSGRayMarching.h">
+    <ClInclude Include="src\StandardDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CameraFunctions.h">
+    <ClInclude Include="src\StopWatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MaterialInterface.h">
+    <ClInclude Include="src\StringHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PhongMaterial.h">
+    <ClInclude Include="src\StringTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LightingFunctions.h">
+    <ClInclude Include="src\TextToken.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSGExampleShader.h">
+    <ClInclude Include="src\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MathFunctions.h">
+    <ClInclude Include="src\TimerWin32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderID.h">
+    <ClInclude Include="src\Vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IShaderFactory.h">
+    <ClInclude Include="src\HashUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="DefaultShaderFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="src\FunctionalUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GetStructMember.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CRC32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UniqueAssociationID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UniqueID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CompileTimeString.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Flag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PluginLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IPlugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

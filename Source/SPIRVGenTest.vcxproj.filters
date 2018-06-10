@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ExampleProg.h">
+    <ClInclude Include="Spear\SPIRVGenTest\ExampleProg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GenerateSwizzleHeader.h">
+    <ClInclude Include="Spear\SPIRVGenTest\GenerateSwizzleHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DeferredLightingExample.h">
+    <ClInclude Include="Spear\SPIRVGenTest\DeferredLightingExample.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="Spear\SPIRVGenTest\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -48,7 +48,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll\include;$(SolutionDir)boost;$(SolutionDir)Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Spear\SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll\include;$(SolutionDir)boost;$(SolutionDir)Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;HDYNAMIC_LINKAGE;HDLL_EXPORT;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -62,7 +62,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\src;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll\include;$(SolutionDir)boost;$(SolutionDir)Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Spear\SPIRVGen\;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\spirv-tools\include;$(VULKAN_SDK)\Include;$(SolutionDir)boost\libs\dll\include;$(SolutionDir)boost;$(SolutionDir)Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;HDYNAMIC_LINKAGE;HDLL_EXPORT;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -73,30 +73,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DefaultShaderFactory.cpp" />
+    <ClCompile Include="Spear\SPIRVShaderFactory\DefaultShaderFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CameraFunctions.h" />
-    <ClInclude Include="CommonBufferSourceNames.h" />
-    <ClInclude Include="CSGExampleShader.h" />
-    <ClInclude Include="CSGObject.h" />
-    <ClInclude Include="DefaultShaderFactory.h" />
-    <ClInclude Include="ClearColor.h" />
-    <ClInclude Include="IShaderFactory.h" />
-    <ClInclude Include="LightingFunctions.h" />
-    <ClInclude Include="Mandelbrot.h" />
-    <ClInclude Include="MaterialInterface.h" />
-    <ClInclude Include="MathFunctions.h" />
-    <ClInclude Include="MicrofacetReflection.h" />
-    <ClInclude Include="PhongMaterial.h" />
-    <ClInclude Include="ScreenSpaceTriangle.h" />
-    <ClInclude Include="DefaultShaderIdentifiers.h" />
-    <ClInclude Include="SDFObject.h" />
-    <ClInclude Include="ShaderID.h" />
-    <ClInclude Include="SimpleCSGRayMarching.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\CameraFunctions.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\CommonBufferSourceNames.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\CSGExampleShader.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\CSGObject.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\DefaultShaderFactory.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\ClearColor.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\IShaderFactory.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\LightingFunctions.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\Mandelbrot.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\MaterialInterface.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\MathFunctions.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\MicrofacetReflection.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\PhongMaterial.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\ScreenSpaceTriangle.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\DefaultShaderIdentifiers.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\SDFObject.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\ShaderID.h" />
+    <ClInclude Include="Spear\SPIRVShaderFactory\SimpleCSGRayMarching.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SPIRVGen\SPIRVGen.vcxproj">
+    <ProjectReference Include="SPIRVGen.vcxproj">
       <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
     </ProjectReference>
   </ItemGroup>
