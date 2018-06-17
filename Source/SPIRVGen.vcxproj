@@ -65,8 +65,8 @@
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Lib>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)spirvtools\source\opt\$(Configuration);$(SolutionDir)spirvtools\source\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SPIRV-Tools.lib;SPIRV-Tools-opt.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -87,8 +87,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)spirvtools\source\opt\$(Configuration);$(SolutionDir)spirvtools\source\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SPIRV-Tools.lib;SPIRV-Tools-opt.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -121,11 +121,6 @@
     <ClCompile Include="Spear\SPIRVGen\SPIRVOperation.cpp" />
     <ClCompile Include="Spear\SPIRVGen\SPIRVType.cpp" />
     <ClCompile Include="Spear\SPIRVGen\SPIRVVariable.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="spirvtools\source\opt\SPIRV-Tools-opt.vcxproj">
-      <Project>{a5c48754-5d51-3acd-baba-810800264694}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
