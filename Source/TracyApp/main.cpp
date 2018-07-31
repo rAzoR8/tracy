@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 	RenderGraphDesc Desc{};
 	RenderPassDesc& Pass(Desc.Passes.emplace_back());
 	Pass.sPassName = L"TestPass";
-	Pass.sLibName = L"SPIRVShaderFactory";
+	Pass.sLibName = L"libSPEARShaderFactory";
 
 	Pass.Framebuffer.uWidth = 1600u;
 	Pass.Framebuffer.uHeight = 900u;

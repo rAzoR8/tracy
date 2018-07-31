@@ -19,30 +19,11 @@ namespace Tracy
 		kVendorID_Unknown = 0xFFFF
 	};
 
-	/*static std::vector<EVendorID> VendorIDs = {
-		kVendorID_Nvidia,
-		kVendorID_AMD,
-		kVendorID_ATI,
-		kVendorID_Intel,
-		kVendorID_Nintendo,
-		kVendorID_Sony,
-		kVendorID_Microsoft
-	};*/
-
-	/*enum EDeviceType
-	{
-		kDeviceType_Discrete = 0,
-		kDeviceType_Integrated,
-		kDeviceType_Console,
-		kDeviceType_Software
-	};*/
-
 	struct DeviceInfo
 	{
 		uint64_t uTotalMemory = 0u;
 		EVendorID VendorID = kVendorID_Unknown;
 		THandle hHandle = kUndefinedSizeT;
-		//EDeviceType Type;
 	};
 }
 

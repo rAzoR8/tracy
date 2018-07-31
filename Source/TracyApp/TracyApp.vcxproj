@@ -49,13 +49,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\Include;$(SolutionDir)Spear;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Include;$(SPEAR_SDK);$(SPEAR_SDK)\libs\hlx\include;$(SPEAR_SDK)\libs\glm;$(SPEAR_SDK)\libs\spirv-headers\include;$(SPEAR_SDK)\libs\spirv-tools\include;$(BOOST_DIR);$(BOOST_DIR)\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>SPEAR_ENABLE_PROPERTIES;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)boost\stage\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;libboost_system-vc141-mt-gd-x64-1_67.lib;libboost_filesystem-vc141-mt-gd-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(BOOST_DIR)\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;libboost_system-vc141-mt-gd-x64-1_68.lib;libboost_filesystem-vc141-mt-gd-x64-1_68.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -66,15 +66,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Third-Party\Include;$(SolutionDir)hlx\include;$(VULKAN_SDK)\Include;$(SolutionDir)Spear;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(VULKAN_SDK)\Include;$(SPEAR_SDK);$(SPEAR_SDK)\libs\hlx\include;$(SPEAR_SDK)\libs\glm;$(SPEAR_SDK)\libs\spirv-headers\include;$(SPEAR_SDK)\libs\spirv-tools\include;$(BOOST_DIR);$(BOOST_DIR)\libs\dll\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>SPEAR_ENABLE_PROPERTIES;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)boost\stage\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;libboost_system-vc141-mt-x64-1_67.lib;libboost_filesystem-vc141-mt-x64-1_67.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(BOOST_DIR)\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;libboost_system-vc141-mt-x64-1_68.lib;libboost_filesystem-vc141-mt-x64-1_68.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -84,11 +84,8 @@
     <ProjectReference Include="..\Engine\Engine.vcxproj">
       <Project>{8cd64b25-857b-487b-a437-c23c81546f57}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\SPIRVGen.vcxproj">
-      <Project>{88829d59-bb15-443d-800f-01a6d9595fac}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\SPIRVShaderFactory.vcxproj">
-      <Project>{70859c6f-cbf5-4864-b5a9-77b0fe394cca}</Project>
+    <ProjectReference Include="..\Spear\libSPEARShaderFactory.vcxproj">
+      <Project>{7939922e-419d-3225-9265-e873b0539ee1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

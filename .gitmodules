@@ -1,9 +1,0 @@
-[submodule "Source/boost"]
-	path = Source/boost
-	url = https://github.com/boostorg/boost.git
-[submodule "Source/Spear"]
-	path = Source/Spear
-	url = https://github.com/rAzoR8/SPEAR.git
-[submodule "Source/hlx"]
-	path = Source/hlx
-	url = https://github.com/rAzoR8/hlx.git
